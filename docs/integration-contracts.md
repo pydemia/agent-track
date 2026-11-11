@@ -185,6 +185,25 @@ credentials are not substitute service credentials. Do not read execution result
 Markdown or Note bodies. Explicit Demian/desktop references remain unavailable
 until their producer supplies them; role membership alone is not delegation.
 
+Implementation scope for the optional producer: dedicated GET-only
+`/api/integrations/track/v1/{capabilities,executions,...}` with an expiring,
+revisioned reader bound to the current configured Entra work owner. Its own
+credential is loaded from a private file, and checked again before each result
+is returned. Existing UI proxy/session/CSRF checks remain on their routes.
+Native coordinator reads must revalidate its frozen instruction, role membership,
+runtime context and result proof; a withdrawn context is withheld from this API.
+The list uses an owner-scoped stable row-id high-water cursor, HMAC bound to the
+reader revision, a short expiry, and a response-size bound. It does not dispatch,
+cancel, reconcile, publish a result, migrate a database or start background work.
+
+Operational audit found the public Assistant in its separate rootless Docker
+engine, not the rootful OAuth enrollment helper. Current image is
+`sha256:ccdb8c9b7337cd46005472a0bd23c1620b7a87d68e49ea7eba642e7efbbddcf0`;
+its base revision label is `b6070571e480bd7e342ca3a1f50dc79b0f190449` with
+separate reporting/gateway overlays. Actual installed `main.js`, `api.js` and
+`workbench/executions.js` hashes match the audited local compiled files. A
+container name or base label alone is not treated as proof of the whole source.
+
 ## Native artifact metadata implementation
 
 Track now provides authenticated `GET /api/runs/:runKey/artifacts`. It rechecks
