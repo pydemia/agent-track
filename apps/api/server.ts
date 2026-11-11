@@ -11,6 +11,9 @@ import { ApprovalService } from "../../packages/approvals/index.ts";
 import { RunPermissions } from "./permissions.ts";
 import { fileEvidence } from "./files.ts";
 import { ProjectTaskCreation } from "./task-creation.ts";
+import { lineageEvidence } from "./lineage.ts";
+import { toolEvidence } from "./tools.ts";
+import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -196,6 +199,20 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const files = /^\/api\/runs\/([A-Za-z0-9_-]+)\/files$/.exec(url.pathname);
       if (files) {
         const evidence = await fileEvidence(config, snapshot, user, files[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
+      }
+      const lineage = /^\/api\/runs\/([A-Za-z0-9_-]+)\/lineage$/.exec(url.pathname);
+      const tools = /^\/api\/runs\/([A-Za-z0-9_-]+)\/tools$/.exec(url.pathname);
+      if (request.method === "GET" && tools) {
+        const evidence = await toolEvidence(config, snapshot, user, tools[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
+      }
+      if (request.method === "GET" && lineage) {
+        const after = sequenceSchema.safeParse(url.searchParams.get("after") ?? "0");
+        if (!after.success) throw new CommandError(400, "invalid_cursor", "lineage 조회 위치를 확인해 주세요.");
+        const evidence = await lineageEvidence(config, snapshot, user, lineage[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), after.data);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

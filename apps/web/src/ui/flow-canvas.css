@@ -1,0 +1,89 @@
+[data-ui="flow-canvas"] {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-subtle);
+    corner-shape: squircle;
+}
+[data-ui="flow-canvas"] .react-flow { color: var(--foreground); }
+[data-ui="flow-alignment-guide"] {
+    position: absolute;
+    pointer-events: none;
+    z-index: 5;
+    border-color: var(--accent);
+    opacity: .85;
+}
+[data-ui="flow-alignment-guide"][data-axis="x"] {
+    top: -10000px;
+    height: 20000px;
+    border-left: 1px dashed var(--accent);
+}
+[data-ui="flow-alignment-guide"][data-axis="y"] {
+    left: -10000px;
+    width: 20000px;
+    border-top: 1px dashed var(--accent);
+}
+[data-ui="flow-canvas"] .react-flow__edge-path { stroke: var(--muted); stroke-width: 2; }
+[data-ui="flow-canvas"] .react-flow__edge.selected .react-flow__edge-path,
+[data-ui="flow-canvas"] .pyd-flow-edge-selected { stroke: var(--accent); stroke-width: 2.5; }
+[data-ui="flow-canvas"] .react-flow__handle {
+    width: 11px;
+    height: 11px;
+    border: 2px solid var(--surface);
+    background: var(--accent);
+}
+[data-ui="flow-canvas"] .react-flow__controls,
+[data-ui="flow-canvas"] .react-flow__minimap {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 2px 12px color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+[data-ui="flow-canvas"] .react-flow__controls-button {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--foreground);
+    fill: currentColor;
+}
+[data-ui="flow-canvas"] .react-flow__controls-button:hover { background: var(--surface-subtle); }
+[data-ui="flow-canvas"] .react-flow__minimap-mask { fill: var(--background); fill-opacity: .65; }
+[data-ui="flow-canvas"] .react-flow__node.selected [data-ui="flow-node"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+[data-ui="flow-canvas"] .react-flow__node.selected [data-ui="flow-group"] {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent);
+}
+[data-ui="flow-canvas"] [data-ui="flow-node"][data-kind="trigger"] { border-top: 3px solid var(--accent); }
+[data-ui="flow-canvas"] [data-ui="flow-node"][data-kind="condition"] { border-top: 3px solid var(--warning); }
+[data-ui="flow-canvas"] [data-ui="flow-node"][data-kind="result"] { border-top: 3px solid var(--success); }
+[data-ui="flow-canvas"] [data-slot="flow-status"] { color: var(--muted); }
+[data-ui="flow-canvas"] [data-status="running"] [data-slot="flow-status"] { color: var(--accent); }
+[data-ui="flow-canvas"] [data-status="complete"] [data-slot="flow-status"] { color: var(--success); }
+[data-ui="flow-canvas"] [data-status="error"] [data-slot="flow-status"] { color: var(--danger); }
+[data-ui="flow-edge-label"] {
+    padding: 3px 7px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--foreground);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.pyd-flow-control-point {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    background: var(--surface);
+    cursor: grab;
+    z-index: 6;
+}
+.pyd-flow-control-point:active { cursor: grabbing; }
+.pyd-flow-control-point:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}

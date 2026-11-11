@@ -1,0 +1,83 @@
+{
+  "retrievedAt": "2026-11-11T16:24:56.193Z",
+  "provider": "pydemia/ui",
+  "sourceLicense": "project-owned; reused at owner request",
+  "changes": [
+    "Relative imports use explicit TypeScript extensions for NodeNext.",
+    "Strict optional TypeScript properties are passed conditionally.",
+    "Read-only canvas disables mutation/deletion and exposes node kind/status labels.",
+    "Layout declares its graph type locally; clipboard editing module is not included.",
+    "Node header/body use explicit slots so the React Flow port divs are not styled as card content.",
+    "Layout accepts an explicit stable node order; tools use canonical sequence order while record-order edges do not determine hierarchy columns.",
+    "Read-only edge labels are focusable selection buttons connected to the same inspector."
+  ],
+  "items": [
+    {
+      "name": "pyd-flow-canvas",
+      "url": "https://ui.pydemia.ai/r/pyd-flow-canvas.json",
+      "sha256": "b53ea292ed034b9fddbe3ab06f768f6c129e0c77d5e8e79db8d3d09f2df2b6df",
+      "dependencies": [
+        "@xyflow/react@12.12.0"
+      ],
+      "registryDependencies": [
+        "https://pydemia-ui.vercel.app/r/pyd-flow-alignment.json"
+      ],
+      "files": [
+        {
+          "path": "flow-canvas.tsx",
+          "sourceSha256": "5171f48af1f600af34d4dc01eb1bf19fc3e2ddc33c7bf212320f14f9105b5fdc"
+        },
+        {
+          "path": "flow-canvas.css",
+          "sourceSha256": "1ec0ac2e38e8865623a527b08fe899585c73014f638321e784c29d3051aefa3c"
+        }
+      ]
+    },
+    {
+      "name": "pyd-flow-alignment",
+      "url": "https://ui.pydemia.ai/r/pyd-flow-alignment.json",
+      "sha256": "e6fcbe3f8a224cbd4d2fa6498445cf89f1b5b3ca9e11bf81c33741215ab15ec2",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "flow-alignment.ts",
+          "sourceSha256": "7996a2b3f5663c69197a8ec85ba1bfc26f78d32343f8a30227428e5e72ed2ec7"
+        }
+      ]
+    },
+    {
+      "name": "pyd-flow-layout",
+      "url": "https://ui.pydemia.ai/r/pyd-flow-layout.json",
+      "sha256": "82bce52839f832d06af98c05856023bc42c7aea93b37f394f12271141b3d29c7",
+      "dependencies": [],
+      "registryDependencies": [
+        "https://pydemia-ui.vercel.app/r/pyd-flow-alignment.json",
+        "https://pydemia-ui.vercel.app/r/pyd-flow-clipboard.json"
+      ],
+      "files": [
+        {
+          "path": "flow-layout.ts",
+          "sourceSha256": "a1935781dcfeec9e98482e3aafafd10ea15e949e227796681b940588f75d18da"
+        }
+      ]
+    },
+    {
+      "name": "pyd-flow-clipboard",
+      "url": "https://ui.pydemia.ai/r/pyd-flow-clipboard.json",
+      "sha256": "0904553494c67a4689741f2ffe26fcadc19627dc3f6e23337dfaea9c040c1274",
+      "dependencies": [],
+      "registryDependencies": [
+        "https://pydemia-ui.vercel.app/r/pyd-flow-canvas.json"
+      ],
+      "files": [
+        {
+          "path": "flow-clipboard.ts",
+          "sourceSha256": "f351c0b2a1fa62fde7466d00bbcc3f5501e23e0c68c3302715c110e3e756dca8"
+        }
+      ],
+      "included": false,
+      "reason": "Inspected type dependency only; clipboard editing code is not shipped."
+    }
+  ]
+}

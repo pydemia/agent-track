@@ -1,0 +1,60 @@
+.mission-flow { --background: var(--bg); --foreground: var(--ink); --border: var(--line); --surface-subtle: var(--surface); --accent: var(--lime); --warning: var(--amber); --success: var(--lime); --focus: var(--lime); --danger: var(--red); --flow-edge: #89977a; min-width: 0; }
+.flow-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin: 0 0 12px; }
+.flow-heading h2 { margin: 0; font-size: 18px; font-weight: 550; }
+.flow-heading p { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.flow-semantics { display: flex; flex-wrap: wrap; gap: 7px 20px; margin: 12px 0; color: var(--muted); font-size: 10px; }
+.mission-flow-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 0; align-items: stretch; min-width: 0; }
+.mission-flow-canvas { min-width: 0; border-radius: 0 !important; background: var(--bg); }
+.mission-flow [data-ui="flow-node"] { box-sizing: border-box; display: flex; flex-direction: column; width: 240px; height: 136px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
+.mission-flow [data-ui="flow-node"] > [data-slot="flow-node-heading"] { border-bottom: 1px solid var(--line); padding: 10px 12px 8px; }
+.mission-flow [data-ui="flow-node"] > [data-slot="flow-node-heading"] > span { display: block; color: var(--muted); font: 9px var(--mono); }
+.mission-flow [data-ui="flow-node"] strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: 4px; font: 550 13px/18px "Segoe UI", "Malgun Gothic", sans-serif; overflow-wrap: anywhere; }
+.mission-flow [data-ui="flow-node"] > [data-slot="flow-node-body"] { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; color: var(--muted); font: 10px/15px "Segoe UI", "Malgun Gothic", sans-serif; }
+.mission-flow [data-ui="flow-node"] > [data-slot="flow-node-body"] > span:first-child { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; min-width: 0; overflow-wrap: anywhere; }
+.mission-flow [data-slot="flow-status"] { flex-shrink: 0; }
+.mission-flow [data-ui="flow-canvas"] .react-flow__minimap { bottom: 30px; }
+.mission-flow [data-ui="flow-edge-label"] { font: 10px "Segoe UI", "Malgun Gothic", sans-serif; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+.mission-flow .mission-edge-ownership .react-flow__edge-path, .mission-flow .mission-edge-task-binding .react-flow__edge-path { stroke-dasharray: 4 5; opacity: .7; }
+.mission-flow .mission-edge-record-order .react-flow__edge-path { stroke: #8f9fba; }
+.mission-flow .mission-edge-dependency .react-flow__edge-path { stroke: var(--amber); stroke-width: 2.5; }
+.mission-flow .mission-edge-managed-child .react-flow__edge-path, .mission-flow .mission-edge-invocation .react-flow__edge-path { stroke: var(--lime); }
+.mission-flow .mission-edge-peer .react-flow__edge-path { stroke: #a599d1; stroke-dasharray: 8 4; }
+.flow-inspector { min-width: 0; max-height: clamp(560px, 72vh, 740px); overflow: auto; border: 1px solid var(--line); border-left: 0; padding: 18px; }
+.flow-inspector > small { color: var(--lime); font: 10px var(--mono); }
+.flow-inspector h3 { font-size: 16px; line-height: 1.45; margin: 8px 0 12px; overflow-wrap: anywhere; }
+.flow-inspector p { color: var(--muted); font-size: 12px; line-height: 1.65; overflow-wrap: anywhere; }
+.flow-inspector dl { margin: 20px 0; }
+.flow-inspector dl > div { border-top: 1px solid var(--line); padding: 9px 0; }
+.flow-inspector dt { color: var(--muted); font-size: 10px; }
+.flow-inspector dd { margin: 4px 0 0; font: 10px/1.6 var(--mono); overflow-wrap: anywhere; }
+.flow-inspector h4 { font-size: 12px; margin: 20px 0 8px; }
+.flow-evidence { font: 10px/1.7 var(--mono); }
+.flow-neighbours { display: grid; }
+.flow-accessible-list { margin: 14px 0 25px; border-bottom: 1px solid var(--line); padding: 10px 0; font-size: 12px; }
+.flow-accessible-list summary { cursor: pointer; }
+.flow-accessible-list small { margin-left: 10px; color: var(--muted); font-size: 10px; }
+.flow-accessible-list label { display: grid; gap: 7px; margin: 16px 0; color: var(--muted); }
+.flow-accessible-list input { width: min(100%, 440px); background: var(--surface); border: 1px solid var(--line); color: var(--ink); padding: 8px; }
+.flow-list-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; max-height: 350px; overflow: auto; }
+.flow-list-columns section { min-width: 0; }
+.flow-list-columns h3 { font-size: 11px; color: var(--muted); }
+.flow-list-choice { display: grid; width: 100%; min-width: 0; gap: 5px; text-align: left; padding: 10px 0; border: 0; border-top: 1px solid var(--line); color: var(--ink); background: transparent; cursor: pointer; }
+.flow-list-choice strong { font-size: 11px; font-weight: 500; overflow-wrap: anywhere; }
+.flow-list-choice span { font-size: 10px; color: var(--muted); overflow-wrap: anywhere; }
+.flow-list-choice[aria-pressed="true"] { color: var(--lime); }
+.content-grid.map-content-grid { display: block; }
+.flow-raw-evidence, .flow-run-picker, .flow-run-controls { margin: 16px 0; padding: 12px 0; border-top: 1px solid var(--line); font-size: 12px; }
+.flow-raw-evidence > summary, .flow-run-picker > summary, .flow-run-controls > summary { cursor: pointer; }
+.flow-run-picker .execution-list { max-height: 380px; overflow: auto; }
+.flow-run-controls > .inspector { border-left: 0; margin-top: 12px; }
+.activity-trail .event-content p { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.mission-summary { border-top: 1px solid var(--line); padding: 18px 0; min-width: 0; }
+.mission-summary-title { display: flex; justify-content: space-between; gap: 16px; align-items: start; }
+.mission-summary-title small { color: var(--muted); font-size: 10px; }
+.mission-summary-title h3 { font-size: 15px; margin: 6px 0; overflow-wrap: anywhere; }
+.mission-summary p { font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
+.mission-state { color: var(--lime); }
+.mission-summary summary { font-size: 11px; cursor: pointer; }
+.mission-run-list { max-height: 320px; overflow: auto; margin-top: 10px; }
+@media (max-width: 1050px) { .mission-flow-workspace { grid-template-columns: minmax(0, 1fr) 235px; } }
+@media (max-width: 760px) { .mission-flow-workspace { grid-template-columns: minmax(0, 1fr); } .flow-inspector { border-left: 1px solid var(--line); border-top: 0; max-height: none; } .mission-flow [data-ui="flow-canvas"] .react-flow__minimap { display: none; } .flow-list-columns { grid-template-columns: minmax(0, 1fr); } .flow-heading { flex-wrap: wrap; } }

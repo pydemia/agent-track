@@ -8,6 +8,11 @@ import {
 } from "../../contracts/index.ts";
 import { permissionJson, permissionList, permissionReview } from "./permissions.ts";
 import { fileChangeSignal, projectFileChanges, type FileSignal } from "../../projection/file-changes.ts";
+import { canonicalLineageCursor, parseNativeLineagePage, readBoundedLineageJson, type NativeLineagePage } from "./lineage.ts";
+import { projectToolEvidence, type ToolEvidencePage } from "./tool-evidence.ts";
+
+export type { NativeLineageObservation, NativeLineagePage } from "./lineage.ts";
+export type { ToolEvidenceCall, ToolEvidenceEventType, ToolEvidenceMark, ToolEvidenceOutcome, ToolEvidencePage } from "./tool-evidence.ts";
 
 const artifactManifestSchema = z.object({
   version: z.literal(1),
@@ -189,6 +194,72 @@ export class DemianClient {
     const omittedChanges = Math.max(0, projected.length - 500);
     return { changes: projected.slice(0, 500), scanned, limit, targetSequence,
       throughSequence: String(through), omittedChanges, complete: contiguous >= target && omittedChanges === 0 };
+  }
+
+  async toolEvidence(runId: string, targetSequence: string): Promise<ToolEvidencePage> {
+    z.uuid().parse(runId); sequenceSchema.parse(targetSequence);
+    const limit = 2000 as const;
+    const empty: ToolEvidencePage = {
+      calls: [], scanned: 0, limit, targetSequence, throughSequence: "0",
+      targetReached: targetSequence === "0", gaps: false, truncated: false,
+      omittedCalls: 0, unidentifiedEvents: 0, complete: targetSequence === "0",
+    };
+    if (targetSequence === "0") return empty;
+    const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/events?after=0`, AbortSignal.timeout(10_000));
+    if (!response.body || !response.headers.get("content-type")?.startsWith("text/event-stream")) {
+      await response.body?.cancel(); throw new Error("Expected tool evidence SSE");
+    }
+    const stop = new Error("Tool evidence target reached");
+    const resourceLimit = new Error("Tool evidence limit reached");
+    const events: unknown[] = []; const ids: string[] = []; const seen = new Set<string>();
+    let scanned = 0; let through = 0n; let contiguous = 0n; let bytes = 0; let truncated = false;
+    const target = BigInt(targetSequence);
+    const bounded = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ transform(chunk, controller) {
+      bytes += chunk.byteLength;
+      if (bytes > 8_388_608) throw resourceLimit;
+      controller.enqueue(chunk);
+    } }));
+    try {
+      await parseSse(bounded, (id, raw) => {
+        const event = nativeEventSchema.parse(raw);
+        if (event.run_id !== runId || event.sequence_text !== id) throw new Error("Tool evidence scope mismatch");
+        const sequence = BigInt(event.sequence_text);
+        if (sequence > target) throw stop;
+        scanned++; events.push(raw); ids.push(id); seen.add(id);
+        if (sequence > through) through = sequence;
+        while (seen.has(String(contiguous + 1n))) contiguous++;
+        if (contiguous >= target) throw stop;
+        if (scanned >= limit) throw resourceLimit;
+      });
+    } catch (error) {
+      if (error === resourceLimit || (error instanceof Error && error.message === "Source SSE frame too large")) truncated = true;
+      else if (error !== stop) throw error;
+    }
+    const projected = projectToolEvidence(events, runId, ids);
+    const omittedCalls = Math.max(0, projected.calls.length - 500);
+    const targetReached = contiguous >= target;
+    const complete = targetReached && !truncated && omittedCalls === 0 && projected.unidentifiedEvents === 0;
+    const calls = projected.calls.slice(0, 500).map((call) =>
+      !complete && call.outcome === "succeeded" ? { ...call, outcome: "unknown" as const } : call);
+    return {
+      calls, scanned, limit, targetSequence, throughSequence: String(through), targetReached,
+      gaps: through > contiguous, truncated, omittedCalls,
+      unidentifiedEvents: projected.unidentifiedEvents,
+      complete,
+    };
+  }
+
+  async lineage(runId: string, after = "0", limit = 250): Promise<NativeLineagePage> {
+    z.uuid().parse(runId);
+    canonicalLineageCursor(after);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 250) throw new Error("Invalid native lineage limit");
+    const query = new URLSearchParams({ after, limit: String(limit) });
+    const response = await this.request(
+      `/api/v1/runs/${encodeURIComponent(runId)}/lineage?${query.toString()}`,
+      AbortSignal.timeout(10_000),
+    );
+    const raw = await readBoundedLineageJson(response);
+    return parseNativeLineagePage(raw, runId, after, limit);
   }
 
   async decidePermission(runId: string, permissionId: string, decision: PermissionDecision): Promise<PermissionReview> {

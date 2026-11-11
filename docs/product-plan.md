@@ -1,8 +1,10 @@
 # Agent Track 제품 기획안
 
-작성일·갱신일: 2026-11-11 KST · 상태: v0.3 기획·개발 순서 제안 · 사용자 확정: 제품명 Track, 하위 개념 Trail·Trace·Map, 통합 대상 세 앱, 서비스 주소와 저장소.
+작성일·갱신일: 2026-11-12 KST · 상태: v0.4 기획·개발 순서 제안 · 사용자 확정: 제품명 Track, 하위 개념 Trail·Trace·Map, 통합 대상 세 앱, 서비스 주소와 저장소.
 
 인증 결정 추가: 공개 서비스의 기본 로그인은 pydemia tenant의 Microsoft Entra ID입니다. 사용자 이름·비밀번호는 별도 로컬 관리자·테스트 경로에만 허용하며 공개 SSO 우회 수단으로 사용하지 않습니다. 앱별 OIDC client·cookie·secret을 분리하고 초기 접근은 소유자 계정으로 제한합니다. [실제 구성 상태](entra-sso.md)는 기획과 별도로 기록합니다.
+
+2026-11-12 추가 요구: Demian의 cross-platform·cross-session Task/subagent 조직화와 최종 목표 수행을 중심으로 네 화면을 구분합니다. 실제 FlowCanvas 재사용·관계 의미·native 증거 경계·후속 개발은 [업무·협업 Flow 개편](mission-ui-plan.md)을 따릅니다.
 
 ## 1. 목적과 제품 경계
 

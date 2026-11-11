@@ -1,6 +1,6 @@
 # Agent Track 개발계획
 
-기준: 2026-11-12 KST · 제품 기획 v0.3 · 실행 goal 활성.
+기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
 ## 제품 책임과 변경된 우선순위
@@ -17,6 +17,8 @@ Session/Run·실행·권한을 소유한다. Track은 조회 투영·원본 연�
 Codex metadata 수집은 병행한다. Demian 저장소의 Codex 로그가 있다는 것과
 Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운영한다.
 
+2026-11-12 UI 우선순위: [업무·협업 Flow 개편](mission-ui-plan.md)에 따라 Track은 업무별 세션/Run 조직, Trail은 작업 경과, Trace는 호출·도구 실행 분석, Map은 명시된 업무·소속·위임·협업 관계로 나눴다. 실제 Pydemia FlowCanvas와 별도 인가 native lineage·tool 결과 조회를 사용한다. source에 없는 목표/의존 관계를 추정해 완성하지 않는다.
+
 ## 구현 구조와 현재 결과
 
 | 영역 | 실제 경로 | 현재 결과·남은 검증 |
@@ -25,7 +27,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 정규 계약 | `packages/contracts/index.ts` | 외부 ID, string int64, metadata allowlist, Run별 binding |
 | 원장 | `packages/storage/store.ts` | SQLite journal, dedupe/gap/cursor, 조회 투영·binding 이력. 백업 선행 archive·dedupe tombstone, 운영 보존 적용 전 |
 | Demian adapter | `packages/adapters/demian/` | Run/Session snapshot·per-Run SSE·활성 Run·명시적으로 허용한 메시지 entry 기반 과거 Run 탐색. 기존 private service credential 참조·실제 native Run17event 수집/재시작/공개 Trace 대조 |
-| Projects·연결 | `packages/adapters/projects/`, `packages/bindings/` | 전용 reader·현재 ACL·원본 metadata7프로젝트28업무. 실제 QA Run A→B 연결/당시 revision·동일 receipt·재시작·scope 철회/복구 |
+| Projects·연결 | `packages/adapters/projects/`, `packages/bindings/` | 전용 reader·현재 ACL·원본 metadata7프로젝트29업무. 실제 QA Run A→B 연결/당시 revision·동일 receipt·재시작·scope 철회/복구 |
 | 로컬 수집 | `packages/adapters/codex/` | 허용 저장소의 Codex turn/tool metadata. 원문 제외, 파일/기간/크기 한계 공개 |
 | API | `apps/api/` | loopback 전용·Entra proxy 신뢰 key·사용자 source grant·snapshot/SSE·이력 paging |
 | 파일 근거 | `apps/api/files.ts`, `packages/projection/file-changes.ts`, `FileEvidencePanel.tsx` | native 파일 편집의 원본 요청·성공/실패 연결, 단순 요청/모호함 구분. 실제4Run·파일/hash·공개 Trail·모바일·철회/복구·원장 불변 대조 |
@@ -35,7 +37,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
 | 승인 | `packages/approvals/`, `apps/api/permissions.ts`, `RunApprovals.tsx` | native 요청/명시 검토·fingerprint·scope/expiry·receipt/unknown·권한 재확인. 실제 단일 호출 허용/거절/자동 만료·철회/복구·모바일 대조 |
-| 테스트 | `tests/` | 117개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 테스트 | `tests/` | 164개 통과, typecheck·build 통과. 실제 앱 교차 실행·규모 검증 전 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도

@@ -17,6 +17,7 @@
     "icons": "node scripts/build-icons.mjs"
   },
   "dependencies": {
+    "@xyflow/react": "12.12.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "zod": "4.6.7"

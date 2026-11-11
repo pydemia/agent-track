@@ -1,8 +1,24 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 const origin = "https://track.pydemia.ai";
+// Windows' native transport provides a reproducible alternative when Node's
+// direct Cloudflare socket times out. It retains normal HTTPS validation and
+// receives only these unauthenticated, synthetic public probes.
+async function publicRequest(url, options = {}) {
+  if (process.env.TRACK_PUBLIC_TRANSPORT !== "curl") return fetch(url, options);
+  const args = ["--silent", "--show-error", "--max-time", "20", "--output", process.platform === "win32" ? "NUL" : "/dev/null", "--write-out", "%{json}"];
+  if (options.method) args.push("--request", options.method);
+  for (const [name, value] of Object.entries(options.headers ?? {})) args.push("--header", `${name}: ${value}`);
+  if (options.body) args.push("--data-binary", options.body);
+  args.push(url);
+  const { stdout } = await promisify(execFile)("curl", args, { windowsHide: true, maxBuffer: 64 * 1024 });
+  const result = JSON.parse(stdout);
+  return new Response(null, { status: result.http_code, headers: result.redirect_url ? { location: result.redirect_url } : {} });
+}
 const results = [];
 for (const [name, route, headers, expected] of [
   ["login", "/", {}, 302],
@@ -10,6 +26,8 @@ for (const [name, route, headers, expected] of [
   ["stream-auth", "/api/stream", {}, 401],
   ["artifact-auth", "/api/runs/unknown/artifacts", {}, 401],
   ["file-evidence-auth", "/api/runs/unknown/files", {}, 401],
+  ["lineage-evidence-auth", "/api/runs/unknown/lineage", {}, 401],
+  ["tool-evidence-auth", "/api/runs/unknown/tools", {}, 401],
   ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],
   ["approval-receipt-auth", "/api/approvals?run=unknown", {}, 401],
@@ -18,18 +36,18 @@ for (const [name, route, headers, expected] of [
   ["forged-identity-rejected", "/api/snapshot", { "x-forwarded-email": "pydemia@pydemia.ai", "x-track-proxy-key": "forged-test-key" }, 401],
   ["forged-cookie-rejected", "/api/snapshot", { cookie: "__Host-agent-track=forged-test-cookie" }, 401],
 ]) {
-  const response = await fetch(origin + route, { headers, redirect: "manual", signal: AbortSignal.timeout(15_000) });
+  const response = await publicRequest(origin + route, { headers, redirect: "manual", signal: AbortSignal.timeout(15_000) });
   assert.equal(response.status, expected, name);
   if (name === "login") assert.equal(new URL(response.headers.get("location")).host, "login.microsoftonline.com");
   await response.body?.cancel();
   results.push({ name, status: response.status, passed: true });
 }
 
-const unauthenticatedDecision = await fetch(origin + "/api/commands/approval", { method: "POST", redirect: "manual",
+const unauthenticatedDecision = await publicRequest(origin + "/api/commands/approval", { method: "POST", redirect: "manual",
   headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
 assert.equal(unauthenticatedDecision.status, 401); await unauthenticatedDecision.body?.cancel();
 results.push({ name: "approval-decision-auth", status: unauthenticatedDecision.status, passed: true });
-const unauthenticatedTaskCreation = await fetch(origin + "/api/projects/task-creation", { method: "POST", redirect: "manual",
+const unauthenticatedTaskCreation = await publicRequest(origin + "/api/projects/task-creation", { method: "POST", redirect: "manual",
   headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
 assert.equal(unauthenticatedTaskCreation.status, 401); await unauthenticatedTaskCreation.body?.cancel();
 results.push({ name: "task-creation-post-auth", status: unauthenticatedTaskCreation.status, passed: true });
@@ -57,4 +75,4 @@ if (process.env.TRACK_CONFIG) {
     results.push({ name: "operator-icon", route, contentType, bytes: actual.length, sha256: hash(actual), passed: true });
   }
 }
-console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), scope: "unauthenticated-public-and-operator-hop", browserLoginVerified: false, results }, null, 2));
+console.log(JSON.stringify({ verifiedAt: new Date().toISOString(), scope: "unauthenticated-public-and-operator-hop", publicTransport: process.env.TRACK_PUBLIC_TRANSPORT === "curl" ? "curl-https" : "node-fetch", browserLoginVerified: false, results }, null, 2));

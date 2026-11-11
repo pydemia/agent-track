@@ -1,0 +1,23 @@
+{
+  "verifiedAt": "2026-11-11T17:16:32.750Z",
+  "sourceId": "demian-local",
+  "runId": "d8131c91-8d67-457e-8b95-99bc6c8bfef3",
+  "sessionId": "1712e0a3-8f52-48e6-9fa3-73d7075f2149",
+  "nativeEventCount": 212,
+  "immutableJournalRows": 212,
+  "immutableJournalUnchanged": true,
+  "rawPayloadNotExported": true,
+  "lineageRows": 9,
+  "exactNativeItemJoins": 3,
+  "toolCalls": 3,
+  "nativeCompletionResultsMatched": 3,
+  "failuresReported": 1,
+  "sourceResultSuccesses": 2,
+  "requestedIsNotStart": true,
+  "completeThroughTarget": true,
+  "cursor": "212",
+  "nodes": 6,
+  "edges": 7,
+  "actualManagedChildOrPeerVerified": false,
+  "actualCrossDeviceVerified": false
+}

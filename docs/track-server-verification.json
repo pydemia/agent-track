@@ -1,6 +1,7 @@
 {
-  "verifiedAt": "2026-11-11T12:26:59.141Z",
+  "verifiedAt": "2026-11-11T17:11:52.593Z",
   "scope": "unauthenticated-public-and-operator-hop",
+  "publicTransport": "curl-https",
   "browserLoginVerified": false,
   "results": [
     {
@@ -24,6 +25,41 @@
       "passed": true
     },
     {
+      "name": "file-evidence-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "lineage-evidence-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "tool-evidence-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "permission-metadata-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "permission-review-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "approval-receipt-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "task-creation-status-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
       "name": "public-basic-rejected",
       "status": 401,
       "passed": true
@@ -39,9 +75,19 @@
       "passed": true
     },
     {
+      "name": "approval-decision-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "task-creation-post-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
       "name": "operator-snapshot",
       "passed": true,
-      "runs": 235,
+      "runs": 312,
       "workspaces": 7
     },
     {

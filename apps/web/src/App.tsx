@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
 import { RunBindingPanel } from "./RunBindingPanel.tsx";
 import { RunApprovals } from "./RunApprovals.tsx";
@@ -7,19 +7,23 @@ import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { FileEvidencePanel } from "./FileEvidencePanel.tsx";
-import { ExecutionGraph } from "./ExecutionGraph.tsx";
+import { MissionOverview } from "./MissionOverview.tsx";
+import "./mission-flow.css";
+import { ActivityTrail } from "./ActivityTrail.tsx";
 import { RunControls } from "./RunControls.tsx";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
+
+const LazyMissionFlow = lazy(() => import("./MissionFlow.tsx").then((module) => ({ default: module.MissionFlow })));
 
 type Tab = "track" | "trail" | "trace" | "map";
 type Health = "checking" | "ok" | "unavailable";
 type Filters = { project: string; source: string; status: string; q: string };
 
 const tabs: { id: Tab; label: string; title: string }[] = [
-  { id: "track", label: "Track", title: "실행 현황" },
-  { id: "trail", label: "Trail", title: "관측 이력" },
-  { id: "trace", label: "Trace", title: "실행 근거" },
-  { id: "map", label: "Map", title: "실행 관계" },
+  { id: "track", label: "Track", title: "업무 실행 관리" },
+  { id: "trail", label: "Trail", title: "업무 경과" },
+  { id: "trace", label: "Trace", title: "실행 분석" },
+  { id: "map", label: "Map", title: "업무·협업 지도" },
 ];
 const relationNames: Record<RelationView["kind"], string> = {
   invocation: "에이전트 호출",
@@ -444,7 +448,7 @@ export function App() {
     <header className="topbar">
       <button className="sidebar-toggle" ref={sidebarToggle} aria-controls="context-sidebar" aria-label={sidebarExpanded ? "문맥 사이드바 닫기" : "문맥 사이드바 열기"} aria-expanded={sidebarExpanded} title={sidebarExpanded ? "사이드바 접기" : "사이드바 펼치기"} onClick={toggleSidebar}>{sidebarExpanded ? "‹" : "☰"}</button>
       <a className="brand" href="/" aria-label="Agent Track 홈"><span className="brand-mark">A</span><span>Agent <b>Track</b></span></a>
-      <div className="header-caption">관측 기반 실행 탐색</div>
+      <div className="header-caption">업무 · 세션 · Agent 실행</div>
       <div className="connection" aria-live="polite"><span className={`connection-dot ${streamState}`} />
         {streamState === "connected" ? "실시간 연결" : streamState === "connecting" ? "연결 확인 중" : "실시간 연결 끊김"}
         <span className="health-label"> · API {health === "ok" ? "정상" : health === "checking" ? "확인 중" : "응답 없음"}</span>
@@ -489,18 +493,23 @@ export function App() {
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
           : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근이 허용되지 않아 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.state === "forbidden" ? "접근이 허용되지 않아 저장된 실행을 표시하지 않습니다." : item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
           : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>조건에 맞는 실행이 없습니다</h2><p>프로젝트·출처·상태 필터나 검색어를 조정해 보세요.</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
-          : <div className="content-grid"><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
-              {tab === "track" && <TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} />}
-              {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} />}
-              {tab === "trail" && <>{run && <><FileEvidencePanel key={`files:${run.key}`} run={run} onUnauthorized={clearPrivateData} /><ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} /></>}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
-              {tab === "trace" && <>{run && <RunTrace run={run} events={events} hasMore={hasMore} />}<EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
+          : <div className={`content-grid ${tab === "map" || tab === "trace" ? "map-content-grid" : ""}`}><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
+              {tab === "track" && <><MissionOverview runs={visibleRuns} relations={accessibleRelations} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} onMap={(key) => setLocation({ tab: "map", selected: key })} /><details className="flow-raw-evidence"><summary>전체 실행 목록 · {visibleRuns.length}개 Run</summary><TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} /></details></>}
+              {tab !== "track" && run && <><p className="graph-legend">정규 실행 근거 {events.length}건{loadingEvents ? " · 조회 중…" : ""}{hasMore ? " · 추가 근거 있음" : ""}</p>{eventsError && <p className="inline-error" role="alert">{eventsError}<button className="text-button" onClick={() => setEventsRefresh((value) => value + 1)}>실행 근거 다시 조회</button></p>}{hasMore && <button className="button-secondary" disabled={loadingEvents} onClick={loadMoreEvents}>흐름의 실행 근거 더 불러오기</button>}</>}
+              {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} hasMore={hasMore} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} />}
+              {tab === "trail" && <>{run && <><ActivityTrail key={`trail:${run.key}`} run={run} events={events} hasMore={hasMore} onUnauthorized={clearPrivateData} onTrace={() => setLocation({ tab: "trace" })} /><FileEvidencePanel key={`files:${run.key}`} run={run} onUnauthorized={clearPrivateData} /><ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} /></>}<details className="flow-raw-evidence"><summary>정규 이벤트 근거 목록</summary><EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></details></>}
+              {tab === "trace" && <>{run && <><MissionFlow key={`trace:${run.key}`} run={run} runs={accessibleRuns} relations={accessibleRelations} events={events} mode="execution" hasMore={hasMore} onSelectRun={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} /><details className="flow-raw-evidence"><summary>호출 구간 표와 단계별 근거</summary><RunTrace run={run} events={events} hasMore={hasMore} /></details></>}<details className="flow-raw-evidence"><summary>정규 이벤트 근거 목록</summary><EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></details></>}
             </section>
-            {run && <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
+            {run && (tab === "map" || tab === "trace" ? <details className="flow-run-controls"><summary>선택한 Run의 실행 제어와 원본 상세</summary><RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} /></details> : <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />)}
           </div>}
         <footer className="page-footer">상태, 관계, 경로는 수집된 근거만 반영합니다. 실행 종료·에이전트 보고·검증·Projects 수용은 각각 별도 정보입니다.</footer>
       </main>
     </div>
   </div>;
+}
+
+function MissionFlow(props: ComponentProps<typeof LazyMissionFlow>) {
+  return <Suspense fallback={<p role="status">업무·Agent 흐름 화면을 불러오는 중…</p>}><LazyMissionFlow {...props} /></Suspense>;
 }
 
 function TrackView({ runs, selected, onSelect }: { runs: RunView[]; selected: string; onSelect: (key: string) => void }) {
@@ -512,17 +521,17 @@ function TrackView({ runs, selected, onSelect }: { runs: RunView[]; selected: st
 }
 function Freshness({ run }: { run: RunView }) { return run.stale || run.incomplete ? <small className="freshness">{run.stale ? "오래된 관측" : "관측 불완전"}{run.stale && run.incomplete ? " · 관측 불완전" : ""}</small> : null; }
 
-function MapView({ runs, relations, events, mode, onMode, selected, onSelect }: { runs: RunView[]; relations: RelationView[]; events: EventView[]; mode: "relations" | "paths"; onMode: (mode: "relations" | "paths") => void; selected: RunView | null; onSelect: (key: string) => void }) {
+function MapView({ runs, relations, events, hasMore, mode, onMode, selected, onSelect, onUnauthorized }: { runs: RunView[]; relations: RelationView[]; events: EventView[]; hasMore: boolean; mode: "relations" | "paths"; onMode: (mode: "relations" | "paths") => void; selected: RunView | null; onSelect: (key: string) => void; onUnauthorized: (reason: string) => void }) {
   const selectedRelations = selected ? relations.filter((item) => item.runKey === selected.key) : relations;
   const paths = selected ? events.flatMap((event) => event.data.path ? [{ path: event.data.path, event }] : []) : [];
-  return <div className="map-view">{selected ? <ExecutionGraph selected={selected} runs={runs} relations={selectedRelations} onSelect={onSelect} /> : <p className="empty-inline">실행을 선택하면 원본 소속과 관측 관계를 지도로 확인할 수 있습니다.</p>}<div className="section-heading"><div><span className="overline">OBSERVED EXECUTIONS</span><h2>실행 목록</h2></div><span>{runs.length}개 실행 · 실제 Run만 표시</span></div>
+  return <div className="map-view">{selected ? <MissionFlow key={`map:${selected.key}`} run={selected} runs={runs} relations={relations} events={events} hasMore={hasMore} onSelectRun={onSelect} onUnauthorized={onUnauthorized} /> : <p className="empty-inline">실행을 선택하면 업무·소속·관측 관계를 지도로 확인할 수 있습니다.</p>}<details className="flow-run-picker"><summary>다른 실행 선택 · {runs.length}개 Run</summary>
     <ol className="execution-list">{runs.map((run) => <li key={run.key}><button className={`execution-row ${run.key === selected?.key ? "chosen" : ""}`} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected?.key}><span className="execution-index">{run.key === selected?.key ? "●" : "○"}</span><span className="execution-copy"><strong>{run.title || run.runId}</strong><small>{run.sourceLabel} · {run.device} · {run.runId}</small></span><DisplayState run={run} /></button></li>)}</ol>
-    <section className="relation-section"><div className="map-switch" role="group" aria-label="Map 표시 방식"><button aria-pressed={mode === "relations"} onClick={() => onMode("relations")}>실행 관계</button><button aria-pressed={mode === "paths"} onClick={() => onMode("paths")}>코드 활동 · 관측 경로</button></div>
+    </details><details className="flow-raw-evidence"><summary>관계·파일 경로의 원본 근거 목록</summary><section className="relation-section"><div className="map-switch" role="group" aria-label="Map 표시 방식"><button aria-pressed={mode === "relations"} onClick={() => onMode("relations")}>실행 관계</button><button aria-pressed={mode === "paths"} onClick={() => onMode("paths")}>코드 활동 · 관측 경로</button></div>
       {mode === "relations" ? <><div className="section-heading"><div><span className="overline">EVIDENCE LINKS</span><h2>관측된 관계</h2></div><span>관계 종류를 구분해 표시</span></div>
         {selectedRelations.length ? <div className="relation-list" aria-label="실행 관계 목록">{selectedRelations.map((relation) => <article className="relation-row" key={relation.key}><span className={`relation-tag ${relation.kind}`}>{relationNames[relation.kind]}</span><span className="relation-endpoints"><code>{relation.from}</code><span aria-hidden="true">→</span><code>{relation.to}</code></span><small>증거 seq {relation.evidenceSequence} · {timestamp(relation.observedAt)}</small></article>)}</div> : <p className="empty-inline">이 실행에 연결된 관계 관측이 없습니다. 누락된 관계 정보는 관계가 없다는 뜻이 아닙니다.</p>}</>
         : <><div className="section-heading"><div><span className="overline">PATHS FROM EVENT METADATA</span><h2>이벤트에 등장한 경로</h2></div><span>diff 또는 변경 여부를 뜻하지 않음</span></div>
           {paths.length ? <div className="relation-list" aria-label="실행 이벤트에서 관측된 파일 경로">{paths.map(({ path, event }) => <article className="path-row" key={`${event.key}:${path}`}><code>{path}</code><small>{event.type} · seq {event.sequence} · {event.data.tool ?? "도구 미확인"}</small></article>)}</div> : <p className="empty-inline">선택한 실행 이벤트에서 경로 메타데이터가 관측되지 않았습니다.</p>}</>}
-    </section>
+    </section></details>
   </div>;
 }
 
