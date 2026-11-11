@@ -1,5 +1,23 @@
 # Native integration contracts: Demian, Projects, Assistant
 
+## Context-summary consumer contract follow-up (2026-11-12)
+
+Track now supplies a private, scope-bound v1 context GET API, Node server client,
+and a host React summary component. This is the reverse direction from native
+event ingestion: a native application's authenticated BFF can read Track's
+authorized projection without sharing the public Entra proxy key. Current
+opt-in readers are limited to one QA Project and two existing QA Sessions.
+Fresh source/Project/native Run grants and binding revisions are checked; raw
+titles, messages, tool inputs/outputs and user identities are omitted.
+
+An independent client on the native Linux application host verified the actual
+QA Task's two succeeded Runs/two Sessions and original todo state, a Session's
+two observed Runs, forbidden out-of-scope reads and a disconnected result.
+This was a temporary read-only helper, not an embedded native application UI.
+Native BFF user authorization, Demian/Projects component integration and native
+editing/outage-isolation verification remain outstanding. See
+`context-summary-contract.md` and `native-context-summary-verification.json`.
+
 Status date: 2026-11-11. This is a source audit for Agent Track adapters, not a claim of deployed cross-app integration. Source paths below are repository-relative unless marked otherwise. Demian proposal context: `C:/Users/pydemia/git/demian/docs/agent-track-integration/proposal.ko.md`. Existing Track constraints: `docs/product-plan.md`, `docs/development-plan.md`, `docs/multi-project-overview.md`.
 
 ## Findings at a glance
@@ -175,7 +193,7 @@ bodies are transiently decoded and discarded. No native business writes occur.
 Track exposes /api/projects/catalog and /api/projects/:sourceId/:projectId/tasks
 with native opaque cursor/as_of paging. This is live read support. Explicit
 Run binding workflows, native execution references, assignment/acceptance and
-embedded context summaries remain unimplemented. The actual dedicated-reader
+embedded context summaries were unimplemented at this baseline. The actual dedicated-reader
 scope reduction and restoration are recorded in projects-live-verification.json.
 
 ## Explicit Track binding implementation

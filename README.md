@@ -47,17 +47,19 @@ npm start
 - Demian Run/Session snapshot·per-Run SSE adapter·허용된 세션의 Run 이력 탐색. 기존 private credential 참조·실제 Run 수집/공개 Trace 검증.
 - Codex 로컬 metadata 수집: 허용 저장소·기간·파일 수 한계 표시, 대화와 도구
   입출력 저장 제외. 이것은 Demian native 또는 desktop bridge 연결과 별개입니다.
-- Projects 원본 읽기: 전용 소유자 principal·현재 Project ACL로 실제 업무 제목/revision/상태 조회, 접근 축소 시 관련 metadata 비노출. 등록·배정은 후속 단계입니다.
+- Projects 원본 읽기: 전용 소유자 principal·현재 Project ACL로 실제 업무 제목/revision/상태 조회, 접근 축소 시 관련 metadata 비노출.
 - 명시적 Run 업무 연결: 원본 revision 확인, 재연결 이력·동일 요청 receipt·동시 수정 충돌 처리. 실행 성공과 업무 완료를 각각 유지합니다.
 - 원본 승인 요청: 명시적 내용 검토, 이번 호출/세션의 같은 도구 허용·거절, 만료·철회 재검사, 동일 receipt·미확정 결과의 읽기 대조. 기본 목록과 원장에는 도구 인자를 남기지 않습니다.
-- Projects 원본 업무 생성: 별도 QA creator와 현재 권한 교집합, 초안·미확정 요청 보호, 원본 Task ID/revision 접수 확인. 실행 배정은 별도 후속 작업입니다.
+- Projects 원본 업무 생성·실행 배정: 별도 QA creator, 최신 내용/Session 정책 검토, 원본 Task/Run 접수와 binding 복구, 초안·미확정 요청 보호. 실제 동일 Task·Session2·Run2 성공과 업무 todo 유지 대조.
 - native Run별 산출물 metadata: 현재 원본 인가와 Run ID를 대조하고, 최근 목록 범위·철회·원문 제외를 표시합니다.
 - Trail 파일 근거: native 편집 요청과 성공/실패·원본 diff metadata 연결, 단순 요청·모호함 구분, 조회 한도·Project 철회 반영. 파일 내용과 patch는 저장·표시하지 않습니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.
-- 온라인 backup·검사와 백업 선행 archive. 재개·배정·문맥 요약과 Assistant/
+- 원본 앱 문맥 요약: private reader별 명시 scope·현재 원본 재인가 API, 서버 client·React 요약 component, Linux 호스트의 독립 실제 조회. 원본 앱 BFF·화면에는 아직 연결하지 않았습니다.
+- 온라인 backup·검사와 백업 선행 archive. 재개·실제 child/peer·원본 앱 요약 UI와 Assistant/
   desktop native 연결은 후속 작업이며 미지원 기능을 성공으로 표시하지 않습니다.
 
 [실제 API 계약 조사](docs/integration-contracts.md),
+[원본 앱 문맥 요약 계약](docs/context-summary-contract.md),
 [제품 운영·복구](docs/track-operations.md),
 [구현 QA와 한계](docs/implementation-qa.md)를 함께 확인하세요.

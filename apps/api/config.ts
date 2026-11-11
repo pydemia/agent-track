@@ -1,8 +1,16 @@
 import { readFileSync } from "node:fs";
-import { isAbsolute } from "node:path";
+import { isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 
 const email = z.email().transform((value) => value.toLowerCase());
+const sourceId = z.string().regex(/^[a-z0-9_-]{1,80}$/);
+export const contextReaderSchema = z.object({
+  id: sourceId, purpose: z.enum(["demian", "projects", "assistant"]), user: email,
+  secretFile: z.string().refine(isAbsolute), nativeSourceIds: z.array(sourceId).min(1).max(20),
+  projectScopes: z.array(z.object({ sourceId, projectIds: z.array(z.uuid()).min(1).max(100) }).strict()).max(20).default([]),
+  sessionScopes: z.array(z.object({ sourceId, sessionIds: z.array(z.uuid()).min(1).max(100) }).strict()).max(20).default([]),
+}).strict().refine((reader) => reader.projectScopes.length + reader.sessionScopes.length > 0, "Explicit context scope required");
+export type ContextReader = z.infer<typeof contextReaderSchema>;
 const safeUrl = z.url().refine((value) => {
   const url = new URL(value);
   return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash;
@@ -49,7 +57,24 @@ export const configSchema = z.object({
     z.object({ mode: z.literal("local"), user: email }).strict(),
   ]),
   sources: z.array(sourceConfigSchema),
-}).strict().refine((config) => new Set(config.sources.map((s) => s.id)).size === config.sources.length, "Duplicate source id");
+  contextReaders: z.array(contextReaderSchema).max(10).optional(),
+}).strict().refine((config) => new Set(config.sources.map((s) => s.id)).size === config.sources.length, "Duplicate source id")
+  .superRefine((config, context) => {
+    const readers = config.contextReaders ?? [];
+    const pathKey = (value: string) => process.platform === "win32" ? resolve(value).toLowerCase() : resolve(value);
+    if (new Set(readers.map((reader) => reader.id)).size !== readers.length || new Set(readers.map((reader) => pathKey(reader.secretFile))).size !== readers.length) {
+      context.addIssue({ code: "custom", message: "Context reader identities and credentials must be separate" });
+    }
+    for (const reader of readers) {
+      const root = config.auth.mode === "proxy" && config.auth.users.includes(reader.user);
+      const native = (id: string) => config.sources.some((source) => source.id === id && source.kind === "demian" && source.users.includes(reader.user));
+      if (!root || (config.auth.mode === "proxy" && pathKey(reader.secretFile) === pathKey(config.auth.secretFile)) ||
+        reader.nativeSourceIds.some((id) => !native(id)) || reader.sessionScopes.some((scope) => !reader.nativeSourceIds.includes(scope.sourceId) || !native(scope.sourceId)) ||
+        reader.projectScopes.some((scope) => !config.sources.some((source) => source.id === scope.sourceId && source.kind === "projects" && source.users.includes(reader.user) && source.projectsUser === reader.user))) {
+        context.addIssue({ code: "custom", message: "Context reader must use its own credential and an explicitly configured owner/source scope" });
+      }
+    }
+  });
 export type Config = z.infer<typeof configSchema>;
 export function readConfig(path: string): Config {
   return configSchema.parse(JSON.parse(readFileSync(path, "utf8")));

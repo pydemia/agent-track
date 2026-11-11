@@ -14,6 +14,8 @@ import { ProjectTaskCreation } from "./task-creation.ts";
 import { TaskAssignments } from "./task-assignment.ts";
 import { lineageEvidence } from "./lineage.ts";
 import { orchestrationEvidence } from "./orchestration.ts";
+import { authenticateContextReader, contextReaderStamp } from "./context-auth.ts";
+import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { toolEvidence } from "./tools.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
@@ -56,6 +58,22 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
     response.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
     try {
       const current = config();
+      const privateUrl = new URL(request.url ?? "/", "http://localhost");
+      if (privateUrl.pathname.startsWith("/api/integrations/context/")) {
+        const reader = authenticateContextReader(request, current);
+        if (!reader) { json(response, 401, { error: "authentication_required" }); return; }
+        if (request.method !== "GET") { json(response, 405, { error: "read_only_context" }); return; }
+        const target = parseContextPath(privateUrl.pathname);
+        if (!target || privateUrl.search || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_context" }); return;
+        }
+        const readerSnapshot = (user: string) => taskAssignments.filterSnapshot(snapshot(user),
+          (sourceId, projectId) => reader.projectScopes.some((scope) => scope.sourceId === sourceId && scope.projectIds.includes(projectId)));
+        const value = await contextSummary(config, readerSnapshot, reader, target, sources);
+        const confirmed = authenticateContextReader(request, config());
+        if (!confirmed || contextReaderStamp(confirmed) !== contextReaderStamp(reader)) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, value); return;
+      }
       const user = authenticate(request, current);
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       const url = new URL(request.url ?? "/", "http://localhost");

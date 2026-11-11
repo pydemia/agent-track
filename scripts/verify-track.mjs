@@ -28,6 +28,7 @@ for (const [name, route, headers, expected] of [
   ["file-evidence-auth", "/api/runs/unknown/files", {}, 401],
   ["lineage-evidence-auth", "/api/runs/unknown/lineage", {}, 401],
   ["orchestration-support-auth", "/api/runs/unknown/orchestration", {}, 401],
+  ["context-summary-public-auth", "/api/integrations/context/v1/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/tasks/a061ce29-f674-4449-86c3-2902b16713c5", {}, 401],
   ["tool-evidence-auth", "/api/runs/unknown/tools", {}, 401],
   ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],

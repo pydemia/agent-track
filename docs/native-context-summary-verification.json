@@ -1,0 +1,39 @@
+{
+  "verifiedAt": "2026-11-11T18:58:03.559Z",
+  "ready": true,
+  "scope": "independent server-side QA client, not embedded native application UI",
+  "task": {
+    "id": "a061ce29-f674-4449-86c3-2902b16713c5",
+    "revision": "1",
+    "state": "todo",
+    "runs": 2,
+    "sessions": 2,
+    "succeeded": 2,
+    "elapsedMs": 728,
+    "coverage": {
+      "kind": "observed-window",
+      "limit": 50,
+      "capped": false,
+      "unavailable": false
+    }
+  },
+  "session": {
+    "id": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+    "runs": 2
+  },
+  "outsideScope": "forbidden",
+  "disconnected": {
+    "state": "unavailable",
+    "elapsedMs": 1
+  },
+  "nativeMutations": 0,
+  "privateCredentialExported": false,
+  "nativeUiIntegrated": false,
+  "clientRuntime": "Node 24.21.0 on native application Linux host, temporary read-only helper",
+  "runtimeImage": "sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
+  "clientArtifact": {
+    "bundleSha256": "5e5786f3322a6846eeab37cc40b059cd5d03210ed8042ee0a916ffdbd7078c6a",
+    "bundleBytes": 194302,
+    "privateKeyModesVerified": true
+  }
+}

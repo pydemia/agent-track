@@ -163,10 +163,10 @@ export class TaskAssignments {
     });
     return { receipts: current, incomplete: incomplete || current.length !== receipts.length };
   }
-  filterSnapshot(value: Snapshot): Snapshot {
+  filterSnapshot(value: Snapshot, allowProject: (sourceId: string, projectId: string) => boolean = () => true): Snapshot {
     const denied = new Set((this.store.db.prepare(`SELECT demian_source_id,run_id,project_source_id,project_id FROM task_assignment_receipts
       WHERE actor=? AND state='accepted' AND run_id IS NOT NULL`).all(value.user) as unknown as Array<{ demian_source_id: string; run_id: string; project_source_id: string; project_id: string }>).filter((row) =>
-        !value.sources.some((source) => source.id === row.project_source_id && source.kind === "projects" && source.state === "connected" && source.authorizedProjectIds?.includes(row.project_id)))
+        !allowProject(row.project_source_id, row.project_id) || !value.sources.some((source) => source.id === row.project_source_id && source.kind === "projects" && source.state === "connected" && source.authorizedProjectIds?.includes(row.project_id)))
       .map((row) => externalKey(row.demian_source_id, row.run_id)));
     if (!denied.size) return value;
     const runs = value.runs.filter((run) => !denied.has(run.key)); const keys = new Set(runs.map((run) => run.key));

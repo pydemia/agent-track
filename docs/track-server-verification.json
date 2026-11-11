@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-11T18:28:06.653Z",
+  "verifiedAt": "2026-11-11T19:00:47.826Z",
   "scope": "unauthenticated-public-and-operator-hop",
   "publicTransport": "curl-https",
   "browserLoginVerified": false,
@@ -36,6 +36,11 @@
     },
     {
       "name": "orchestration-support-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "context-summary-public-auth",
       "status": 401,
       "passed": true
     },
@@ -117,7 +122,7 @@
     {
       "name": "operator-snapshot",
       "passed": true,
-      "runs": 343,
+      "runs": 352,
       "workspaces": 7
     },
     {

@@ -12,6 +12,17 @@ export function sameSecret(actual: string, expected: string): boolean {
     createHash("sha256").update(actual).digest(), createHash("sha256").update(expected).digest(),
   );
 }
+export function contextCredentialsSeparated(config: Config, proxySecret: string): boolean {
+  const values: string[] = [];
+  try {
+    for (const reader of config.contextReaders ?? []) {
+      const value = readFileSync(reader.secretFile, "utf8").replace(/^\uFEFF/, "").trim();
+      if (!/^[A-Za-z0-9_-]{32,256}$/.test(value) || sameSecret(value, proxySecret) || values.some((previous) => sameSecret(value, previous))) return false;
+      values.push(value);
+    }
+    return true;
+  } catch { return false; }
+}
 export function authenticate(request: IncomingMessage, config: Config): string | null {
   if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(request.socket.remoteAddress ?? "")) return null;
   if (config.auth.mode === "local") {
@@ -21,6 +32,7 @@ export function authenticate(request: IncomingMessage, config: Config): string |
     return config.auth.user;
   }
   const secret = readFileSync(config.auth.secretFile, "utf8").trim();
+  if (!contextCredentialsSeparated(config, secret)) return null;
   if (!sameSecret(header(request, "x-track-proxy-key"), secret)) return null;
   const user = header(request, "x-forwarded-email").toLowerCase();
   return config.auth.users.includes(user) ? user : null;
