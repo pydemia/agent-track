@@ -9,6 +9,9 @@ export function commandPorts(store: Store, config: () => Config, snapshot: (user
   user: string, runKey: string, writing: boolean): CancelPorts {
   const authorized = (): { run: RunView; source: SourceConfig } => {
     const current = config();
+    if (current.auth.mode === "proxy" ? !current.auth.users.includes(user) : current.auth.user !== user) {
+      throw new CommandError(403, "source_forbidden", "Current user access is unavailable.");
+    }
     const run = snapshot(user).runs.find((item) => item.key === runKey);
     const source = current.sources.find((item) => item.id === run?.sourceId);
     if (!run || !source || source.kind !== "demian" || !source.baseUrl || !source.users.includes(user) || run.sourceState !== "connected") {

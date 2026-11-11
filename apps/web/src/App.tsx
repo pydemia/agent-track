@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { ExecutionGraph } from "./ExecutionGraph.tsx";
 import { RunControls } from "./RunControls.tsx";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
@@ -479,7 +480,7 @@ export function App() {
           : <div className="content-grid"><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
               {tab === "track" && <TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} />}
               {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} />}
-              {tab === "trail" && <EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} />}
+              {tab === "trail" && <>{run && <ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} />}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
               {tab === "trace" && <EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} />}
             </section>
             {run && <RunInspector onUnauthorized={clearPrivateData} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}

@@ -22,7 +22,7 @@ Implemented read routes in `apps/api/src/server.ts`:
 - `GET /api/v1/runs/:runId` returns one Run.
 - `GET /api/v1/runs/:runId/events?after=<decimal>` streams SSE, honoring `Last-Event-ID` in preference to query cursor and emitting `id: sequence_text`. Stream rechecks access while connected. This is the supported incremental event source for a known Run.
 - `GET /api/v1/runs/:runId/lineage?after=...&limit=...` reads native lineage only when the applicable artifact and lineage checks pass; absence/denial can mean lineage unavailable, not no child.
-- Other evidence routes include `/api/v1/runs/:runId/artifacts` and run-scoped permissions. Control routes include `POST /api/v1/runs/:runId/cancel` and `POST /api/v1/runs/:runId/permissions/:permissionId/decision`; they are not read-adapter endpoints and require control authorization.
+- The current working artifact module exposes `GET /api/v1/sessions/:sessionId/artifacts`, a recent100 metadata list; filter explicit `run_id` and revoked state rather than attributing every session attachment to a Run. It is not a Run-wide complete history route. Other evidence routes include run-scoped permissions. Control routes include `POST /api/v1/runs/:runId/cancel` and `POST /api/v1/runs/:runId/permissions/:permissionId/decision`; they are not read-adapter endpoints and require control authorization.
 
 Run events carry `api_version`, `run_id`, `type`, `created_at`, `data`, `sequence_text` and legacy `sequence`. In `packages/protocol/src/index.ts`, `sequence_text` is the canonical positive PostgreSQL int64 decimal and authoritative SSE cursor; `sequence` may be null when not exactly representable as a JavaScript safe integer. Keep sequence/cursors as validated decimal strings end to end. Do not cast through JS Number, sort different source streams by timestamp as causal order, or treat a session message sequence as a run event sequence. `apps/api/src/server.ts` validates cursors against PostgreSQL int64 bounds using BigInt; SSE event ID is `sequence_text`.
 
@@ -138,3 +138,18 @@ Assistant's additional Projects task read is
 `assistant-demian-gateway/persona` worktree (`codex/demian-runtime-gateway`,
 HEAD `ebb507a6ba43877bff530a4a975203b4374516fd`, relevant working changes).
 It is an Assistant task import, not a Track read principal or summary API.
+
+## Native artifact metadata implementation
+
+Track now provides authenticated `GET /api/runs/:runKey/artifacts`. It rechecks
+current Track user/source/Run grants around a fresh native Run/Session read and
+artifact lookup. The adapter validates version1 manifests, retains only exact
+Run/session matches that are not revoked, and exports filename/media/size/hash/
+representation/time. Organization/owner IDs, content bytes, summary text and
+reference URI are omitted. The native content endpoint is never requested.
+A recent100 list remains explicitly incomplete even when it returns fewer items.
+Native403/404 hides the artifact result independently from the Run snapshot.
+The actual dedicated native Run has one `answer.txt` manifest; API metadata and
+public Trail were compared. Revoked/foreign Run and mid-request Track revocation
+were checked with fixtures. Evidence is queried on demand, not persisted in the
+event journal or synthesized as a source-sequence event.

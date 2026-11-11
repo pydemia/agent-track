@@ -105,6 +105,24 @@ export interface RelationView {
   observedAt: string;
 }
 export interface EventView extends ObservationEvent { key: string; receivedAt: string }
+export interface ArtifactMetadata {
+  id: string;
+  runId: string;
+  sessionId: string;
+  filename: string;
+  mediaType: string;
+  sizeBytes: number;
+  sha256: string;
+  representation: "original" | "extracted_text" | "summary" | "reference";
+  createdAt: string;
+}
+export interface ArtifactMetadataPage { artifacts: ArtifactMetadata[]; scanned: number; limit: number; complete: false }
+export interface ArtifactEvidence extends ArtifactMetadataPage {
+  state: SourceView["state"];
+  runKey: string;
+  observedAt: string;
+  detail: string;
+}
 export interface Snapshot {
   revision: string;
   generatedAt: string;

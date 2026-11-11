@@ -1,0 +1,12 @@
+{
+  "verifiedAt": "2026-11-11T12:21:28.038Z",
+  "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+  "state": "connected",
+  "nativeMetadataMatchesTrack": true,
+  "matchedRunArtifacts": 1,
+  "scannedSessionArtifacts": 1,
+  "recentListLimit": 100,
+  "completeHistory": false,
+  "sourceContentRequested": false,
+  "scope": "run-bound-metadata"
+}

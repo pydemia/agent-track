@@ -186,6 +186,12 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .inline-error { background: #2b201e; color: #ffd0c4; }
 .button-secondary, .button-primary { padding: 8px 12px; border: 1px solid #657645; background: #252b1d; color: var(--lime); font-size: 11px; }
 .load-more { margin-top: 8px; }
+.artifact-evidence { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; margin: 15px 0; }
+.artifact-evidence h3 { margin: 0; font-size: 13px; }
+.artifact-evidence > small { color: var(--muted); font-size: 10px; }
+.artifact-list { list-style: none; padding: 0; margin: 10px 0; }
+.artifact-list li { display: grid; gap: 5px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 11px; }
+.artifact-list code, .artifact-list small { overflow-wrap: anywhere; color: var(--muted); font-size: 10px; }
 .execution-graph { padding: 8px 0 20px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
 .graph-legend { font-size: 11px; color: var(--muted); line-height: 1.6; }
 .graph-scroll { max-width: 100%; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

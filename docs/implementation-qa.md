@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 46개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 50개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
@@ -24,6 +24,14 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 `live-restore-verification.json`, `track-browser-verification.json`에 있다.
 `track-server-verification.json`의 browserLoginVerified=false는 해당 CLI 검사의
 범위이며 실제 브라우저 결과는 별도 기록에 있다.
+
+## 산출물 metadata
+
+실제 native Run의 answer.txt(40bytes) metadata와 Track API/public Trail의
+filename·hash·size를 대조했다. 원문/content URL은 요청하지 않았다.
+최근100개 세션 목록의 exact Run·미철회 metadata만 내보내며 전체 이력으로
+표시하지 않는다. 다른 Run/세션 첨부·철회·잘못된 manifest·중간 인가 철회를
+fixture로 검사했다(`native-artifacts-verification.json`).
 
 ## 브라우저와 UI
 

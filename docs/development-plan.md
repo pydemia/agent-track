@@ -27,11 +27,12 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | Demian adapter | `packages/adapters/demian/` | Run/Session snapshot·per-Run SSE·활성 Run·명시적으로 허용한 메시지 entry 기반 과거 Run 탐색. 기존 private service credential 참조·실제 native Run17event 수집/재시작/공개 Trace 대조 |
 | 로컬 수집 | `packages/adapters/codex/` | 허용 저장소의 Codex turn/tool metadata. 원문 제외, 파일/기간/크기 한계 공개 |
 | API | `apps/api/` | loopback 전용·Entra proxy 신뢰 key·사용자 source grant·snapshot/SSE·이력 paging |
+| 산출물 | `apps/api/evidence.ts`, `ArtifactEvidencePanel.tsx` | native 세션 최근 목록의 Run별 미철회 metadata, 원문 제외·현재 인가 재검사. 실제 answer.txt 원본/API/공개 Trail 대조 |
 | 화면 | `apps/web/` | Track/Trail/Trace/Map·source 상태·SNB·필터·URL·조회 이력 로컬 실기 확인. 공개 native 실행·SSO 실기 확인 |
 | 복구 | `scripts/storage-admin.ts` | 온라인 backup·integrity·binding import. 복원 fixture와 실제 backup→별도 복원 DB/API 대조 통과. 운영 DB 전환 훈련과 구별 |
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
-| 테스트 | `tests/` | 46개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 테스트 | `tests/` | 50개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
@@ -73,7 +74,7 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 7/21 (33.3%)이다. 46개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 7/21 (33.3%)이다. 50개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 

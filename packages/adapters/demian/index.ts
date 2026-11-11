@@ -2,8 +2,36 @@ import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import {
   eventSchema, idSchema, runSchema, sequenceSchema, statusSchema,
-  type EventData, type ObservationEvent, type RunObservation,
+  type ArtifactMetadataPage, type EventData, type ObservationEvent, type RunObservation,
 } from "../../contracts/index.ts";
+
+const artifactManifestSchema = z.object({
+  version: z.literal(1),
+  object: z.literal("demian.artifact"),
+  id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  organization_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  workspace_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  session_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  owner_user_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i),
+  run_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).nullable(),
+  kind: z.enum(["attachment", "result"]),
+  filename: z.string().min(1).max(256).refine((value) =>
+    value.trim().length > 0 && !/[\/\\\x00-\x1f\x7f]/.test(value) && ![".", ".."].includes(value)),
+  media_type: z.string().max(255).regex(/^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/),
+  size_bytes: z.number().int().min(0).max(8 * 1024 * 1024),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  representation: z.enum(["original", "extracted_text", "summary", "reference"]),
+  source_artifact_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i).nullable(),
+  source_sha256: z.string().regex(/^[a-f0-9]{64}$/).nullable(),
+  created_at: z.iso.datetime({ offset: true }),
+  revoked_at: z.iso.datetime({ offset: true }).nullable(),
+});
+
+const artifactPageSchema = z.object({
+  object: z.literal("list"),
+  data: z.array(artifactManifestSchema).max(100),
+  limit: z.literal(100),
+});
 
 const nativeEventSchema = z.object({
   api_version: z.literal("2026-09-01"),
@@ -110,6 +138,21 @@ export class DemianClient {
     ).json());
     if (raw.id !== runId) throw new Error("Source cancel identity mismatch");
     return { runId: raw.id, status: raw.status };
+  }
+
+  async artifacts(runId: string, sessionId: string): Promise<ArtifactMetadataPage> {
+    artifactManifestSchema.shape.run_id.unwrap().parse(runId);
+    artifactManifestSchema.shape.session_id.parse(sessionId);
+    const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/artifacts`);
+    const page = artifactPageSchema.parse(await response.json());
+    const artifacts = page.data.flatMap((raw) => {
+      if (raw.session_id !== sessionId) throw new Error("Source artifact session identity mismatch");
+      if (raw.revoked_at !== null || raw.run_id !== runId) return [];
+      return [{ id: raw.id, runId: raw.run_id, sessionId: raw.session_id, filename: raw.filename,
+        mediaType: raw.media_type, sizeBytes: raw.size_bytes, sha256: raw.sha256,
+        representation: raw.representation, createdAt: raw.created_at }];
+    });
+    return { artifacts, scanned: page.data.length, limit: 100, complete: false };
   }
 
   async discoverRuns(options: { history?: boolean; maxPages?: number; cursor?: (sessionId: string) => string } = {}): Promise<{ runIds: string[]; cursors: Map<string, string>; sessions: number; incompleteSessions: number }> {

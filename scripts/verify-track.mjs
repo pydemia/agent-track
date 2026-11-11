@@ -8,6 +8,7 @@ for (const [name, route, headers, expected] of [
   ["login", "/", {}, 302],
   ["snapshot-auth", "/api/snapshot", {}, 401],
   ["stream-auth", "/api/stream", {}, 401],
+  ["artifact-auth", "/api/runs/unknown/artifacts", {}, 401],
   ["public-basic-rejected", "/api/snapshot", { authorization: "Basic dGVzdDp0ZXN0" }, 401],
   ["forged-identity-rejected", "/api/snapshot", { "x-forwarded-email": "pydemia@pydemia.ai", "x-track-proxy-key": "forged-test-key" }, 401],
   ["forged-cookie-rejected", "/api/snapshot", { cookie: "__Host-agent-track=forged-test-cookie" }, 401],

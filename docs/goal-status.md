@@ -10,7 +10,7 @@
 | AT-01 | 원본 ID·재수신·충돌 방지 | 검증 완료. `tests/core.test.ts` ID/충돌·dedupe·재시작·binding 검사, 실제 Codex 211 Run의 source/run UNIQUE 원장 |
 | AT-02 | snapshot과 실시간 실행 상태 일치 | 검증 완료. `recovery-http.test.ts` 초기 snapshot/SSE 일치·할당/실행/권한 대기/취소 중/실패 구분. 실제 native 성공·취소 종료와 공개 Trace 대조 |
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
-| AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. artifact API·증거 상세 미연결 |
+| AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. 실제 native answer.txt metadata/공개 Trail·원본 대조 완료. 변경 파일 live 근거 실기 남음 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 부분. 실제 native17event·Codex tool metadata. step 계층·상세 시간 검증 남음 |
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Demian Session href·Run link 미지원 안내. 원본 앱 로그인 후 선택 실기·타 앱 남음 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |

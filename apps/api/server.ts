@@ -4,6 +4,7 @@ import { extname, resolve, sep } from "node:path";
 import { authenticate, validMutationOrigin } from "./auth.ts";
 import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
+import { artifactEvidence } from "./evidence.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -47,6 +48,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const input = await jsonBody(request);
         const runKey = input && typeof input === "object" && "runKey" in input && typeof input.runKey === "string" ? input.runKey : "";
         const receipt = await commands.execute(user, input, commandPorts(store, config, snapshot, user, runKey, true));
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
       if (request.method !== "GET") { json(response, 405, { error: "unsupported_method" }); return; }
@@ -59,6 +61,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           const receipt = receipts[i]!;
           if (["requested", "dispatching", "accepted", "unknown"].includes(receipt.state)) receipts[i] = await commands.reconcile(user, receipt.id, ports);
         }
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipts }); return;
       }
       if (url.pathname === "/api/health") {
@@ -88,6 +91,12 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         try { json(response, 200, store.events(key, url.searchParams.get("after") ?? "0")); }
         catch { json(response, 400, { error: "invalid_page_cursor" }); }
         return;
+      }
+      const artifacts = /^\/api\/runs\/([A-Za-z0-9_-]+)\/artifacts$/.exec(url.pathname);
+      if (artifacts) {
+        const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
       }
       if (url.pathname.startsWith("/api/")) { json(response, 404, { error: "not_found" }); return; }
       if (url.pathname === "/oauth2/sign_out" && current.auth.mode === "local") {

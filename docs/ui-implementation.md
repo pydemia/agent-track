@@ -48,3 +48,13 @@ components without recursion. At most40 nodes are drawn, with an explicit limit
 notice and the full relationship list retained. Enter/Space select an observed
 Run. Public native context graph and390px contained horizontal scrolling were
 checked; typed native child/peer evidence remains a source integration limitation.
+
+## Artifact evidence
+
+Trail queries run-bound artifact metadata through the authenticated BFF on selection
+and every15s while visible. The backend checks current grants around native reads;
+no content endpoint, artifact browser URL or owner identity is exported. A failed
+or forbidden query clears prior evidence, selection changes abort requests, and
+a disconnected source hides evidence. The recent100 coverage is always marked
+incomplete. Actual public `answer.txt` metadata and its hash/size were compared
+with the source. Artifact query results are not fabricated journal events.

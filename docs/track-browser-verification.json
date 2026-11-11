@@ -44,5 +44,14 @@
     "graphContentWidth": 750,
     "pageOverflow": false,
     "typedNativeRelationsVerified": false
+  },
+  "artifacts": {
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "nativeMetadataMatchesTrack": true,
+    "publicTrailFilename": "answer.txt",
+    "sizeBytes": 40,
+    "sha256": "f9fd42371089ddd34efc3c91d92ca89ffeace0acdb78e82e60f7b1904885b590",
+    "bodyRequested": false,
+    "completeHistory": false
   }
 }

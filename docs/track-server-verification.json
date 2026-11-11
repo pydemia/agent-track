@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-11T12:08:57.763Z",
+  "verifiedAt": "2026-11-11T12:26:59.141Z",
   "scope": "unauthenticated-public-and-operator-hop",
   "browserLoginVerified": false,
   "results": [
@@ -15,6 +15,11 @@
     },
     {
       "name": "stream-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "artifact-auth",
       "status": 401,
       "passed": true
     },
@@ -36,7 +41,7 @@
     {
       "name": "operator-snapshot",
       "passed": true,
-      "runs": 233,
+      "runs": 235,
       "workspaces": 7
     },
     {
