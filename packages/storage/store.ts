@@ -1,5 +1,5 @@
 import { DatabaseSync } from "node:sqlite";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import {
   bindingSchema, compareSequence, eventSchema, externalKey, runSchema,
   terminalStatuses,
@@ -19,6 +19,8 @@ interface EventRow { ordinal: number; payload: string; received_at: string }
 
 export class Store {
   readonly db: DatabaseSync;
+  private viewEpoch = randomUUID();
+  private viewVersion = 0n;
 
   constructor(path: string) {
     this.db = new DatabaseSync(path);
@@ -178,7 +180,11 @@ export class Store {
       if (!source || source.state === "forbidden" || source.state === "unsupported") continue;
       const binding = row.binding ? JSON.parse(row.binding) as RunBinding : null;
       // Attached Project visibility is a second independent grant.
-      if (binding && allowed.get(binding.projectSourceId)?.state !== "connected") continue;
+      if (binding) {
+        const projectSource = allowed.get(binding.projectSourceId);
+        if (projectSource?.kind !== "projects" || projectSource.state !== "connected" ||
+            !projectSource.authorizedProjectIds?.includes(binding.projectId)) continue;
+      }
       const sourceUrl = source.kind === "demian" && source.uiBaseUrl
         ? new URL(`sessions/${encodeURIComponent(observation.sessionId)}`, `${source.uiBaseUrl.replace(/\/$/, "")}/`).href : null;
       runs.push({
@@ -194,6 +200,7 @@ export class Store {
     }
     const revision = this.db.prepare("SELECT coalesce(max(ordinal),0) AS value FROM events").get() as { value: number };
     return {
+      viewEpoch: this.viewEpoch, viewVersion: String(++this.viewVersion),
       revision: String(revision.value), generatedAt: new Date(now).toISOString(), user,
       runs: runs.sort((a, b) => b.observedAt.localeCompare(a.observedAt)),
       sources: sources.map(({ uiBaseUrl: _url, ...source }) => source), relations,

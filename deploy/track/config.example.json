@@ -5,7 +5,9 @@
   "auth": {
     "mode": "proxy",
     "secretFile": "C:/Users/your-user/.local/share/agent-track/track-proxy-key",
-    "users": ["owner@example.com"]
+    "users": [
+      "owner@example.com"
+    ]
   },
   "sources": [
     {
@@ -13,7 +15,9 @@
       "kind": "demian",
       "label": "Demian native",
       "device": "local-pc",
-      "users": ["owner@example.com"],
+      "users": [
+        "owner@example.com"
+      ],
       "cancelUsers": [],
       "baseUrl": "http://127.0.0.1:8080",
       "uiBaseUrl": "http://localhost:3000",
@@ -26,14 +30,48 @@
       "kind": "codex",
       "label": "Codex local metadata",
       "device": "local-pc",
-      "users": ["owner@example.com"],
+      "users": [
+        "owner@example.com"
+      ],
       "logRoot": "C:/Users/your-user/.codex/sessions",
-      "repositoryRoots": ["C:/Users/your-user/git"],
+      "repositoryRoots": [
+        "C:/Users/your-user/git"
+      ],
       "maxFiles": 100,
       "sinceDays": 7
     },
-    { "id": "projects", "kind": "projects", "label": "Projects", "device": "server", "users": ["owner@example.com"] },
-    { "id": "assistant", "kind": "assistant", "label": "Assistant", "device": "server", "users": ["owner@example.com"] },
-    { "id": "desktop", "kind": "desktop", "label": "pydemia-desktop", "device": "local-pc", "users": ["owner@example.com"] }
+    {
+      "id": "projects-native",
+      "kind": "projects",
+      "label": "Projects native",
+      "device": "server",
+      "users": [
+        "owner@example.com"
+      ],
+      "baseUrl": "http://127.0.0.1:14349",
+      "uiBaseUrl": "https://projects.pydemia.ai",
+      "projectsCredentialFile": "C:/Users/your-user/.local/share/agent-track/projects-reader.json",
+      "projectsUser": "owner@example.com",
+      "projectsAccountId": "00000000-0000-4000-8000-000000000001",
+      "projectsPrincipalId": "agent-track-reader-owner"
+    },
+    {
+      "id": "assistant",
+      "kind": "assistant",
+      "label": "Assistant",
+      "device": "server",
+      "users": [
+        "owner@example.com"
+      ]
+    },
+    {
+      "id": "desktop",
+      "kind": "desktop",
+      "label": "pydemia-desktop",
+      "device": "local-pc",
+      "users": [
+        "owner@example.com"
+      ]
+    }
   ]
 }

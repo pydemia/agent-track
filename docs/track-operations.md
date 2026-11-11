@@ -44,7 +44,7 @@ Demian은 현재 `127.0.0.1:8080`에서 bearer token을 요구한다. 기존 pri
 
 Codex는 허용한 Git 폴더의 최근 7일·최신100개 jsonl을 읽는다. 64MiB 초과
 파일과 파일 수 제한으로 제외한 개수를 연결 정보에 표시한다. 다른 위치·
-Claude·desktop·Assistant/Projects native feed는 기본 미지원이다. 원본 로그를
+Claude·desktop·Assistant native feed는 기본 미지원이다. 원본 로그를
 변경하지 않으며 해석 가능한 turn/tool metadata만 원장에 넣는다.
 
 source ID는 한 원본 instance·수집 범위를 뜻한다. 종류·endpoint·조직·로그
@@ -53,8 +53,37 @@ source ID는 한 원본 instance·수집 범위를 뜻한다. 종류·endpoint·
 grant로 넘어가는 것을 막는다. label·credential 회전은 identity 변경과 구별한다.
 
 Projects가 붙은 Run은 Project source의 연결/grant도 있어야 조회할 수 있다.
-현재 구현은 초기 owner 배포용 source grant이며 다중 사용자 native Project ACL
-교집합 검증을 완료한 것이 아니다. 기본 설정 `cancelUsers=[]`는 제어를 닫는다. 현재 운영은 기존 Entra 소유자 한 명만 `cancelUsers`에 명시해 Demian 취소를 연다. `auth.users`가 여러 명이면 취소를 자동 비활성화한다. 원본 credential이 admin 수준이므로 다중 사용자 권한 위임으로 확대하지 않는다. 승인·재개·재시도는 미지원이다.
+현재 구현은 한 Track 소유자와 별도 native reader/account를 고정하고 매 조회의
+현재 Project ACL·정확한 ID 교집합을 확인한다. 다중 사용자 native principal
+등록/위임은 별도 구성이다. 기본 설정 `cancelUsers=[]`는 제어를 닫는다. 현재 운영은 기존 Entra 소유자 한 명만 `cancelUsers`에 명시해 Demian 취소를 연다. `auth.users`가 여러 명이면 취소를 자동 비활성화한다. 원본 credential이 admin 수준이므로 다중 사용자 권한 위임으로 확대하지 않는다. 승인·재개·재시도는 미지원이다.
+
+## Projects 전용 읽기 연결
+
+`Start-Projects-Bridge.ps1`는 Windows loopback14349에서 기존 서버의
+loopback14324 Projects edge로 SSH local forward를 연다. 공개 Projects의
+Entra 설정은 유지하며, 이 내부 API도 별도 native HMAC 인증을 요구한다.
+watcher는 기록한 PID와 listener를 대조하고 알 수 없는 listener는 보존한다.
+
+`projects-reader.json`과 `projects-reader.key`는 Windows private 상태에 둔다.
+credential JSON은 version1, Track user, native accountId/principalId, kid,
+revision, 절대 secretFile 경로를 갖는다. 예제 설정의 account UUID는 교체해야
+하는 예시다. 구성 전에는 native 사용자/Entra tenant 매핑·현재 ACL과 서버
+mount를 확인하고 `deploy/projects/provision-reader.py --dry-run`으로 native
+schema 검사를 수행한다. 이 스크립트는 Linux 서버에서 실행하며 기존
+Assistant principal을 보존하고 별도 projects:read/tasks:read만 추가한다.
+새 key를 Git·출력·브라우저에 넣지 않는다. 네이티브 업무 데이터는 변경하지 않는다.
+
+각 API/SSE 관측은 현재 원본 Project 범위를 다시 확인한다. 연결된 Run도
+해당 Project ID가 현재 허용되어야 표시한다. 원본 업무는 페이지별 metadata만
+브라우저에 전달하며 body/goal 등 원문은 응답 해석 후 버린다. Task projection을
+영구 저장하거나 원본 업무를 생성/배정/수정하지 않는다. 현재 실제7프로젝트·
+26업무 조회, dedicated reader scope7→6에서 API404·공개 업무 비노출,
+7복구를 확인했다(`projects-live-verification.json`).
+
+Snapshot의 `viewEpoch`/`viewVersion`은 BFF 관측 응답 순서다. 원본 이벤트
+cursor·Task revision과 다르다. 클라이언트는 더 오래된 응답과 이전 프로세스
+epoch를 거부해 권한 축소 뒤 늦게 도착한 응답이 metadata를 복원하지 않게 한다.
+이 wire field를 요구하는 클라이언트보다 새 backend를 먼저 배포한다.
 
 ## 백업·보존·복구
 

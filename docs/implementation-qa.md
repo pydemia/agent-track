@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 58개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 74개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
@@ -24,6 +24,18 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 `live-restore-verification.json`, `track-browser-verification.json`에 있다.
 `track-server-verification.json`의 browserLoginVerified=false는 해당 CLI 검사의
 범위이며 실제 브라우저 결과는 별도 기록에 있다.
+
+## Projects 실제 읽기와 권한
+
+기존 service API에 별도 Track reader를 등록했다. scope는 projects:read/tasks:read,
+원본의 현재 account/project ACL을 사용한다. 실제7개 프로젝트·26개 업무를
+원본/BFF/공개 Entra UI에서 대조했다. 전용 reader의 한 Project 접근만 제한해
+6개/25개·대상 Task API404·공개 제목/선택지 제거를 확인하고7개/26개로 복원했다.
+기존 Assistant principal과 native 업무 자료는 변경하지 않았다. 다른 Actor가
+owner reader를 차용하지 못하는 경우와 bound Run의 Project ID 교집합을 검사했다.
+과거 snapshot이 철회 뒤 데이터를 되살리지 않도록 BFF process epoch/version을
+native event cursor와 별도로 사용한다. 업무 binding/배정·다중 사용자 principal
+구성·Assistant 읽기 연결은 별도 미완료다(`projects-live-verification.json`).
 
 ## Trace 단계·도구
 
@@ -70,7 +82,7 @@ unknown 요청은 재시작해도 재전송하지 않는다. 원본 cancel의 at
 
 ## 전체 수용
 
-[goal 기준표](goal-status.md)의 **9/21(42.9%, 동일 가중치)**다. 테스트 수나
+[goal 기준표](goal-status.md)의 **10/21(47.6%, 동일 가중치)**다. 테스트 수나
 배포 경로 준비를 전체 달성률로 환산하지 않는다. 전체 일정은 Projects/
 Assistant 계약과 desktop 위치 미확인으로 산정 불가·신뢰도 낮음이다.
 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.

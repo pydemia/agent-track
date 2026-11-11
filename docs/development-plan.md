@@ -32,7 +32,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 복구 | `scripts/storage-admin.ts` | 온라인 backup·integrity·binding import. 복원 fixture와 실제 backup→별도 복원 DB/API 대조 통과. 운영 DB 전환 훈련과 구별 |
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
-| 테스트 | `tests/` | 58개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 테스트 | `tests/` | 74개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
@@ -74,7 +74,7 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 9/21 (42.9%)이다. 58개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 10/21 (47.6%)이다. 74개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 

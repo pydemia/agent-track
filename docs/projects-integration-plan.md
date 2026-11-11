@@ -1,0 +1,62 @@
+# Projects 원본 조회·실행 연결
+
+AT-07/11/19/20을 진행한다. Projects의 Project/Task·revision·수용 상태를
+원본으로 유지하고 Track은 명시한 Run binding 이력과 조회 투영을 소유한다.
+
+## 확인한 현재 계약
+
+- 운영 Projects는 별도 PostgreSQL과 Entra proxy를 사용한다. 소유자 계정
+  `pydemia`는 Track 소유자 tenant에 연결되어 있고7개 프로젝트 읽기가 허용된다.
+- 기존 signed service API의 Principal은 고유 ID/key·account·project IDs·scope로
+  분리된다. `/api/integrations/assistant/v1`이라는 경로 이름과 별개로 principal은
+  구성으로 정의된다. Track은 새 principal/key를 발급해 읽기 scope만 갖는다.
+- 기존 Assistant credential·principal·프로젝트 범위와 운영 자료를 보존한다.
+  Projects의 대규모 미커밋/미추적 개발 파일은 이 작업에서 수정/게시하지 않는다.
+- 서비스 토큰은 audience/projects, nonce, 30초 수명, 정확한 HTTP method/path/query/
+  body hash, principal ID/revision에 서명한다. 키는 양쪽 private 상태 파일에만 둔다.
+
+## 구현 순서와 수용 조건
+
+1. 읽기 adapter: capabilities에서 쓰기 불가를 확인하고 Project/Task 제목·ID·
+   revision·상태만 선별한다. Task 원문·원본 credential·임의 필드는 버린다.
+2. 새 전용 principal: 현재 소유자의 native ACL 교집합인 프로젝트 ID에 한정한다.
+   기존 설정을 private backup하고 원자적으로 새 entry만 추가한다. 재실행은
+   같은 scope/key만 수용하고 모호하거나 달라진 바인딩은 덮어쓰지 않는다.
+3. 전용 SSH loopback forward로 기존 서명 검증 ingress에 연결한다. 공개
+   Track/Trail Entra 경로와 Projects 브라우저 인증은 바꾸지 않는다.
+4. Track 사용자와 native account/principal을 고정한다. metadata 조회·SSE 전에
+   원본 프로젝트 권한을 다시 확인하고, bound Run은 해당 Project ID가 현재
+   허용될 때만 표시한다. 단절/거부 시 Project 관련 캐시는 fail closed로 숨긴다.
+5. 실제 업무 조회와 명시적 Run binding: 최신 Task/project ID·revision을 대조하고
+   연결 이력을 남긴다. Run 종료·agent report·검증·Projects 완료/수용을 구별한다.
+6. 테스트: HMAC/path/actor/schema·metadata 제외·pagination·다른 Project 거부,
+   실제 전용 principal 조회와 scope 철회 후 캐시 비노출, 공개 UI까지 대조한다.
+
+기존 API에는 native Demian Run external-reference나 Track 요약 패널이 없다.
+조회 성공을 배정·실행 시작·Projects 문맥 요약 완료로 계산하지 않는다.
+
+## 다음 구현: 명시적 Run 연결
+
+조회 연결은 실제7프로젝트·26업무와 reader 범위 축소/복구까지 확인했다.
+다음 변경은 Track 소유의 연결 이력에 한정한다. native Task 상태·본문·revision을
+수정하거나 관측한 Run을 임의 업무에 자동 연결하지 않는다.
+
+1. 사용자가 Run 상세에서 허용된 원본 Project/Task와 조회 revision을 선택한다.
+   서버는 현재 Run 접근과 원본 Task/project를 새로 읽고 선택 revision이
+   달라졌으면409로 돌려준다. 제목은 클라이언트 입력을 신뢰하지 않고 원본에서 읽는다.
+2. 요청 UUID와 예상 기존 binding version을 사용한다. SQLite transaction에서
+   이력 append·현재 binding·receipt를 함께 반영한다. 같은 UUID 재수신은 같은
+   결과를, 내용 충돌이나 다른 탭의 선행 변경은409를 반환한다.
+3. 연결/재연결은 해당 Run에만 적용한다. 이전 Run이나 같은 Session의 다른 Run을
+   바꾸지 않는다. 연결 당시 Task revision/title은 보존하고 현재 원본 상태와
+   구별한다. Run 성공만으로 Task를 완료/수용 처리하지 않는다.
+4. 연결 이력 조회도 각 행의 Project 접근을 현재 권한으로 다시 검사한다.
+   철회된 과거 Task/project title과 actor 정보가 현재 binding을 통해 새지 않게 한다.
+   원본에 접근할 수 없으면 연결을 임의 해제해 Run을 공개하지 않는다.
+5. 격리 fixture에서 동시 변경·재시작·재수신·원본 revision 변경·권한 철회를
+   검사하고, 실제 QA 전용 업무와 QA Run으로 UI 연결/재연결을 대조한다.
+   기존 사용자 업무와 테스트 Run을 근거 없이 연결하지 않는다.
+
+연결 receipt는 Track의 기록 수락이다. 원본 업무의 배정 수락이나 Demian 실행
+시작 receipt가 아니며, 그 흐름은 AT-11의 별도 native 계약으로 진행한다.
+읽기 연결 후 등록/배정 명령·source acceptance와 소비 앱 요약을 별도 구현한다.

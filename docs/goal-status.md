@@ -13,7 +13,7 @@
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. 실제 native answer.txt metadata/공개 Trail·원본 대조 완료. 변경 파일 live 근거 실기 남음 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과 |
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. Demian Session href·Run link 미지원 안내. 실제 원본 웹이 Basic401로 브라우저 이동 차단. Track Entra/API 관측과 별개이며 원본 웹 인증 연결 필요 |
-| AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |
+| AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 미착수 |
@@ -29,10 +29,10 @@
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **9/21 (42.9%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
-AT-01/02/03/05/08/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
+현재 전체: **10/21 (47.6%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/05/07/08/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
 완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
-Projects의 외부 실행 참조·인가, Assistant의 Track 읽기 principal, desktop
+Projects 원본 업무의 실행 참조/배정·문맥 요약, Assistant의 Track 읽기 principal, desktop
 위치가 미확인이다. 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.
 
 ## 실행 순서

@@ -19,7 +19,8 @@ function event(sequence: string, data: ObservationEvent["data"] = { redacted: tr
   return { sourceId: "demian", runId: "run-1", sequence, type: "agent.invocation.started", occurredAt: timestamp, data };
 }
 function source(id = "demian"): SourceView {
-  return { id, kind: "demian", label: "Demian", device: "test", state: "connected", lastObservedAt: timestamp, detail: "test", capabilities: ["run.read"] };
+  return { id, kind: id === "projects" ? "projects" : "demian", label: "Demian", device: "test", state: "connected", lastObservedAt: timestamp, detail: "test", capabilities: ["run.read"],
+    ...(id === "projects" ? { authorizedProjectIds: ["project-1", "project-a", "project-b"] } : {}) };
 }
 
 test("external identity is unambiguous across source and run tuples", () => {
@@ -88,6 +89,20 @@ test("project/workspace filter identities include source IDs and never merge equ
   assert.equal(new Set(runs.map((r) => r.projectKey)).size, 2);
   assert.equal(new Set(runs.map((r) => r.workspaceKey)).size, 2);
   assert.ok(runs.every((r) => !r.projectKey?.includes("같은 제목") && !r.workspaceKey?.includes("ws-1")));
+  db.close();
+});
+
+test("a connected Project source grants only its currently authorized Project IDs", () => {
+  const db = new Store(":memory:"); db.observeRun(run()); db.observeRun(run("demian", "unbound"));
+  db.bind({ sourceId: "demian", runId: "run-1", projectSourceId: "projects", projectId: "project-1", taskId: "task-1",
+    taskRevision: "1", projectTitle: "private project", taskTitle: "private task", provenance: "operator" }, "owner");
+  assert.equal(db.snapshot("owner", [source(), source("projects")]).runs.length, 2);
+  const revoked = { ...source("projects"), authorizedProjectIds: ["another-project"] };
+  const snapshot = db.snapshot("owner", [source(), revoked]);
+  assert.equal(snapshot.runs.length, 1);
+  assert.equal(snapshot.runs[0]!.runId, "unbound");
+  assert.doesNotMatch(JSON.stringify(snapshot), /private project|private task/);
+  assert.equal(db.snapshot("owner", [source(), { ...source("projects"), kind: "demian" }]).runs.length, 1);
   db.close();
 });
 test("typed relations do not inflate Run counts or merge invocation, cowork and peer", () => {

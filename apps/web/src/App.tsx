@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
 import { RunTrace } from "./RunTrace.tsx";
+import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { ExecutionGraph } from "./ExecutionGraph.tsx";
 import { RunControls } from "./RunControls.tsx";
@@ -61,7 +63,8 @@ function timestamp(value: string | null | undefined) {
 function checkedSnapshot(value: unknown): value is Snapshot {
   if (!value || typeof value !== "object") return false;
   const item = value as Partial<Snapshot>;
-  return typeof item.user === "string" && Array.isArray(item.runs) && Array.isArray(item.sources) && Array.isArray(item.relations);
+  return typeof item.user === "string" && typeof item.viewEpoch === "string" && typeof item.viewVersion === "string" &&
+    Array.isArray(item.runs) && Array.isArray(item.sources) && Array.isArray(item.relations);
 }
 function originUrl(value: string | null) {
   if (!value) return null;
@@ -109,6 +112,7 @@ export function App() {
   const sidebarClose = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const source = useRef<EventSource | null>(null);
+  const snapshotOrder = useRef(new SnapshotOrder());
   const snapshotGeneration = useRef(0);
   const snapshotRequest = useRef<AbortController | null>(null);
   const eventGeneration = useRef(0);
@@ -175,6 +179,7 @@ export function App() {
       const result: unknown = await response.json();
       if (!current()) return;
       if (!checkedSnapshot(result)) throw new Error("스냅샷 응답 형식이 올바르지 않습니다.");
+      if (!snapshotOrder.current.accept(result)) return;
       setSnapshot(result);
       setHealth("ok");
       setPageError("");
@@ -194,7 +199,7 @@ export function App() {
       if (source.current !== stream) return;
       try {
         const value: unknown = JSON.parse((event as MessageEvent<string>).data);
-        if (checkedSnapshot(value)) {
+        if (checkedSnapshot(value) && snapshotOrder.current.accept(value)) {
           setSnapshot(value);
           setHealth("ok");
           setPageError("");
@@ -476,6 +481,7 @@ export function App() {
           <label className="search-label">검색<input aria-label="검색" type="search" value={filters.q} placeholder="실행·업무·출처 검색" onChange={(event) => setLocation({ filters: { ...filters, q: event.target.value } }, true)} /></label>
         </form>
 
+        {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} />}
         {unavailable ? <section className="empty-state"><span className="empty-mark">!</span><h2>실행 데이터를 불러올 수 없습니다</h2><p>API 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="button-primary" onClick={() => void loadSnapshot()}>다시 불러오기</button></section>
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
           : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근이 허용되지 않아 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.state === "forbidden" ? "접근이 허용되지 않아 저장된 실행을 표시하지 않습니다." : item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>

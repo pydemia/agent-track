@@ -1,11 +1,12 @@
 import { setTimeout as delay } from "node:timers/promises";
-import { createHash } from "node:crypto";
 import { DemianClient, SourceError } from "../../packages/adapters/demian/index.ts";
 import { CodexCollector } from "../../packages/adapters/codex/index.ts";
 import { terminalStatuses, type SourceView } from "../../packages/contracts/index.ts";
 import { externalKey } from "../../packages/contracts/index.ts";
 import type { Store } from "../../packages/storage/store.ts";
 import type { Config, SourceConfig } from "./config.ts";
+import { ProjectsAuthority } from "./projects-authority.ts";
+import { projectsReady, sourceIdentity } from "./source-identity.ts";
 
 export class Sources {
   private states = new Map<string, SourceView>();
@@ -16,14 +17,17 @@ export class Sources {
   private codex: CodexCollector;
   private shutdown = new AbortController();
   private identities = new Map<string, string>();
+  readonly projects: ProjectsAuthority;
 
-  constructor(private store: Store, private config: () => Config) { this.codex = new CodexCollector(store); }
+  constructor(private store: Store, private config: () => Config) { this.codex = new CodexCollector(store); this.projects = new ProjectsAuthority(store, config); }
+
+  async refreshProjectGrants(user: string): Promise<void> { await this.projects.refresh(user); }
 
   views(user: string): Array<SourceView & { uiBaseUrl?: string }> {
     const config = this.config();
     const singleOwner = config.auth.mode === "proxy" && config.auth.users.length === 1 && config.auth.users[0] === user;
     return config.sources.filter((source) => source.users.includes(user)).map((source) => {
-      const view = this.state(source);
+      const view = projectsReady(source) ? this.projects.view(source, user) : this.state(source);
       return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
         capabilities: [...view.capabilities, ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
     });
@@ -46,8 +50,7 @@ export class Sources {
   }
 
   private identity(source: SourceConfig): string {
-    return createHash("sha256").update(JSON.stringify([source.kind, source.baseUrl ?? null,
-      source.organizationId ?? null, source.logRoot ?? null, [...source.repositoryRoots].sort()])).digest("hex");
+    return sourceIdentity(source);
   }
 
   async start(): Promise<void> {

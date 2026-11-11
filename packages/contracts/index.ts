@@ -79,7 +79,24 @@ export interface SourceView {
   lastObservedAt: string | null;
   detail: string;
   capabilities: string[];
+  authorizedProjectIds?: string[];
 }
+export interface ProjectMetadata {
+  id: string;
+  title: string;
+  revision: string;
+  accessRevision: string;
+  archived: boolean;
+}
+export interface ProjectTaskMetadata {
+  id: string;
+  projectId: string;
+  title: string;
+  revision: string;
+  state: string;
+  requiresTest: boolean;
+}
+export interface ProjectTaskPage { tasks: ProjectTaskMetadata[]; total: number; nextCursor: string | null; snapshot: string }
 export interface RunView extends RunObservation {
   key: string;
   cursor: string;
@@ -124,6 +141,8 @@ export interface ArtifactEvidence extends ArtifactMetadataPage {
   detail: string;
 }
 export interface Snapshot {
+  viewEpoch: string;
+  viewVersion: string;
   revision: string;
   generatedAt: string;
   user: string;

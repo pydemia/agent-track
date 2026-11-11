@@ -5,6 +5,7 @@ import { authenticate, validMutationOrigin } from "./auth.ts";
 import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
 import { artifactEvidence } from "./evidence.ts";
+import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -43,6 +44,10 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const user = authenticate(request, current);
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       const url = new URL(request.url ?? "/", "http://localhost");
+      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health") {
+        await sources.refreshProjectGrants?.(user);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+      }
       if (request.method === "POST" && url.pathname === "/api/commands/cancel") {
         if (!validMutationOrigin(request, current)) { json(response, 403, { error: "invalid_origin" }); return; }
         const input = await jsonBody(request);
@@ -68,19 +73,44 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         json(response, 200, { status: "ok", schema: 2, version: "0.1.0", integrity: store.integrity() }); return;
       }
       if (url.pathname === "/api/snapshot") { json(response, 200, snapshot(user)); return; }
+      if (url.pathname === "/api/projects/catalog") {
+        const views = sources.views(user).filter((source) => source.kind === "projects");
+        json(response, 200, { generatedAt: new Date().toISOString(), sources: views.map((source) => ({
+          id: source.id, label: source.label, state: source.state, detail: source.detail,
+          projects: sources.projects?.catalog(source.id, user) ?? [],
+        })) }); return;
+      }
+      const projectTasks = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/tasks$/.exec(url.pathname);
+      if (projectTasks) {
+        const [, sourceId, projectId] = projectTasks as unknown as [string, string, string];
+        const permitted = () => sources.views(user).some((source) => source.id === sourceId && source.kind === "projects" &&
+          source.state === "connected" && source.authorizedProjectIds?.includes(projectId));
+        if (!permitted()) { json(response, 404, { error: "project_not_found" }); return; }
+        const cursor = url.searchParams.get("cursor") ?? undefined;
+        const page = await sources.projects.client(sourceId, user).tasks(projectId, cursor);
+        await sources.refreshProjectGrants(user);
+        if (authenticate(request, config()) !== user || !permitted()) { json(response, 403, { error: "source_forbidden" }); return; }
+        json(response, 200, page); return;
+      }
       if (url.pathname === "/api/stream") {
         response.writeHead(200, { "Content-Type": "text/event-stream; charset=utf-8", "X-Accel-Buffering": "no" });
-        const send = () => {
+        let sending = false;
+        const send = async () => {
+          if (sending || response.destroyed || response.writableEnded) return;
+          sending = true;
           try {
+            await sources.refreshProjectGrants?.(user);
+            if (response.destroyed || response.writableEnded) return;
             if (authenticate(request, config()) !== user) {
               response.write("event: authorization_revoked\ndata: {}\n\n");
               response.end(); return;
             }
             response.write(`event: snapshot\ndata: ${JSON.stringify(snapshot(user))}\n\n`);
           } catch { response.end(); }
+          finally { sending = false; }
         };
-        send();
-        const interval = setInterval(send, 3000);
+        void send();
+        const interval = setInterval(() => void send(), 3000);
         response.on("close", () => clearInterval(interval));
         return;
       }
@@ -114,6 +144,10 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
     } catch (error) {
       if (response.headersSent) response.end();
       else if (error instanceof CommandError) json(response, error.status, { error: error.code, detail: error.message });
+      else if (error instanceof ProjectsSourceError) {
+        const status = [401, 403, 404].includes(error.status) ? 404 : [400, 409].includes(error.status) ? error.status : 503;
+        json(response, status, { error: status === 404 ? "project_not_found" : status === 409 ? "project_snapshot_changed" : "project_source_unavailable" });
+      }
       else json(response, 503, { error: "configuration_or_storage_unavailable" });
     }
   });

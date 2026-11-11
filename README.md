@@ -47,6 +47,7 @@ npm start
 - Demian Run/Session snapshot·per-Run SSE adapter·허용된 세션의 Run 이력 탐색. 기존 private credential 참조·실제 Run 수집/공개 Trace 검증.
 - Codex 로컬 metadata 수집: 허용 저장소·기간·파일 수 한계 표시, 대화와 도구
   입출력 저장 제외. 이것은 Demian native 또는 desktop bridge 연결과 별개입니다.
+- Projects 원본 읽기: 전용 소유자 principal·현재 Project ACL로 실제 업무 제목/revision/상태 조회, 접근 축소 시 관련 metadata 비노출. 등록·배정은 후속 단계입니다.
 - native Run별 산출물 metadata: 현재 원본 인가와 Run ID를 대조하고, 최근 목록 범위·철회·원문 제외를 표시합니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.

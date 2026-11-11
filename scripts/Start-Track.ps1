@@ -39,5 +39,9 @@ if (-not $forward) {
     $process = Start-Process -FilePath (Get-Command ssh.exe).Source -ArgumentList @('-N', '-T', '-o', 'BatchMode=yes', '-o', 'ExitOnForwardFailure=yes', '-o', 'ServerAliveInterval=20', '-o', 'ServerAliveCountMax=3', '-R', '127.0.0.1:14346:127.0.0.1:14345', 'pydemia-server') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateDir 'track-forward.stdout.log') -RedirectStandardError (Join-Path $stateDir 'track-forward.stderr.log')
     $process.Id | Set-Content -LiteralPath $forwardPidPath
 }
+$privateConfig = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+if (@($privateConfig.sources | Where-Object { $_.kind -eq 'projects' -and $_.baseUrl -eq 'http://127.0.0.1:14349' -and $_.projectsCredentialFile }).Count -gt 0) {
+    & (Join-Path $PSScriptRoot 'Start-Projects-Bridge.ps1')
+}
 Write-Output 'Track product and private reverse bridge started; public access requires Entra.'
 } finally { $startMutex.ReleaseMutex(); $startMutex.Dispose() }

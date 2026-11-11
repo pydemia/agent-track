@@ -1,0 +1,73 @@
+{
+  "verifiedDate": "2026-11-11",
+  "source": "projects-native",
+  "nativeService": "existing Projects runtime with PostgreSQL and existing Entra user mapping",
+  "separateReaderPrincipal": true,
+  "scopes": [
+    "projects:read",
+    "tasks:read"
+  ],
+  "writeCapabilitiesRejected": true,
+  "projects": 7,
+  "tasks": 26,
+  "allFirstPagesComplete": true,
+  "publicEntraUi": {
+    "catalogDisplayed": true,
+    "taskTitleRevisionStateDisplayed": true,
+    "projectFilter": true,
+    "taskTableRowsIncludingHeader": 27
+  },
+  "scopeProbe": {
+    "onlyDedicatedReaderChanged": true,
+    "restrictedProjects": 6,
+    "restrictedTasks": 25,
+    "targetTasksHttpStatus": 404,
+    "targetProjectAndTaskHiddenInPublicUi": true,
+    "restoredProjects": 7,
+    "restoredTasks": 26,
+    "restoredTargetTasksHttpStatus": 200,
+    "originalScopeRestored": true,
+    "otherPrincipalsPreserved": true,
+    "nativeBusinessDataWrites": false
+  },
+  "fixtureEvidence": [
+    "other Track user cannot borrow the owner's principal; no native HTTP issued",
+    "bound Run is hidden when its Project ID is removed from the current grant",
+    "serial native checks prevent older allowed responses reopening a later denial",
+    "older HTTP/SSE projection cannot restore metadata removed by a newer snapshot"
+  ],
+  "limits": [
+    "Current deployment is one Entra owner; additional users require separately bound native principals",
+    "No native Task creation, assignment or external execution reference is claimed by this read integration",
+    "Task bodies are decoded transiently by the native API client and discarded; only metadata is exported"
+  ],
+  "browserRegression": {
+    "emptyRuns": "Controlled loopback QA removes only Runs/relations; actual native Projects7/26 remain visible",
+    "mobile": {
+      "width": 390,
+      "documentClientWidth": 375,
+      "documentScrollWidth": 375,
+      "rows": 26,
+      "scrollContainer": "one bounded two-axis task region"
+    },
+    "publicBundle": {
+      "css": "index-nOSDEcQq.css",
+      "js": "index-hX47PJWt.js"
+    },
+    "temporaryQa": "stopped after PID/command verification; viewport reset; QA tab closed"
+  },
+  "localChecks": {
+    "tests": 74,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed",
+    "pythonRuff": "passed"
+  },
+  "independentReview": {
+    "disposition": "fixed",
+    "cases": [
+      "deny missing read capabilities even with empty native Project list",
+      "reject mixed non-task pages that violate native task-only count contract"
+    ]
+  }
+}

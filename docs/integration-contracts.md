@@ -153,3 +153,27 @@ The actual dedicated native Run has one `answer.txt` manifest; API metadata and
 public Trail were compared. Revoked/foreign Run and mid-request Track revocation
 were checked with fixtures. Evidence is queried on demand, not persisted in the
 event journal or synthesized as a source-sequence event.
+
+## Projects reader implementation (2026-11-11)
+
+The deployed Projects image is pydemia-projects:story-b313610cb90a73bc. Its native
+read API at /api/integrations/assistant/v1 now has a separate Track principal
+with only projects:read and tasks:read. Existing Assistant keys/principals are
+not reused. The current owner-bound account has7 authorized projects/26tasks;
+Track refreshes capabilities and exact native Project scope before publishing
+metadata, and rechecks after awaited task reads. Other Track actors cannot
+borrow that credential. This is a single-owner deployment, not delegated
+multi-user native authentication.
+
+GET tokens sign the full raw path including the integration prefix and query,
+empty-body SHA256, method, native account-bound principal/revision, nonce and
+30second lifetime. Native Project.version differs from Task.revision; missing
+requires_test defaults to true. Task title/body ownership remains with Projects.
+Track retains minimal title/ID/revision/state metadata only; native response
+bodies are transiently decoded and discarded. No native business writes occur.
+
+Track exposes /api/projects/catalog and /api/projects/:sourceId/:projectId/tasks
+with native opaque cursor/as_of paging. This is live read support. Explicit
+Run binding workflows, native execution references, assignment/acceptance and
+embedded context summaries remain unimplemented. The actual dedicated-reader
+scope reduction and restoration are recorded in projects-live-verification.json.

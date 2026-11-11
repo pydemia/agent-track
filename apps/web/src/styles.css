@@ -186,6 +186,17 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .inline-error { background: #2b201e; color: #ffd0c4; }
 .button-secondary, .button-primary { padding: 8px 12px; border: 1px solid #657645; background: #252b1d; color: var(--lime); font-size: 11px; }
 .load-more { margin-top: 8px; }
+.projects-catalog { margin: 0 0 20px; padding: 12px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.projects-catalog summary { cursor: pointer; font-size: 13px; color: var(--ink); }
+.projects-catalog summary small { color: var(--muted); margin-left: 12px; font-size: 10px; }
+.project-task-filter { display: flex; flex-wrap: wrap; align-items: end; gap: 18px; margin: 12px 0; }
+.project-task-filter label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
+.project-task-filter select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); padding: 7px; max-width: 240px; }
+.project-task-scroll { max-height: 280px; overflow: auto; }
+.project-task-scroll > .table-wrap { overflow: visible; margin-right: 0; }
+.project-task-scroll td { font-size: 11px; vertical-align: top; }
+.project-task-scroll td:first-child { min-width: 190px; }
+.project-task-scroll td small { display: block; font-size: 9px; overflow-wrap: anywhere; }
 .run-trace { padding: 4px 0 20px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
 .trace-step { margin-top: 18px; }
 .trace-step h3 { margin: 0; font: 12px var(--mono); overflow-wrap: anywhere; }
