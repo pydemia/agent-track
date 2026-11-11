@@ -4,7 +4,8 @@ import type { RunView, SourceView } from "../../../packages/contracts/index.ts";
 import { dependencyGrants, projectDependenciesFlow } from "../../../packages/projection/project-dependencies-flow.ts";
 import { pollTaskDependencies, type DependencySnapshot } from "./task-dependencies-client.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
-import { layoutFlowGraph } from "./ui/flow-layout.ts";
+import { layoutGroupedFlow } from "./flow-group-layout.ts";
+import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
 import "./mission-flow.css";
@@ -49,38 +50,42 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
   const [filter, setFilter] = useState("");
   const [choice, setChoice] = useState<{ kind: "node" | "edge"; key: string } | null>(null);
   useEffect(() => pollTaskDependencies(sourceId, projectId, (next) => {
-    setSnapshot(next);
-    if (!next.page) { setChoice(null); setFilter(""); }
+    // The keyed scope already owns the same native Project/grants. A pending
+    // refresh keeps its view grouping; a failed/denied result clears it fully.
+    setSnapshot(previous => next.status === "loading" && previous.page ? { ...next, page: previous.page } : next);
+    if (next.status !== "loading" && !next.page) { setChoice(null); setFilter(""); }
   }, onUnauthorized, undefined, () => onScopeUnavailable(sourceId, projectId)), [sourceId, projectId, retry, onUnauthorized, onScopeUnavailable]);
   const model = useMemo(() => snapshot.page
     ? projectDependenciesFlow(snapshot.page, runs, sources, focusTaskId)
     : { nodes: [], edges: [], hiddenNodes: 0, incomplete: false, cycles: new Set<string>(), focusPresent: false },
   [snapshot.page, runs, sources, focusTaskId]);
-  const node = model.nodes.find((n) => choice?.kind === "node" && n.key === choice.key);
-  const edge = model.edges.find((e) => choice?.kind === "edge" && e.key === choice.key);
   const chooseNode = (key: string) => setChoice({ kind: "node", key });
   const chooseEdge = (key: string) => setChoice({ kind: "edge", key });
-  const name = (key: string) => model.nodes.find((n) => n.key === key)?.label ?? key;
+  const grouping = useFlowGrouping(model, { scopeKey: `${sourceId}:${projectId}`, defaultBy: "project", chooseNode, chooseEdge });
+  const node = grouping.inspectNodes.find((n) => choice?.kind === "node" && n.key === choice.key);
+  const edge = grouping.inspectEdges.find((e) => choice?.kind === "edge" && e.key === choice.key);
+  const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
+  const name = (key: string) => grouping.inspectNodes.find((n) => n.key === key)?.label ?? key;
   const graph = useMemo(() => {
-    const nodes: FlowNode[] = model.nodes.map((n) => ({ id: n.key, type: "pyd-flow-node",
+    const nodes: FlowNode[] = grouping.projection.nodes.map((n) => grouping.decorate(n, { id: n.key, type: "pyd-flow-node",
       position: { x: 0, y: 0 }, width: 240, height: 136, style: { width: 240, height: 136,
         ...(n.kind === "task" && n.id === focusTaskId ? { outline: "2px solid var(--lime)" } : {}) },
       selected: n.key === node?.key, ariaLabel: `${kindLabels[n.kind] ?? n.kind} ${n.label} ${stateLabels[n.status] ?? n.status}`,
       data: { title: n.label, kindLabel: n.kind === "task" ? "Projects 업무" : kindLabels[n.kind] ?? n.kind,
         kind: n.kind === "task" ? "trigger" : "action", status: cardState(n.status),
         statusLabel: stateLabels[n.status] ?? n.status, description: n.description } }));
-    const edges: FlowEdge[] = model.edges.map((e) => ({ id: e.key,
+    const edges: FlowEdge[] = grouping.projection.edges.map((e) => ({ id: e.key,
       source: e.from, target: e.to, type: "pyd-flow-edge", label: e.label,
       selected: e.key === edge?.key, className: `mission-edge-${e.kind}`,
       ariaLabel: `${e.label} ${name(e.from)} → ${name(e.to)}`,
       markerEnd: { type: MarkerType.ArrowClosed, color: "var(--flow-edge)" } }));
-    return layoutFlowGraph({ nodes, edges });
-  }, [model, focusTaskId, node?.key, edge?.key]);
+    return layoutGroupedFlow(nodes, edges);
+  }, [model, grouping.projection, focusTaskId, node?.key, edge?.key]);
   const topology = JSON.stringify([model.nodes.map((n) => n.key).sort(), model.edges.map((e) => e.key).sort()]);
   const selectNode = (changes: NodeChange<FlowNode>[]) => { const change = changes.find((item) => item.type === "select" && item.selected); if (change?.type === "select") chooseNode(change.id); };
   const selectEdge = (changes: EdgeChange<FlowEdge>[]) => { const change = changes.find((item) => item.type === "select" && item.selected); if (change?.type === "select") chooseEdge(change.id); };
   const retryRead = () => {
-    setSnapshot({ status: "loading", page: null }); setChoice(null); setFilter("");
+    setSnapshot(previous => ({ status: "loading", page: previous.page }));
     setRetry((v) => v + 1);
   };
   const message = snapshot.status === "loading" ? "업무 의존성을 조회하고 있습니다."
@@ -94,7 +99,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
   return <section className="mission-flow" aria-label="Projects 업무 의존성 Map">
     <div className="flow-semantics"><span>실선 · 선행 조건 → 의존 업무</span><span>점선 · 명시적 Task 연결 / Session 소속</span>
       <span>의존성은 실행 배정·Task 성공을 뜻하지 않습니다.</span>
-      <button className="text-button" onClick={() => setFit((v) => v + 1)}>전체 흐름 맞춤</button>
+      <button className="text-button" onClick={() => { grouping.resetFocus(); setFit((v) => v + 1); }}>전체 흐름 맞춤</button>
       <button className="text-button" onClick={retryRead}>다시 조회</button></div>
     <p className={snapshot.status === "failure" ? "inline-error" : "graph-legend"} role="status">{message}</p>
     {snapshot.page && <p className="graph-legend">관측 {snapshot.page.observedAt ?? "지원되지 않음"} · {model.nodes.length} nodes · {model.edges.length} edges
@@ -103,31 +108,34 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
     {focusTaskId && snapshot.page?.supported && !model.focusPresent && <p className="inline-warning">선택한 업무의 의존 관계를 현재 조회 범위에서 확인하지 못했습니다.</p>}
     {model.cycles.size > 0 && <p className="inline-warning">의존 관계 순환 · 관련 node {model.cycles.size}개. 실행 순서로 해석하지 마세요.</p>}
     {model.nodes.length > 0 && <>
+      <FlowGroupControls state={grouping} />
       <div className="mission-flow-workspace">
-        <FlowCanvas key={`${fit}:${topology}`} label="Projects 업무 의존성" nodes={graph.nodes} edges={graph.edges}
+        <FlowCanvas key={`${fit}:${topology}:${grouping.topology}`} label="Projects 업무 의존성" nodes={graph.nodes} edges={graph.edges}
           onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={selectNode} onEdgesChange={selectEdge} showMiniMap readOnly
+          onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...(grouping.focusNodeIds ? { focusNodeIds: grouping.focusNodeIds } : {})}
           height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" />
         <aside className="flow-inspector" aria-label="선택한 업무 또는 관계 상세" aria-live="polite">
-          {node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>
+          {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>
             <dl>{node.details.map((d) => <div key={d.label}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}</dl>
             {node.runKey && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Run 실행 근거 보기</button>}
             <h4>연결 관계</h4>{model.edges.filter((e) => e.from === node.key || e.to === node.key).map((e) =>
-              <button key={e.key} className="flow-list-choice" onClick={() => chooseEdge(e.key)}><strong>{e.label}</strong><span>{name(e.from)} → {name(e.to)}</span></button>)}
+              <button key={e.key} className="flow-list-choice" onClick={() => grouping.revealEdge(e.key)}><strong>{e.label}</strong><span>{name(e.from)} → {name(e.to)}</span></button>)}
           </> : edge ? <><small>관계 상세 · {edge.kind}</small><h3>{edge.label}</h3>
             <p style={{ whiteSpace: "pre-wrap" }}>{edge.detail}</p><dl>
               <div><dt>관계 식별키</dt><dd>{edge.key}</dd></div><div><dt>출처</dt><dd>{edge.sourceId}</dd></div>
               <div><dt>화면 출발</dt><dd><button className="text-button" onClick={() => chooseNode(edge.from)}>{name(edge.from)}</button></dd></div>
               <div><dt>화면 도착</dt><dd><button className="text-button" onClick={() => chooseNode(edge.to)}>{name(edge.to)}</button></dd></div>
             </dl></> : <><h3>업무 또는 관계를 선택하세요</h3><p>현재 원본 상태·revision, 관계 기록 당시 revision, 명시적으로 연결된 Run을 구분해 표시합니다. Run 종료는 Task 완료·수용 근거가 아닙니다.</p></>}
+          {edge && <FlowGroupEdgeEvidence edgeKey={edge.key} state={grouping} nodes={model.nodes} />}
         </aside>
       </div>
       <details className="flow-accessible-list"><summary>Node·edge 목록으로 탐색</summary>
         <label>업무·관계·ID 검색<input value={filter} onChange={(e) => setFilter(e.target.value)} /></label>
         <div className="flow-list-columns"><section><h3>Nodes</h3>{model.nodes.filter((n) =>
           `${n.label} ${n.kind} ${n.id} ${n.sourceId}`.toLowerCase().includes(query)).map((n) =>
-          <button key={n.key} className="flow-list-choice" aria-pressed={node?.key === n.key} onClick={() => chooseNode(n.key)}><strong>{n.label}</strong><span>{kindLabels[n.kind] ?? n.kind} · {stateLabels[n.status] ?? n.status} · {n.id}</span></button>)}</section>
+          <button key={n.key} className="flow-list-choice" aria-pressed={node?.key === n.key} onClick={() => grouping.revealNode(n.key)}><strong>{n.label}</strong><span>{kindLabels[n.kind] ?? n.kind} · {stateLabels[n.status] ?? n.status} · {n.id}</span></button>)}</section>
           <section><h3>Edges</h3>{model.edges.filter((e) => `${e.label} ${e.detail} ${name(e.from)} ${name(e.to)}`.toLowerCase().includes(query)).map((e) =>
-            <button key={e.key} className="flow-list-choice" aria-pressed={edge?.key === e.key} onClick={() => chooseEdge(e.key)}><strong>{e.label}</strong><span>{name(e.from)} → {name(e.to)}</span></button>)}</section></div>
+            <button key={e.key} className="flow-list-choice" aria-pressed={edge?.key === e.key} onClick={() => grouping.revealEdge(e.key)}><strong>{e.label}</strong><span>{name(e.from)} → {name(e.to)}</span></button>)}</section></div>
       </details>
     </>}
   </section>;

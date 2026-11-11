@@ -1,0 +1,65 @@
+{
+  "verifiedAt": "2026-11-11T23:50:29.882Z",
+  "dateKst": "2026-11-12",
+  "requirement": "AT-12: node group and in-depth flow navigation",
+  "scope": "Current owner Entra session on public Track; existing QA Tasks and actual Codex metadata",
+  "implementation": {
+    "containers": ["project", "task", "session", "run", "invocation", "cowork", "view-task-bundle"],
+    "membership": "Native IDs or explicit bindings; view bundles are separate from native objects and authority",
+    "depths": ["overview", "structure", "detail"],
+    "navigation": ["collapse/expand", "enter group", "parent breadcrumb", "global fit", "reveal native member or edge"],
+    "edgeEvidence": "Aggregate only equal source/direction/kind at the same visible endpoints; retain original evidence and hidden internal counts/cycles",
+    "viewBundlePersistence": "Current screen only; retained during same-scope manual refresh, removed when a member disappears; not saved across reload/reconnect"
+  },
+  "nativeTaskReadback": {
+    "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+    "relationId": "d66d5baf-9dbd-416b-abf1-bf01465a8610",
+    "nativeRelation": "depends_on",
+    "dependentTaskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+    "prerequisiteTaskId": "b01e84de-941a-4ac5-b921-ed65e2bcfbb9",
+    "currentRevisions": ["1", "2"],
+    "taskStates": ["todo", "todo"],
+    "nodes": 2,
+    "edges": 1,
+    "observedRuns": 0,
+    "nativeMutationsDuringGroupVerification": 0,
+    "visualArrow": "Prerequisite to dependent, unchanged by grouping"
+  },
+  "publicBrowser": {
+    "taskMap": {
+      "nestedContainers": 2,
+      "innerBundle": "업무 생성·복구 검증",
+      "expandedTaskNodes": 2,
+      "internalDependencyEdges": 1,
+      "checks": ["create/remove view bundle", "nested collapse/expand", "depth presets", "enter and parent breadcrumb", "global fit resets focus", "collapsed member reveals original Task", "manual refresh retains bundle and focus", "native Task revision/state detail"]
+    },
+    "trace": {
+      "sourceId": "codex-local",
+      "nativeRunId": "01a1ccc8-a26f-72c2-a6ec-f600ac4cf60e",
+      "canonicalEvents": 10,
+      "runNodes": 1,
+      "toolNodes": 4,
+      "edges": 7,
+      "checks": ["structure preset collapses Run", "group inspector retains five constituents and seven internal edges", "enter expands Run", "selecting tool from collapsed group reveals native node and inspector"],
+      "selectedToolEvidence": {"sequences": ["4", "5"], "observedDurationMs": 665},
+      "limits": "Codex metadata only; absent parent calls remain unknown and record order does not imply dependency"
+    },
+    "mobile": {"viewportWidth": 390, "viewportHeight": 844, "settledClientWidth": 375, "settledScrollWidth": 375, "canvasWidthApprox": 345.2, "horizontalOverflow": false, "inspectorBelowCanvas": true, "viewportOverrideReset": true},
+    "screenshots": ["track-node-groups-desktop.jpg", "track-node-groups-mobile.jpg"],
+    "screenshotLocation": "Current Codex visualization artifacts; not embedded in this repository"
+  },
+  "automatedVerification": {
+    "rootTests": {"passed": 312, "failed": 0, "skipped": 0},
+    "groupTests": {"projection": 8, "definitionsAndReveal": 5, "layout": 3},
+    "fixtures": ["same-source and source-qualified IDs", "shared Session", "boundary evidence aggregation", "hidden internal cycles", "invalid ownership and parent cycles fail closed", "membership revocation removes view bundle label", "10,000-node dependency and 10,000-depth projection without stack overflow", "wide group columns and child containment", "record order excluded from causal layout"],
+    "typecheck": "passed",
+    "productionBuild": "passed",
+    "independentSourceReview": "Member reveal and global fit findings fixed; recheck found no blocker",
+    "knownPrivateCredentialScan": {"privateValuesCompared": 6, "matches": 0}
+  },
+  "servedAssets": {"entry": "/assets/index-NYlUZeHt.js", "entrySha256": "b4d09067536ee6f0df3db7ccd4800b37c89a415ff6cf4b69ef20cd266f6c1861", "css": "/assets/index-BC_cIJ4Y.css", "taskMap": "/assets/TaskDependencyMap-CCACFeJY.js", "traceFlow": "/assets/MissionFlow-BX6fLQg4.js", "sharedCanvas": "/assets/flow-canvas-Cg4zuT0g.js"},
+  "sourceAvailability": {"demian": "Native API unavailable; journal retains 19 Runs, none visible after fresh authorization could not be confirmed; event read404", "projects": "connected", "codex": "connected", "assistant": "unsupported", "desktop": "unsupported"},
+  "publicAnonymousPolicy": {"trackRoot": 302, "trackSnapshot": 401, "trailRoot": 302},
+  "limits": ["No actual native managed-child/peer/cowork organization or artifact relationship was introduced by grouping", "Boundary aggregation and very deep graphs have fixture evidence, not real large-scale browser or native collaboration evidence", "No account-owned saved view or reconnect restoration yet", "Existing Demian Docker/API incident and separate desktop definition remain unresolved", "Optional Assistant reader library is tested but not wired, provisioned or deployed"],
+  "goal": {"completed": 14, "total": 21, "percent": 66.7, "weighting": "equal acceptance criteria", "eta": "not estimable", "confidence": "low"}
+}

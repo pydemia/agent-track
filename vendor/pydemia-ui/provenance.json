@@ -9,7 +9,10 @@
     "Layout declares its graph type locally; clipboard editing module is not included.",
     "Node header/body use explicit slots so the React Flow port divs are not styled as card content.",
     "Layout accepts an explicit stable node order; tools use canonical sequence order while record-order edges do not determine hierarchy columns.",
-    "Read-only edge labels are focusable selection buttons connected to the same inspector."
+    "Read-only edge labels are focusable selection buttons connected to the same inspector.",
+    "Existing pyd-flow-group renderer adds explicit membership-basis/count summaries and keyboard collapse/enter actions; native cowork nodes remain distinct from visual containers.",
+    "Optional viewport focus fits an entered group or revealed native member after node initialization, with parent/global navigation owned by Track.",
+    "Layout spaces dependency columns using their maximum actual node/group width instead of a fixed width to avoid overlapping expanded groups."
   ],
   "items": [
     {

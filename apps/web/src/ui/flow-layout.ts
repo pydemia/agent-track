@@ -88,13 +88,15 @@ function layoutFlowGraph(graph: FlowGraph, order: readonly string[] = []): FlowG
         columns.set(level, [...(columns.get(level) ?? []), id]);
     }
     const positions = new Map<string, { x: number; y: number }>();
-    for (const [level, column] of columns) {
+    let x = 70;
+    for (const [, column] of [...columns].sort(([left], [right]) => left - right)) {
         let y = 70;
         for (const id of column) {
             const node = byId.get(id)!;
-            positions.set(id, { x: 70 + level * 310, y });
+            positions.set(id, { x, y });
             y += Math.max(150, flowNodeSize(node).height + 42);
         }
+        x += Math.max(240, ...column.map(id => flowNodeSize(byId.get(id)!).width)) + 70;
     }
     return translateFlowControls(graph,
         graph.nodes.map((node) => positions.has(node.id) ? {

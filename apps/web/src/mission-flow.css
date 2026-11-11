@@ -7,6 +7,37 @@
 .mission-flow-canvas { min-width: 0; border-radius: 0 !important; background: var(--bg); }
 .mission-flow [data-ui="flow-node"] { box-sizing: border-box; display: flex; flex-direction: column; width: 240px; height: 136px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--ink); }
 .mission-flow [data-ui="flow-node"] > [data-slot="flow-node-heading"] { border-bottom: 1px solid var(--line); padding: 10px 12px 8px; }
+.mission-flow [data-ui="flow-group"] { box-sizing: border-box; width: 100%; height: 100%; border: 1px solid #65704d; border-radius: 8px; background: color-mix(in srgb, var(--surface) 65%, transparent); color: var(--ink); }
+.mission-flow [data-ui="flow-group"][data-basis="view"] { border-style: dashed; border-color: var(--amber); }
+.mission-flow [data-ui="flow-group"] [data-slot="flow-group-header"] { padding: 14px 16px; min-height: 124px; box-sizing: border-box; }
+.mission-flow [data-ui="flow-group"] strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 14px; margin: 5px 0; overflow-wrap: anywhere; }
+.mission-flow [data-ui="flow-group"] small { font-size: 10px; color: var(--muted); }
+.mission-flow [data-ui="flow-group"] p { margin: 6px 0; font-size: 11px; color: var(--muted); }
+.flow-group-actions { display: flex; gap: 8px; margin-top: 10px; }
+.flow-group-actions button, .flow-group-controls button, .flow-group-inspector-actions button { padding: 5px 9px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); font-size: 11px; cursor: pointer; }
+.flow-group-actions button:hover, .flow-group-controls button[aria-pressed="true"] { border-color: var(--lime); color: var(--lime); }
+.flow-group-controls { margin: 14px 0; border-block: 1px solid var(--line); padding: 12px 0; font-size: 11px; min-width: 0; }
+.flow-group-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
+.flow-group-toolbar label { display: flex; align-items: center; gap: 8px; }
+.flow-group-toolbar select, .flow-bundle-form input:not([type="checkbox"]) { min-width: 0; padding: 6px 8px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+.flow-group-toolbar [role="group"] { display: flex; flex-wrap: wrap; gap: 5px; }
+.flow-group-toolbar > span { color: var(--muted); font-size: 10px; }
+.flow-group-breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.flow-group-breadcrumb button { border: 0; padding-inline: 0; background: transparent; color: var(--lime); max-width: 45ch; text-align: left; overflow-wrap: anywhere; }
+.flow-bundle-form { display: grid; gap: 12px; margin-top: 14px; max-width: 620px; }
+.flow-bundle-form > label { display: grid; gap: 7px; }
+.flow-bundle-form fieldset { display: grid; gap: 10px; border: 1px solid var(--line); padding: 12px; max-height: 260px; overflow: auto; min-width: 0; }
+.flow-bundle-form fieldset label { display: flex; align-items: start; gap: 8px; overflow-wrap: anywhere; }
+.flow-bundle-form fieldset input { flex: none; width: auto; }
+.flow-bundle-form p { margin: 0; line-height: 1.6; color: var(--muted); }
+.flow-bundle-list, .flow-bundle-list > div, .flow-group-inspector-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.flow-group-list { margin-top: 12px; }
+.flow-group-list summary { cursor: pointer; }
+.flow-group-list > div { display: grid; gap: 5px; margin-top: 10px; }
+.flow-group-list button { text-align: left; overflow-wrap: anywhere; }
+.flow-group-list small { color: var(--muted); }
+.flow-inspector details { margin: 12px 0; }
+.flow-inspector details > summary { cursor: pointer; font-size: 11px; }
 .mission-flow [data-ui="flow-node"] > [data-slot="flow-node-heading"] > span { display: block; color: var(--muted); font: 9px var(--mono); }
 .mission-flow [data-ui="flow-node"] strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; margin-top: 4px; font: 550 13px/18px "Segoe UI", "Malgun Gothic", sans-serif; overflow-wrap: anywhere; }
 .mission-flow [data-ui="flow-node"] > [data-slot="flow-node-body"] { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; color: var(--muted); font: 10px/15px "Segoe UI", "Malgun Gothic", sans-serif; }

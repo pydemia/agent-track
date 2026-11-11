@@ -37,7 +37,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
 | 승인 | `packages/approvals/`, `apps/api/permissions.ts`, `RunApprovals.tsx` | native 요청/명시 검토·fingerprint·scope/expiry·receipt/unknown·권한 재확인. 실제 단일 호출 허용/거절/자동 만료·철회/복구·모바일 대조 |
-| 테스트 | `tests/` | 164개 통과, typecheck·build 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 테스트 | `tests/` | 312개 통과, typecheck·build 통과. Node group16개·미연결 Assistant reader21개 포함. 실제 교차 앱·전체 화면 규모 검증과 구별 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
@@ -79,9 +79,16 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 동일 가중치14/21 (66.7%)이다. 275개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 동일 가중치14/21 (66.7%)이다. 312개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
+
+Node group의 계획·구현은 `mission-ui-plan.md`의 AT-12 보완에 연결했다.
+원본/명시 binding과 사용자 화면 묶음을 구분하고, 중첩 접힘·내부 탐색·깊이 preset·
+원본 관계 상세를 제공한다. 공개 Projects 업무2개·선행 관계1개, Codex Run1개·도구4개의
+실기는 `node-groups-verification.json`에 기록했다. 대표 경계선·10,000-depth는 순수
+projection 검사이며 실제 대규모 브라우저 성능이나 child/peer 조직화 실기를 대신하지 않는다.
+다음 그룹 단계는 현재 원본 권한을 재검사하는 계정별 저장 보기·재접속 복원이다.
 
 전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 기존 Docker DB 장애로 원본 적용이 보류 중이다. Assistant 신규 읽기 계약과 desktop 의미·위치·다른 장치 연결도 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부

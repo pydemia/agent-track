@@ -3,10 +3,10 @@ import {
     MiniMap, Position, ReactFlow, ViewportPortal, getSmoothStepPath,
     type Connection, type Edge, type EdgeProps, type Node,
     type NodeProps, type OnEdgesChange, type OnNodesChange,
-    type Viewport, useReactFlow,
+    type Viewport, useReactFlow, useNodesInitialized,
 } from "@xyflow/react";
 import type { CSSProperties } from "react";
-import { createContext, useContext, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { alignFlowNode, type FlowGuide } from "./flow-alignment.ts";
 
 type FlowNodeData = {
@@ -16,6 +16,7 @@ type FlowNodeData = {
     status?: "idle" | "running" | "complete" | "error";
     kindLabel?: string;
     statusLabel?: string;
+    group?: { collapsed: boolean; basis: "native" | "binding" | "view"; partial: boolean; cyclicMembers: number };
 };
 
 type FlowNode = Node<FlowNodeData, "pyd-flow-node" | "pyd-flow-group">;
@@ -27,6 +28,7 @@ type FlowEdgeEdit = (id: string, point: FlowPoint,
     phase: FlowEdgeEditPhase) => void;
 const FlowEdgeEditContext = createContext<FlowEdgeEdit | undefined>(undefined);
 const FlowEdgeSelectContext = createContext<((id: string) => void) | undefined>(undefined);
+const FlowGroupActionsContext = createContext<{ toggle?: (id: string) => void; enter?: (id: string) => void }>({});
 
 type FlowCanvasProps = {
     label: string;
@@ -41,6 +43,9 @@ type FlowCanvasProps = {
     onEdgeControlChange?: FlowEdgeEdit;
     onNodeClick?: (id: string, event: React.MouseEvent) => void;
     onEdgeClick?: (id: string) => void;
+    onGroupToggle?: (id: string) => void;
+    onGroupEnter?: (id: string) => void;
+    focusNodeIds?: string[];
     onSelectionChange?: (selection: {
         nodes: FlowNode[]; edges: FlowEdge[];
     }) => void;
@@ -88,13 +93,38 @@ function FlowNodeCard({ data, selected }: NodeProps<FlowNode>) {
     </div>;
 }
 
-function FlowGroupCard({ data, selected }: NodeProps<FlowNode>) {
-    return <div data-ui="flow-group" data-selected={selected ? "true" : undefined}
+function FlowGroupCard({ id, data, selected }: NodeProps<FlowNode>) {
+    const actions = useContext(FlowGroupActionsContext);
+    return <div data-ui="flow-group" data-basis={data.group?.basis}
+        data-collapsed={data.group?.collapsed ? "true" : "false"} data-selected={selected ? "true" : undefined}
         className="h-full w-full rounded-lg border-2 border-dashed border-border bg-surface-subtle/70">
-        <strong className="block px-3 py-2 text-xs font-semibold text-muted">
-            {data.title}
-        </strong>
+        <Handle type="target" position={Position.Left} aria-label={`${data.title} 그룹 입력 포트`} />
+        <div data-slot="flow-group-header">
+            <small>{data.kindLabel ?? "Group"} · {data.group?.basis === "view" ? "화면 묶음" : data.group?.basis === "binding" ? "명시적 업무 연결" : "원본 소속"}
+                {data.group?.partial ? " · 부분 관측" : ""}{data.group?.cyclicMembers ? ` · 순환 ${data.group.cyclicMembers}` : ""}</small>
+            <strong>{data.title}</strong><p>{data.description}</p>
+            <div className="flow-group-actions nodrag nopan">
+                {actions.toggle && <button type="button" aria-label={`${data.title} 그룹 ${data.group?.collapsed ? "펼치기" : "접기"}`}
+                    aria-expanded={!data.group?.collapsed} onClick={event => { event.stopPropagation(); actions.toggle?.(id); }}>{data.group?.collapsed ? "펼치기" : "접기"}</button>}
+                {actions.enter && <button type="button" aria-label={`${data.title} 내부 흐름`}
+                    onClick={event => { event.stopPropagation(); actions.enter?.(id); }}>내부 흐름 ↗</button>}
+            </div>
+        </div>
+        <Handle type="source" position={Position.Right} aria-label={`${data.title} 그룹 출력 포트`} />
     </div>;
+}
+
+function FlowFocus({ ids }: { ids: string[] | undefined }) {
+    const instance = useReactFlow();
+    const initialized = useNodesInitialized();
+    const identity = JSON.stringify(ids ?? []);
+    useEffect(() => {
+        if (!initialized || !ids?.length) return;
+        const nodes = ids.filter(id => instance.getNode(id)).map(id => ({ id }));
+        if (nodes.length) void instance.fitView({ nodes, padding: 0.14, duration: 0, maxZoom: 1 })
+            .catch(() => { /* Optional viewport focus leaves the current graph available. */ });
+    }, [identity, initialized, instance]);
+    return null;
 }
 
 function FlowEdgePath({ id, sourceX, sourceY, targetX, targetY,
@@ -192,7 +222,7 @@ const edgeTypes = { "pyd-flow-edge": FlowEdgePath };
 function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
     onConnect, onNodeDragStart, onNodeDragStop, onNodeSnap,
     onEdgeControlChange,
-    onNodeClick, onEdgeClick, onSelectionChange,
+    onNodeClick, onEdgeClick, onSelectionChange, onGroupToggle, onGroupEnter, focusNodeIds,
     className, height = 560, showMiniMap = true,
     fitView = true, defaultViewport, readOnly = true,
 }: FlowCanvasProps) {
@@ -209,6 +239,7 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
         className={className} style={style}>
         <FlowEdgeEditContext.Provider value={onEdgeControlChange}>
         <FlowEdgeSelectContext.Provider value={onEdgeClick}>
+        <FlowGroupActionsContext.Provider value={{ ...(onGroupToggle ? { toggle: onGroupToggle } : {}), ...(onGroupEnter ? { enter: onGroupEnter } : {}) }}>
         <ReactFlow<FlowNode, FlowEdge> nodes={nodes} edges={edges}
             nodeTypes={nodeTypes} edgeTypes={edgeTypes}
             {...(onNodesChange ? { onNodesChange } : {})}
@@ -249,6 +280,7 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
             attributionPosition="bottom-left"
             aria-label={`${label} 작업 영역`}>
             <Background gap={20} size={1} color="var(--border)" />
+            <FlowFocus ids={focusNodeIds} />
             <ViewportPortal>
                 {guides.map((guide) => <span
                     key={guide.axis}
@@ -260,6 +292,7 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
             {showMiniMap && <MiniMap pannable zoomable position="bottom-left"
                 ariaLabel={`${label} 미니맵`} />}
         </ReactFlow>
+        </FlowGroupActionsContext.Provider>
         </FlowEdgeSelectContext.Provider>
         </FlowEdgeEditContext.Provider>
     </section>;

@@ -56,6 +56,7 @@ npm start
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.
 - Projects 실제 선행 관계 Map: 업무 목록·업무별 실행 조직에서 진입, 선행→의존 화살표와 원본 관계 ID·현재/기록 revision 상세. 같은 업무의 명시적 Run·Session 연결, 390px·키보드·URL 복원·실제 범위 철회 시 그래프/URL 제거를 확인했습니다. [원본 계약·운영 경계](integrations/projects-dependencies/README.md).
+- Map·Trace node group: Project/Task/Session/Run·호출의 명시 소속과 사용자 화면 업무 묶음을 구분합니다. 중첩 접기·펼치기, 개요/구조/상세 깊이, 내부 흐름·상위 경로·원본 node/edge 상세를 제공합니다. 화면 묶음은 재접속 후 저장되지 않습니다. [기획·탐색 규칙](docs/mission-ui-plan.md#node-group과-탐색-깊이), [실기·검사 범위](docs/node-groups-verification.json).
 - 원본 앱 문맥 요약: private reader별 명시 scope·현재 원본 재인가 API, 서버 client·React 요약 component. Projects BFF·개요·Task 목록/상세에 소유자 QA Project 한정 연결하고, 실제 Map 이동·연결 장애 중 업무 생성/수정·자동 복구를 확인했습니다. [Projects 통합](integrations/projects/README.md).
 - Demian 대화 요약: native owner/Session 재인가 BFF·펼침 요약·동일 Run Map 연결 구현. 분리 native web에서 요약 장애 중 실제 Run 성공·자동 복구·모바일·키보드를 확인했습니다. 원본 운영 적용은 기존 Docker DB 장애로 보류했습니다. [통합·적용 경계](integrations/demian/README.md), [검증 기록](docs/demian-context-native-ui-verification.json).
 - 온라인 backup·검사와 백업 선행 archive. 재개·실제 child/peer·Demian 요약의 운영 적용과 Assistant/
