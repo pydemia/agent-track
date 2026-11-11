@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-11",
+  "surface": "Edge browser, trail.pydemia.ai",
+  "account": "pydemia@pydemia.ai",
+  "personalConsentApprovedByUser": true,
+  "organizationWideConsentSelected": false,
+  "initialCallbackAndSession": "passed",
+  "authenticatedDocument": "agenttrail · note",
+  "observedContent": ["Watching", "Repository files", "World map", "agenttrail-benchmark"],
+  "liveData": "Board left Connecting state and rendered repository tree and world map",
+  "appSignOut": "Returned to Microsoft account selection",
+  "signInAgain": "Returned directly to AgentTrail without a second consent prompt",
+  "notVerified": ["8-hour expiry", "whole host reboot", "different user sign-in", "Track runtime login"]
+}

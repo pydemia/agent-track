@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-11",
+  "tunnelVersion": 9,
+  "route": "http://127.0.0.1:14340",
+  "results": {
+    "root": {
+      "status": 302,
+      "provider": "login.microsoftonline.com",
+      "pkce": "S256",
+      "callbackMatches": true
+    },
+    "panel": {
+      "status": 401,
+      "basicChallenge": false
+    },
+    "stream": {
+      "status": 401,
+      "basicChallenge": false
+    },
+    "forgedIdentity": {
+      "status": 401,
+      "basicChallenge": false
+    },
+    "forgedCookie": {
+      "status": 401,
+      "basicChallenge": false
+    },
+    "basicNotAccepted": {
+      "status": 401,
+      "basicChallenge": false
+    },
+    "forgedCallback": {
+      "status": 500,
+      "basicChallenge": false
+    }
+  },
+  "browserLoginEvidence": "entra-browser-verification.json",
+  "track": "registered and configuration checked; product not deployed"
+}

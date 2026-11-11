@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-11",
+  "expectedBoards": 11,
+  "observedBoards": 11,
+  "configuredBoards": [
+    {
+      "project": "note",
+      "port": 5330
+    },
+    {
+      "project": "agenttrail-benchmark",
+      "port": 5331
+    },
+    {
+      "project": "agent-track",
+      "port": 5333
+    },
+    {
+      "project": "persona",
+      "port": 5334
+    },
+    {
+      "project": "demian",
+      "port": 5335
+    },
+    {
+      "project": "projects",
+      "port": 5336
+    },
+    {
+      "project": "ui",
+      "port": 5337
+    },
+    {
+      "project": "agent-skills",
+      "port": 5338
+    },
+    {
+      "project": "portal",
+      "port": 5339
+    },
+    {
+      "project": "colors",
+      "port": 5340
+    },
+    {
+      "project": "markyourscope",
+      "port": 5341
+    }
+  ],
+  "aggregate": [
+    {
+      "project": "note",
+      "port": 5330,
+      "observedRuns": 0
+    },
+    {
+      "project": "agenttrail-benchmark",
+      "port": 5331,
+      "observedRuns": 0
+    },
+    {
+      "project": "agent-track",
+      "port": 5333,
+      "observedRuns": 1
+    },
+    {
+      "project": "persona",
+      "port": 5334,
+      "observedRuns": 0
+    },
+    {
+      "project": "demian",
+      "port": 5335,
+      "observedRuns": 0
+    },
+    {
+      "project": "projects",
+      "port": 5336,
+      "observedRuns": 0
+    },
+    {
+      "project": "ui",
+      "port": 5337,
+      "observedRuns": 0
+    },
+    {
+      "project": "agent-skills",
+      "port": 5338,
+      "observedRuns": 0
+    },
+    {
+      "project": "portal",
+      "port": 5339,
+      "observedRuns": 0
+    },
+    {
+      "project": "colors",
+      "port": 5340,
+      "observedRuns": 0
+    },
+    {
+      "project": "markyourscope",
+      "port": 5341,
+      "observedRuns": 0
+    }
+  ],
+  "overviewHeading": true,
+  "sourceCodeModified": false,
+  "historyCoverage": "AgentTrail native recent local logs; not all saved chats"
+}

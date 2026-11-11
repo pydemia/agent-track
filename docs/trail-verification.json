@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-11",
+  "results": {
+    "unauth": {
+      "status": 401
+    },
+    "wrongPassword": {
+      "status": 401
+    },
+    "html": {
+      "status": 200,
+      "containsApp": true
+    },
+    "panel": {
+      "status": 200,
+      "hasRuns": true
+    },
+    "hostileOrigin": {
+      "status": 403
+    },
+    "noActionToken": {
+      "status": 403
+    },
+    "sse": {
+      "status": 200,
+      "type": "text/event-stream",
+      "hasData": true
+    }
+  },
+  "afterGatewayRestart": {
+    "/": {
+      "status": 200
+    },
+    "/model": {
+      "status": 200
+    },
+    "/panel": {
+      "status": 200
+    },
+    "/world": {
+      "status": 200
+    },
+    "/tree": {
+      "status": 200
+    },
+    "/fleet": {
+      "status": 200
+    },
+    "afterRestartUnauth": 401
+  },
+  "scope": "API/HTTPS/SSE and gateway stop/start verified; browser UI and whole-PC reboot not verified"
+}

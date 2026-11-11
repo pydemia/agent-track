@@ -1,0 +1,33 @@
+{
+  "trail": {
+    "clientIdMatches": true,
+    "credentialMode": "600",
+    "configValid": true
+  },
+  "track": {
+    "clientIdMatches": true,
+    "credentialMode": "600",
+    "configValid": true,
+    "serviceStarted": false
+  },
+  "login": {
+    "status": 302,
+    "provider": "login.microsoftonline.com",
+    "callbackMatches": true,
+    "pkce": "S256",
+    "nonceAndState": true,
+    "secureCookie": true
+  },
+  "unauth": {
+    "status": 401,
+    "basicChallenge": false
+  },
+  "forgedIdentity": {
+    "status": 401,
+    "basicChallenge": false
+  },
+  "fakeCookie": {
+    "status": 401,
+    "basicChallenge": false
+  }
+}

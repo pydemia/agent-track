@@ -1,0 +1,15 @@
+{
+  "projects": [
+    { "name": "note", "port": 5330 },
+    { "name": "agenttrail-benchmark", "port": 5331 },
+    { "name": "agent-track", "port": 5333 },
+    { "name": "persona", "port": 5334 },
+    { "name": "demian", "port": 5335 },
+    { "name": "projects", "port": 5336 },
+    { "name": "ui", "port": 5337 },
+    { "name": "agent-skills", "port": 5338 },
+    { "name": "portal", "port": 5339 },
+    { "name": "colors", "port": 5340 },
+    { "name": "markyourscope", "port": 5341 }
+  ]
+}

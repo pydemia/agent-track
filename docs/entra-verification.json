@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-11",
+  "scope": "Gateway boundary checks and public Entra redirect",
+  "results": {
+    "publicUnauth": {
+      "status": 503,
+      "basicChallenge": false
+    },
+    "publicBasic": {
+      "status": 503,
+      "basicChallenge": false
+    },
+    "forgedIdentity": {
+      "status": 403,
+      "basicChallenge": false
+    },
+    "wrongAccount": {
+      "status": 403,
+      "basicChallenge": false
+    },
+    "trustedHop": {
+      "status": 200,
+      "basicChallenge": false
+    },
+    "localAdmin": {
+      "status": 200,
+      "basicChallenge": false
+    },
+    "idpReturnNavigation": {
+      "status": 200,
+      "basicChallenge": false
+    },
+    "crossSiteMutation": {
+      "status": 403,
+      "basicChallenge": false
+    },
+    "crossSiteApi": {
+      "status": 403,
+      "basicChallenge": false
+    },
+    "foreignOrigin": {
+      "status": 403,
+      "basicChallenge": false
+    },
+    "publicHttps": {
+      "status": 302,
+      "basicChallenge": false
+    }
+  }
+}

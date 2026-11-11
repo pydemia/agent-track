@@ -1,0 +1,38 @@
+{
+  "port": 14345,
+  "database": "C:/Users/your-user/.local/share/agent-track/product.sqlite",
+  "publicOrigin": "https://track.pydemia.ai",
+  "auth": {
+    "mode": "proxy",
+    "secretFile": "C:/Users/your-user/.local/share/agent-track/track-proxy-key",
+    "users": ["owner@example.com"]
+  },
+  "sources": [
+    {
+      "id": "demian-local",
+      "kind": "demian",
+      "label": "Demian native",
+      "device": "local-pc",
+      "users": ["owner@example.com"],
+      "baseUrl": "http://127.0.0.1:8080",
+      "uiBaseUrl": "http://localhost:3000",
+      "tokenFile": "C:/Users/your-user/.local/share/agent-track/demian-api-token",
+      "runIds": [],
+      "discoverActive": true
+    },
+    {
+      "id": "codex-local",
+      "kind": "codex",
+      "label": "Codex local metadata",
+      "device": "local-pc",
+      "users": ["owner@example.com"],
+      "logRoot": "C:/Users/your-user/.codex/sessions",
+      "repositoryRoots": ["C:/Users/your-user/git"],
+      "maxFiles": 100,
+      "sinceDays": 7
+    },
+    { "id": "projects", "kind": "projects", "label": "Projects", "device": "server", "users": ["owner@example.com"] },
+    { "id": "assistant", "kind": "assistant", "label": "Assistant", "device": "server", "users": ["owner@example.com"] },
+    { "id": "desktop", "kind": "desktop", "label": "pydemia-desktop", "device": "local-pc", "users": ["owner@example.com"] }
+  ]
+}

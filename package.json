@@ -1,0 +1,33 @@
+{
+  "name": "agent-track",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.13 <25"
+  },
+  "scripts": {
+    "dev": "tsx apps/api/main.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts",
+    "build": "vite build --config apps/web/vite.config.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "start": "tsx apps/api/main.ts",
+    "collector": "tsx apps/collector/main.ts",
+    "icons": "node scripts/build-icons.mjs"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "sharp": "0.35.5",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.8"
+  }
+}

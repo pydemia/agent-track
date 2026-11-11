@@ -1,0 +1,112 @@
+import { setTimeout as delay } from "node:timers/promises";
+import { createHash } from "node:crypto";
+import { DemianClient, SourceError } from "../../packages/adapters/demian/index.ts";
+import { CodexCollector } from "../../packages/adapters/codex/index.ts";
+import { terminalStatuses, type SourceView } from "../../packages/contracts/index.ts";
+import type { Store } from "../../packages/storage/store.ts";
+import type { Config, SourceConfig } from "./config.ts";
+
+export class Sources {
+  private states = new Map<string, SourceView>();
+  private pending = new Map<string, AbortController>();
+  private stopped = false;
+  private codex: CodexCollector;
+  private shutdown = new AbortController();
+  private identities = new Map<string, string>();
+
+  constructor(private store: Store, private config: () => Config) { this.codex = new CodexCollector(store); }
+
+  views(user: string): Array<SourceView & { uiBaseUrl?: string }> {
+    return this.config().sources.filter((source) => source.users.includes(user)).map((source) => ({
+      ...this.state(source), ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
+    }));
+  }
+
+  private state(source: SourceConfig): SourceView {
+    const identity = this.identity(source);
+    const pinned = this.store.pinSourceIdentity(source.id, identity);
+    const current = pinned && this.identities.get(source.id) === identity ? this.states.get(source.id) : undefined;
+    const localMetadata = source.kind === "codex" && !!source.logRoot && !!source.repositoryRoots.length;
+    const native = source.kind === "demian" && !!source.baseUrl;
+    return {
+      id: source.id, kind: source.kind, label: source.label, device: source.device,
+      state: native ? "forbidden" : localMetadata ? "disconnected" : "unsupported",
+      lastObservedAt: null,
+      detail: !pinned ? "원본 식별/수집 범위가 변경됐습니다. 새 source ID로 등록해야 합니다." : native ? "원본 인가 확인 전입니다. 캐시된 실행도 숨깁니다." : localMetadata ? "로컬 metadata 재수집 대기. 마지막 원장을 표시합니다." : "Track 전용 읽기 계약 또는 수집 경로가 아직 연결되지 않았습니다.",
+      capabilities: [], ...current,
+      ...(!pinned ? { state: native || localMetadata ? "forbidden" as const : "unsupported" as const, capabilities: [] } : {}),
+    };
+  }
+
+  private identity(source: SourceConfig): string {
+    return createHash("sha256").update(JSON.stringify([source.kind, source.baseUrl ?? null,
+      source.organizationId ?? null, source.logRoot ?? null, [...source.repositoryRoots].sort()])).digest("hex");
+  }
+
+  async start(): Promise<void> {
+    while (!this.stopped) {
+      try {
+        const config = this.config();
+        for (const source of config.sources) {
+          const identity = this.identity(source);
+          if (!this.store.pinSourceIdentity(source.id, identity)) {
+            for (const [key, controller] of this.pending) if (key.startsWith(`${source.id}/`)) controller.abort();
+            continue;
+          }
+          this.identities.set(source.id, identity);
+          if (source.kind === "codex" && source.logRoot && source.repositoryRoots.length) {
+            try {
+              const report = await this.codex.collect({ sourceId: source.id, logRoot: source.logRoot,
+                repositoryRoots: source.repositoryRoots, maxFiles: source.maxFiles, sinceDays: source.sinceDays });
+              this.states.set(source.id, { ...this.state(source), state: "connected", lastObservedAt: new Date().toISOString(),
+                capabilities: ["run.read", "events.read"],
+                detail: `로컬 metadata ${report.files}개 파일, 최근 ${source.sinceDays}일. 제한/크기로 제외 ${report.skipped}개. 대화·도구 입출력 제외. desktop/Demian native 연동과 별개입니다.` });
+            } catch { this.states.set(source.id, { ...this.state(source), state: "disconnected", detail: "로컬 metadata 수집 실패. 원본을 변경하지 않고 다시 확인합니다." }); }
+            continue;
+          }
+          if (source.kind !== "demian" || !source.baseUrl) continue;
+          const client = new DemianClient({ sourceId: source.id, baseUrl: source.baseUrl,
+            ...(source.tokenFile ? { tokenFile: source.tokenFile } : {}),
+            ...(source.organizationId ? { organizationId: source.organizationId } : {}) });
+          try {
+            const known = this.store.db.prepare("SELECT run_id FROM runs WHERE source_id=?").all(source.id).map((r) => String(r.run_id));
+            const discovered = source.discoverActive ? await client.discoverActiveRuns() : [];
+            const runIds = new Set([...source.runIds, ...known, ...discovered]);
+            for (const runId of runIds) {
+              const observation = await client.observe(runId);
+              this.store.observeRun(observation);
+              const key = `${source.id}/${runId}`;
+              if (!this.pending.has(key)) {
+                const controller = new AbortController();
+                this.pending.set(key, controller);
+                // A bounded stream refreshes authorization and snapshots each cycle.
+                const timeout = setTimeout(() => controller.abort(), terminalStatuses.has(observation.status) ? 5000 : 30_000);
+                void client.stream(runId, this.store.cursor(source.id, runId), (event) => this.store.ingest(event), controller.signal, () => {
+                  this.states.set(source.id, { ...this.state(source), state: "connected", lastObservedAt: new Date().toISOString(),
+                    detail: "명시된 Run 및 허용한 세션의 현재 Run 조회. 전체 과거 실행 feed는 제공되지 않습니다.",
+                    capabilities: ["run.read", "events.read", "session.link"] });
+                })
+                  .catch((error: unknown) => {
+                    if (error instanceof SourceError && [401, 403, 404].includes(error.status)) {
+                      this.states.set(source.id, { ...this.state(source), state: "forbidden", detail: "원본 접근이 거부되거나 철회됐습니다." });
+                    } else if (!controller.signal.aborted) {
+                      this.states.set(source.id, { ...this.state(source), state: "disconnected", detail: "이벤트 연결을 다시 확인합니다. 수집 누락 표시를 확인하세요." });
+                    }
+                  }).finally(() => { clearTimeout(timeout); this.pending.delete(key); });
+              }
+            }
+            if (!runIds.size && source.discoverActive) this.states.set(source.id, { ...this.state(source), state: "connected",
+              lastObservedAt: new Date().toISOString(), detail: "원본 조회 성공. 현재 발견된 Run이 없습니다.", capabilities: ["run.read", "events.read", "session.link"] });
+          } catch (error) {
+            const forbidden = error instanceof SourceError && [401, 403, 404].includes(error.status);
+            this.states.set(source.id, { ...this.state(source), state: forbidden ? "forbidden" : "disconnected",
+              detail: forbidden ? "원본 인증/조회 권한이 필요합니다. 캐시된 실행도 숨깁니다." : "원본 연결 실패. 마지막 관측을 보존하고 재시도합니다." });
+          }
+        }
+      } catch { /* Invalid/revoked config is fail-closed by every API authorization. */ }
+      await delay(10_000, undefined, { signal: this.shutdown.signal }).catch(() => {});
+    }
+  }
+
+  stop(): void { this.stopped = true; this.shutdown.abort(); for (const controller of this.pending.values()) controller.abort(); }
+}
