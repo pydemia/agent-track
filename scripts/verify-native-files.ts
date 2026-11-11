@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
@@ -50,6 +50,6 @@ async function main() {
     }
   } finally { db.close(); }
   const record = { verifiedAt: new Date().toISOString(), source: "demian-local", scope: "native fileChange proposals paired with native completion; no general filesystem diff or final-state claim", results };
-  await writeFile("docs/native-files-verification.json", JSON.stringify(record, null, 2) + "\n"); console.log(JSON.stringify(record));
+  console.log(JSON.stringify(record));
 }
 await main().catch(() => { console.error("Native file evidence verification failed; private values omitted."); process.exitCode = 1; });
