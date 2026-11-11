@@ -193,3 +193,29 @@ Historical records are filtered against current Project scope. The exact request
 UUID replays its original receipt even after a later binding, provided current
 source/Task/Project access remains valid. Unsupported source commands are not
 introduced by binding. Actual QA evidence is native-binding-verification.json.
+
+## Native permission review and decisions
+
+Track now reads native GET /api/v1/runs/:id/permissions and sends decisions only
+to POST /api/v1/runs/:id/permissions/:permissionId/decision. The native decision
+transaction conditions on pending/unexpired state and applies its own actor/Run
+checks. allow_session grants the same tool in that Session, not arbitrary tools
+or other Sessions. Track metadata listing excludes arguments; explicit owner
+review is a fresh, bounded, no-store response containing the tool input/reason.
+This opt-in review is separate from default metadata collection. Arguments and
+provider identity are never journaled or put in decision receipts.
+
+The approval fingerprint pins request/Run/call/tool/input/reason/actor/expiry.
+Current owner opt-in and Run/Project grants are rechecked around source I/O.
+Client deadlines are bounded to120seconds; native expiry still controls final
+acceptance. Unknown outcomes and restart recovery never resend. Read-only
+reconciliation labels source observations with unknown attribution. An already
+resolved native request cannot show active approval controls from a stale list.
+
+Actual QA covered allow_once and two fileChange calls after one allow_session
+request, public UI deny, natural native expiry without a Track decision, rejected
+late decisions, Project-scope revocation/restoration and mobile review cleanup.
+Native-approval verification files record these separately from fixture evidence.
+The original builtin write_file attempt had no such tool in codex-native; it
+was not counted as an approval. Native editor fileChange supplied the actual
+approval bridge. Its current feed does not emit a separate file.diff event.

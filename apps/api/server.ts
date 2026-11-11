@@ -7,6 +7,8 @@ import { commandPorts } from "./commands.ts";
 import { artifactEvidence } from "./evidence.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { RunBindings } from "./bindings.ts";
+import { ApprovalService } from "../../packages/approvals/index.ts";
+import { RunPermissions } from "./permissions.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -36,6 +38,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const snapshot = (user: string) => store.snapshot(user, sources.views(user));
   const commands = new CommandService(store);
   const bindings = new RunBindings(store, config, sources, snapshot);
+  const permissions = new RunPermissions(store, config, sources, snapshot);
+  const approvals = new ApprovalService(store);
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -49,6 +53,16 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health") {
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+      }
+      if (request.method === "POST" && url.pathname === "/api/commands/approval") {
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const input = await jsonBody(request);
+        const key = input && typeof input === "object" && "runKey" in input && typeof input.runKey === "string" ? input.runKey : "";
+        const receipt = await approvals.execute(user, input, permissions.ports(user, key, true));
+        await sources.refreshProjectGrants?.(user);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
+        json(response, 200, { receipt }); return;
       }
       if (request.method === "POST" && url.pathname === "/api/bindings") {
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
@@ -75,6 +89,18 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           if (["requested", "dispatching", "accepted", "unknown"].includes(receipt.state)) receipts[i] = await commands.reconcile(user, receipt.id, ports);
         }
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipts }); return;
+      }
+      if (url.pathname === "/api/approvals") {
+        const key = url.searchParams.get("run") ?? "";
+        if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
+        const receipts = approvals.list(user, key);
+        const ports = permissions.ports(user, key, false);
+        for (let i = 0; i < receipts.length; i++) if (["requested", "dispatching", "unknown"].includes(receipts[i]!.state)) {
+          receipts[i] = await approvals.reconcile(user, receipts[i]!.id, ports);
+        }
+        await sources.refreshProjectGrants?.(user);
+        if (authenticate(request, config()) !== user || !snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
         json(response, 200, { receipts }); return;
       }
       if (url.pathname === "/api/health") {
@@ -132,6 +158,19 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       }
       const runBinding = /^\/api\/runs\/([A-Za-z0-9_-]+)\/binding$/.exec(url.pathname);
       if (runBinding) { json(response, 200, bindings.view(user, runBinding[1]!)); return; }
+      const permissionRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/permissions(?:\/([0-9a-f-]{36})\/review)?$/.exec(url.pathname);
+      if (permissionRoute) {
+        const key = permissionRoute[1]!;
+        if (permissionRoute[2]) {
+          const review = await permissions.review(user, key, permissionRoute[2]);
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          json(response, 200, review); return;
+        }
+        const page = await permissions.list(user, key);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { requests: page.requests.map((item) => ({ ...item.request, reviewAvailable: item.reviewComplete })),
+          observedAt: new Date().toISOString(), scope: "현재 원본에서 조회한 승인 요청. 도구 인자는 내용을 열었을 때만 표시합니다." }); return;
+      }
       const artifacts = /^\/api\/runs\/([A-Za-z0-9_-]+)\/artifacts$/.exec(url.pathname);
       if (artifacts) {
         const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());

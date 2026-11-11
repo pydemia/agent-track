@@ -1,0 +1,13 @@
+{
+  "verifiedAt": "2026-11-11T14:42:48.196Z",
+  "variant": "deny",
+  "runId": "ffcf943a-8e39-4702-a1a5-ea81683d66ce",
+  "sessionId": "3d507c4f-469d-41b2-ac07-895b1f900fdd",
+  "permissionId": "46c21c8f-a425-4564-ade3-8ba5eacb8efd",
+  "nativePermissionStatus": "resolved",
+  "nativeDecision": "deny",
+  "nativeRunStatus": "succeeded",
+  "fileAbsent": true,
+  "trackReceiptCount": 1,
+  "sourceExpiryUnmodified": true
+}

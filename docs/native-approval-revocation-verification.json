@@ -1,0 +1,14 @@
+{
+  "verifiedAt": "2026-11-11T14:45:43.271Z",
+  "qaRunId": "e20ed68a-f1cb-47ac-82f5-7a3ca4b88822",
+  "projectScoped": true,
+  "metadataStatus": 404,
+  "reviewStatus": 404,
+  "receiptsStatus": 404,
+  "nativeStillPending": true,
+  "restored": true,
+  "publicUiArgumentRemoved": true,
+  "publicUiRestored": true,
+  "sourceDataWrites": false,
+  "otherPrincipalsPreserved": true
+}

@@ -33,6 +33,7 @@ export class Sources {
       return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
         capabilities: [...view.capabilities,
           ...(canBind && source.kind === "demian" && view.state === "connected" ? ["binding.write"] : []),
+          ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.approvalUsers?.includes(user) ? ["permission.decide"] : []),
           ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
     });
   }

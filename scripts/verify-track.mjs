@@ -9,6 +9,9 @@ for (const [name, route, headers, expected] of [
   ["snapshot-auth", "/api/snapshot", {}, 401],
   ["stream-auth", "/api/stream", {}, 401],
   ["artifact-auth", "/api/runs/unknown/artifacts", {}, 401],
+  ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
+  ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],
+  ["approval-receipt-auth", "/api/approvals?run=unknown", {}, 401],
   ["public-basic-rejected", "/api/snapshot", { authorization: "Basic dGVzdDp0ZXN0" }, 401],
   ["forged-identity-rejected", "/api/snapshot", { "x-forwarded-email": "pydemia@pydemia.ai", "x-track-proxy-key": "forged-test-key" }, 401],
   ["forged-cookie-rejected", "/api/snapshot", { cookie: "__Host-agent-track=forged-test-cookie" }, 401],
@@ -19,6 +22,11 @@ for (const [name, route, headers, expected] of [
   await response.body?.cancel();
   results.push({ name, status: response.status, passed: true });
 }
+
+const unauthenticatedDecision = await fetch(origin + "/api/commands/approval", { method: "POST", redirect: "manual",
+  headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
+assert.equal(unauthenticatedDecision.status, 401); await unauthenticatedDecision.body?.cancel();
+results.push({ name: "approval-decision-auth", status: unauthenticatedDecision.status, passed: true });
 
 // Operator-only hop validation. No browser session/token is read or copied.
 if (process.env.TRACK_CONFIG) {

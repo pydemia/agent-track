@@ -1,6 +1,6 @@
 # Agent Track 개발계획
 
-기준: 2026-11-11 KST · 제품 기획 v0.3 · 실행 goal 활성.
+기준: 2026-11-12 KST · 제품 기획 v0.3 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
 ## 제품 책임과 변경된 우선순위
@@ -33,7 +33,8 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 복구 | `scripts/storage-admin.ts` | 온라인 backup·integrity·binding import. 복원 fixture와 실제 backup→별도 복원 DB/API 대조 통과. 운영 DB 전환 훈련과 구별 |
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
-| 테스트 | `tests/` | 85개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 승인 | `packages/approvals/`, `apps/api/permissions.ts`, `RunApprovals.tsx` | native 요청/명시 검토·fingerprint·scope/expiry·receipt/unknown·권한 재확인. 실제 단일 호출 허용/거절/자동 만료·철회/복구·모바일 대조 |
+| 테스트 | `tests/` | 101개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
@@ -67,7 +68,7 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 - Projects task revision과 Run별 binding 이력을 보존한다. 재연결이 과거 실행
   업무를 덮지 않으며 검증·agent report·Run 종료·업무 수용을 구분한다.
 - 미지원 명령을 실행 버튼으로 제공하거나 요청 전달을 source acceptance로
-  표시하지 않는다. 초기 승인은 원본 Demian에서 처리한다.
+  표시하지 않는다. 현재 단일 소유자는 Track에서 원본 요청을 검토하고 native 결정 API로 처리한다.
 - Source grant와 Projects grant는 독립이다. 초기 owner 제한은 다중 사용자
   원본 인가 교집합 검증을 대체하지 않는다.
 - Codex 수집 범위는 설정한 기간·파일 수·저장소에 한한다. Claude/desktop
@@ -75,7 +76,7 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 11/21 (52.4%)이다. 85개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 12/21 (57.1%)이다. 101개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 

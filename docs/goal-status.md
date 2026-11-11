@@ -1,6 +1,6 @@
 # Agent Track 구현 goal 기준표
 
-기준: 2026-11-11 KST. 기존 AT-01~17을 유지하고 Demian 대화
+기준: 2026-11-12 KST. 기존 AT-01~17을 유지하고 Demian 대화
 `01a1c901-2cea-7a21-9b38-8d12445f0a49`에서 AT-18~21을 추가했다.
 전체 수용 충족률은 동일 가중치 21개 중 검증 완료 개수다. 이는 작업량
 추정치가 아니다. 구현·fixture·서비스 준비만으로 실기 조건을 완료 처리하지 않는다.
@@ -16,7 +16,7 @@
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
-| AT-10 | 범위·만료·철회·runtime 재검증 승인 | 미착수 |
+| AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 미착수 |
 | AT-12 | typed Map·근거·목록·순환/고립 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 원본 dependency/artifact·관리형 child/peer 근거 실기 남음 |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
@@ -29,8 +29,8 @@
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **11/21 (52.4%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
-AT-01/02/03/05/07/08/13/16/17/19/21을 검증했다. 취소 일부 지원을 재개·승인·배정
+현재 전체: **12/21 (57.1%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/05/07/08/10/13/16/17/19/21을 검증했다. 취소·승인 지원을 재개·배정
 완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
 Projects 원본 업무의 실행 참조/배정·문맥 요약, Assistant의 Track 읽기 principal, desktop
 위치가 미확인이다. 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.

@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 85개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 101개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
@@ -50,7 +50,7 @@ native event cursor와 별도로 사용한다. 업무 binding/배정·다중 사
 
 실제 native Run의 answer.txt(40bytes) metadata와 Track API/public Trail의
 filename·hash·size를 대조했다. 원문/content URL은 요청하지 않았다.
-최근100개 세션 목록의 exact Run·미철회 metadata만 내보내며 전체 이력으로
+최근101개 세션 목록의 exact Run·미철회 metadata만 내보내며 전체 이력으로
 표시하지 않는다. 다른 Run/세션 첨부·철회·잘못된 manifest·중간 인가 철회를
 fixture로 검사했다(`native-artifacts-verification.json`).
 
@@ -82,7 +82,7 @@ unknown 요청은 재시작해도 재전송하지 않는다. 원본 cancel의 at
 
 ## 전체 수용
 
-[goal 기준표](goal-status.md)의 **11/21(52.4%, 동일 가중치)**다. 테스트 수나
+[goal 기준표](goal-status.md)의 **12/21(57.1%, 동일 가중치)**다. 테스트 수나
 배포 경로 준비를 전체 달성률로 환산하지 않는다. 전체 일정은 Projects/
 Assistant 계약과 desktop 위치 미확인으로 산정 불가·신뢰도 낮음이다.
 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.
@@ -105,5 +105,38 @@ Run은 succeeded, 두 원본 Task는 todo다. 별도 reader scope에서 QA Proje
 업무 자료는 유지했다. 증거: native-binding-verification.json.
 
 390px에서 document client/scroll 모두375px, 연결 이력2건과 Tab→프로젝트
-선택을 확인했다. 일시 viewport를 복구하고 QA 탭을 닫았다.85개 테스트는
+선택을 확인했다. 일시 viewport를 복구하고 QA 탭을 닫았다.101개 테스트는
 CAS·actor receipt·Run 격리·int64·롤백·재시작/backup·권한 철회 경계를 포함한다.
+
+## Native 승인 요청·결정
+
+현재 단일 Entra 소유자의 명시 approvalUsers opt-in에 한한다. metadata 목록은
+도구/요청/만료/상태와 검토 fingerprint만 내보낸다. 사용자가 요청 내용을
+열 때만 현재 인가로 tool input/reason을 조회하며, UI 닫기·만료·철회·선택
+변경 시 제거한다. 원문은 원장·receipt에 저장하지 않는다. 승인 목적의 명시
+조회와 기본 metadata 수집을 구별한다.1MiB transport/64KiB review 제한을
+넘으면 blind approval을 허용하지 않는다.
+
+결정은 allow_once/allow_session/deny다. 세션 허용은 같은 세션/같은 도구의
+후속 호출까지 포함한다고 명시한다. source request의 identity/input/tool/expiry
+fingerprint·native Run/Project 인가를 새로 확인하고 원본 API가 pending/expiry를
+원자적으로 재검사한다. Track client deadline은120초 이내다. 요청 UUID receipt와
+actor/Run/permission별 미확정 요청 선점으로 중복·반대 결정을 막는다. 단절·
+재시작 unknown은 읽기만 수행하며 재전송하지 않는다. 결정 반영과 도구 실행
+성공은 별도다. 기존 결정을 관측한 경우 전송하지 않았음을 명시한다.
+
+실제 QA: native fileChange1회 허용·동일 receipt·30byte 파일/hash 대조,
+공개 UI 거절·파일 없음, 원본 자동 expiry·Track 결정0·파일 없음, 유효한
+client deadline의 late 허용 요청도 expired로 차단·원본 불변을 확인했다.
+Project reader scope7→6에서 열어 둔 검토 인자/Run 제거·metadata/review/receipt
+각404, 원본 요청은 pending 유지, scope7복구를 대조했다. 원본 expiry를
+앞당기거나 보안 설정을 완화하지 않았다. 별도 QA 세션의 allow_session도 확인했다. 도구2회를 실행하고 native 승인
+요청은1건이었다. 이름을 고정한 새 QA 파일2개만 생성했으며 첫 호출의
+요청 내용을 검토하고 범위 경고를 표시했다.101개 테스트와 독립 리뷰 보강,390px client/scroll375px,
+Tab으로 범위 버튼 탐색, 만료 후 raw 인자 제거를 확인했다.
+
+첫 builtin write_file 요청은 Codex provider에서 도구 미제공으로 종료됐다.
+원본 native editor로 다시 검증했고, 이 첫 실행을 승인 성공으로 계산하지
+않았다. 현재 external fileChange feed는 tool 완료만 제공하고 별도 file.diff
+event를 내보내지 않아 AT-04의 제품 변경 파일 표시는 여전히 남아 있다.
+증거는 native-approval*-verification.json과 해당 공개 화면 기록이다.

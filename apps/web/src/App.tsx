@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
 import { RunBindingPanel } from "./RunBindingPanel.tsx";
+import { RunApprovals } from "./RunApprovals.tsx";
 import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
@@ -549,6 +550,7 @@ function RunInspector({ run, relations, events, source, sources, onUnauthorized,
     <section className="evidence-group acceptance"><h3>Projects 수용</h3><p>알 수 없음</p><small>수용 데이터 연결 근거가 제공되지 않았습니다.</small></section>
     <section className="capabilities"><h3>기능 범위</h3><SourceState state={source?.state ?? run.sourceState} /><p>{source?.detail ?? "출처 설명을 사용할 수 없습니다."}</p>
       <RunControls key={run.key} run={run} onUnauthorized={onUnauthorized} />
+      <RunApprovals key={`approvals:${run.key}`} run={run} onUnauthorized={onUnauthorized} />
     </section>
     {source?.capabilities.length ? <p className="source-capabilities">출처 기능: {source.capabilities.join(" · ")}</p> : <p className="source-capabilities">출처 기능 정보가 없습니다.</p>}
     {sourceHref ? <><a className="origin-button" href={sourceHref} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a><small className="run-link-note">원본 세션으로 이동합니다. Run 전용 딥링크는 미지원입니다.</small></> : <p className="unsupported-link">이 출처는 원본 세션 딥링크를 제공하지 않습니다.</p>}

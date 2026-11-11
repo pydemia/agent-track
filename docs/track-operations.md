@@ -123,6 +123,39 @@ payload만 줄인다. Run ID·binding·cursor·event digest tombstone은 보존�
 
 실기에서 격리 Run을 accepted→cancelled로 취소하고 동일 요청 재수신을 대조했다. 공개 UI에서 receipt를 확인했다. 버튼 클릭 실기와 나머지 명령은 별도 미검증이다.
 
+## 승인 요청과 결정
+
+공개 로그인은 기존 Entra 경로를 사용한다. source의 `approvalUsers` 기본값은
+비활성이며 현재 소유자 한 명만 명시했다. 다중 Track 사용자 또는 source 접근
+실패 시 결정 기능은 닫는다. native credential은 기존 단일 소유자 권한이며
+다중 사용자 위임으로 일반화하지 않는다. runtime 자체 정책은 유지한다.
+
+`GET /api/runs/:key/permissions`는 metadata만 반환한다. `/permissions/:id/review`는
+사용자가 요청 내용을 열 때 현재 native Run/Project 접근을 확인하고 도구
+인자·사유를 일시 제공한다. 기본 수집·원장과 구별하며 `no-store`를 적용한다.
+1MiB 응답/64KiB 검토 제한을 넘으면 원본에서 처리해야 한다. 검토 내용은
+닫기·만료·철회·Run 선택 변경 시 제거하며 원문을 DB·receipt에 저장하지 않는다.
+
+`POST /api/commands/approval`은 정확한 Origin, owner opt-in, 현재 source/Project,
+native 요청 fingerprint와120초 이내 deadline을 검사한다. `allow_once`는 한 호출,
+`allow_session`은 같은 세션의 같은 도구 후속 호출까지 허용한다. UI에서
+범위 차이를 전송 전에 보여 준다. 원본이 최종 pending/expiry·접근을 재검사한다.
+각 UUID의 receipt를 먼저 기록하고 같은 actor/Run/permission의 미확정 요청이
+있으면 반대 결정·다른 UUID도 거부한다. `succeeded`는 원본 결정 확인이며
+도구 실행 성공이 아니다. 기존 결정을 관측했으면 이번 전송 없음/반영 귀속
+미확정을 별도로 표시한다. 단절·재시작은 unknown, 재조회만 하고 재전송하지 않는다.
+
+`approval_receipts`는 SQLite backup/복원에 포함한다. 재시작 시 requested/dispatching을
+unknown으로 바꾸고 source를 읽어서 정리한다. 원본의 유효한 결정은 원래
+expiry 시각을 지난 뒤 조회하더라도 이미 확인된 이력으로 보존한다.
+
+실제 QA에서 단일 호출 허용·동일 receipt·30byte 파일, 세션 허용 후 도구2회/
+승인 요청1건·새 파일2개, 공개 UI 거절·파일 없음, 자연 만료·Track 결정0과
+late 요청 차단을 대조했다. reader scope 축소 시 열린 검토 내용과 관련
+Run을 숨기고 metadata/review/receipt404→복구를 확인했다. source timeout을
+줄이거나 기존 사용자 Session의 권한을 늘리지 않았다. 증거는
+`native-approval*-verification.json`에 기록했다.
+
 ## 남은 운영 검사
 
 Demian 원본 Session 링크의 웹 이동은 현재 Basic401에 막혔다
@@ -132,5 +165,5 @@ Demian 원본 Session 링크의 웹 이동은 현재 Basic401에 막혔다
 upstream 인증 경계를 별도로 검토해야 한다.
 
 최초 Entra 본인 계정 동의·공개 로그인/SSE/logout·재로그인과 실제 native Run 관측을 확인했다.
-타 앱 연결, 취소 UI 클릭·승인/재개/재시도, 다른 장치, 장시간/규모 검증은
+타 앱 연결, 취소 UI 클릭·재개/재시도, 다른 장치, 장시간/규모 검증은
 남아 있다. 현재 서비스 노출과 전체 goal 완료를 구별한다.

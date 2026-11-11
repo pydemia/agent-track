@@ -89,6 +89,28 @@ export interface BindingView {
   incomplete: boolean;
 }
 
+export const permissionDecisionSchema = z.enum(["allow_once", "allow_session", "deny"]);
+export type PermissionDecision = z.infer<typeof permissionDecisionSchema>;
+export const permissionViewSchema = z.object({
+  id: z.uuid(), runId: z.uuid(), callId: idSchema, tool: z.string().min(1).max(200),
+  status: z.enum(["pending", "resolved", "expired"]), decision: permissionDecisionSchema.nullable(),
+  createdAt: timestampSchema, resolvedAt: timestampSchema.nullable(), expiresAt: timestampSchema,
+  fingerprint: z.string().regex(/^[0-9a-f]{64}$/),
+}).strict();
+export type PermissionView = z.infer<typeof permissionViewSchema>;
+export interface PermissionReview { request: PermissionView; reviewText: string; reviewComplete: boolean }
+export const approvalRequestSchema = z.object({
+  id: z.uuid(), runKey: idSchema, permissionId: z.uuid(),
+  fingerprint: z.string().regex(/^[0-9a-f]{64}$/), decision: permissionDecisionSchema,
+  expiresAt: timestampSchema,
+}).strict();
+export type ApprovalRequest = z.infer<typeof approvalRequestSchema>;
+export type ApprovalReceiptState = "requested" | "dispatching" | "succeeded" | "failed" | "expired" | "unknown";
+export interface ApprovalReceipt {
+  id: string; runKey: string; permissionId: string; decision: PermissionDecision;
+  state: ApprovalReceiptState; createdAt: string; updatedAt: string; detail: string;
+}
+
 export interface SourceView {
   id: string;
   kind: "demian" | "codex" | "claude" | "projects" | "assistant" | "desktop";

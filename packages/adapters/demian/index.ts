@@ -2,8 +2,10 @@ import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import {
   eventSchema, idSchema, runSchema, sequenceSchema, statusSchema,
-  type ArtifactMetadataPage, type EventData, type ObservationEvent, type RunObservation,
+  permissionDecisionSchema,
+  type ArtifactMetadataPage, type EventData, type ObservationEvent, type RunObservation, type PermissionDecision, type PermissionReview,
 } from "../../contracts/index.ts";
+import { permissionJson, permissionList, permissionReview } from "./permissions.ts";
 
 const artifactManifestSchema = z.object({
   version: z.literal(1),
@@ -138,6 +140,19 @@ export class DemianClient {
     ).json());
     if (raw.id !== runId) throw new Error("Source cancel identity mismatch");
     return { runId: raw.id, status: raw.status };
+  }
+
+  async permissions(runId: string): Promise<PermissionReview[]> {
+    z.uuid().parse(runId);
+    return permissionList(await permissionJson(await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/permissions`)), runId);
+  }
+
+  async decidePermission(runId: string, permissionId: string, decision: PermissionDecision): Promise<PermissionReview> {
+    z.uuid().parse(runId); z.uuid().parse(permissionId); permissionDecisionSchema.parse(decision);
+    const value = permissionReview(await permissionJson(await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/permissions/${encodeURIComponent(permissionId)}/decision`,
+      undefined, { decision })), runId);
+    if (value.request.id !== permissionId) throw new Error("Permission acknowledgement identity mismatch");
+    return value;
   }
 
   async artifacts(runId: string, sessionId: string): Promise<ArtifactMetadataPage> {

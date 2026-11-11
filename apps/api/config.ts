@@ -14,6 +14,7 @@ export const sourceConfigSchema = z.object({
   device: z.string().min(1).max(120),
   users: z.array(email).min(1),
   cancelUsers: z.array(email).optional(),
+  approvalUsers: z.array(email).optional(),
   baseUrl: safeUrl.optional(),
   uiBaseUrl: safeUrl.optional(),
   tokenFile: z.string().refine(isAbsolute).optional(),

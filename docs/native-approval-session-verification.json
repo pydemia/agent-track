@@ -1,0 +1,31 @@
+{
+  "verifiedAt": "2026-11-11T14:58:32.189Z",
+  "isolatedQaFileOnly": true,
+  "runId": "04787151-dfa6-4a9a-b35f-f6f4bdf33268",
+  "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+  "permissionId": "a1c1142a-5877-44b5-a9fc-a4c2701e9e2a",
+  "decision": "allow_session",
+  "scope": "same QA session and fileChange tool; two new files, no network grant or existing-file overwrite",
+  "receiptState": "succeeded",
+  "identicalDuplicateReceipt": true,
+  "nativePermissionStatus": "resolved",
+  "nativeRunStatus": "succeeded",
+  "file": "track-approval-session-a.txt",
+  "completedFileCalls": 2,
+  "nativePermissionCount": 1,
+  "bytes": 30,
+  "sha256": "db138630e57179f7fbf3b07f1f16a3bb4a6115e4602157e71db5f202b81ae51d",
+  "rawArgumentsNotPersisted": true,
+  "restartVerified": true,
+  "publicEntraUiVerified": true,
+  "localChecks": {
+    "tests": 101,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "browser": {
+    "scopeWarningShown": true,
+    "receiptScopeShown": true,
+    "reviewRemovedAfterResolution": true
+  }
+}
