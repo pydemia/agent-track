@@ -1,0 +1,9 @@
+.trackContextPanel { margin: 0 18px 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.trackContextPanel > summary { padding: 9px 0; color: var(--ink); cursor: pointer; font-weight: 600; }
+.trackContextPanel section { padding-bottom: 8px; }
+.trackContextPanel h2, .trackContextPanel h3 { margin: 8px 0; font-size: 13px; }
+.trackContextPanel p { margin: 6px 0; }
+.trackContextPanel ul { padding-inline-start: 18px; }
+.trackContextPanel li { margin-block: 8px; overflow-wrap: anywhere; }
+.trackContextPanel a, .trackContextPanel button { color: var(--accent); }
+.trackContextPanel code { overflow-wrap: anywhere; }

@@ -51,7 +51,8 @@ fail closed한다. key 값을 URL·브라우저·소스·로그에 넣지 않는
 
 현재 운영 opt-in은 QA Project1개에 한정한 `projects-context-qa`, `demian-context-qa`다.
 후자는 기존 QA Session2개를 명시한다. 키·설정은 private state에 있다. Projects는 소유자
-QA Project 한 개에만 opt-in했고 Demian 원본 앱에는 아직 연결하지 않았다. 이는 다중
+QA Project 한 개에만 opt-in했다. Demian은 분리 native web에서 QA Session 두 개를
+실제 연결·검증했으며 원본 web 적용은 보류 중이다. 이는 다중
 사용자의 native 권한 위임 계약이 아니다.
 
 ## 원본 앱의 소비 방식
@@ -66,7 +67,9 @@ loopback origin에서 고정 GET만 수행한다. 응답512KiB·2초 deadline·r
 접근을 확인해야 한다. 현재 owner-bound reader는 같은 소유자의 요청에만 사용할 수 있다.
 기존 서비스 key를 임의 native 사용자에게 빌려주면 안 된다. 다른 사용자는 그 사용자의
 별도 원본/Track 인가와 reader 계약을 구성한 뒤 지원한다. Projects BFF에는 같은 owner와
-현재 Project/Task 인가를 조회 전후 연결했다. Demian BFF의 연결은 남아 있다.
+현재 Project/Task 인가를 조회 전후 연결했다. Demian BFF도 기존 trusted owner의
+actor·organization·role·auth mode와 Session/workspace를 조회 전후 확인한다.
+원본 cookie가 있으면 해당 credential이 우선하며 잘못된 cookie를 서버 key로 대체하지 않는다.
 
 `packages/context/ExecutionSummary.tsx`는 host React component다. BFF가 검증한 결과를
 prop으로 받으며 browser fetch·token·iframe·실행 명령은 없다. 관측 Run/Session·상태,
@@ -109,5 +112,15 @@ mount/command/user·private mount hash와 schema0016을 보존했다. 원본 che
 없다. `projects-context-native-ui-verification.json`, `projects-context-public-verification.json`,
 `../integrations/projects/README.md`가 근거다.
 
-AT-20은 여전히 부분이다. Demian 대화의 BFF·요약 UI·편집 장애 격리, 다른 사용자·Project의
-별도 인가 계약은 남았다. 독립 helper 결과와 실제 native UI 검증 범위를 구별한다.
+Demian 대화의 BFF·요약 UI는 같은 설치 source와 대조한 분리 Next web에서 검증했다.
+기존 대화 입력 경로와 별도 상태를 사용하고4초 deadline·완료 후15초 polling을 적용한다.
+실제 QA Session에서 요약 연결만 끊은 동안 Run이 성공했고18event·도구0건을 원장과
+대조했다. 복구 후 요약 Run 수는2→3이며 같은 공개 Map의 정확한 Run을 선택했다.
+390px·Tab과 이전 링크 제거도 확인했다. native web120개·Track236개 검사를 통과했다.
+`demian-context-native-ui-verification.json`·`../integrations/demian/README.md`가 근거다.
+
+AT-20은 여전히 부분이다. 원본 web 교체 전 기존 Docker DB 연결 종료로 native API와
+worker가 중단된 것을 발견했다. Docker bootstrap의 데이터 디스크 인식 오류를 확인하고
+추가 재기동·수리를 멈췄으며 원본 web·startup·active release는 변경하지 않았다.
+DB/API/worker 복구 후 원본 web 적용·브라우저 검증과 다른 사용자·Project의 별도 인가
+계약이 남았다. QA clone의 실제 실행과 원본 운영 적용을 구별한다.

@@ -26,17 +26,24 @@
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
 | AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 부분. 별도 인가 native lineage9건·정확한 도구 item join3건·Run/호출 분리와 업무별 고유 Run 집계. 실제 cowork/managed-child/peer 조직화·교차 장치 검증 남음 |
 | AT-19 | Projects 원본·Run 단위 binding 이력·서로 다른 완료 | 검증 완료. 실제 native QA Task A→B로 명시 Run 연결·재연결, A 원본 revision2와 당시 revision1 보존, stale revision409·동일 receipt·재시작 이력2건. Run 성공/Task todo·agent report/검증/수용 unknown 구별. bound Project 철회 시 공개 비노출·네 API404→복구 |
-| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. private scope-bound API·서버 client·host React 요약, Projects 원본 BFF·개요·Task 목록/상세를 소유자 QA Project1개에 운영 연결. 실제 Task Run2/Session2/성공2·todo/r1·동일 Map 이동·Entra 대조. 전용 socket 단절 중 새 QA Task 생성/수정 r2·기존 Task 불변·이전 badge 제거·자동 복구·390px/Tab/Enter 실기. PostgreSQL432/web288·정적 검사·build·공개 assets7/hash/401. Demian 대화 BFF/UI/장애 격리와 다른 사용자 인가 계약은 남음. `projects-context-native-ui-verification.json` |
+| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. Projects 원본 BFF·개요·Task 목록/상세를 소유자 QA Project1개에 운영 연결. 실제 Map 이동·socket 단절 중 업무 생성/수정·자동 복구·390px/키보드 실기. Demian owner/Session 전후 재인가 BFF·요약 UI 구현, 분리 native web에서 요약 단절 중 실제 Run 성공18event/도구0·복구 후 Run3·같은 공개 Map·390px/Tab 실기. native web120/Track236 검사 통과. 원본 web 교체 전 Docker DB 연결 종료와 API/worker 종료 발견, 운영 적용 보류. 다른 사용자 인가 계약도 별도. `projects-context-native-ui-verification.json`·`demian-context-native-ui-verification.json` |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
 현재 전체: **14/21 (66.7%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
 AT-01/02/03/04/05/07/08/10/11/13/16/17/19/21을 검증했다. 기존 Session 실행 배정을
 새 Session 생성·자동 subagent 조직화·업무 수용으로 계산하지 않는다. 전체 완료 예상
-범위는 아직 산정 불가, 신뢰도 낮음. Demian 원본 앱 문맥 요약, Assistant의 Track 읽기
+범위는 아직 산정 불가, 신뢰도 낮음. Demian 문맥 요약의 원본 운영 적용, Assistant의 Track 읽기
 principal, desktop 위치·두 번째 실제 장치와 child/peer·dependency 근거 연결이 남았다.
 새 Flow/업무별 실행 조직의 계획은 `mission-ui-plan.md`, native 대조는
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.
 다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
+
+2026-11-12 KST 운영 점검: Demian 원본 API와 worker가 PostgreSQL 연결 종료로
+중단됐으며 Docker engine이 실행되지 않는다. 재기동 bootstrap은 기존 data block의
+파일시스템을 인식하지 못하고 사용 중 디스크에 대한 mkfs 거부로 실패했다. 데이터
+보존을 위해 추가 재기동·디스크 수리를 중단했다. Demian 원본 web 교체·startup patch·
+active release 생성은 실행하지 않았다. 이전 실기 증거와 현재 서비스 가용성을 구별하며
+AT-20은 완료로 올리지 않는다. DB/API/worker 복구 후 원본 적용·브라우저 대조가 필요하다.
 
 ## 실행 순서
 
