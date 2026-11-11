@@ -163,3 +163,13 @@ GET /api/runs/:key/files는 현재 원본 인가와 Project grant를 확인하�
 경로 제거→7복구를 확인했다.117개 전체검사 중16개 신규 검사는 pairing·출처/
 invocation·int64·중복·역순·경로/원문·표시/전송/이벤트 한도·native/Project 철회를
 다룬다. 증거는 native-files-verification.json이다.
+
+## 공개 UI 실행 취소
+
+별도 QA Session/Run에서 공개 Track의 실행 취소→취소 요청 보내기를 눌렀다.
+화면의 취소 종료·취소 종료 확인, 원본 cancelled, 해당 actor/Run의 단일
+receipt succeeded가 일치했다. 승인·편집을 수행하지 않았고 QA 파일이 없다.
+`prepare-native-cancel-ui.ts`는 기존 원장에 기록한 QA Run을 재사용하고,
+취소 명령은 보내지 않는다. Session 생성 응답을 잃어 같은 QA 제목이 이미
+있으면 자동 생성/매칭을 멈춘다. 증거는 native-cancel-verification.json의
+publicUi다. 범용 재개·재시도 계약은 별도 미지원 상태로 남긴다.

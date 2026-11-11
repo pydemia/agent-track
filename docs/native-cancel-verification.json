@@ -8,5 +8,22 @@
   "finalReceiptState": "succeeded",
   "nativeStatus": "cancelled",
   "exactDuplicateReceipt": true,
-  "scope": "single-owner-native-cancel-only"
+  "scope": "single-owner-native-cancel-only",
+  "publicUi": {
+    "verifiedAt": "2026-11-11T15:42:05.922Z",
+    "runId": "b0ef1fe8-7bb7-4967-bde2-65575445a3c8",
+    "sessionId": "0782d84b-3cd8-4902-af6b-1438549153ec",
+    "receiptId": "08320c34-5c0e-4535-a692-076e6962f7d7",
+    "receiptCount": 1,
+    "receiptState": "succeeded",
+    "nativeStatus": "cancelled",
+    "fileAbsent": true,
+    "cancellationSubmittedByScript": false,
+    "ui": [
+      "실행 취소",
+      "취소 요청 보내기",
+      "취소 종료",
+      "취소 종료 확인"
+    ]
+  }
 }
