@@ -206,6 +206,12 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .trace-tools td code { display: block; overflow-wrap: anywhere; font-size: 9px; }
 .trace-tools td small { display: block; overflow-wrap: anywhere; white-space: normal; }
 .artifact-evidence { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; margin: 15px 0; }
+.file-evidence { padding: 12px 0 18px; border-bottom: 1px solid var(--line); margin-bottom: 15px; }
+.file-evidence h3 { margin: 0; font-size: 13px; }
+.file-evidence > small, .file-change-list small, .file-change-list time { display: block; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.file-change-list { list-style: none; margin: 12px 0; padding: 0; max-height: 420px; overflow: auto; }
+.file-change-list li { padding: 12px 0; border-top: 1px solid var(--line); display: grid; gap: 5px; font-size: 11px; }
+.file-change-list code { overflow-wrap: anywhere; font: 10px var(--mono); }
 .artifact-evidence h3 { margin: 0; font-size: 13px; }
 .artifact-evidence > small { color: var(--muted); font-size: 10px; }
 .artifact-list { list-style: none; padding: 0; margin: 10px 0; }

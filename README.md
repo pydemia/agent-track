@@ -51,6 +51,7 @@ npm start
 - 명시적 Run 업무 연결: 원본 revision 확인, 재연결 이력·동일 요청 receipt·동시 수정 충돌 처리. 실행 성공과 업무 완료를 각각 유지합니다.
 - 원본 승인 요청: 명시적 내용 검토, 이번 호출/세션의 같은 도구 허용·거절, 만료·철회 재검사, 동일 receipt·미확정 결과의 읽기 대조. 기본 목록과 원장에는 도구 인자를 남기지 않습니다.
 - native Run별 산출물 metadata: 현재 원본 인가와 Run ID를 대조하고, 최근 목록 범위·철회·원문 제외를 표시합니다.
+- Trail 파일 근거: native 편집 요청과 성공/실패·원본 diff metadata 연결, 단순 요청·모호함 구분, 조회 한도·Project 철회 반영. 파일 내용과 patch는 저장·표시하지 않습니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.
 - 온라인 backup·검사와 백업 선행 archive. 재개·배정·문맥 요약과 Assistant/

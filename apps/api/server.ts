@@ -9,6 +9,7 @@ import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { RunBindings } from "./bindings.ts";
 import { ApprovalService } from "../../packages/approvals/index.ts";
 import { RunPermissions } from "./permissions.ts";
+import { fileEvidence } from "./files.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -174,6 +175,12 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const artifacts = /^\/api\/runs\/([A-Za-z0-9_-]+)\/artifacts$/.exec(url.pathname);
       if (artifacts) {
         const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
+      }
+      const files = /^\/api\/runs\/([A-Za-z0-9_-]+)\/files$/.exec(url.pathname);
+      if (files) {
+        const evidence = await fileEvidence(config, snapshot, user, files[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

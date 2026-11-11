@@ -181,6 +181,33 @@ export interface ArtifactEvidence extends ArtifactMetadataPage {
   observedAt: string;
   detail: string;
 }
+export interface FileChangeItem {
+  key: string;
+  path: string;
+  operation: "add" | "update" | "delete" | "unknown";
+  state: "reported" | "pending" | "failed" | "ambiguous";
+  mechanism: "native-fileChange" | "workspace-diff";
+  callId: string | null;
+  requestedSequence: string | null;
+  completedSequence: string | null;
+  observedAt: string;
+  detail: string;
+}
+export interface FileChangePage {
+  changes: FileChangeItem[];
+  scanned: number;
+  limit: number;
+  targetSequence: string;
+  throughSequence: string;
+  omittedChanges: number;
+  complete: boolean;
+}
+export interface FileChangeEvidence extends FileChangePage {
+  state: SourceView["state"];
+  runKey: string;
+  observedAt: string;
+  detail: string;
+}
 export interface Snapshot {
   viewEpoch: string;
   viewVersion: string;

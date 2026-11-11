@@ -1,0 +1,137 @@
+{
+  "verifiedAt": "2026-11-11T15:18:24.078Z",
+  "source": "demian-local",
+  "scope": "native fileChange proposals paired with native completion; no general filesystem diff or final-state claim",
+  "results": [
+    {
+      "variant": "editor",
+      "runId": "bcd43061-936c-4dd4-8907-26964a16aca1",
+      "files": [
+        {
+          "file": "track-approval-proof.txt",
+          "state": "reported",
+          "requestedSequence": "8",
+          "completedSequence": "13",
+          "bytes": 30,
+          "sha256": "db138630e57179f7fbf3b07f1f16a3bb4a6115e4602157e71db5f202b81ae51d"
+        }
+      ],
+      "scanned": 33,
+      "targetSequence": "33",
+      "throughSequence": "33",
+      "completeThroughTarget": true,
+      "immutableJournalUnchanged": true,
+      "rawArgumentsNotExported": true
+    },
+    {
+      "variant": "session",
+      "runId": "04787151-dfa6-4a9a-b35f-f6f4bdf33268",
+      "files": [
+        {
+          "file": "track-approval-session-a.txt",
+          "state": "reported",
+          "requestedSequence": "8",
+          "completedSequence": "13",
+          "bytes": 30,
+          "sha256": "db138630e57179f7fbf3b07f1f16a3bb4a6115e4602157e71db5f202b81ae51d"
+        },
+        {
+          "file": "track-approval-session-b.txt",
+          "state": "reported",
+          "requestedSequence": "16",
+          "completedSequence": "18",
+          "bytes": 30,
+          "sha256": "db138630e57179f7fbf3b07f1f16a3bb4a6115e4602157e71db5f202b81ae51d"
+        }
+      ],
+      "scanned": 39,
+      "targetSequence": "39",
+      "throughSequence": "39",
+      "completeThroughTarget": true,
+      "immutableJournalUnchanged": true,
+      "rawArgumentsNotExported": true
+    },
+    {
+      "variant": "deny",
+      "runId": "ffcf943a-8e39-4702-a1a5-ea81683d66ce",
+      "files": [
+        {
+          "file": "track-approval-denied.txt",
+          "state": "failed",
+          "fileAbsent": true
+        }
+      ],
+      "scanned": 36,
+      "targetSequence": "36",
+      "throughSequence": "36",
+      "completeThroughTarget": true,
+      "immutableJournalUnchanged": true,
+      "rawArgumentsNotExported": true
+    },
+    {
+      "variant": "expiry",
+      "runId": "e20ed68a-f1cb-47ac-82f5-7a3ca4b88822",
+      "files": [
+        {
+          "file": "track-approval-expiry.txt",
+          "state": "failed",
+          "fileAbsent": true
+        }
+      ],
+      "scanned": 28,
+      "targetSequence": "28",
+      "throughSequence": "28",
+      "completeThroughTarget": true,
+      "immutableJournalUnchanged": true,
+      "rawArgumentsNotExported": true
+    }
+  ],
+  "projectScopeProbe": {
+    "onlyDedicatedReaderChanged": true,
+    "restrictedFileStatus": 404,
+    "restored": true,
+    "publicUiPathRemoved": true,
+    "publicUiPathRestored": true,
+    "otherPrincipalsPreserved": true,
+    "sourceDataWrites": false
+  },
+  "browser": {
+    "publicTrailSuccessFiles": 2,
+    "failedChangeSeparated": true,
+    "mobile": {
+      "width": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "rows": 2,
+      "keyboardFocus": "원본 파일 변경 목록"
+    },
+    "rawContentAbsent": true,
+    "temporaryViewportReset": true
+  },
+  "limits": {
+    "maximumEvents": 2000,
+    "maximumBytes": 8388608,
+    "maximumPathsPerProposal": 100,
+    "maximumDisplayedRows": 500,
+    "coverage": "current journal high water; not complete current filesystem state"
+  },
+  "localChecks": {
+    "tests": 117,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "operationalChecks": {
+    "verifiedAt": "2026-11-11T15:38:02.843Z",
+    "publicLogin": 302,
+    "publicFileEvidence": 401,
+    "publicBasicRejected": 401,
+    "publicForgedIdentityRejected": 401,
+    "operatorSnapshot": 200,
+    "faviconHashesMatchBuild": true,
+    "knownSecretScan": {
+      "values": 4,
+      "files": 155,
+      "matches": 0
+    }
+  }
+}

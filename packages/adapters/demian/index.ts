@@ -4,8 +4,10 @@ import {
   eventSchema, idSchema, runSchema, sequenceSchema, statusSchema,
   permissionDecisionSchema,
   type ArtifactMetadataPage, type EventData, type ObservationEvent, type RunObservation, type PermissionDecision, type PermissionReview,
+  type FileChangePage,
 } from "../../contracts/index.ts";
 import { permissionJson, permissionList, permissionReview } from "./permissions.ts";
+import { fileChangeSignal, projectFileChanges, type FileSignal } from "../../projection/file-changes.ts";
 
 const artifactManifestSchema = z.object({
   version: z.literal(1),
@@ -145,6 +147,48 @@ export class DemianClient {
   async permissions(runId: string): Promise<PermissionReview[]> {
     z.uuid().parse(runId);
     return permissionList(await permissionJson(await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/permissions`)), runId);
+  }
+
+  async fileChanges(runId: string, targetSequence: string): Promise<FileChangePage> {
+    z.uuid().parse(runId); sequenceSchema.parse(targetSequence);
+    const limit = 2000;
+    const empty = { changes: [], scanned: 0, limit, targetSequence, throughSequence: "0", omittedChanges: 0, complete: false };
+    if (targetSequence === "0") return empty;
+    const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/events?after=0`, AbortSignal.timeout(10_000));
+    if (!response.body || !response.headers.get("content-type")?.startsWith("text/event-stream")) {
+      await response.body?.cancel(); throw new Error("Expected file evidence SSE");
+    }
+    const stop = new Error("File evidence window reached");
+    const resourceLimit = new Error("File evidence limit reached");
+    const signals: FileSignal[] = []; const seen = new Set<string>();
+    let scanned = 0; let through = 0n; let contiguous = 0n; let bytes = 0;
+    const target = BigInt(targetSequence);
+    const bounded = response.body.pipeThrough(new TransformStream<Uint8Array, Uint8Array>({ transform(chunk, controller) {
+      bytes += chunk.byteLength;
+      if (bytes > 8_388_608) throw resourceLimit;
+      controller.enqueue(chunk);
+    } }));
+    try {
+      await parseSse(bounded, (id, raw) => {
+        const event = nativeEventSchema.parse(raw);
+        if (event.run_id !== runId || event.sequence_text !== id) throw new Error("File evidence scope mismatch");
+        const sequence = BigInt(event.sequence_text);
+        if (sequence > target) throw stop;
+        scanned++; seen.add(id);
+        if (sequence > through) through = sequence;
+        while (seen.has(String(contiguous + 1n))) contiguous++;
+        const signal = fileChangeSignal(event, runId);
+        if (signal) signals.push(signal);
+        if (contiguous >= target) throw stop;
+        if (scanned >= limit) throw resourceLimit;
+      });
+    } catch (error) {
+      if (error !== stop && error !== resourceLimit) throw error;
+    }
+    const projected = projectFileChanges(signals);
+    const omittedChanges = Math.max(0, projected.length - 500);
+    return { changes: projected.slice(0, 500), scanned, limit, targetSequence,
+      throughSequence: String(through), omittedChanges, complete: contiguous >= target && omittedChanges === 0 };
   }
 
   async decidePermission(runId: string, permissionId: string, decision: PermissionDecision): Promise<PermissionReview> {

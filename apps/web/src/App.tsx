@@ -6,6 +6,7 @@ import { RunApprovals } from "./RunApprovals.tsx";
 import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
+import { FileEvidencePanel } from "./FileEvidencePanel.tsx";
 import { ExecutionGraph } from "./ExecutionGraph.tsx";
 import { RunControls } from "./RunControls.tsx";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
@@ -491,7 +492,7 @@ export function App() {
           : <div className="content-grid"><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
               {tab === "track" && <TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} />}
               {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} />}
-              {tab === "trail" && <>{run && <ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} />}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
+              {tab === "trail" && <>{run && <><FileEvidencePanel key={`files:${run.key}`} run={run} onUnauthorized={clearPrivateData} /><ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} /></>}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
               {tab === "trace" && <>{run && <RunTrace run={run} events={events} hasMore={hasMore} />}<EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
             </section>
             {run && <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}

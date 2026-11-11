@@ -9,6 +9,7 @@ for (const [name, route, headers, expected] of [
   ["snapshot-auth", "/api/snapshot", {}, 401],
   ["stream-auth", "/api/stream", {}, 401],
   ["artifact-auth", "/api/runs/unknown/artifacts", {}, 401],
+  ["file-evidence-auth", "/api/runs/unknown/files", {}, 401],
   ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],
   ["approval-receipt-auth", "/api/approvals?run=unknown", {}, 401],

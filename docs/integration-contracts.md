@@ -219,3 +219,26 @@ Native-approval verification files record these separately from fixture evidence
 The original builtin write_file attempt had no such tool in codex-native; it
 was not counted as an approval. Native editor fileChange supplied the actual
 approval bridge. Its current feed does not emit a separate file.diff event.
+
+## On-demand file evidence
+
+GET /api/runs/:key/files replays native events only through the currently journaled
+high water. It validates native Run/session access before and after replay and
+refreshes current Project scope before publication. The old normalized journal
+payload/digests/cursors are unchanged; paths are a separate read projection.
+
+The exact codex-app-server/fileChange tool.requested contains input.changes
+paths/kind; matching tool.completed supplies ok. Only an earlier unique request
+plus a successful exact call/invocation completion reports a change. Unfinished,
+failed, reused or conflicting evidence remains pending/failed/ambiguous. Direct
+workspace.diff.updated paths are also accepted; arbitrary tool output is not.
+Patch text, previews, input/output and native provider IDs are never exported or
+persisted. FileSignal keeps only safe metadata and an internal evidence digest.
+
+Replay is bounded to2000events/8MiB,100paths per proposal and500display rows;
+gaps, premature EOF and display omissions remain incomplete. This is evidence
+through the selected observation window, not a filesystem diff or a claim about
+the current final file contents. Current native fileChange lacks a standalone
+diff event; an indexed/paged producer contract can replace bounded replay later.
+Actual success/denial/expiry, file bytes/hashes, immutable-journal preservation
+and public UI/Project revocation checks are in native-files-verification.json.

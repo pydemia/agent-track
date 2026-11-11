@@ -123,6 +123,25 @@ payload만 줄인다. Run ID·binding·cursor·event digest tombstone은 보존�
 
 실기에서 격리 Run을 accepted→cancelled로 취소하고 동일 요청 재수신을 대조했다. 공개 UI에서 receipt를 확인했다. 버튼 클릭 실기와 나머지 명령은 별도 미검증이다.
 
+## 파일 변경 근거 조회
+
+`GET /api/runs/:key/files`는 native fileChange 요청/완료 또는 workspace diff
+이벤트를 조회한다. 원장 high water까지 제한하며 기존 이벤트를 재정규화하거나
+digest/cursor를 변경하지 않는다. 조회 전후 native Run/session을 새로 확인하고
+현재 Project grant도 갱신한다. 원본 스트림이 권한 철회로 조용히 닫히더라도
+그 전에 읽은 경로를 현재 인가 없이 내보내지 않는다.
+
+단순 제안은 pending, 원본 도구 실패는 failed, 식별/중복 근거 충돌은 ambiguous다.
+보고된 성공도 실제 파일 최종 상태·일반 filesystem diff와 구별한다. 최대2000개
+이벤트/8MiB, 제안당100경로, 표시500행이다. gap/조기 종료/행 제외는 incomplete로
+표시한다. source 원문·patch·인자·preview는 일시 해석 후 버리고 파일 내용/다운로드는
+제공하지 않는다. 현재 native editor의 독립 diff 이벤트 미제공을 보완하는 조회
+투영이며, 긴 Run의 전체 파일 index/paging은 후속 producer 계약으로 확장한다.
+
+실제 QA4Run에서 성공3파일의30byte/hash·요청/완료seq와 거절/만료의 파일 없음,
+원장 불변·공개 Trail·모바일/키보드·Project reader 철회404/경로 제거→복구를
+대조했다(`native-files-verification.json`). 파일 접근 실패를 변경 없음으로 표시하지 않는다.
+
 ## 승인 요청과 결정
 
 공개 로그인은 기존 Entra 경로를 사용한다. source의 `approvalUsers` 기본값은
