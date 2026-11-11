@@ -242,3 +242,26 @@ the current final file contents. Current native fileChange lacks a standalone
 diff event; an indexed/paged producer contract can replace bounded replay later.
 Actual success/denial/expiry, file bytes/hashes, immutable-journal preservation
 and public UI/Project revocation checks are in native-files-verification.json.
+## Native Task creation foundation (AT-11, not enabled)
+
+The Projects reader remains read-only. `ProjectsTaskWriter` is a separate client
+requiring a dedicated owner/account/principal credential and the exact
+projectsRead/tasksRead/tasksCreate capability profile. tasksUpdate/resultsAttach
+are rejected. Its fixed task POST signs the exact serialized body; operation GET
+checks the original operation, Project, POST path and request body digest. Creation
+also checks the producer's canonical operation hash. Responses are bounded to1MiB
+and only Task metadata leaves the adapter. Drafts are capped at8KiB UTF-8, body5000
+characters, criteria20×500; the local expiry guard runs after credential/capability
+awaits immediately before dispatch.
+
+`TaskCreationService` keeps actor/UUID/source/Project, pinned writer identity,
+request digests and native Task ID/revision in `task_creation_receipts`. It keeps
+no title, body, criteria or source error. A SQLite transaction elects one dispatcher;
+one unresolved create per actor/Project blocks a second UUID. Exact replay returns
+its existing receipt. Transport/malformed success remains unknown, never resent.
+Operation lookup reconciles with a fresh grant for the exact stored source/Project;
+late reads cannot overwrite terminal receipts. Interrupted dispatches recover as
+unknown. Created confirms native Task creation, not runtime acceptance or business
+approval. API/UI, startup recovery wiring and native writer provisioning are still
+pending; these modules are not an enabled production write path.
+

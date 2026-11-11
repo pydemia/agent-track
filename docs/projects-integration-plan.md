@@ -60,3 +60,53 @@ AT-07/11/19/20을 진행한다. Projects의 Project/Task·revision·수용 상�
 연결 receipt는 Track의 기록 수락이다. 원본 업무의 배정 수락이나 Demian 실행
 시작 receipt가 아니며, 그 흐름은 AT-11의 별도 native 계약으로 진행한다.
 읽기 연결 후 등록/배정 명령·source acceptance와 소비 앱 요약을 별도 구현한다.
+
+## AT-11: 원본 업무 생성과 실행 배정
+
+원본 코드에서 아래 계약을 확인했다. 실제 운영 원본과의 대조는 별도 실기로
+남기며, Track 기능을 켜기 전에 전용 principal의 권한을 확인한다.
+
+- Projects `POST /api/integrations/assistant/v1/projects/{projectId}/tasks`는
+  `operation_id/title/body/acceptance_criteria/requires_test`를 받는다.
+  `GET .../operations/{operationId}`는 현재 principal/Project ACL로 생성
+  receipt를 조회한다. 동일 operation·다른 payload는409다.
+- Demian 기존 Session의 `POST /api/v1/sessions/{sessionId}/runs`는
+  `Idempotency-Key`를 받으며202 접수·200 재수신을 구분한다.
+  `GET .../requests/{requestId}`로 found/not_found와 Run을 확인한다.
+  Session 생성에는 동등한 idempotency 계약이 없다. 배정 첫 단계는 사용자가
+  명시적으로 선택한 기존 허용 Session을 대상으로 한다. 새 Session 생성의
+  응답 유실을 제목 검색으로 성공 처리하지 않는다.
+
+구현 순서와 실패 정책은 다음과 같다.
+
+1. 기존 reader는 그대로 두고 별도 task-creator principal/key와 명시 Project
+   범위를 사용한다. 필요한 scope는 projects:read/tasks:read/tasks:create다.
+   업무 수정·결과 첨부·완료 권한은 이 생성 기능에 포함하지 않는다. Track의
+   현재 소유자 opt-in, reader Project grant와 writer native ACL의 교집합을
+   매 전송·접수 조회에서 확인한다.
+2. 생성 초안은 UI에 유지하고, Track 원장에는 actor·operation ID·source
+   identity·정확한 요청 해시·Project ID·생성된 Task ID/revision만 남긴다.
+   전송 전 transaction으로 접수를 기록하며 같은 UUID는 재전송하지 않는다.
+   같은 Project에 미확정 생성이 있으면 새 UUID도 막는다. 통신 오류를 실패나
+   업무 없음으로 해석하지 않고 원본 operation 조회로 확인한다.
+3. 원본 receipt의 operation/method/path/body hash/Project/kind/revision을
+   대조한다. 본문·criteria가 포함된 응답은 일시적으로 파싱하되 원장·브라우저
+   응답에 저장하지 않는다. 성공은 Projects의 업무 생성 접수이며 Demian
+   실행 접수·실행 종료·업무 수용과 구별한다.
+4. 기존 Task 배정은 최신 Project/Task revision과 선택 Session의 현재
+   권한을 읽고 명시한 입력만 전달한다. 원본 Run 접수를 확인한 뒤 해당 Run에
+   연결 당시 Task revision으로 binding을 남긴다. Projects 업무 상태를 자동으로
+   완료하거나 기존 binding을 덮어쓰지 않는다.
+5. 배정 원장에도 요청 ID·입력 해시와 원본 Run ID만 저장한다. 응답 유실 시
+   request-status를 읽고 새 실행을 자동 생성하지 않는다. 접수 확인 후 binding
+   실패는 별도로 표시해, 이미 시작된 실행을 다시 만들지 않고 연결을 복구한다.
+6. fixture의 동시 UUID·원본409·권한 철회·기한·응답 유실·재시작을 확인한 후
+   QA 전용 원본 업무와 기존 QA Session으로 공개 UI 생성/배정을 대조한다.
+   실패 시 초안 유지·확정/미확정 구분,390px·키보드·로그아웃 후 초안 제거도
+   확인한다. 실제 원본 접수와 공개 UI 전까지 AT-11을 완료로 계산하지 않는다.
+
+현재 생성 adapter와 metadata-only 처리 원장을 구현했고, 결정적 fixture
+20개가 통과했다. 전체137개 검사와 타입 검사를 통과했으며 native 쓰기는
+수행하지 않았다. writer 발급·운영 설정·BFF/UI·실제 생성/배정은 아직
+완료하지 않았다. 생성 서비스는 현재 제품 API에 연결하지 않았으므로
+사용자가 업무를 생성할 수 있는 상태로 표시하지 않는다.
