@@ -186,6 +186,14 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .inline-error { background: #2b201e; color: #ffd0c4; }
 .button-secondary, .button-primary { padding: 8px 12px; border: 1px solid #657645; background: #252b1d; color: var(--lime); font-size: 11px; }
 .load-more { margin-top: 8px; }
+.run-trace { padding: 4px 0 20px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.trace-step { margin-top: 18px; }
+.trace-step h3 { margin: 0; font: 12px var(--mono); overflow-wrap: anywhere; }
+.trace-step > p { color: var(--muted); font-size: 11px; }
+.trace-tools td { font-size: 10px; vertical-align: top; }
+.trace-tools td:first-child { min-width: 180px; max-width: 420px; }
+.trace-tools td code { display: block; overflow-wrap: anywhere; font-size: 9px; }
+.trace-tools td small { display: block; overflow-wrap: anywhere; white-space: normal; }
 .artifact-evidence { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 0; margin: 15px 0; }
 .artifact-evidence h3 { margin: 0; font-size: 13px; }
 .artifact-evidence > small { color: var(--muted); font-size: 10px; }

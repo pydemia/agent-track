@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { RunTrace } from "./RunTrace.tsx";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { ExecutionGraph } from "./ExecutionGraph.tsx";
 import { RunControls } from "./RunControls.tsx";
@@ -481,7 +482,7 @@ export function App() {
               {tab === "track" && <TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} />}
               {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} />}
               {tab === "trail" && <>{run && <ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} />}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
-              {tab === "trace" && <EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} />}
+              {tab === "trace" && <>{run && <RunTrace run={run} events={events} hasMore={hasMore} />}<EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
             </section>
             {run && <RunInspector onUnauthorized={clearPrivateData} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
           </div>}
@@ -522,7 +523,7 @@ function EventViewPanel({ title, run, events, loading, error, hasMore, onMore, o
     {error && <div className="inline-error" role="alert">{error}<button onClick={onRetry}>다시 시도</button></div>}
     {!loading && !error && events.length === 0 && <p className="empty-inline">이 실행에서 확인된 이벤트가 없습니다. 이벤트가 없는 것과 기록을 읽을 수 없는 상태를 구분해 주세요.</p>}
     {!!events.length && <ol className="event-list">{events.map((event) => <li key={event.key}><div className="event-marker" aria-hidden="true" /><div className="event-content"><div className="event-title"><strong>{event.type}</strong><time>{timestamp(event.occurredAt)}</time></div><small>sequence {event.sequence}</small>{renderMeta(event)}</div></li>)}</ol>}
-    {hasMore && <button className="button-secondary load-more" onClick={onMore} disabled={loading}>{loading ? "불러오는 중…" : "이전 이벤트 더 보기"}</button>}
+    {hasMore && <button className="button-secondary load-more" onClick={onMore} disabled={loading}>{loading ? "불러오는 중…" : "이벤트 더 불러오기"}</button>}
     <p className="privacy-note">이벤트 본문은 표시하지 않습니다. 허용된 메타데이터 필드만 표시합니다.</p>
   </section>;
 }

@@ -58,3 +58,14 @@ or forbidden query clears prior evidence, selection changes abort requests, and
 a disconnected source hides evidence. The recent100 coverage is always marked
 incomplete. Actual public `answer.txt` metadata and its hash/size were compared
 with the source. Artifact query results are not fabricated journal events.
+
+## Trace step projection
+
+The Trace view groups only explicit invocation/call identity tuples. Unattached
+tools remain Run-level unknown-parent calls; missing call IDs are counted without
+a fabricated span. Started/completed/failed are observed event phases, not
+verification or business acceptance. Intervals require one unambiguous start/end
+with the same clock suffix and a nonnegative delta; missing/conflicting evidence
+stays unknown. Current loaded-event coverage is shown separately from complete
+history. Actual public Codex metadata showed five paired tools and one ungrouped
+ID-less event; the native tool-free Run correctly supplied no invocation stages.

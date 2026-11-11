@@ -53,5 +53,22 @@
     "sha256": "f9fd42371089ddd34efc3c91d92ca89ffeace0acdb78e82e60f7b1904885b590",
     "bodyRequested": false,
     "completeHistory": false
+  },
+  "toolTrace": {
+    "source": "codex-local",
+    "runId": "01a1ca7e-a1c3-7b92-8644-562e9a378854",
+    "nativeDemianRun": false,
+    "loadedEvents": 13,
+    "pairedTools": 5,
+    "observedIntervalsMs": [
+      740,
+      784,
+      836,
+      908,
+      680
+    ],
+    "invocationMetadataAbsent": true,
+    "idlessToolEvents": 1,
+    "toolInputOutputDisplayed": false
   }
 }

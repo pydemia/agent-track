@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 50개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 58개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
@@ -24,6 +24,15 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 `live-restore-verification.json`, `track-browser-verification.json`에 있다.
 `track-server-verification.json`의 browserLoginVerified=false는 해당 CLI 검사의
 범위이며 실제 브라우저 결과는 별도 기록에 있다.
+
+## Trace 단계·도구
+
+실제 Demian 개발 세션의 Codex Run13event에서 5개 tool의 시작/완료와
+관측 구간740/784/836/908/680ms를 공개 UI에서 대조했다. invocation ID는
+원본에 없어 unknown으로, call ID가 없는 이벤트1개는 묶지 않고 표시했다.
+시작/종료 상태를 업무 수용·검증 결과로 바꾸지 않는다. 실제 native Run은
+17event metadata와 단계 미제공 상태를 확인했다. int64·tuple 충돌·중복/역순·
+불완전/충돌/시각 역행·상위 invocation 불일치8개 검사를 통과했다.
 
 ## 산출물 metadata
 
@@ -61,7 +70,7 @@ unknown 요청은 재시작해도 재전송하지 않는다. 원본 cancel의 at
 
 ## 전체 수용
 
-[goal 기준표](goal-status.md)의 **7/21(33.3%, 동일 가중치)**다. 테스트 수나
+[goal 기준표](goal-status.md)의 **8/21(38.1%, 동일 가중치)**다. 테스트 수나
 배포 경로 준비를 전체 달성률로 환산하지 않는다. 전체 일정은 Projects/
 Assistant 계약과 desktop 위치 미확인으로 산정 불가·신뢰도 낮음이다.
 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.

@@ -11,7 +11,7 @@
 | AT-02 | snapshot과 실시간 실행 상태 일치 | 검증 완료. `recovery-http.test.ts` 초기 snapshot/SSE 일치·할당/실행/권한 대기/취소 중/실패 구분. 실제 native 성공·취소 종료와 공개 Trace 대조 |
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. 실제 native answer.txt metadata/공개 Trail·원본 대조 완료. 변경 파일 live 근거 실기 남음 |
-| AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 부분. 실제 native17event·Codex tool metadata. step 계층·상세 시간 검증 남음 |
+| AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과 |
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Demian Session href·Run link 미지원 안내. 원본 앱 로그인 후 선택 실기·타 앱 남음 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 부분. 네 화면·SNB·공개 favicon bytes/hash 확인. 빈/오류/인가 철회 전체 UI 실기 남음 |
@@ -29,8 +29,8 @@
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **7/21 (33.3%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
-AT-01/02/03/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
+현재 전체: **8/21 (38.1%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/05/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
 완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
 Projects의 외부 실행 참조·인가, Assistant의 Track 읽기 principal, desktop
 위치가 미확인이다. 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.
