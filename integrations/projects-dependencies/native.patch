@@ -1,0 +1,24 @@
+diff --git a/src/projects/assistant_integration.py b/src/projects/assistant_integration.py
+index 0ce439b..4b37d30 100644
+--- a/src/projects/assistant_integration.py
++++ b/src/projects/assistant_integration.py
+@@ -40,0 +41 @@ from projects.records import (
++from projects.task_dependencies import read_task_dependencies
+@@ -417,0 +419,2 @@ def capabilities(principal: PrincipalDep, db: DB) -> dict:
++        "taskDependenciesRead": permitted("tasks:read", "project.read")
++        and permitted("projects:read", "project.read"),
+@@ -480,0 +484,14 @@ def project_tasks(
++@router.get("/projects/{project_id}/task-dependencies")
++def task_dependencies(
++    project_id: str, request: Request, principal: PrincipalDep, db: DB
++) -> dict:
++    authorize(db, principal, "projects:read")
++    authorize(db, principal, "tasks:read")
++    allowed_project(db, principal, project_id)
++    if request.query_params:
++        raise Problem(422, "Dependency query does not accept parameters")
++    return read_task_dependencies(
++        db, principal.accountId, principal.projectIds, project_id
++    )
++
++

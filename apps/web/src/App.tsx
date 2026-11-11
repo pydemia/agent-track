@@ -11,9 +11,11 @@ import { MissionOverview } from "./MissionOverview.tsx";
 import "./mission-flow.css";
 import { ActivityTrail } from "./ActivityTrail.tsx";
 import { RunControls } from "./RunControls.tsx";
+import { removeDeniedTaskContext, removeDeniedTaskQuery, type TaskMapContext } from "./task-map-context.ts";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
 
 const LazyMissionFlow = lazy(() => import("./MissionFlow.tsx").then((module) => ({ default: module.MissionFlow })));
+const LazyTaskDependencyMap = lazy(() => import("./TaskDependencyMap.tsx").then((module) => ({ default: module.TaskDependencyMap })));
 
 type Tab = "track" | "trail" | "trace" | "map";
 type Health = "checking" | "ok" | "unavailable";
@@ -46,6 +48,9 @@ function readUrl() {
   return {
     tab: tabs.some((item) => item.id === tab) ? tab as Tab : "track" as Tab,
     selected: params.get("run") ?? "",
+    taskMap: params.get("taskSource") && params.get("taskProject") ? {
+      sourceId: params.get("taskSource")!, projectId: params.get("taskProject")!, ...(params.get("task") ? { taskId: params.get("task")! } : {}),
+    } as TaskMapContext : null,
     filters: {
       project: params.get("project") ?? "",
       source: params.get("source") ?? "",
@@ -54,10 +59,11 @@ function readUrl() {
     },
   };
 }
-function writeUrl(tab: Tab, selected: string, filters: Filters, replace = false) {
+function writeUrl(tab: Tab, selected: string, filters: Filters, replace = false, taskMap: TaskMapContext | null = null) {
   const params = new URLSearchParams();
   if (tab !== "track") params.set("view", tab);
   if (selected) params.set("run", selected);
+  if (taskMap) { params.set("taskSource", taskMap.sourceId); params.set("taskProject", taskMap.projectId); if (taskMap.taskId) params.set("task", taskMap.taskId); }
   for (const key of ["project", "source", "status", "q"] as const) if (filters[key]) params.set(key, filters[key]);
   const query = params.toString();
   history[replace ? "replaceState" : "pushState"]({}, "", `${location.pathname}${query ? `?${query}` : ""}`);
@@ -103,6 +109,7 @@ export function App() {
   const [health, setHealth] = useState<Health>("checking");
   const [tab, setTab] = useState<Tab>(initial.current.tab);
   const [selectedKey, setSelectedKey] = useState(initial.current.selected);
+  const [taskMap, setTaskMap] = useState<TaskMapContext | null>(initial.current.taskMap);
   const [filters, setFilters] = useState<Filters>(initial.current.filters);
   const [events, setEvents] = useState<EventView[]>([]);
   const [eventsError, setEventsError] = useState("");
@@ -159,10 +166,12 @@ export function App() {
     setHasMore(false);
     setLoadingEvents(false);
     setSelectedKey("");
+    setTaskMap(null);
     setPageError(reason);
     setStreamState("disconnected");
     const params = new URLSearchParams(location.search);
     params.delete("run");
+    for (const key of ["taskSource", "taskProject", "task"]) params.delete(key);
     const query = params.toString();
     history.replaceState({}, "", `${location.pathname}${query ? `?${query}` : ""}`);
     source.current?.close();
@@ -236,7 +245,7 @@ export function App() {
         eventInFlight.current = false; eventRunKey.current = ""; eventNextCursor.current = null;
         setEvents([]); setEventsError(""); setNextCursor(""); setHasMore(false); setLoadingEvents(false);
       }
-      setTab(next.tab); setSelectedKey(next.selected); setFilters(next.filters);
+      setTab(next.tab); setSelectedKey(next.selected); setFilters(next.filters); setTaskMap(next.taskMap);
     };
     addEventListener("popstate", onPopState);
     return () => removeEventListener("popstate", onPopState);
@@ -251,19 +260,33 @@ export function App() {
     } catch { /* The defaults remain usable when browser storage is unavailable. */ }
   }, [snapshot?.user]);
 
-  const setLocation = (next: { tab?: Tab; selected?: string; filters?: Filters }, replace = false) => {
+  const setLocation = (next: { tab?: Tab; selected?: string; filters?: Filters; taskMap?: TaskMapContext | null }, replace = false) => {
     const nextTab = next.tab ?? tab;
     const nextSelected = next.selected ?? selectedKey;
     const nextFilters = next.filters ?? filters;
+    const nextTaskMap = next.taskMap !== undefined ? next.taskMap : next.selected !== undefined || next.filters !== undefined ? null : taskMap;
     if (nextSelected !== selectedKey) {
       eventGeneration.current += 1; eventController.current?.abort(); eventController.current = null;
       eventInFlight.current = false; eventRunKey.current = ""; eventNextCursor.current = null;
       eventHasMore.current = false; pendingTail.current = false;
       setEvents([]); setEventsError(""); setNextCursor(""); setHasMore(false); setLoadingEvents(false);
     }
-    setTab(nextTab); setSelectedKey(nextSelected); setFilters(nextFilters);
-    writeUrl(nextTab, nextSelected, nextFilters, replace);
+    setTab(nextTab); setSelectedKey(nextSelected); setFilters(nextFilters); setTaskMap(nextTaskMap);
+    writeUrl(nextTab, nextSelected, nextFilters, replace, nextTaskMap);
   };
+
+  const clearTaskMapScope = useCallback((sourceId: string, projectId: string) => {
+    setTaskMap((current) => removeDeniedTaskContext(current, sourceId, projectId));
+    const query = removeDeniedTaskQuery(location.search, sourceId, projectId);
+    if (query === null) return;
+    history.replaceState({}, "", `${location.pathname}${query ? `?${query}` : ""}`);
+  }, []);
+
+  useEffect(() => {
+    if (!snapshot || !taskMap) return;
+    const allowed = snapshot.sources.some((source) => source.id === taskMap.sourceId && source.kind === "projects" && source.state === "connected" && source.authorizedProjectIds?.includes(taskMap.projectId));
+    if (!allowed) { setTaskMap(null); writeUrl(tab, selectedKey, filters, true, null); }
+  }, [snapshot, taskMap, tab, selectedKey, filters]);
 
   const requestEventsPage = useCallback(async (runKey: string, cursor: string | null, generation: number, replace: boolean) => {
     if (eventInFlight.current || generation !== eventGeneration.current) {
@@ -488,13 +511,15 @@ export function App() {
           <label className="search-label">검색<input aria-label="검색" type="search" value={filters.q} placeholder="실행·업무·출처 검색" onChange={(event) => setLocation({ filters: { ...filters, q: event.target.value } }, true)} /></label>
         </form>
 
-        {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
+        {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onMapTask={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
+        {tab === "map" && snapshot && taskMap && <section className="primary-content" aria-label="Projects 업무 의존 관계 Map"><button className="text-button" onClick={() => setLocation({ taskMap: null })}>실행 중심 Map으로 돌아가기</button><Suspense fallback={<p role="status">업무 의존 관계 지도를 불러오는 중…</p>}><LazyTaskDependencyMap key={`${snapshot.user}:${taskMap.sourceId}:${taskMap.projectId}`} sourceId={taskMap.sourceId} projectId={taskMap.projectId} {...(taskMap.taskId ? { focusTaskId: taskMap.taskId } : {})} sources={snapshot.sources} runs={accessibleRuns} onSelectRun={(key) => setLocation({ selected: key, taskMap: null })} onUnauthorized={clearPrivateData} onScopeUnavailable={clearTaskMapScope} /></Suspense></section>}
         {unavailable ? <section className="empty-state"><span className="empty-mark">!</span><h2>실행 데이터를 불러올 수 없습니다</h2><p>API 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="button-primary" onClick={() => void loadSnapshot()}>다시 불러오기</button></section>
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
+          : tab === "map" && taskMap ? null
           : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근이 허용되지 않아 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.state === "forbidden" ? "접근이 허용되지 않아 저장된 실행을 표시하지 않습니다." : item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
           : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>조건에 맞는 실행이 없습니다</h2><p>프로젝트·출처·상태 필터나 검색어를 조정해 보세요.</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
           : <div className={`content-grid ${tab === "map" || tab === "trace" ? "map-content-grid" : ""}`}><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
-              {tab === "track" && <><MissionOverview runs={visibleRuns} relations={accessibleRelations} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} onMap={(key) => setLocation({ tab: "map", selected: key })} /><details className="flow-raw-evidence"><summary>전체 실행 목록 · {visibleRuns.length}개 Run</summary><TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} /></details></>}
+              {tab === "track" && <><MissionOverview runs={visibleRuns} relations={accessibleRelations} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} onMap={(key) => setLocation({ tab: "map", selected: key })} onTaskMap={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} /><details className="flow-raw-evidence"><summary>전체 실행 목록 · {visibleRuns.length}개 Run</summary><TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} /></details></>}
               {tab !== "track" && run && <><p className="graph-legend">정규 실행 근거 {events.length}건{loadingEvents ? " · 조회 중…" : ""}{hasMore ? " · 추가 근거 있음" : ""}</p>{eventsError && <p className="inline-error" role="alert">{eventsError}<button className="text-button" onClick={() => setEventsRefresh((value) => value + 1)}>실행 근거 다시 조회</button></p>}{hasMore && <button className="button-secondary" disabled={loadingEvents} onClick={loadMoreEvents}>흐름의 실행 근거 더 불러오기</button>}</>}
               {tab === "map" && <MapView runs={visibleRuns} relations={accessibleRelations} events={events} hasMore={hasMore} mode={mapMode} onMode={setMapMode} selected={run} onSelect={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} />}
               {tab === "trail" && <>{run && <><ActivityTrail key={`trail:${run.key}`} run={run} events={events} hasMore={hasMore} onUnauthorized={clearPrivateData} onTrace={() => setLocation({ tab: "trace" })} /><FileEvidencePanel key={`files:${run.key}`} run={run} onUnauthorized={clearPrivateData} /><ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} /></>}<details className="flow-raw-evidence"><summary>정규 이벤트 근거 목록</summary><EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></details></>}

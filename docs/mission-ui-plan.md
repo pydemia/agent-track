@@ -50,12 +50,15 @@ AgentTrail은 node/edge 탐색의 구조 reference이며 소스를 복사하지 
 | --- | --- | --- |
 | 1. 실제 실행 해석 | native lineage 별도 인가 조회, source/run/item 정확한 결합, 기존 immutable 원장 보존 | 공개 UI·scope 철회·재접속 증거를 현재 revision에 연결 |
 | 2. 실행 분석 | 호출/도구/승인 Flow, 경과 Trail, 업무별 세션 요약 | 도구 outcome·요청/실행 구간의 실제 원본 대조 |
-| 3. 업무·협업 Map | 같은 Task의 여러 source/Session, 명시 Run 관계 closure, unknown·한도 표시 | 실제 goal/cowork/managed-child/peer 사례, native Task Link 읽기 계약 |
+| 3. 업무·협업 Map | 같은 Task의 여러 source/Session, 명시 Run 관계 closure, Projects 실제 Task dependency·선행 화살표·관계/현재 revision 상세·철회 시 URL 제거 | 실제 goal/cowork/managed-child/peer·artifact 관계 사례 |
 | 4. 목표 수행 | 원본 업무 생성·내용 검토→기존 Session 배정→native acceptance→binding 복구, 실제 동일 Task·Session2·Run2 대조 | 자동 subagent 조직화, 검증/수용 근거 연결 |
 | 5. 교차 앱 | Projects 원본 요약·Map 이동·단절 중 업무 편집/복구 실기. Demian 요약 BFF/UI·분리 native web에서 장애 중 실제 Run 성공·자동 복구·같은 Map 이동(QA 소유자 범위) | Docker DB/API/worker 복구 후 Demian 원본 web 적용, Assistant/desktop 계약, 두 번째 장치 |
 
-Projects의 dependency는 native Link에 존재하지만 현재 Track의 서명된 integration
-응답에는 없다. Demian의 해당 검증 Run에는 goal/cowork/managed-child/peer 이벤트가
+Projects의 dependency는 native Link의 `depends_on`을 서명된 조회 계약으로 연결했다.
+관계 소유 Project와 양쪽 업무의 현재 native/service 권한을 모두 확인하며, 원본
+A→B 의존 관계는 화면에서 선행 B→의존 A로 표시한다. 실제 QA 관계1건·업무2·Session2·
+기존 Run2의6node/5edge와 원본 ID·revision을 대조했고 업무 todo/r1·todo/r2를 유지했다.
+미지원 계약·한도·권한 철회는 각각 구분한다. Demian의 해당 검증 Run에는 goal/cowork/managed-child/peer 이벤트가
 없다. mock 관계 검사를 실제 subagent 조직화 성공으로 집계하지 않는다.
 권한을 확장하거나 원본 producer WIP를 임의 배포하여 이 공백을 숨기지 않는다.
 

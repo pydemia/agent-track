@@ -1,0 +1,163 @@
+{
+  "verifiedAt": "2026-11-11T22:26:24.101Z",
+  "scope": "Actual native Projects dependency and authenticated public Track Map; existing owner QA Project only",
+  "deployment": {
+    "image": "pydemia-projects:task-dependencies-33dfdfe3c12a0ffb",
+    "imageId": "sha256:65005fb85ad3c1cecb6adfe1aaa8d7be374b842442e19385ac0e126742c04d63",
+    "baseImage": "sha256:067dc920831fceeb2dcbb6b198271b75e5750b46618ae325ce91af0ed2eb0cc9",
+    "payloadSha256": "33dfdfe3c12a0ffb5bba01012d7fd2806c491864c359e89d49d83058be575d40",
+    "schema": "0016",
+    "businessSnapshotUnchanged": true,
+    "mountsCommandUserPreserved": true,
+    "environmentPreserved": true,
+    "ingressAndDatabaseIdsPreserved": true,
+    "privateMountsUnchanged": true,
+    "backupValidated": true,
+    "nativeDependencyMapVerification": "verified native QA relation and public Entra Map, node/edge/keyboard/mobile/history, source scope revocation and restoration",
+    "payloadMatched": true,
+    "nativeAnonymousDenied": true
+  },
+  "native": {
+    "verifiedAt": "2026-11-11T22:18:31.556Z",
+    "sourceId": "projects-native",
+    "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+    "relationId": "d66d5baf-9dbd-416b-abf1-bf01465a8610",
+    "nativeRelation": "depends_on",
+    "nativeFromTaskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+    "nativeToTaskId": "b01e84de-941a-4ac5-b921-ed65e2bcfbb9",
+    "visualFromTaskId": "b01e84de-941a-4ac5-b921-ed65e2bcfbb9",
+    "visualToTaskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+    "recordedFromRevision": "1",
+    "recordedToRevision": "2",
+    "currentFromRevision": "1",
+    "currentToRevision": "2",
+    "taskStates": [
+      "todo",
+      "todo"
+    ],
+    "nodes": 6,
+    "edges": 5,
+    "observedRuns": 2,
+    "partial": false,
+    "cycles": 0,
+    "nativeMutationsByVerifier": 0,
+    "rawBodyExported": false
+  },
+  "checks": {
+    "trackTests": 264,
+    "trackFailed": 0,
+    "typecheck": true,
+    "build": true,
+    "nativePostgresqlFull": {
+      "passed": 437,
+      "failed": 0,
+      "seconds": 260.83,
+      "sourceSha256": "664d8fed63799cc39cd7c4d81014a35a71a00cc1a0dee19fb77635de1206441a"
+    },
+    "nativePostgresqlExpandedFocused": {
+      "passed": 7,
+      "failed": 0,
+      "seconds": 6.17,
+      "scope": "owner/source/target native membership revocation, current versus link revision, inaccessible rows before visible limit"
+    },
+    "runtimeSourceUnchangedAfterFullSuite": true,
+    "nativeRuffAndMypy": true,
+    "rollbackPolicyTests": 3,
+    "independentSourceReviewFindingsResolved": true,
+    "productionRollbackDrill": false
+  },
+  "browser": {
+    "publicEntraSession": true,
+    "actualDependencyNodeAndEdgeSelected": true,
+    "nativeRelationIdMatched": true,
+    "runSuccessNotTaskCompletion": true,
+    "taskCatalogKeyboardEntry": true,
+    "edgeEnterSelection": true,
+    "nodeEnterSelection": true,
+    "urlReloadRestoration": true,
+    "backForwardRestoration": true,
+    "viewport390": {
+      "documentWidth": 375,
+      "canvasWidth": 345.2,
+      "inspectorBelow": true
+    },
+    "temporaryViewportReset": true,
+    "taskMapCanRenderWithoutRuns": "projection fixture; current live example has 2 historical observed Runs",
+    "runFreshness": "Existing journal; native Demian connection currently unavailable. Stale/incomplete warning retained.",
+    "lateDeniedOldProjectPreservesNewSelection": "Current-state and current-URL regression tests"
+  },
+  "scopeRevocation": {
+    "nativeReadonlyPrincipalOnly": true,
+    "before": 7,
+    "during": 6,
+    "after": 7,
+    "newDependencyApiStatus": 404,
+    "priorRelationAndTaskIdsAbsentFromDeniedResponse": true,
+    "publicGraphRemoved": true,
+    "publicTaskContextUrlRemoved": true,
+    "exactNativeConfigBytesRestored": true,
+    "otherPrincipalsPreserved": true,
+    "scopeOnlyNotEntraMembershipRevocation": true
+  },
+  "assets": {
+    "authenticatedLoopback": [
+      {
+        "path": "/",
+        "status": 200,
+        "type": "text/html; charset=utf-8",
+        "bytes": 658,
+        "matchesBuild": true,
+        "sha256": "fc61e77082b42aa9e838501700072a543c705872df6229c2c1a9b6b6db8f4d2d"
+      },
+      {
+        "path": "/assets/favicon-juS3qOhu.svg",
+        "status": 200,
+        "type": "image/svg+xml",
+        "bytes": 280,
+        "matchesBuild": true,
+        "sha256": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b"
+      },
+      {
+        "path": "/favicon-32.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 694,
+        "matchesBuild": true,
+        "sha256": "936d3c9122dc776b520c99adeac1daf01adcb98e6de11b5b1ce9513ff6dc5228"
+      },
+      {
+        "path": "/favicon-16.png",
+        "status": 200,
+        "type": "image/png",
+        "bytes": 381,
+        "matchesBuild": true,
+        "sha256": "e7bce1f7148c3c70e80a2fdccfe52faf73401851d4c209470ab4a3c77ba614d5"
+      },
+      {
+        "path": "/favicon.ico",
+        "status": 200,
+        "type": "image/x-icon",
+        "bytes": 716,
+        "matchesBuild": true,
+        "sha256": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb"
+      }
+    ],
+    "publicAnonymousNewApi": 401,
+    "publicAnonymousFavicon": 302,
+    "publicAnonymousFaviconIsNotByteVerification": true,
+    "applicationFaviconContentUnchanged": true,
+    "browserTabIcon": "Automation tool replaces icon href with its own data-codex-favicon-badge; separate native tab-icon appearance not established in this pass"
+  },
+  "cleanup": {
+    "ownedIsolatedQaPostgresqlRemoved": true,
+    "helperContainersRemoved": true,
+    "privateTestEnvironmentFilesRemoved": true,
+    "pcQaForwardStopped": true,
+    "nativeProductionDatabaseUnchanged": true
+  },
+  "limitations": [
+    "Native managed-child/peer/cowork and artifact graph evidence remain unverified.",
+    "This does not repair the Windows Docker data disk or deploy the prepared Demian web integration.",
+    "Assistant/desktop and real second execution device remain pending."
+  ]
+}

@@ -1,15 +1,15 @@
 import type { RelationView, RunView } from "../../../packages/contracts/index.ts";
 import { missionOverview } from "../../../packages/projection/mission-overview.ts";
 
-export function MissionOverview({ runs, relations, selected, onSelect, onMap }: { runs: RunView[]; relations: RelationView[]; selected: string;
-  onSelect: (key: string) => void; onMap: (key: string) => void }) {
+export function MissionOverview({ runs, relations, selected, onSelect, onMap, onTaskMap }: { runs: RunView[]; relations: RelationView[]; selected: string;
+  onSelect: (key: string) => void; onMap: (key: string) => void; onTaskMap: (sourceId: string, projectId: string, taskId: string) => void }) {
   const missions = missionOverview(runs, relations);
   const unbound = runs.filter((run) => !run.binding?.taskId).length;
   return <section className="mission-overview" aria-label="업무별 세션과 Agent 실행">
     <div className="section-heading"><div><h2>업무별 실행 조직</h2><p>같은 원본 업무에 연결된 여러 세션·출처의 Run을 함께 봅니다.</p></div><small>{missions.length}개 연결 업무</small></div>
-    <p className="graph-legend">업무의 완료·수용 상태는 위 Projects 원본 목록에서 확인합니다. 목표 계층과 업무 간 의존성은 원본 계약 연결 대기입니다.</p>
+    <p className="graph-legend">업무의 완료·수용 상태는 위 Projects 원본 목록에서 확인합니다. 선행 관계는 업무 의존 Map에서 확인하며 목표 계층은 아직 연결되지 않았습니다.</p>
     {missions.length ? <div className="mission-summary-list">{missions.map((mission) => <article key={mission.key} className="mission-summary">
-      <div className="mission-summary-title"><div><small>{mission.project}</small><h3>{mission.title}</h3></div><button className="text-button" onClick={() => onMap(mission.runs.find((run) => run.key === selected)?.key ?? mission.runs[0]!.key)}>협업 Map 열기</button></div>
+      <div className="mission-summary-title"><div><small>{mission.project}</small><h3>{mission.title}</h3></div><div className="flow-semantics"><button className="text-button" onClick={() => onMap(mission.runs.find((run) => run.key === selected)?.key ?? mission.runs[0]!.key)}>실행·협업 Map</button><button className="text-button" onClick={() => { const binding = mission.runs[0]!.binding; if (binding?.taskId) onTaskMap(binding.projectSourceId, binding.projectId, binding.taskId); }}>업무 의존 Map</button></div></div>
       <p>{mission.runs.length}개 고유 Run · {mission.sessions}개 세션 · 장치 표기 {mission.devices.length}종 · {mission.sources.join(" / ")}</p>
       <p className="mission-state">실행 중·대기 {mission.active} · 결정 필요 {mission.decisions} · 실패·중단 관측 {mission.failed} · 관측 확인 필요 {mission.uncertain}</p>
       <p className="graph-legend">{mission.childRelations || mission.peerRelations ? `명시된 하위 실행 관계 ${mission.childRelations}건 · peer ${mission.peerRelations}건` : "이 업무에 연결된 하위 실행·peer 관계는 아직 관측되지 않았습니다."}</p>

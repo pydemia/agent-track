@@ -7,6 +7,7 @@ import type {
   ProjectTaskMetadata,
   ProjectTaskPage,
 } from "../../contracts/index.ts";
+import type { ProjectDependencyPage } from "../../contracts/project-dependencies.ts";
 
 const PREFIX = "/api/integrations/assistant/v1";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -30,6 +31,7 @@ const capabilitySchema = z.object({
   tasksCreate: z.boolean(),
   tasksUpdate: z.boolean(),
   resultsAttach: z.boolean(),
+  taskDependenciesRead: z.boolean().optional(),
 });
 
 const projectSchema = z.object({
@@ -64,6 +66,22 @@ const taskSchema = itemSchema;
 const taskReviewSchema = itemSchema.extend({
   body: z.string(),
   data: itemSchema.shape.data.extend({ acceptance_criteria: z.array(z.string()) }),
+});
+const dependencyItemSchema = z.object({
+  id: z.string().regex(UUID),
+  project_id: z.string().regex(UUID),
+  relation: z.literal("depends_on"),
+  source_task: itemSchema,
+  target_task: itemSchema,
+  source_revision: z.number().int().positive().safe(),
+  target_revision: z.number().int().positive().safe(),
+});
+const dependencyPageSchema = z.object({
+  version: z.literal(1),
+  project_id: z.string().regex(UUID),
+  observed_at: z.iso.datetime({ offset: true }),
+  items: z.array(dependencyItemSchema).max(200),
+  has_more: z.boolean(),
 });
 const MAX_RESPONSE_BYTES = 1024 * 1024;
 const MAX_REVIEW_BODY_CHARS = 5000;
@@ -235,6 +253,59 @@ export class ProjectsClient {
       throw new ProjectsSourceError(502);
     }
     return { projectsRead: parsed.data.projectsRead, tasksRead: parsed.data.tasksRead };
+  }
+
+  async dependencies(projectId: string): Promise<ProjectDependencyPage> {
+    if (!canonicalUuid(projectId)) throw new ProjectsSourceError(400);
+    const capabilityRaw: unknown = await this.request("/capabilities");
+    const capability = capabilitySchema.safeParse(capabilityRaw);
+    if (!capability.success || capability.data.tasksCreate || capability.data.tasksUpdate || capability.data.resultsAttach) {
+      throw new ProjectsSourceError(502);
+    }
+    if (!capability.data.projectsRead || !capability.data.tasksRead) throw new ProjectsSourceError(403);
+    if (capability.data.taskDependenciesRead !== true) {
+      return {
+        sourceId: this.options.sourceId,
+        projectId,
+        observedAt: null,
+        supported: false,
+        dependencies: [],
+        hasMore: false,
+      };
+    }
+
+    const raw: unknown = await this.request(`/projects/${projectId}/task-dependencies`);
+    const parsed = dependencyPageSchema.safeParse(raw);
+    if (!parsed.success || parsed.data.project_id !== projectId) throw new ProjectsSourceError(502);
+
+    const ids = new Set<string>();
+    const dependencies: ProjectDependencyPage["dependencies"] = [];
+    for (const item of parsed.data.items) {
+      if (
+        ids.has(item.id) || item.source_task.id === item.target_task.id ||
+        item.source_task.kind !== "task" || item.target_task.kind !== "task" ||
+        ![item.project_id, item.source_task.project_id, item.target_task.project_id]
+          .includes(projectId)
+      ) throw new ProjectsSourceError(502);
+      ids.add(item.id);
+      dependencies.push({
+        id: item.id,
+        projectId: item.project_id,
+        relation: item.relation,
+        fromTask: mapTask(item.source_task),
+        toTask: mapTask(item.target_task),
+        fromRevision: nativeRevision(item.source_revision),
+        toRevision: nativeRevision(item.target_revision),
+      });
+    }
+    return {
+      sourceId: this.options.sourceId,
+      projectId,
+      observedAt: parsed.data.observed_at,
+      supported: true,
+      dependencies,
+      hasMore: parsed.data.has_more,
+    };
   }
 
   async projects(): Promise<ProjectMetadata[]> {

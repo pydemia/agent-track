@@ -1,0 +1,14 @@
+{
+  "baseImage": "sha256:067dc920831fceeb2dcbb6b198271b75e5750b46618ae325ce91af0ed2eb0cc9",
+  "baseRuntimeCompose": "20261112-agent-track-context-7600ac0b41dd7770/runtime.compose.json",
+  "baseFiles": {
+    "src/projects/assistant_integration.py": "5e5d132cc79fef7d74f1037c80e37380fd8989b934e26c9047a6bb9b8595b8ed"
+  },
+  "existingReadScopes": [
+    "projects:read",
+    "tasks:read"
+  ],
+  "newPrincipalsOrScopes": false,
+  "nativeOriginalWorktreeModified": false,
+  "nativeSchemaMigration": false
+}

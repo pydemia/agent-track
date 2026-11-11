@@ -17,6 +17,7 @@ import { orchestrationEvidence } from "./orchestration.ts";
 import { authenticateContextReader, contextReaderStamp } from "./context-auth.ts";
 import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { toolEvidence } from "./tools.ts";
+import { projectDependencies } from "./project-dependencies.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
@@ -177,6 +178,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           : await taskAssignments.status(user, sourceId, projectId, taskId);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, result); return;
+      }
+      const dependencyRoute = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/task-dependencies$/.exec(url.pathname);
+      if (dependencyRoute) {
+        if (request.method !== "GET") { json(response, 405, { error: "read_only_dependencies" }); return; }
+        if (url.search) { json(response, 400, { error: "invalid_dependency_query" }); return; }
+        const page = await projectDependencies(config, sources, user, dependencyRoute[1]!, dependencyRoute[2]!);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, page); return;
       }
       const projectTasks = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/tasks$/.exec(url.pathname);
       if (projectTasks) {
