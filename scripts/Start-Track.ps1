@@ -43,5 +43,8 @@ $privateConfig = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
 if (@($privateConfig.sources | Where-Object { $_.kind -eq 'projects' -and $_.baseUrl -eq 'http://127.0.0.1:14349' -and $_.projectsCredentialFile }).Count -gt 0) {
     & (Join-Path $PSScriptRoot 'Start-Projects-Bridge.ps1')
 }
+if (Test-Path -LiteralPath (Join-Path $stateDir 'projects-context-bridge.json')) {
+    & (Join-Path $PSScriptRoot 'Start-Projects-Context-Bridge.ps1')
+}
 Write-Output 'Track product and private reverse bridge started; public access requires Entra.'
 } finally { $startMutex.ReleaseMutex(); $startMutex.Dispose() }

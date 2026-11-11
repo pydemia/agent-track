@@ -1,0 +1,12 @@
+.agent-track-summary { margin: 14px 0; padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface, #fff); }
+.agent-track-summary h2 { margin: 0 0 8px; font-size: 16px; }
+.agent-track-summary h3 { font-size: 14px; }
+.agent-track-summary section > p { margin: 6px 0; color: var(--muted); font-size: 13px; }
+.agent-track-summary ul { margin: 8px 0; padding-left: 20px; }
+.agent-track-summary li { margin: 6px 0; }
+.agent-track-summary details { display: inline-block; margin-left: 6px; font-size: 12px; }
+.agent-track-note { margin: 10px 0; color: var(--muted); font-size: 13px; }
+.agent-track-note button { margin-left: 6px; }
+.agent-track-note.compact { margin: 4px 0 12px; }
+.agent-track-activity { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; margin: 2px 5px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 11px; }
+.agent-track-coverage { color: var(--muted); font-size: 10px; }

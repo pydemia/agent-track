@@ -26,13 +26,13 @@
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
 | AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 부분. 별도 인가 native lineage9건·정확한 도구 item join3건·Run/호출 분리와 업무별 고유 Run 집계. 실제 cowork/managed-child/peer 조직화·교차 장치 검증 남음 |
 | AT-19 | Projects 원본·Run 단위 binding 이력·서로 다른 완료 | 검증 완료. 실제 native QA Task A→B로 명시 Run 연결·재연결, A 원본 revision2와 당시 revision1 보존, stale revision409·동일 receipt·재시작 이력2건. Run 성공/Task todo·agent report/검증/수용 unknown 구별. bound Project 철회 시 공개 비노출·네 API404→복구 |
-| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. private scope-bound GET4문맥·서버client·host React 요약 구현. 실제 Linux 원본 앱 호스트의 독립client에서 QA Task Run2/Session2/성공2·todo, Session Run2·범위 밖 거부·단절 결과 대조. proxy/reader 키 값 분리·현재 원본 재인가·2초/512KiB·pending binding scope HTTP 검사. 실제 원본 BFF 사용자 인가·개요/목록/대화 UI·편집 장애 격리 남음. `context-summary-contract.md` |
+| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. private scope-bound API·서버 client·host React 요약, Projects 원본 BFF·개요·Task 목록/상세를 소유자 QA Project1개에 운영 연결. 실제 Task Run2/Session2/성공2·todo/r1·동일 Map 이동·Entra 대조. 전용 socket 단절 중 새 QA Task 생성/수정 r2·기존 Task 불변·이전 badge 제거·자동 복구·390px/Tab/Enter 실기. PostgreSQL432/web288·정적 검사·build·공개 assets7/hash/401. Demian 대화 BFF/UI/장애 격리와 다른 사용자 인가 계약은 남음. `projects-context-native-ui-verification.json` |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
 현재 전체: **14/21 (66.7%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
 AT-01/02/03/04/05/07/08/10/11/13/16/17/19/21을 검증했다. 기존 Session 실행 배정을
 새 Session 생성·자동 subagent 조직화·업무 수용으로 계산하지 않는다. 전체 완료 예상
-범위는 아직 산정 불가, 신뢰도 낮음. 원본 앱 문맥 요약, Assistant의 Track 읽기
+범위는 아직 산정 불가, 신뢰도 낮음. Demian 원본 앱 문맥 요약, Assistant의 Track 읽기
 principal, desktop 위치·두 번째 실제 장치와 child/peer·dependency 근거 연결이 남았다.
 새 Flow/업무별 실행 조직의 계획은 `mission-ui-plan.md`, native 대조는
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.

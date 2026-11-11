@@ -55,8 +55,8 @@ npm start
 - Trail 파일 근거: native 편집 요청과 성공/실패·원본 diff metadata 연결, 단순 요청·모호함 구분, 조회 한도·Project 철회 반영. 파일 내용과 patch는 저장·표시하지 않습니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.
-- 원본 앱 문맥 요약: private reader별 명시 scope·현재 원본 재인가 API, 서버 client·React 요약 component, Linux 호스트의 독립 실제 조회. 원본 앱 BFF·화면에는 아직 연결하지 않았습니다.
-- 온라인 backup·검사와 백업 선행 archive. 재개·실제 child/peer·원본 앱 요약 UI와 Assistant/
+- 원본 앱 문맥 요약: private reader별 명시 scope·현재 원본 재인가 API, 서버 client·React 요약 component. Projects BFF·개요·Task 목록/상세에 소유자 QA Project 한정 연결하고, 실제 Map 이동·연결 장애 중 업무 생성/수정·자동 복구를 확인했습니다. [통합 소스·운영 경계](integrations/projects/README.md).
+- 온라인 backup·검사와 백업 선행 archive. 재개·실제 child/peer·Demian 원본 요약 UI와 Assistant/
   desktop native 연결은 후속 작업이며 미지원 기능을 성공으로 표시하지 않습니다.
 
 [실제 API 계약 조사](docs/integration-contracts.md),

@@ -83,6 +83,6 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 
-전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 원본 앱 호스트의 독립 조회도 확인했다. 실제 원본 앱 BFF/화면·장애 격리, Assistant 신규 읽기 계약과 desktop 위치·다른 장치 연결은 남았다. 다음
+전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. Demian 대화 BFF/화면·장애 격리, Assistant 신규 읽기 계약과 desktop 위치·다른 장치 연결은 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부
 대기를 분리해 기록한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.

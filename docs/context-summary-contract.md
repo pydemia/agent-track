@@ -50,8 +50,9 @@ fail closed한다. key 값을 URL·브라우저·소스·로그에 넣지 않는
 벗어나면 제외한다. token 회전·scope/source 변경 중의 결과를 사후 인가 없이 내보내지 않는다.
 
 현재 운영 opt-in은 QA Project1개에 한정한 `projects-context-qa`, `demian-context-qa`다.
-후자는 기존 QA Session2개를 명시한다. 키·설정은 private state에 있고 원본 앱 설정에
-자동으로 배포하지 않았다. 이는 다중 사용자의 native 권한 위임 계약이 아니다.
+후자는 기존 QA Session2개를 명시한다. 키·설정은 private state에 있다. Projects는 소유자
+QA Project 한 개에만 opt-in했고 Demian 원본 앱에는 아직 연결하지 않았다. 이는 다중
+사용자의 native 권한 위임 계약이 아니다.
 
 ## 원본 앱의 소비 방식
 
@@ -64,8 +65,8 @@ loopback origin에서 고정 GET만 수행한다. 응답512KiB·2초 deadline·r
 원본 BFF는 이 client를 호출하기 **전에** native 로그인 사용자와 해당 Project/Session의
 접근을 확인해야 한다. 현재 owner-bound reader는 같은 소유자의 요청에만 사용할 수 있다.
 기존 서비스 key를 임의 native 사용자에게 빌려주면 안 된다. 다른 사용자는 그 사용자의
-별도 원본/Track 인가와 reader 계약을 구성한 뒤 지원한다. 아직 원본 BFF에 그 검사를
-연결하지 않았으므로 native UI 통합 완료라고 표현하지 않는다.
+별도 원본/Track 인가와 reader 계약을 구성한 뒤 지원한다. Projects BFF에는 같은 owner와
+현재 Project/Task 인가를 조회 전후 연결했다. Demian BFF의 연결은 남아 있다.
 
 `packages/context/ExecutionSummary.tsx`는 host React component다. BFF가 검증한 결과를
 prop으로 받으며 browser fetch·token·iframe·실행 명령은 없다. 관측 Run/Session·상태,
@@ -91,6 +92,22 @@ Session의 관측 Run2, 범위 밖 거부·단절 시 데이터 없는 오류를
 새 native Run·원본 업무 변경은 없었다. `native-context-summary-verification.json`이
 기계 판독 근거다. 공개 미인증401·기존 Basic/위장 거부·favicon bytes/hash도 재대조했다.
 
-남은 AT-20 조건은 원본 앱 BFF의 실제 사용자 인가, Demian 대화·Projects 개요/업무 목록/
-상세에서의 component 연결, 같은 context 이동·원본 편집과의 장애 격리 실기다. 기존
-producer checkout의 다른 WIP를 임의 게시하거나 이 독립 helper를 원본 앱 UI로 간주하지 않는다.
+Projects 원본 BFF·개요·Task 목록/상세 연결은 소유자 QA Project 한 개에서 운영 검증했다.
+현재 로그인과 native Project/Task ACL을 조회 전후 검사하며, account-ID로 keyed된 기존
+Workbench가 계정 변경/로그아웃 때 해당 상태를 해제한다. scope 전환 중 늦은 결과와
+철회된 이전 활동 badge는 제거한다. 업무 행마다 새 조회하지 않고 Project 요약에서 파생한다.
+
+실제 Task의 Run2/Session2/성공2와 원본 todo/r1을 별도로 표시하고 같은 실행의 Track Map
+이동을 Entra 로그인까지 대조했다. 전용 socket bridge만 끊었을 때 기존 실행 표시가 사라지고
+불러오기 실패를 표시했다. 같은 시점에 새 QA Task 생성·수정 저장(r2)이 성공했으며 기존
+Task는 r1/todo를 유지했다. bridge 복원 뒤 요약은 자동 회복했다. 390px·Tab/Enter도 확인했다.
+
+원본 source archive335파일·운영 payload92파일 대조 후 분리 snapshot에 작은 patch만
+적용했다. PostgreSQL432·web288 검사, 정적 검사·표준 build·favicon 검사와 독립 검토를
+통과했다. 배포는 exact base image 위의31파일 layer이며 DB/ingress container·기존 환경·
+mount/command/user·private mount hash와 schema0016을 보존했다. 원본 checkout 수정은
+없다. `projects-context-native-ui-verification.json`, `projects-context-public-verification.json`,
+`../integrations/projects/README.md`가 근거다.
+
+AT-20은 여전히 부분이다. Demian 대화의 BFF·요약 UI·편집 장애 격리, 다른 사용자·Project의
+별도 인가 계약은 남았다. 독립 helper 결과와 실제 native UI 검증 범위를 구별한다.

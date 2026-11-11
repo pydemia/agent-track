@@ -1,0 +1,20 @@
+{
+  "baseSource": "b313610cb90a73bceee1b1fcad1d0e02c7aca5162c578461aa04d040f20010bd",
+  "baseArchiveSha256": "99c2efc91cb3de8be5b001c6e068fbedc4e578dd3712acfa64724bc289a55da5",
+  "baseImage": "sha256:2279f9eec447e0924f79eb282bd340c02a935266dd19d7aab2269b8d7470a7d3",
+  "files": 335,
+  "runtimePayloadMatches": 92,
+  "legacyImageArchiveLabelMismatch": true,
+  "nativeWorktreeModified": false,
+  "baseFiles": {
+    "src/projects/api.py": "a76606bf071f7227d60e950e782ea8e7ff89983ddfc3002d4caf9e731c99c9df",
+    "web/src/ItemsPage.tsx": "70e1e5e495d082fedaad401b1ab828e46fe4984e6a8b3eb2fa82524fe7597de4",
+    "web/src/ProjectPages.tsx": "a0c7f2b43c84734e33b96eea829b1652bea0eb1b78cc0ac04c7ef4740a39b7f0",
+    "web/src/TaskWorkspace.tsx": "0decc751f282e9aa67a94e4d5504f1bd20a4ef2d9b8ae9d3efdb2c3e9afbcb26"
+  },
+  "trackRevision": "508467bbf9c4aba4b8fcce91b4dfd20ae0cc8496",
+  "sharedAdaptations": [
+    "ExecutionSummary.tsx removes unused default React import",
+    "relative TypeScript type imports omit .ts for native compiler"
+  ]
+}

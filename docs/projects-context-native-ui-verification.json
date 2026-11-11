@@ -1,0 +1,149 @@
+{
+  "verifiedAt": "2026-11-11T20:02:04.058188+00:00",
+  "scope": "actual native Projects BFF and authenticated overview/task list/task detail, owner QA Project only",
+  "deployment": {
+    "image": "pydemia-projects:track-context-7600ac0b41dd7770",
+    "imageId": "sha256:067dc920831fceeb2dcbb6b198271b75e5750b46618ae325ce91af0ed2eb0cc9",
+    "baseImage": "sha256:2279f9eec447e0924f79eb282bd340c02a935266dd19d7aab2269b8d7470a7d3",
+    "payloadSha256": "24cccb2f4b1f71c58aa03bb3c0675de588040695e10ef4c8375dd1ffb533c3f7",
+    "schema": "0016",
+    "businessSnapshotUnchanged": true,
+    "mountsCommandUserPreserved": true,
+    "onlyContextConfigEnvironmentAdded": true,
+    "ingressAndDatabaseIdsPreserved": true,
+    "privateMountsUnchanged": true,
+    "backupValidated": true,
+    "nativeUIVerification": "verified owner QA overview/list/task, map link, outage create/edit/recovery, mobile/keyboard",
+    "payloadMatched": true,
+    "nativeAnonymousDenied": true
+  },
+  "tests": {
+    "nativeBackend": {
+      "command": "uv run pytest -q",
+      "passed": 432,
+      "failed": 0,
+      "durationSeconds": 322.24,
+      "database": "PostgreSQL17.11, disposable local container and unique projects_test schemas"
+    },
+    "nativeWeb": {
+      "command": "npm --prefix web run check",
+      "files": 39,
+      "passed": 288,
+      "failed": 0
+    },
+    "nativeGates": [
+      "ruff check src tests migrations",
+      "ruff format --check src tests migrations",
+      "mypy src/projects",
+      "npm --prefix web run build including favicon verification"
+    ],
+    "track": {
+      "passed": 214,
+      "typecheck": true,
+      "build": true
+    },
+    "disposableDatabaseRemovedAfterVerification": true
+  },
+  "nativeUi": {
+    "authentication": "existing Entra signed-in owner, no new consent",
+    "projectRuns": 4,
+    "projectSessions": 4,
+    "taskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+    "taskRuns": 2,
+    "taskSessions": 2,
+    "taskSuccessfulRuns": 2,
+    "taskRevision": 1,
+    "taskState": "todo",
+    "listActivityBadgesMatched": true,
+    "sameRunMapLink": "865dd2b3-e362-4f60-9b7b-728ff1c8aeca",
+    "mapSameTaskSessions": 2,
+    "outsideConfiguredProjectCleared": true,
+    "responsiveWidth": 390,
+    "summaryWidth": 343.2,
+    "horizontalOverflow": false,
+    "keyboardDisclosureExpanded": true,
+    "temporaryViewportReset": true
+  },
+  "outage": {
+    "scope": "only owned private Unix socket SSH bridge stopped; public Track, Projects, Entra and DB retained",
+    "nativeCreateAndEditSaved": true,
+    "newQaTaskId": "b01e84de-941a-4ac5-b921-ed65e2bcfbb9",
+    "newQaTaskRevision": 2,
+    "originalTaskUnchanged": true,
+    "summaryUnavailableAndOldBadgesCleared": true,
+    "bridgeRestored": true,
+    "summaryAutomaticallyRecovered": true
+  },
+  "transport": {
+    "kind": "private Unix socket reverse SSH to PC loopback14345",
+    "socketMode": "0600",
+    "directoryMode": "0700",
+    "keyAndConfigMode": "0600",
+    "actualNativeImageNodeClient": true,
+    "helperTaskRuns": 2,
+    "helperTaskState": "todo"
+  },
+  "review": {
+    "accountChangeConcern": "refuted by native App.tsx:100 account-ID keyed Workbench and logout unmount",
+    "staleDistConcern": "resolved by required standard build and source/output stability checks",
+    "stagedUnexpectedSource": "reproduced rejected before package; exact source/index restored",
+    "independentReviewerModelRequested": "gpt-6.1-sol",
+    "independentReviewerEffortRequested": "low",
+    "providerActualModelObserved": false,
+    "zeroContextPatchAppliesAndReconstructsFourFiles": true,
+    "finalSourceBuildMatchesDeployed31PayloadFiles": true
+  },
+  "validationOnlySupplementFiles": [
+    {
+      "path": "compose.production.yaml",
+      "origin": "native uncommitted public deployment template; validation only, not included in layer",
+      "sha256": "f5bf0831c4e7514b37737ff77d88d34b4db2b8bcd9293bf771cfb6e84c322449"
+    },
+    {
+      "path": "compose.onprem.yaml",
+      "origin": "projects Git HEAD validation-only",
+      "sha256": "f5b339ef47578368231225bbb47c2db28078da3240900c51899f3f0c54424c44"
+    },
+    {
+      "path": "deploy/projects.caddy",
+      "origin": "native uncommitted public deployment template; validation only, not included in layer",
+      "sha256": "6d82aae60b609dcced530b22fa0b4f9d4c88e62a6cf3ab7b9ad564dcf935ddca"
+    },
+    {
+      "path": "deploy/projects-tunnel.caddy",
+      "origin": "native uncommitted public deployment template; validation only, not included in layer",
+      "sha256": "a3a3c4ec7bd9c8c076ca5ef3dcee11e117e857ac8631469312764d39ffd9284e"
+    },
+    {
+      "path": "web/scripts/verify-favicon.cjs",
+      "origin": "projects Git HEAD validation-only",
+      "sha256": "da41082af07b3f4a5eb6a6e1760a52089abe78f6a77ad345cf4b8a8cb93f924d"
+    },
+    {
+      "path": "deploy/entra-policy.json",
+      "origin": "native public tenant policy validation-only",
+      "sha256": "0a5aca700d6a84693ece1fb379c68b4c0f194ecdc47517e96b483e6aa8174093"
+    },
+    {
+      "path": "deploy/entra-proxy.json",
+      "origin": "native public tenant policy validation-only",
+      "sha256": "4ee69c0f8cef70ca093c8bf28ad6cee16e3c9aeba1161cd884a426050e9c46be"
+    }
+  ],
+  "buildInputFiles": 193,
+  "secretScan": {
+    "actualDistinctValues": 7,
+    "files": 40,
+    "matches": 0,
+    "stagedFilesChecked": 22
+  },
+  "nativeOriginalCheckoutModified": false,
+  "demianNativeUiIntegrated": false,
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "equal acceptance criteria",
+    "complete": false
+  }
+}

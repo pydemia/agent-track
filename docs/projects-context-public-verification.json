@@ -1,0 +1,51 @@
+{
+  "verifiedAt": "2026-11-11T19:57:57.946Z",
+  "scope": "public unauthenticated assets and native context denial; authenticated UI checked separately",
+  "image": "pydemia-projects:track-context-7600ac0b41dd7770",
+  "payloadSha256": "24cccb2f4b1f71c58aa03bb3c0675de588040695e10ef4c8375dd1ffb533c3f7",
+  "assets": [
+    {
+      "path": "/assets/index-BovTZ1qT.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "24601ae59eabe3efd9075e533a2d1d1261484866b405bf8d8b441cae858de2dd"
+    },
+    {
+      "path": "/assets/index-C102s3bE.css",
+      "status": 200,
+      "contentType": "text/css",
+      "sha256": "4d567cbbe1df2f7bafa5e21c59c04dbcce3771914ec6f567232ab0157be3b41d"
+    },
+    {
+      "path": "/assets/MarkdownContent-CiovaHR2.js",
+      "status": 200,
+      "contentType": "text/javascript",
+      "sha256": "8515268c7847fc070af11eb2aba85fe2c2b581689cd3d0542c3c5342822de1a6"
+    },
+    {
+      "path": "/favicon-dark-32.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "ab10bbf76145f36aa0b43c0810012d74eecbbf112fed3a108769cac56889275a"
+    },
+    {
+      "path": "/favicon-light-32.png",
+      "status": 200,
+      "contentType": "image/png",
+      "sha256": "680a381ab72f3f0f08328a2144e84a0c1addf856661e0800a357e11918fa5501"
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200,
+      "contentType": "image/vnd.microsoft.icon",
+      "sha256": "02aee88fad2e7ead14222854bf4f962c04ce5dcc07754848f4607bdb2981238a"
+    },
+    {
+      "path": "/favicon.svg",
+      "status": 200,
+      "contentType": "image/svg+xml",
+      "sha256": "210e38b2f2f4dace4d0bf32f76dc54c17c8b335a5a056868aebf4795ae8eae33"
+    }
+  ],
+  "anonymousContextStatus": 401
+}

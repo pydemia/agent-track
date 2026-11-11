@@ -1,0 +1,41 @@
+diff --git a/src/projects/api.py b/src/projects/api.py
+index e341b69..1a3f71c 100644
+--- a/src/projects/api.py
++++ b/src/projects/api.py
+@@ -287,0 +288,3 @@ def create_app(
++    from projects.track_context import create_track_context_router
++
++    app.include_router(create_track_context_router(db_session, signed_in))
+diff --git a/web/src/ItemsPage.tsx b/web/src/ItemsPage.tsx
+index e7d2855..68be2b2 100644
+--- a/web/src/ItemsPage.tsx
++++ b/web/src/ItemsPage.tsx
+@@ -24,0 +25 @@ import { TaskQuickProperties } from "./TaskQuickProperties";
++import { AgentTrackSummary } from "./AgentTrackSummary";
+@@ -103 +104 @@ export function ItemsPage({ projectId, userId, route, items, catalog, onChanged
+-                {selected ? <RecordEditor key={selected.id} item={selected} items={items} catalog={catalog} userId={userId} onChanged={onChanged} /> : <Empty title={route.item ? "선택한 항목을 찾을 수 없습니다." : `첫 ${kindLabels[validKind]}부터 시작해 보세요.`}>
++                {selected ? <>{selected.kind === "task" && <AgentTrackSummary key={`task:${selected.project_id}:${selected.id}`} projectId={selected.project_id} taskId={selected.id} />}<RecordEditor key={selected.id} item={selected} items={items} catalog={catalog} userId={userId} onChanged={onChanged} /></> : <Empty title={route.item ? "선택한 항목을 찾을 수 없습니다." : `첫 ${kindLabels[validKind]}부터 시작해 보세요.`}>
+diff --git a/web/src/ProjectPages.tsx b/web/src/ProjectPages.tsx
+index d42f2e2..26e0b1a 100644
+--- a/web/src/ProjectPages.tsx
++++ b/web/src/ProjectPages.tsx
+@@ -19,0 +20 @@ import { ProjectActions } from "./ProjectActions";
++import { AgentTrackSummary } from "./AgentTrackSummary";
+@@ -40,0 +42 @@ export function Overview({ project, items, revision, onProjectRenamed }: {
++        <AgentTrackSummary key={`project:${project.id}`} projectId={project.id} />
+diff --git a/web/src/TaskWorkspace.tsx b/web/src/TaskWorkspace.tsx
+index 8b705d6..da0a48c 100644
+--- a/web/src/TaskWorkspace.tsx
++++ b/web/src/TaskWorkspace.tsx
+@@ -19,0 +20,2 @@ import { TaskListStatus } from "./TaskListStatus";
++import { AgentTrackActivity, AgentTrackSummary } from "./AgentTrackSummary";
++import type { ContextSummary } from "./agent-track-shared/context/contracts";
+@@ -128,0 +131,2 @@ export function TaskWorkspace({ projectId, userId, route, items, selectedItem, r
++    const [trackProject, setTrackProject] = useState<{ projectId: string; summary: ContextSummary | null }>({ projectId, summary: null });
++    const projectTrack = projectId && trackProject.projectId === projectId ? trackProject.summary : null;
+@@ -472,0 +477 @@ export function TaskWorkspace({ projectId, userId, route, items, selectedItem, r
++                {projectTrack && <AgentTrackActivity summary={projectTrack} taskId={task.id} />}
+@@ -510,0 +516 @@ export function TaskWorkspace({ projectId, userId, route, items, selectedItem, r
++        {projectId && <AgentTrackSummary key={`project:${projectId}`} projectId={projectId} compact onProjectSummary={summary => setTrackProject(current => current.projectId === projectId && current.summary === summary ? current : { projectId, summary })} />}
+@@ -648,0 +655 @@ export function TaskWorkspace({ projectId, userId, route, items, selectedItem, r
++            <AgentTrackSummary key={`task:${selected.project_id}:${selected.id}`} projectId={selected.project_id} taskId={selected.id} />
