@@ -99,9 +99,10 @@ export class TaskCreationService {
     } catch (error) { return this.set(row, error instanceof TaskCreationExpired ? "expired" : error instanceof TaskCreationRejected ? "failed" : "unknown"); }
   }
 
-  list(actor: string, sourceId: string, projectId: string): TaskCreationReceipt[] {
-    return (this.store.db.prepare("SELECT * FROM task_creation_receipts WHERE actor=? AND source_id=? AND project_id=? ORDER BY created_at,id")
-      .all(actor, sourceId, projectId) as unknown as Row[]).map((row) => this.view(row));
+  list(actor: string, sourceId: string, projectId: string, limit = 100): TaskCreationReceipt[] {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 101) throw new CommandError(400, "invalid_limit", "조회 한도를 확인해 주세요.");
+    return (this.store.db.prepare("SELECT * FROM task_creation_receipts WHERE actor=? AND source_id=? AND project_id=? ORDER BY created_at DESC,id DESC LIMIT ?")
+      .all(actor, sourceId, projectId, limit) as unknown as Row[]).reverse().map((row) => this.view(row));
   }
 
   async reconcile(actor: string, id: string, ports: CreateTaskPorts): Promise<TaskCreationReceipt> {

@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { TaskCreatePanel } from "./TaskCreatePanel.tsx";
 import type { ProjectMetadata, ProjectTaskMetadata, ProjectTaskPage, RunView, SourceView } from "../../../packages/contracts/index.ts";
 
 interface CatalogSource { id: string; label: string; state: SourceView["state"]; detail: string; projects: ProjectMetadata[] }
@@ -12,6 +13,7 @@ export function ProjectsCatalog({ sources, runs, onSelect, onUnauthorized }: { s
   const [loading, setLoading] = useState(true);
   const [scope, setScope] = useState("");
   const [refresh, setRefresh] = useState(0);
+  const taskCreated = useCallback(() => setRefresh((value) => value + 1), []);
   const requestSignal = useRef<AbortSignal | null>(null);
   const grants = useMemo(() => new Set(sources.filter((source) => source.kind === "projects" && source.state === "connected")
     .flatMap((source) => (source.authorizedProjectIds ?? []).map((id) => keyFor(source.id, id)))), [sources]);
@@ -81,6 +83,8 @@ export function ProjectsCatalog({ sources, runs, onSelect, onUnauthorized }: { s
   return <details className="projects-catalog"><summary>Projects 원본 업무 <small>{!sources.some((source) => source.kind === "projects" && source.state === "connected") ? "원본 접근 확인 필요" : loading && !visible.length ? "조회 중" : `${visible.length}개 프로젝트 · ${visible.reduce((sum, group) => sum + group.total, 0)}개 업무`}</small></summary>
     <p className="graph-legend">원본 ID·revision·업무 상태를 조회합니다. 실행 종료와 Projects 완료·수용은 별도입니다. 업무 원문은 저장하거나 표시하지 않습니다.</p>
     <div className="project-task-filter"><label>원본 업무 범위 <select aria-label="원본 업무 범위" value={visible.some((group) => keyFor(group.sourceId, group.project.id) === scope) ? scope : ""} onChange={(event) => setScope(event.target.value)}><option value="">모든 허용 프로젝트</option>{visible.map((group) => <option key={keyFor(group.sourceId, group.project.id)} value={keyFor(group.sourceId, group.project.id)}>{group.project.title}</option>)}</select></label><button className="text-button" disabled={loading} onClick={() => setRefresh((value) => value + 1)}>다시 조회</button></div>
+    {effectiveScope && chosen.map((group) => <TaskCreatePanel key={keyFor(group.sourceId, group.project.id)} sourceId={group.sourceId} projectId={group.project.id} projectTitle={group.project.title} onUnauthorized={onUnauthorized} onCreated={taskCreated} />)}
+    {!effectiveScope && <p className="graph-legend">새 업무를 만들려면 원본 업무 범위에서 프로젝트를 선택하세요.</p>}
     {error ? <p className="inline-error" role="alert">{error}</p> : !visible.length ? <p className="empty-inline">현재 조회 가능한 원본 업무가 없습니다. 미연결·권한·조회 중인 상태를 업무 없음과 구분해 주세요.</p>
       : <div className="project-task-scroll" role="region" aria-label="Projects 원본 업무 목록 스크롤" tabIndex={0}><div className="table-wrap"><table><caption className="sr-only">Projects의 현재 업무와 명시적으로 연결된 Run</caption><thead><tr><th scope="col">원본 업무 · revision</th><th scope="col">프로젝트</th><th scope="col">원본 상태</th><th scope="col">연결된 Run</th></tr></thead><tbody>{chosen.flatMap((group) => group.tasks.map((task) => {
         const related = runs.filter((run) => run.binding?.projectSourceId === group.sourceId && run.binding.projectId === group.project.id && run.binding.taskId === task.id);

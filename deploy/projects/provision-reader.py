@@ -1,4 +1,4 @@
-"""Provision a separate read-only Track principal. Preserve Projects data."""
+"""Provision a separate Track reader or explicitly scoped task creator."""
 
 import argparse
 import base64
@@ -9,6 +9,7 @@ import subprocess
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from uuid import UUID
 
 
 def private_write(path: Path, value: str) -> None:
@@ -27,7 +28,14 @@ def main() -> None:
     parser.add_argument("--username", required=True)
     parser.add_argument("--tenant-id", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--task-creator", action="store_true")
+    parser.add_argument("--project-id", action="append", default=[])
     args = parser.parse_args()
+    if args.task_creator != bool(args.project_id):
+        raise ValueError("Task creator requires explicit project IDs only")
+    requested_projects = sorted(set(args.project_id))
+    if any(str(UUID(value)) != value for value in requested_projects):
+        raise ValueError("Canonical project IDs required")
     inspected = json.loads(
         subprocess.check_output(
             ["docker", "inspect", args.container],
@@ -56,9 +64,7 @@ def main() -> None:
         ).strip()
     )
     if container_uid not in (0, os.getuid()):
-        raise ValueError(
-            "Container cannot read a private key owned by this operator"
-        )
+        raise ValueError("Container cannot read a private key owned by this operator")
     query = """
 import json
 import sys
@@ -66,7 +72,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from projects.config import Settings
 from projects.database import make_engine, Account, EntraIdentity, Project
-from projects.project_access import accessible_project_ids
+from projects.project_access import accessible_project_ids, require_project_access
 try:
     request = json.load(sys.stdin)
     with Session(make_engine(Settings.from_env().database_url)) as db:
@@ -84,6 +90,10 @@ try:
         ))
         if not projects:
             raise ValueError('No authorized projects')
+        for project_id in request['creatorProjects']:
+            if project_id not in projects:
+                raise ValueError('Creator project is inaccessible')
+            require_project_access(db, project_id, account.id, 'task.create')
         print(json.dumps({'projectIds': projects}))
 except Exception:
     raise SystemExit('Native owner/project validation failed')
@@ -103,6 +113,7 @@ except Exception:
                 "accountId": args.account_id,
                 "username": args.username,
                 "tenantId": args.tenant_id,
+                "creatorProjects": requested_projects,
             }
         ),
         text=True,
@@ -113,32 +124,47 @@ except Exception:
         raise ValueError("Native owner/project validation failed")
     projects = json.loads(result.stdout)["projectIds"]
     current = json.loads(config_path.read_text(encoding="utf-8"))
-    if current.get("version") != 1 or not isinstance(
-        current.get("principals"), list
-    ):
+    if current.get("version") != 1 or not isinstance(current.get("principals"), list):
         raise ValueError("Unsupported native principal configuration")
+    role = "task-creator" if args.task_creator else "reader"
+    if args.task_creator:
+        readers = [
+            row
+            for row in current["principals"]
+            if row.get("id") == "agent-track-reader-pydemia"
+        ]
+        if (
+            len(readers) != 1
+            or readers[0].get("accountId") != args.account_id
+            or readers[0].get("enabled") is not True
+            or set(readers[0].get("scopes", [])) != {"projects:read", "tasks:read"}
+            or not set(requested_projects).issubset(readers[0].get("projectIds", []))
+        ):
+            raise ValueError(
+                "Creator scope must be within the existing dedicated reader"
+            )
+        projects = requested_projects
     principal = {
-        "id": "agent-track-reader-pydemia",
+        "id": f"agent-track-{role}-pydemia",
         "revision": 1,
         "enabled": True,
-        "kid": "agent-track-reader-v1",
-        "secretFile": "agent-track-reader-v1.key",
+        "kid": f"agent-track-{role}-v1",
+        "secretFile": f"agent-track-{role}-v1.key",
         "accountId": args.account_id,
         "projectIds": projects,
-        "scopes": ["projects:read", "tasks:read"],
+        "scopes": ["projects:read", "tasks:read"]
+        + (["tasks:create"] if args.task_creator else []),
     }
     existing = [
         row
         for row in current["principals"]
-        if row.get("id") == principal["id"]
-        or row.get("kid") == principal["kid"]
+        if row.get("id") == principal["id"] or row.get("kid") == principal["kid"]
     ]
     key_path = config_path.parent / principal["secretFile"]
     if existing:
         if existing != [principal] or not key_path.is_file():
             raise ValueError(
-                "Existing Track principal differs; "
-                "no automatic scope/key change"
+                "Existing Track principal differs; no automatic scope/key change"
             )
         encoded = key_path.read_text(encoding="utf-8").strip()
         key = base64.urlsafe_b64decode(encoded + "=" * (-len(encoded) % 4))
@@ -159,9 +185,7 @@ except Exception:
         )
         return
     if key_path.exists():
-        raise ValueError(
-            "Unregistered Track key exists; preserved without replacement"
-        )
+        raise ValueError("Unregistered Track key exists; preserved without replacement")
     updated = {**current, "principals": [*current["principals"], principal]}
     validation = subprocess.run(
         [
@@ -184,8 +208,7 @@ except Exception:
     )
     if validation.returncode:
         raise ValueError(
-            "Native schema rejected principal; "
-            "existing configuration preserved"
+            "Native schema rejected principal; existing configuration preserved"
         )
     if args.dry_run:
         print(
@@ -207,8 +230,7 @@ except Exception:
     )
     private_write(
         key_path,
-        base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=")
-        + "\n",
+        base64.urlsafe_b64encode(secrets.token_bytes(32)).decode().rstrip("=") + "\n",
     )
     descriptor, temporary = tempfile.mkstemp(
         prefix=".track-principals-", dir=config_path.parent
@@ -220,9 +242,7 @@ except Exception:
             stream.flush()
             os.fsync(stream.fileno())
         if json.loads(config_path.read_text(encoding="utf-8")) != current:
-            raise ValueError(
-                "Concurrent native configuration update; preserved"
-            )
+            raise ValueError("Concurrent native configuration update; preserved")
         os.replace(temporary, config_path)
     finally:
         if os.path.exists(temporary):
@@ -246,6 +266,6 @@ if __name__ == "__main__":
         main()
     except Exception as error:  # noqa: BLE001 - CLI boundary must suppress secret-bearing errors.
         raise SystemExit(
-            f"Track reader provision stopped ({type(error).__name__}); "
+            f"Track principal provision stopped ({type(error).__name__}); "
             "private values omitted"
         ) from None

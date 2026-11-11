@@ -8,6 +8,7 @@ import { ProjectsClient, ProjectsSourceError } from "../packages/adapters/projec
 import {
   prepareProjectsTaskCreate,
   ProjectsTaskDeadlinePassed,
+  ProjectsTaskAccessChanged,
   ProjectsTaskWriter,
 } from "../packages/adapters/projects/writer.ts";
 
@@ -311,5 +312,16 @@ describe("Projects native task writer", () => {
       principalId, fetch: async () => capabilities({ tasksCreate: true }) });
     await assert.rejects(reader.capabilities(),
       (error: unknown) => error instanceof ProjectsSourceError && error.status === 502);
+  });
+
+  it("checks current local authority after capability and credential awaits", async () => {
+    const { credentialFile } = await fixture(); let allowed = true; let posts = 0;
+    const fetcher: typeof fetch = async (_input, init) => {
+      if (init?.method === "POST") posts++;
+      allowed = false; return capabilities();
+    };
+    await assert.rejects(writer(credentialFile, fetcher).create(projectId, { operation_id: operationId, title: "Task" },
+      { isAuthorized: () => allowed }), (error: unknown) => error instanceof ProjectsTaskAccessChanged);
+    assert.equal(posts, 0);
   });
 });

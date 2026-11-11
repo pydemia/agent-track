@@ -13,6 +13,7 @@ for (const [name, route, headers, expected] of [
   ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],
   ["approval-receipt-auth", "/api/approvals?run=unknown", {}, 401],
+  ["task-creation-status-auth", "/api/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/task-creation", {}, 401],
   ["public-basic-rejected", "/api/snapshot", { authorization: "Basic dGVzdDp0ZXN0" }, 401],
   ["forged-identity-rejected", "/api/snapshot", { "x-forwarded-email": "pydemia@pydemia.ai", "x-track-proxy-key": "forged-test-key" }, 401],
   ["forged-cookie-rejected", "/api/snapshot", { cookie: "__Host-agent-track=forged-test-cookie" }, 401],
@@ -28,6 +29,10 @@ const unauthenticatedDecision = await fetch(origin + "/api/commands/approval", {
   headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
 assert.equal(unauthenticatedDecision.status, 401); await unauthenticatedDecision.body?.cancel();
 results.push({ name: "approval-decision-auth", status: unauthenticatedDecision.status, passed: true });
+const unauthenticatedTaskCreation = await fetch(origin + "/api/projects/task-creation", { method: "POST", redirect: "manual",
+  headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
+assert.equal(unauthenticatedTaskCreation.status, 401); await unauthenticatedTaskCreation.body?.cancel();
+results.push({ name: "task-creation-post-auth", status: unauthenticatedTaskCreation.status, passed: true });
 
 // Operator-only hop validation. No browser session/token is read or copied.
 if (process.env.TRACK_CONFIG) {

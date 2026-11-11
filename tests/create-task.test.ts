@@ -5,6 +5,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { Store } from "../packages/storage/store.ts";
+import { backup } from "node:sqlite";
 import { CommandError } from "../packages/commands/index.ts";
 import { TaskCreationService, TaskCreationRejected, TaskCreationExpired, type CreateTaskInput, type CreateTaskPorts, type NativeTaskCreation } from "../packages/commands/create-task.ts";
 
@@ -167,5 +168,24 @@ test("restarted journal preserves operation fingerprint and recovers without nat
     store.db.prepare("UPDATE task_creation_receipts SET state='dispatching'").run(); store.close(); store = new Store(path);
     const recovered = new TaskCreationService(store); assert.equal(recovered.recoverInterrupted(), 1);
     assert.equal((await recovered.reconcile(actor, draft.id, f.ports)).state, "created"); assert.equal(f.posts(), 0);
+  } finally { store.close(); f.store.close(); await cleanup(root); }
+});
+
+test("online backup preserves confirmed and unknown task creation without text or redispatch", async () => {
+  const root = await mkdtemp(join(tmpdir(), "track-create-backup-")); const store = new Store(join(root, "live.sqlite"));
+  const draft = input(); const f = setup(draft);
+  try {
+    const service = new TaskCreationService(store); const confirmed = await service.execute(actor, draft, f.ports);
+    const other = { ...draft, id: randomUUID() };
+    const uncertain = await service.execute(actor, other, { ...f.ports, create: async () => { throw new Error(); } });
+    assert.equal(uncertain.state, "unknown");
+    await backup(store.db, join(root, "backup.sqlite")); const restored = new Store(join(root, "backup.sqlite"));
+    try {
+      const recovered = new TaskCreationService(restored); assert.equal(restored.integrity(), "ok");
+      const forbiddenPost = { ...f.ports, create: async () => { assert.fail("backup replay must not dispatch"); } };
+      assert.deepEqual(await recovered.execute(actor, draft, forbiddenPost), confirmed);
+      assert.deepEqual(await recovered.execute(actor, other, forbiddenPost), uncertain);
+      assert.doesNotMatch(JSON.stringify(restored.db.prepare("SELECT * FROM task_creation_receipts").all()), /PRIVATE/);
+    } finally { restored.close(); }
   } finally { store.close(); f.store.close(); await cleanup(root); }
 });

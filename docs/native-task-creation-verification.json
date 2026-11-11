@@ -1,0 +1,81 @@
+{
+  "verifiedAt": "2026-11-11T16:15:20.540Z",
+  "scope": "single-owner; dedicated creator restricted to existing QA Test Project; no runtime assignment",
+  "operationId": "681fe1b4-9a9a-4f89-b0bd-ba37904a38f9",
+  "taskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+  "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+  "native": {
+    "revision": "1",
+    "state": "todo",
+    "requestBodyHashMatched": true,
+    "bodyAndCriteriaMatched": true,
+    "sourceOperationReceiptMatched": true,
+    "createdTaskCount": 1
+  },
+  "track": {
+    "receiptCount": 1,
+    "state": "created",
+    "draftTextAbsentFromJournal": true,
+    "runBindingCount": 0
+  },
+  "browser": {
+    "publicEntra": true,
+    "createdReceiptDisplayed": true,
+    "createdTaskInNativeCatalog": true,
+    "draftClearedOnSuccess": true,
+    "inputByteLimitFailure": {
+      "draftTitleRetained": true,
+      "bodyCharactersRetained": 3000,
+      "nativePostSent": false
+    },
+    "mobile": {
+      "width": 390,
+      "clientWidth": 375,
+      "scrollWidth": 375,
+      "tabFocus": "TEXTAREA"
+    },
+    "otherReadableProjectCreateDisabled": true
+  },
+  "scopeProbe": {
+    "operationId": "c95df1dd-64cc-4668-bd46-a5c8147f36f0",
+    "onlyDedicatedReaderChanged": true,
+    "projectCountBefore": 7,
+    "projectCountRestricted": 6,
+    "restrictedGet": 404,
+    "restrictedPost": 403,
+    "receiptCountUnchanged": true,
+    "publicPanelAndDraftRemoved": true,
+    "restored": true,
+    "projectCountRestored": 7,
+    "restoredDraftEmpty": true,
+    "otherPrincipalsPreserved": true,
+    "sourceDataWrites": false
+  },
+  "checks": {
+    "publicStatusUnauthenticated": 401,
+    "publicCreateUnauthenticated": 401,
+    "publicBasicRejected": 401,
+    "faviconHashesMatchBuild": true,
+    "onlineBackupFixture": true,
+    "tests": 141,
+    "typecheck": "passed",
+    "build": "passed",
+    "independentReview": {
+      "finding": "reader grant revoked during creator preflight could still dispatch",
+      "reproducedBeforeFix": true,
+      "fix": "fresh reader refresh after credential/capability awaits; final synchronous local authority/deadline guards",
+      "regressionPassed": true,
+      "revalidatedResolved": true
+    }
+  },
+  "limits": {
+    "responseBytes": 1048576,
+    "requestBytes": 8192,
+    "receiptWindow": 100
+  },
+  "remaining": [
+    "native Task content review and existing Session selection",
+    "Demian Run acceptance/request-status and post-acceptance binding recovery",
+    "actual runtime assignment through public UI"
+  ]
+}

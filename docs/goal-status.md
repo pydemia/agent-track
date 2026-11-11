@@ -17,7 +17,7 @@
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 공개 UI 취소 클릭→native cancelled·receipt1건 대조. 재개/재시도는 원본 계약 미지원 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
-| AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 구현 중. 원본 생성/operation 조회·Demian request-status 계약 조사, writer adapter·초안 비저장 receipt20개 fixture. 전용 writer 발급·BFF/UI·실제 원본 생성/배정 남음 |
+| AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 구현 중. 전용 QA creator와 BFF/UI·재시작/backup 복구 연결. 공개 UI 실제 Task1건·원본 ID/revision/본문/criteria/hash 대조·권한 철회/초안 제거→복구·390px 실기. 기존 Task의 내용 검토·Demian 실행 배정/접수와 binding 복구 남음 |
 | AT-12 | typed Map·근거·목록·순환/고립 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 원본 dependency/artifact·관리형 child/peer 근거 실기 남음 |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 미착수 |

@@ -105,8 +105,18 @@ AT-07/11/19/20을 진행한다. Projects의 Project/Task·revision·수용 상�
    실패 시 초안 유지·확정/미확정 구분,390px·키보드·로그아웃 후 초안 제거도
    확인한다. 실제 원본 접수와 공개 UI 전까지 AT-11을 완료로 계산하지 않는다.
 
-현재 생성 adapter와 metadata-only 처리 원장을 구현했고, 결정적 fixture
-20개가 통과했다. 전체137개 검사와 타입 검사를 통과했으며 native 쓰기는
-수행하지 않았다. writer 발급·운영 설정·BFF/UI·실제 생성/배정은 아직
-완료하지 않았다. 생성 서비스는 현재 제품 API에 연결하지 않았으므로
-사용자가 업무를 생성할 수 있는 상태로 표시하지 않는다.
+현재 생성 adapter·metadata-only 처리 원장·BFF/UI·시작 시 복구를 연결했다.
+전용 task-creator principal은 기존 reader의 허용 범위 안에서 QA 프로젝트
+1개만 명시했고, reader와 Assistant 설정은 보존했다. 그 외 읽기 가능한
+프로젝트는 생성 불가로 표시한다. 다른 사용자의 native principal 위임은
+이 소유자 배포의 범위에 포함되지 않는다.
+
+공개 Entra UI에서 실제 QA 업무1건을 생성했다. 원본 operation/Task ID·revision1·
+정확한 요청 해시·본문·수용 기준·todo 상태가 일치했다. 생성 후 초안이 비워졌고
+Track 원장에는 본문·제목·수용 기준이 없었다. 네이티브 실행 배정은0건이다.
+390px·Tab, 입력 크기 거부 시 초안 유지, reader scope7→6에서 API404·POST403/
+원장 변화 없음·공개 초안 제거→7복구와 빈 초안도 확인했다.
+
+다음은 기존 Task/Session 선택·내용 명시 검토, Demian Run request-status와
+접수 후 binding의 복구를 구현하고 실제 배정을 대조하는 단계다.
+Task 생성 성공만으로 AT-11을 완료로 계산하지 않는다.

@@ -242,7 +242,7 @@ the current final file contents. Current native fileChange lacks a standalone
 diff event; an indexed/paged producer contract can replace bounded replay later.
 Actual success/denial/expiry, file bytes/hashes, immutable-journal preservation
 and public UI/Project revocation checks are in native-files-verification.json.
-## Native Task creation foundation (AT-11, not enabled)
+## Native Task creation (AT-11, owner QA scope enabled)
 
 The Projects reader remains read-only. `ProjectsTaskWriter` is a separate client
 requiring a dedicated owner/account/principal credential and the exact
@@ -262,5 +262,15 @@ its existing receipt. Transport/malformed success remains unknown, never resent.
 Operation lookup reconciles with a fresh grant for the exact stored source/Project;
 late reads cannot overwrite terminal receipts. Interrupted dispatches recover as
 unknown. Created confirms native Task creation, not runtime acceptance or business
-approval. API/UI, startup recovery wiring and native writer provisioning are still
-pending; these modules are not an enabled production write path.
+approval. The owner-only BFF exposes POST `/api/projects/task-creation` and GET
+`/api/projects/:source/:project/task-creation`. Startup recovers interrupted
+receipts. Mutation Origin, current owner, reader grant and the separate creator
+principal are checked; a synchronous guard after credential awaits rejects local
+authority changes before POST. Responses recheck access after native acceptance.
+The UI preserves draft and operation ID on an unknown response and never retries
+the mutation automatically. Aborted/unmounted views ignore late replies, and
+terminal receipt states absorb delayed reads. Receipt history is the most recent100
+records for the current actor/Project; reconciliation failure is separately marked
+incomplete. The currently provisioned creator covers only the named Test QA Project;
+other reader Projects remain read-only. Actual native Task creation and public UI
+were checked; runtime assignment remains pending.

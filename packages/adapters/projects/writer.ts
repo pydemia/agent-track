@@ -70,6 +70,9 @@ export class ProjectsTaskDeadlinePassed extends Error {
     this.name = "ProjectsTaskDeadlinePassed";
   }
 }
+export class ProjectsTaskAccessChanged extends Error {
+  constructor() { super("Projects task access changed before dispatch"); this.name = "ProjectsTaskAccessChanged"; }
+}
 
 function canonicalUuid(value: string): boolean {
   return UUID.test(value);
@@ -177,19 +180,12 @@ export class ProjectsTaskWriter {
     path: string,
     body = "",
     beforeFetch?: () => void,
+    refreshBeforeFetch?: () => Promise<void>,
   ): Promise<unknown> {
     const bodyBytes = Buffer.from(body, "utf8");
     if (bodyBytes.byteLength > MAX_REQUEST_BYTES) throw new ProjectsSourceError(400);
     const credential = await this.credential();
     const bodyHash = createHash("sha256").update(bodyBytes).digest("hex");
-    const issued = Math.floor(Date.now() / 1000);
-    const claims = [
-      1, "projects", credential.kid, issued, issued + 30, randomUUID(),
-      method, path, bodyHash, credential.principalId, credential.revision,
-    ];
-    const encoded = Buffer.from(JSON.stringify(claims)).toString("base64url");
-    const signature = createHmac("sha256", credential.key)
-      .update(encoded, "ascii").digest("base64url");
 
     let url: URL;
     try {
@@ -205,6 +201,12 @@ export class ProjectsTaskWriter {
     }
 
     try {
+      if (refreshBeforeFetch) await refreshBeforeFetch();
+      const issued = Math.floor(Date.now() / 1000);
+      const claims = [1, "projects", credential.kid, issued, issued + 30, randomUUID(),
+        method, path, bodyHash, credential.principalId, credential.revision];
+      const encoded = Buffer.from(JSON.stringify(claims)).toString("base64url");
+      const signature = createHmac("sha256", credential.key).update(encoded, "ascii").digest("base64url");
       beforeFetch?.();
       const response = await (this.options.fetch ?? fetch)(url, {
         method,
@@ -224,7 +226,7 @@ export class ProjectsTaskWriter {
       return await this.decodeJson(response);
     } catch (error) {
       if (error instanceof ProjectsSourceError) throw error;
-      if (error instanceof ProjectsTaskDeadlinePassed) throw error;
+      if (error instanceof ProjectsTaskDeadlinePassed || error instanceof ProjectsTaskAccessChanged) throw error;
       throw new ProjectsSourceError(502);
     }
   }
@@ -329,7 +331,7 @@ export class ProjectsTaskWriter {
   async create(
     projectId: string,
     input: unknown,
-    options: { expiresAt?: string } = {},
+    options: { expiresAt?: string; isAuthorized?: () => boolean; refreshAuthorization?: () => Promise<void> } = {},
   ): Promise<{
     operationId: string;
     requestBodySha256: string;
@@ -344,10 +346,11 @@ export class ProjectsTaskWriter {
     }
     await this.capabilities();
     const raw = await this.request("POST", expected.path, expected.body, () => {
+      if (options.isAuthorized && !options.isAuthorized()) throw new ProjectsTaskAccessChanged();
       if (expiresAt !== undefined && Date.now() >= expiresAt) {
         throw new ProjectsTaskDeadlinePassed();
       }
-    });
+    }, options.refreshAuthorization);
     return this.verifyReceipt(raw, expected);
   }
 

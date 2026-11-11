@@ -10,6 +10,7 @@ import { RunBindings } from "./bindings.ts";
 import { ApprovalService } from "../../packages/approvals/index.ts";
 import { RunPermissions } from "./permissions.ts";
 import { fileEvidence } from "./files.ts";
+import { ProjectTaskCreation } from "./task-creation.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -41,6 +42,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const bindings = new RunBindings(store, config, sources, snapshot);
   const permissions = new RunPermissions(store, config, sources, snapshot);
   const approvals = new ApprovalService(store);
+  const taskCreation = new ProjectTaskCreation(store, config, sources);
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -64,6 +66,19 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
         json(response, 200, { receipt }); return;
+      }
+      if (request.method === "POST" && url.pathname === "/api/projects/task-creation") {
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const receipt = await taskCreation.execute(user, await jsonBody(request));
+        await taskCreation.confirmAccess(user, receipt.sourceId, receipt.projectId);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
+      const taskCreationStatus = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/task-creation$/.exec(url.pathname);
+      if (request.method === "GET" && taskCreationStatus) {
+        const status = await taskCreation.status(user, taskCreationStatus[1]!, taskCreationStatus[2]!);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, status); return;
       }
       if (request.method === "POST" && url.pathname === "/api/bindings") {
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }

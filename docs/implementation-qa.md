@@ -173,3 +173,20 @@ receipt succeeded가 일치했다. 승인·편집을 수행하지 않았고 QA �
 취소 명령은 보내지 않는다. Session 생성 응답을 잃어 같은 QA 제목이 이미
 있으면 자동 생성/매칭을 멈춘다. 증거는 native-cancel-verification.json의
 publicUi다. 범용 재개·재시도 계약은 별도 미지원 상태로 남긴다.
+## 원본 업무 생성과 처리 복구
+
+별도 creator/reader principal·소유자 opt-in·Origin·Project 교집합을 실제 HTTP
+경계에서 확인했다. 저장된 operation ID와 원본 method/path/body hash/Project를
+대조하며, 응답 유실 뒤 operation GET으로 created를 확인하고 POST 횟수가
+늘지 않았다. await 이후 권한 철회·다른 Project·다중 사용자·reader 차용을
+거부했다. online backup의 created/unknown 기록을 복원해도 다시 전송하지
+않는다. 지연된 GET은 UI의 terminal receipt를 되돌리지 않는다.
+
+실기: 공개 Entra UI에서 QA 업무1건을 생성했다. 원본 Task ID/revision1·todo·
+본문·수용 기준·요청 hash가 일치하고 Track 원장에는 초안 텍스트가 없다.
+생성 후 폼은 비워졌고 새 Task는 원본 목록에서 미연결로 표시됐다. 입력 크기
+거부 시3000자 초안이 유지됐다.390px client/scroll375px·Tab→본문을 확인했다.
+reader scope7→6에서 GET404·POST403·원장 변화 없음, 공개 폼/초안 제거를
+확인한 뒤7로 복구했다. 원본 receipt는 복원되고 초안은 빈 상태였다.
+다른 읽기 Project에서는 생성이 비활성이다. native-task-creation-verification.json에
+실기 범위가 있다. 원본 실행 배정은 이 단계의 완료로 계산하지 않는다.

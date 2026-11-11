@@ -197,6 +197,30 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .project-task-scroll td { font-size: 11px; vertical-align: top; }
 .project-task-scroll td:first-child { min-width: 190px; }
 .project-task-scroll td small { display: block; font-size: 9px; overflow-wrap: anywhere; }
+.task-create-panel { min-width: 0; margin: 14px 0; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.task-create-panel summary { cursor: pointer; color: var(--ink); font-size: 12px; }
+.task-create-panel summary small { margin-left: 9px; color: var(--muted); font-size: 10px; }
+.task-create-note { margin: 8px 0; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.task-create-status { margin: 10px 0; padding: 8px 10px; border-left: 2px solid var(--amber); background: #292519; color: #f2dba8; font-size: 11px; overflow-wrap: anywhere; }
+.task-create-form { display: grid; gap: 10px; max-width: 680px; margin-top: 12px; }
+.task-create-form > label:not(.task-create-check) { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
+.task-create-form input:not([type="checkbox"]), .task-create-form textarea { display: block; width: 100%; min-width: 0; padding: 7px 9px; border: 1px solid var(--line); border-radius: 0; background: var(--surface); color: var(--ink); font-size: 11px; }
+.task-create-form textarea { resize: vertical; }
+.task-create-form fieldset { min-width: 0; margin: 0; padding: 9px; border: 1px solid var(--line); }
+.task-create-form legend { padding: 0 5px; color: var(--muted); font-size: 10px; }
+.task-create-form legend small { margin-left: 6px; }
+.task-create-criterion { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 6px 0; }
+.task-create-criterion input { flex: 1; }
+.task-create-check { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 10px; }
+.task-create-check input { accent-color: var(--lime); }
+.task-create-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.task-create-actions button { min-height: 34px; }
+.task-create-receipt { display: grid; min-width: 0; gap: 3px; margin: 9px 0; padding: 8px 0; border-top: 1px solid var(--line); font-size: 10px; }
+.task-create-receipt > strong { font-size: 11px; }
+.task-create-receipt small { color: var(--muted); overflow-wrap: anywhere; }
+.task-create-receipt code { overflow-wrap: anywhere; word-break: break-word; font: 10px var(--mono); }
+.task-create-receipt p { margin: 2px 0 0; overflow-wrap: anywhere; }
+.task-create-history > div { max-height: 260px; overflow: auto; }
 .run-trace { padding: 4px 0 20px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
 .trace-step { margin-top: 18px; }
 .trace-step h3 { margin: 0; font: 12px var(--mono); overflow-wrap: anywhere; }

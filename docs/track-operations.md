@@ -186,3 +186,28 @@ upstream 인증 경계를 별도로 검토해야 한다.
 최초 Entra 본인 계정 동의·공개 로그인/SSE/logout·재로그인과 실제 native Run 관측을 확인했다.
 타 앱 연결, 취소 UI 클릭·재개/재시도, 다른 장치, 장시간/규모 검증은
 남아 있다. 현재 서비스 노출과 전체 goal 완료를 구별한다.
+## 원본 업무 생성
+
+생성은 기존 Projects reader를 승격하지 않고 별도의 owner-bound task-creator
+principal/key를 사용한다. `provision-reader.py --task-creator --project-id <UUID>`는
+명시한 Project가 현재 native task.create ACL과 기존 전용 reader 범위에 모두
+포함되는지 확인한다. 기본 reader 동작은 읽기 scope를 유지한다. 이 배포는
+QA Test 프로젝트1개만 생성 대상으로 열었으며, Projects·Assistant의 기존
+principal과 원본 업무를 보존했다.
+
+private SourceConfig의 `projectsTaskCreatorCredentialFile`,
+`projectsTaskCreatorPrincipalId`, `taskCreateUsers`가 필요하다. 공개 Entra
+소유자1명만 사용하며 native principal의 account/user binding도 같아야 한다.
+기존 reader와 같은 principal 또는 credential 경로는 거부한다. credential은
+private 상태 폴더에만 두고 키를 URL·브라우저·로그·Git에 전달하지 않는다.
+
+`task_creation_receipts`는 UUID·actor·Project·요청 hash·원본 Task ID/revision만
+저장한다. unknown·중단 기록은 operation GET으로만 확인하고 다시 전송하지
+않는다. 미확정 생성이 있는 Project는 새 UUID도 잠긴다. 기동 시 requested/
+dispatching을 unknown으로 복구한다. online backup/restore는 이 표도 포함한다.
+본문 초안은 해당 UI 메모리에만 있으며 성공·로그아웃/접근 해제 후 제거된다.
+최근100개 receipt 조회 범위와 현재 생성 권한을 화면에 표시한다.
+
+`verify-native-task-create.ts`는 공개 UI에서 만든 기존 QA operation 하나만
+읽는다. 실제 원본 Task 본문/criteria를 프로세스 안에서 대조하고 일치 여부만
+내보낸다. 새 업무나 Run을 만들지 않으며 생성은 실행 배정/완료와 별도다.

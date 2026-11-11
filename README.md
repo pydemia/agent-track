@@ -50,6 +50,7 @@ npm start
 - Projects 원본 읽기: 전용 소유자 principal·현재 Project ACL로 실제 업무 제목/revision/상태 조회, 접근 축소 시 관련 metadata 비노출. 등록·배정은 후속 단계입니다.
 - 명시적 Run 업무 연결: 원본 revision 확인, 재연결 이력·동일 요청 receipt·동시 수정 충돌 처리. 실행 성공과 업무 완료를 각각 유지합니다.
 - 원본 승인 요청: 명시적 내용 검토, 이번 호출/세션의 같은 도구 허용·거절, 만료·철회 재검사, 동일 receipt·미확정 결과의 읽기 대조. 기본 목록과 원장에는 도구 인자를 남기지 않습니다.
+- Projects 원본 업무 생성: 별도 QA creator와 현재 권한 교집합, 초안·미확정 요청 보호, 원본 Task ID/revision 접수 확인. 실행 배정은 별도 후속 작업입니다.
 - native Run별 산출물 metadata: 현재 원본 인가와 Run ID를 대조하고, 최근 목록 범위·철회·원문 제외를 표시합니다.
 - Trail 파일 근거: native 편집 요청과 성공/실패·원본 diff metadata 연결, 단순 요청·모호함 구분, 조회 한도·Project 철회 반영. 파일 내용과 patch는 저장·표시하지 않습니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
