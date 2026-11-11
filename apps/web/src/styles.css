@@ -186,6 +186,21 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .inline-error { background: #2b201e; color: #ffd0c4; }
 .button-secondary, .button-primary { padding: 8px 12px; border: 1px solid #657645; background: #252b1d; color: var(--lime); font-size: 11px; }
 .load-more { margin-top: 8px; }
+.execution-graph { padding: 8px 0 20px; margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+.graph-legend { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.graph-scroll { max-width: 100%; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.graph-scroll svg { display: block; }
+.graph-edge { fill: none; stroke: #8b9778; stroke-width: 1.2; }
+.context-edge { stroke-dasharray: 4 4; stroke: #65705a; }
+.graph-node rect { fill: #1e231b; stroke: #4b5642; }
+.graph-node text { fill: #d9ddcf; font: 10px var(--mono); }
+.graph-node .graph-kind { fill: var(--muted); font-family: inherit; }
+.graph-edge-label { font: 9px var(--mono); fill: #a5ab9d; }
+.graph-node .graph-id { font-size: 8px; fill: #8e9a80; }
+.graph-selected rect { stroke: var(--lime); }
+.graph-cycle rect { stroke: var(--amber); }
+.graph-node[role="button"] { cursor: pointer; }
+.graph-node[role="button"]:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
 .run-controls { margin-top: 10px; }
 .run-controls .unsupported-actions button:enabled, .cancel-confirm button { border: 1px solid #8f7760; background: #30271f; color: #ffdec3; padding: 7px 9px; cursor: pointer; }
 .cancel-confirm { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }

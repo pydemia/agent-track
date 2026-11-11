@@ -4,7 +4,7 @@
 
 - `Track` is the default view and lists every readable run. Project bindings and unbound workspaces have different filters; a Codex repository is labelled `업무 미연결 · <repository basename>` and is never represented as a Projects business project.
 - `Trail` and `Trace` show the selected run's paged event metadata. They never render event bodies or transcripts. Pagination uses the endpoint's local event-row cursor (`after`), not a source sequence.
-- `Map` shows observed Run records and a separate accessible relation list with the original relation kind. Its code activity view lists only paths present in selected-run event metadata; it does not claim a diff or file change.
+- `Map` shows observed Run records and a separate accessible relation list with the original relation kind. A separate SVG map shows observed Workspace→Session→Run ownership as dotted context edges and typed evidence as solid edges; it never treats ownership as execution lineage. Its code activity view lists only paths present in selected-run event metadata; it does not claim a diff or file change.
 - The inspector keeps terminal status, observed report-related events, verification-related events, and Projects acceptance separate. Acceptance remains unknown without evidence.
 - The sidebar shows source health, user, selected run, and project/workspace context. A desktop header control collapses and expands it. A 180–360 px native range control resizes it. Width and desktop collapsed state are stored in `localStorage`, keyed by the authenticated snapshot user; the stored value contains only those UI preferences. On mobile it starts closed as a drawer, traps Tab focus while open, closes with Escape, and returns focus to its opener.
 
@@ -15,7 +15,7 @@
 - Run filtering, selected run, and view are URL-addressable. No access token or credential is placed in the URL or browser storage.
 - `forbidden` sources are visible as a health state, but their cached runs and relations are filtered out. Failed requests retain a clearly labelled last valid snapshot; there is no mock-data fallback.
 - Event `data` rendering is restricted to `invocationId`, `parentInvocationId`, `groupId`, `memberId`, `childRunId`, `peerSessionId`, `callId`, `tool`, `path`, `artifactId`, `permissionId`, `expiresAt`, `durationMs`, and `redacted`.
-- Only a validated HTTP(S) `run.sourceUrl` is linked, and it is labelled `원본 세션`. Run-specific deep links are not inferred. Resume, retry, and cancel controls are visible as disabled, unsupported explanations; the frontend remains read-only.
+- Only a validated HTTP(S) `run.sourceUrl` is linked, and it is labelled `원본 세션`. Run-specific deep links are not inferred. Resume/retry remain unsupported. Cancel is available only with the server-provided single-owner capability; a confirmation displays the exact Run, then receipts distinguish acknowledgement from termination. Unknown outcomes are polled without resend.
 
 ## Visual system and attribution
 
@@ -32,4 +32,19 @@ The reviewed shared token source is `C:/Users/pydemia/git/ui/packages/ui/src/sty
 
 ## Remaining integration limits
 
-The frontend displays only what the authenticated snapshot and event endpoints return. Assistant/Projects capabilities, permission workflows, execution controls, code diffs, and Run-specific source deep links are not implemented by this UI. Browser CSP, favicon bytes and response headers, actual authenticated API behavior, and responsive keyboard behavior require verification in the deployed application environment.
+The frontend displays only what the authenticated snapshot and event endpoints return. Assistant/Projects service reads, approval/resume/retry workflows, code diffs and Run-specific source deep links remain unsupported. Public Entra, authenticated favicon bytes/hash, native Trace, cancellation receipt and responsive SNB/map behavior were checked; the full UI error/revocation matrix remains unverified.
+
+## Execution map implementation choice
+
+Local pydemia/ui `pyd-flow-canvas` was inspected: project-owned provenance, React19
+peer compatibility, `@xyflow/react` dependency and editable trigger/action/condition/
+result node model. Source SHA256 5171f48af1f600af34d4dc01eb1bf19fc3e2ddc33c7bf212320f14f9105b5fdc, registry 0000bc11e2979c9e2029b86b7223d2c9bdf2c2dc8a73e090422f26f172a362d0.
+Its current private cross-repository package is not a pinned distributable dependency
+of Track. This bounded read-only evidence map instead uses original SVG rendering
+and the existing Track tokens; no Flow Canvas or React Flow code was copied.
+The projection preserves source-scoped entity identities, counts only actual
+readable Runs, labels unobserved references, and computes strongly connected
+components without recursion. At most40 nodes are drawn, with an explicit limit
+notice and the full relationship list retained. Enter/Space select an observed
+Run. Public native context graph and390px contained horizontal scrolling were
+checked; typed native child/peer evidence remains a source integration limitation.

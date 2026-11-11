@@ -18,7 +18,7 @@
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 미착수 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 미착수 |
-| AT-12 | typed Map·근거·목록·순환/고립 | 미착수 |
+| AT-12 | typed Map·근거·목록·순환/고립 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 원본 dependency/artifact·관리형 child/peer 근거 실기 남음 |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 미착수 |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |

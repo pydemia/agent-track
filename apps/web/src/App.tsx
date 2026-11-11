@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { ExecutionGraph } from "./ExecutionGraph.tsx";
 import { RunControls } from "./RunControls.tsx";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
 
@@ -501,7 +502,7 @@ function Freshness({ run }: { run: RunView }) { return run.stale || run.incomple
 function MapView({ runs, relations, events, mode, onMode, selected, onSelect }: { runs: RunView[]; relations: RelationView[]; events: EventView[]; mode: "relations" | "paths"; onMode: (mode: "relations" | "paths") => void; selected: RunView | null; onSelect: (key: string) => void }) {
   const selectedRelations = selected ? relations.filter((item) => item.runKey === selected.key) : relations;
   const paths = selected ? events.flatMap((event) => event.data.path ? [{ path: event.data.path, event }] : []) : [];
-  return <div className="map-view"><div className="section-heading"><div><span className="overline">OBSERVED EXECUTIONS</span><h2>실행 목록</h2></div><span>{runs.length}개 실행 · 실제 Run만 표시</span></div>
+  return <div className="map-view">{selected ? <ExecutionGraph selected={selected} runs={runs} relations={selectedRelations} onSelect={onSelect} /> : <p className="empty-inline">실행을 선택하면 원본 소속과 관측 관계를 지도로 확인할 수 있습니다.</p>}<div className="section-heading"><div><span className="overline">OBSERVED EXECUTIONS</span><h2>실행 목록</h2></div><span>{runs.length}개 실행 · 실제 Run만 표시</span></div>
     <ol className="execution-list">{runs.map((run) => <li key={run.key}><button className={`execution-row ${run.key === selected?.key ? "chosen" : ""}`} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected?.key}><span className="execution-index">{run.key === selected?.key ? "●" : "○"}</span><span className="execution-copy"><strong>{run.title || run.runId}</strong><small>{run.sourceLabel} · {run.device} · {run.runId}</small></span><DisplayState run={run} /></button></li>)}</ol>
     <section className="relation-section"><div className="map-switch" role="group" aria-label="Map 표시 방식"><button aria-pressed={mode === "relations"} onClick={() => onMode("relations")}>실행 관계</button><button aria-pressed={mode === "paths"} onClick={() => onMode("paths")}>코드 활동 · 관측 경로</button></div>
       {mode === "relations" ? <><div className="section-heading"><div><span className="overline">EVIDENCE LINKS</span><h2>관측된 관계</h2></div><span>관계 종류를 구분해 표시</span></div>

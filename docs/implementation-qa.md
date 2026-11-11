@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 43개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 46개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
