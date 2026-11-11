@@ -86,6 +86,12 @@ payload만 줄인다. Run ID·binding·cursor·event digest tombstone은 보존�
 
 ## 남은 운영 검사
 
+Demian 원본 Session 링크의 웹 이동은 현재 Basic401에 막혔다
+(`native-web-link-verification.json`). Track/Trail 전용 Entra 경로와 별개인
+원본 서비스 인증이다. 원본 웹의 credential을 수집하거나 Basic 보호를
+제거하지 않았다. 원본 웹을 Entra로 연결할 때 해당 서비스의 client/callback·
+upstream 인증 경계를 별도로 검토해야 한다.
+
 최초 Entra 본인 계정 동의·공개 로그인/SSE/logout·재로그인과 실제 native Run 관측을 확인했다.
 타 앱 연결, 취소 UI 클릭·승인/재개/재시도, 다른 장치, 장시간/규모 검증은
 남아 있다. 현재 서비스 노출과 전체 goal 완료를 구별한다.

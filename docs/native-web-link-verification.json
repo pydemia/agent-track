@@ -1,0 +1,13 @@
+{
+  "verifiedDate": "2026-11-11",
+  "origin": "https://demian.pydemia.ai",
+  "paths": ["/", "/sessions/095abfb9-01ad-41b9-beff-38c7e76bb05e"],
+  "unauthenticatedStatus": 401,
+  "authenticationScheme": "Basic",
+  "browserSessionSelected": false,
+  "nativeApiObservationUnaffected": true,
+  "trackEntraUnaffected": true,
+  "credentialsEntered": false,
+  "sourceAuthenticationChanged": false,
+  "result": "Source Session URL exists in the configured UI contract, but source web authentication blocks the browser verification. AT-06 remains partial."
+}

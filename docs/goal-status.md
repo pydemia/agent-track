@@ -12,7 +12,7 @@
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. 실제 native answer.txt metadata/공개 Trail·원본 대조 완료. 변경 파일 live 근거 실기 남음 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과 |
-| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Demian Session href·Run link 미지원 안내. 원본 앱 로그인 후 선택 실기·타 앱 남음 |
+| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. Demian Session href·Run link 미지원 안내. 실제 원본 웹이 Basic401로 브라우저 이동 차단. Track Entra/API 관측과 별개이며 원본 웹 인증 연결 필요 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
