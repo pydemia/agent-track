@@ -488,7 +488,7 @@ export function App() {
           <label className="search-label">검색<input aria-label="검색" type="search" value={filters.q} placeholder="실행·업무·출처 검색" onChange={(event) => setLocation({ filters: { ...filters, q: event.target.value } }, true)} /></label>
         </form>
 
-        {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} />}
+        {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
         {unavailable ? <section className="empty-state"><span className="empty-mark">!</span><h2>실행 데이터를 불러올 수 없습니다</h2><p>API 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="button-primary" onClick={() => void loadSnapshot()}>다시 불러오기</button></section>
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
           : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근이 허용되지 않아 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.state === "forbidden" ? "접근이 허용되지 않아 저장된 실행을 표시하지 않습니다." : item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>

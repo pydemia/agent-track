@@ -61,6 +61,22 @@ const taskPageSchema = z.object({
 });
 
 const taskSchema = itemSchema;
+const taskReviewSchema = itemSchema.extend({
+  body: z.string(),
+  data: itemSchema.shape.data.extend({ acceptance_criteria: z.array(z.string()) }),
+});
+const MAX_RESPONSE_BYTES = 1024 * 1024;
+const MAX_REVIEW_BODY_CHARS = 5000;
+const MAX_REVIEW_BODY_BYTES = 8192;
+const MAX_REVIEW_CRITERIA = 20;
+const MAX_REVIEW_CRITERION_CHARS = 500;
+
+export interface ProjectTaskReview {
+  task: ProjectTaskMetadata;
+  body: string;
+  acceptanceCriteria: string[];
+  complete: boolean;
+}
 
 export interface ProjectsClientOptions {
   sourceId: string;
@@ -104,6 +120,48 @@ function mapTask(item: z.infer<typeof itemSchema>): ProjectTaskMetadata {
     state: states.has(item.data.state) ? item.data.state : "unknown",
     requiresTest: item.data.requires_test,
   };
+}
+
+async function readBoundedJson(response: Response): Promise<unknown> {
+  const contentType = response.headers.get("content-type");
+  if (!contentType || !/^application\/json(?:\s*;|\s*$)/i.test(contentType)) {
+    await response.body?.cancel();
+    throw new ProjectsSourceError(502);
+  }
+  if (!response.body) throw new ProjectsSourceError(502);
+
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > MAX_RESPONSE_BYTES) {
+        await reader.cancel();
+        throw new ProjectsSourceError(502);
+      }
+      chunks.push(value);
+    }
+  } catch (error) {
+    if (error instanceof ProjectsSourceError) throw error;
+    throw new ProjectsSourceError(502);
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)) as unknown;
+  } catch {
+    throw new ProjectsSourceError(502);
+  }
 }
 
 export class ProjectsClient {
@@ -163,7 +221,7 @@ export class ProjectsClient {
         await response.body?.cancel();
         throw new ProjectsSourceError(response.status);
       }
-      return await response.json();
+      return await readBoundedJson(response);
     } catch (error) {
       if (error instanceof ProjectsSourceError) throw error;
       throw new ProjectsSourceError(502);
@@ -223,5 +281,28 @@ export class ProjectsClient {
       throw new ProjectsSourceError(502);
     }
     return mapTask(parsed.data);
+  }
+
+  async taskReview(taskId: string, expectedProjectId: string): Promise<ProjectTaskReview> {
+    if (!canonicalUuid(taskId) || !canonicalUuid(expectedProjectId)) throw new ProjectsSourceError(400);
+    const raw: unknown = await this.request(`/tasks/${taskId}`);
+    const parsed = taskReviewSchema.safeParse(raw);
+    if (!parsed.success || parsed.data.id !== taskId || parsed.data.project_id !== expectedProjectId || parsed.data.kind !== "task") {
+      throw new ProjectsSourceError(502);
+    }
+
+    const body = parsed.data.body;
+    const acceptanceCriteria = parsed.data.data.acceptance_criteria;
+    const complete = body.length <= MAX_REVIEW_BODY_CHARS &&
+      Buffer.byteLength(body, "utf8") <= MAX_REVIEW_BODY_BYTES &&
+      acceptanceCriteria.length <= MAX_REVIEW_CRITERIA &&
+      acceptanceCriteria.every((criterion) => criterion.length <= MAX_REVIEW_CRITERION_CHARS);
+
+    return {
+      task: mapTask(parsed.data),
+      body: complete ? body : "",
+      acceptanceCriteria: complete ? acceptanceCriteria : [],
+      complete,
+    };
   }
 }

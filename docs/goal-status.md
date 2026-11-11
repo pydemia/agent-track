@@ -17,7 +17,7 @@
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 공개 UI 취소 클릭→native cancelled·receipt1건 대조. 재개/재시도는 원본 계약 미지원 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
-| AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 구현 중. 전용 QA creator와 BFF/UI·재시작/backup 복구 연결. 공개 UI 실제 Task1건·원본 ID/revision/본문/criteria/hash 대조·권한 철회/초안 제거→복구·390px 실기. 기존 Task의 내용 검토·Demian 실행 배정/접수와 binding 복구 남음 |
+| AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 실제 Pydemia FlowCanvas 편입·node/edge 상세·source/Run ID 분리·same-Task 다중 세션/child closure fixture. 원본 dependency/artifact·관리형 child/peer 근거 실기 남음 |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 미착수 |
@@ -29,11 +29,14 @@
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **13/21 (61.9%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
-AT-01/02/03/04/05/07/08/10/13/16/17/19/21을 검증했다. 취소·승인 지원을 재개·배정
-완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
-Projects 원본 업무의 실행 참조/배정·문맥 요약, Assistant의 Track 읽기 principal, desktop
-위치가 미확인이다. 새 Flow/업무별 실행 조직의 구현 계획은 `mission-ui-plan.md`, native 대조는 `native-flow-verification.json`이다. 다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
+현재 전체: **14/21 (66.7%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/04/05/07/08/10/11/13/16/17/19/21을 검증했다. 기존 Session 실행 배정을
+새 Session 생성·자동 subagent 조직화·업무 수용으로 계산하지 않는다. 전체 완료 예상
+범위는 아직 산정 불가, 신뢰도 낮음. 원본 앱 문맥 요약, Assistant의 Track 읽기
+principal, desktop 위치·두 번째 실제 장치와 child/peer·dependency 근거 연결이 남았다.
+새 Flow/업무별 실행 조직의 계획은 `mission-ui-plan.md`, native 대조는
+`native-flow-verification.json`·`native-task-assignment-verification.json`이다.
+다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
 
 ## 실행 순서
 

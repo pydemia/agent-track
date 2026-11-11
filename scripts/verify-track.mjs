@@ -32,6 +32,9 @@ for (const [name, route, headers, expected] of [
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],
   ["approval-receipt-auth", "/api/approvals?run=unknown", {}, 401],
   ["task-creation-status-auth", "/api/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/task-creation", {}, 401],
+  ["task-review-auth", "/api/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/tasks/a061ce29-f674-4449-86c3-2902b16713c5/review", {}, 401],
+  ["assignment-sessions-auth", "/api/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/tasks/a061ce29-f674-4449-86c3-2902b16713c5/assignment-sessions", {}, 401],
+  ["assignment-receipts-auth", "/api/projects/projects-native/7b0bc73a-8a1f-4111-9d7f-cc85efad3fea/tasks/a061ce29-f674-4449-86c3-2902b16713c5/assignments", {}, 401],
   ["public-basic-rejected", "/api/snapshot", { authorization: "Basic dGVzdDp0ZXN0" }, 401],
   ["forged-identity-rejected", "/api/snapshot", { "x-forwarded-email": "pydemia@pydemia.ai", "x-track-proxy-key": "forged-test-key" }, 401],
   ["forged-cookie-rejected", "/api/snapshot", { cookie: "__Host-agent-track=forged-test-cookie" }, 401],
@@ -51,6 +54,10 @@ const unauthenticatedTaskCreation = await publicRequest(origin + "/api/projects/
   headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
 assert.equal(unauthenticatedTaskCreation.status, 401); await unauthenticatedTaskCreation.body?.cancel();
 results.push({ name: "task-creation-post-auth", status: unauthenticatedTaskCreation.status, passed: true });
+for (const [name, route] of [["task-assignment-post-auth", "/api/projects/task-assignments"], ["assignment-reconcile-auth", "/api/projects/task-assignments/00000000-0000-4000-8000-000000000001/reconcile"]]) {
+  const response = await publicRequest(origin + route, { method: "POST", redirect: "manual", headers: { "content-type": "application/json" }, body: "{}", signal: AbortSignal.timeout(15_000) });
+  assert.equal(response.status, 401); await response.body?.cancel(); results.push({ name, status: response.status, passed: true });
+}
 
 // Operator-only hop validation. No browser session/token is read or copied.
 if (process.env.TRACK_CONFIG) {

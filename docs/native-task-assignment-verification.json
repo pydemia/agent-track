@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-11-11T18:13:02.808Z",
+  "ready": true,
+  "scope": "public UI assignments to two existing native codex Sessions; native reads only in this verifier",
+  "taskId": "a061ce29-f674-4449-86c3-2902b16713c5",
+  "originalTaskRevision": "1",
+  "originalTaskState": "todo",
+  "originalTaskContentUnchanged": true,
+  "acceptedReceipts": 2,
+  "unresolvedReceipts": 0,
+  "nativeMutationsByVerifier": 0,
+  "instructionsAndTaskBodyAbsentFromAssignmentJournal": true,
+  "runs": [
+    {
+      "requestId": "4840fc90-f0e0-49fb-bb1c-4d3f09934203",
+      "runId": "402a66bc-df81-4c70-82a5-6507d65cf0d6",
+      "sessionId": "f94f9b29-8c01-4b05-80d5-b0da85ba1153",
+      "provider": "codex-native",
+      "nativeState": "succeeded",
+      "started": true,
+      "exactInputHashMatched": true,
+      "outputMarkerAndTaskIdMatched": true,
+      "bindingState": "bound",
+      "projectedState": "succeeded",
+      "cursor": "147",
+      "highWater": "147"
+    },
+    {
+      "requestId": "b2973f26-9c26-455d-a14f-464f04f10d80",
+      "runId": "865dd2b3-e362-4f60-9b7b-728ff1c8aeca",
+      "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "provider": "codex-native",
+      "nativeState": "succeeded",
+      "started": true,
+      "exactInputHashMatched": true,
+      "outputMarkerAndTaskIdMatched": true,
+      "bindingState": "bound",
+      "projectedState": "succeeded",
+      "cursor": "135",
+      "highWater": "135"
+    }
+  ]
+}

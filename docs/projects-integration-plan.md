@@ -117,6 +117,42 @@ Track 원장에는 본문·제목·수용 기준이 없었다. 네이티브 실�
 390px·Tab, 입력 크기 거부 시 초안 유지, reader scope7→6에서 API404·POST403/
 원장 변화 없음·공개 초안 제거→7복구와 빈 초안도 확인했다.
 
-다음은 기존 Task/Session 선택·내용 명시 검토, Demian Run request-status와
-접수 후 binding의 복구를 구현하고 실제 배정을 대조하는 단계다.
-Task 생성 성공만으로 AT-11을 완료로 계산하지 않는다.
+이후 기존 Task/Session 선택·내용 명시 검토, Demian Run request-status와
+접수 후 binding 복구를 구현했다. 아래 실행 배정 실기까지 AT-11에 포함한다.
+
+### 실행 배정 구현 계약 (2026-11-12)
+
+기존 Task의 원문은 사용자가 검토를 열었을 때만 조회한다. 최신 revision·본문·
+수용 조건·시험 여부의 SHA-256을 검토 지문으로 고정하고, 전달할 추가 지시와
+합쳐 실제 native input hash를 만든다. 불완전하거나 크기 한도를 넘은 본문을
+부분 전달하지 않는다. 기본 metadata 목록·불변 이벤트 원장에는 원문을 넣지 않는다.
+
+초기 실행 배정은 단일 Entra 소유자, 명시한 QA Project와 기존 Session allowlist로
+한정한다. Session의 agent/provider/model·permission policy·활성/보관 상태를
+확인하고 기존 정책을 변경하지 않는다. 새 Session을 암묵적으로 생성하지 않는다.
+
+배정 receipt는 `requested → dispatching → accepted / unknown / failed / expired`와
+별도 `binding pending / bound / conflict`를 가진다. native 접수는 실행 성공이나
+Task 수용이 아니다. 동일 UUID는 같은 receipt를 반환하고, 미확정 요청이 있는
+Session에는 다른 UUID도 전송하지 않는다. 재시작은 미확정 상태로 복구한 뒤
+request-status만 조회한다. `not_found`도 원본 요청이 전송되지 않았다는 증거로
+사용하지 않는다. accepted를 늦은 unknown으로 덮지 않는다.
+
+원본이 접수한 Run ID를 먼저 보존하고 binding을 시도한다. 연결 실패는 이미
+시작된 Run을 새로 만들지 않고 복구한다. 기존 다른 binding과 Task revision
+변경은 conflict로 표시해 자동 덮어쓰지 않는다. 권한·source identity가 달라지면
+receipt·본문도 숨기며 원본 재실행으로 해결하지 않는다. Domain/adapter 검사 후
+BFF·검토 UI, 공개 실제 QA 배정·재시작·응답 유실/철회 검증까지 연결한다.
+
+### 실제 실행 배정 결과
+
+공개 Entra UI에서 위 QA Task revision1을 검토한 후 기존 codex-native Session
+2개에 각각 배정했다. 원본 request-status의 Run2건·정확한 input hash·실제 시작/
+성공·Track binding·cursor/highWater가 일치한다. QA Task의 본문·수용 조건·revision1·
+todo는 변하지 않았다. Session의 ask 정책과 원본 credential도 보존했다.
+
+같은 Task를 업무 중심 Map에서 Session2개·Run2개로 탐색하고 node/edge 상세를
+대조했다. reader7→6 철회에서 공개 본문·미제출 초안·Run ID가 제거됐고7로 복원했다.
+재시작·유실 응답·접수 후 binding 장애는 실제 SQLite/HTTP 경계 fixture로 대조했으며
+운영 native 실패를 의도적으로 발생시킨 것으로 표현하지 않는다. 실제 범위와 한계는
+`task-assignment-verification.md`와 `native-task-assignment-verification.json`에 기록한다.

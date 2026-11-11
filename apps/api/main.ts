@@ -6,6 +6,7 @@ import { Store } from "../../packages/storage/store.ts";
 import { CommandService } from "../../packages/commands/index.ts";
 import { ApprovalService } from "../../packages/approvals/index.ts";
 import { TaskCreationService } from "../../packages/commands/create-task.ts";
+import { TaskAssignmentService } from "../../packages/commands/assign-task.ts";
 
 const path = process.env.TRACK_CONFIG;
 if (!path) throw new Error("TRACK_CONFIG must point to a private configuration file");
@@ -16,6 +17,7 @@ const store = new Store(initial.database);
 new CommandService(store).recoverInterrupted();
 new ApprovalService(store).recoverInterrupted();
 new TaskCreationService(store).recoverInterrupted();
+new TaskAssignmentService(store).recoverInterrupted();
 const { server, sources } = createTrackServer(store, config, resolve("dist/web"));
 server.listen(initial.port, "127.0.0.1", () => {
   console.log(`Agent Track 0.1.0 listening on loopback port ${initial.port}`);

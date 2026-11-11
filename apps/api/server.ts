@@ -11,6 +11,7 @@ import { ApprovalService } from "../../packages/approvals/index.ts";
 import { RunPermissions } from "./permissions.ts";
 import { fileEvidence } from "./files.ts";
 import { ProjectTaskCreation } from "./task-creation.ts";
+import { TaskAssignments } from "./task-assignment.ts";
 import { lineageEvidence } from "./lineage.ts";
 import { toolEvidence } from "./tools.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
@@ -40,7 +41,8 @@ async function jsonBody(request: IncomingMessage): Promise<unknown> {
 }
 export function createTrackServer(store: Store, config: () => Config, webRoot: string, sources = new Sources(store, config)) {
   const root = resolve(webRoot);
-  const snapshot = (user: string) => store.snapshot(user, sources.views(user));
+  const taskAssignments = new TaskAssignments(store, config, sources);
+  const snapshot = (user: string) => taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user)));
   const commands = new CommandService(store);
   const bindings = new RunBindings(store, config, sources, snapshot);
   const permissions = new RunPermissions(store, config, sources, snapshot);
@@ -74,6 +76,21 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
         const receipt = await taskCreation.execute(user, await jsonBody(request));
         await taskCreation.confirmAccess(user, receipt.sourceId, receipt.projectId);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
+      if (request.method === "POST" && url.pathname === "/api/projects/task-assignments") {
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const receipt = await taskAssignments.execute(user, await jsonBody(request));
+        await taskAssignments.confirm(user, receipt);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
+      const assignmentReconcile = /^\/api\/projects\/task-assignments\/([0-9a-f-]{36})\/reconcile$/.exec(url.pathname);
+      if (request.method === "POST" && assignmentReconcile) {
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const receipt = await taskAssignments.reconcile(user, assignmentReconcile[1]!);
+        await taskAssignments.confirm(user, receipt);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
@@ -132,6 +149,15 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           id: source.id, label: source.label, state: source.state, detail: source.detail,
           projects: sources.projects?.catalog(source.id, user) ?? [],
         })) }); return;
+      }
+      const assignmentRead = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/tasks\/([0-9a-f-]{36})\/(review|assignment-sessions|assignments)$/.exec(url.pathname);
+      if (assignmentRead) {
+        const [, sourceId, projectId, taskId, kind] = assignmentRead as unknown as [string, string, string, string, string];
+        const result = kind === "review" ? await taskAssignments.review(user, sourceId, projectId, taskId)
+          : kind === "assignment-sessions" ? await taskAssignments.sessions(user, sourceId, projectId, taskId)
+          : await taskAssignments.status(user, sourceId, projectId, taskId);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, result); return;
       }
       const projectTasks = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/tasks$/.exec(url.pathname);
       if (projectTasks) {

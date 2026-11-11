@@ -51,7 +51,7 @@ AgentTrail은 node/edge 탐색의 구조 reference이며 소스를 복사하지 
 | 1. 실제 실행 해석 | native lineage 별도 인가 조회, source/run/item 정확한 결합, 기존 immutable 원장 보존 | 공개 UI·scope 철회·재접속 증거를 현재 revision에 연결 |
 | 2. 실행 분석 | 호출/도구/승인 Flow, 경과 Trail, 업무별 세션 요약 | 도구 outcome·요청/실행 구간의 실제 원본 대조 |
 | 3. 업무·협업 Map | 같은 Task의 여러 source/Session, 명시 Run 관계 closure, unknown·한도 표시 | 실제 goal/cowork/managed-child/peer 사례, native Task Link 읽기 계약 |
-| 4. 목표 수행 | 원본 업무 생성과 binding 기반 마련 | 업무 검토→기존 Session 배정→native acceptance→binding 복구, 검증/수용 근거 연결 |
+| 4. 목표 수행 | 원본 업무 생성·내용 검토→기존 Session 배정→native acceptance→binding 복구, 실제 동일 Task·Session2·Run2 대조 | 자동 subagent 조직화, 검증/수용 근거 연결 |
 | 5. 교차 앱 | 현재 PC Demian과 Projects 관측 | Assistant/desktop 계약, 두 번째 장치, 원본 앱 요약·인증 조회·장애 격리 |
 
 Projects의 dependency는 native Link에 존재하지만 현재 Track의 서명된 integration

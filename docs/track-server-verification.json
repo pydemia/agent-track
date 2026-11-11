@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-11T17:11:52.593Z",
+  "verifiedAt": "2026-11-11T18:13:18.164Z",
   "scope": "unauthenticated-public-and-operator-hop",
   "publicTransport": "curl-https",
   "browserLoginVerified": false,
@@ -60,6 +60,21 @@
       "passed": true
     },
     {
+      "name": "task-review-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "assignment-sessions-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "assignment-receipts-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
       "name": "public-basic-rejected",
       "status": 401,
       "passed": true
@@ -85,9 +100,19 @@
       "passed": true
     },
     {
+      "name": "task-assignment-post-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "assignment-reconcile-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
       "name": "operator-snapshot",
       "passed": true,
-      "runs": 312,
+      "runs": 338,
       "workspaces": 7
     },
     {

@@ -1,0 +1,35 @@
+.task-assignment { min-width: 0; margin: 12px 0; padding: 12px 0; border-top: 1px solid var(--line); }
+.task-assignment h3 { margin: 0 0 6px; color: var(--ink); font-size: 13px; }
+.task-assignment h4 { margin: 0 0 6px; font-size: 13px; overflow-wrap: anywhere; }
+.task-assignment h5 { margin: 12px 0 5px; color: var(--muted); font-size: 11px; }
+.assignment-note { margin: 7px 0; color: var(--muted); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.assignment-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.assignment-actions > span { color: var(--muted); font-size: 11px; }
+.assignment-review { min-width: 0; margin: 12px 0; padding: 10px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.assignment-review > p, .assignment-review li { color: var(--muted); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.assignment-review ul { padding-left: 20px; }
+.assignment-private-body { white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); font-size: 12px; line-height: 1.6; }
+.assignment-form { display: grid; gap: 10px; max-width: 760px; margin-top: 10px; }
+.assignment-form > label:not(.assignment-confirm) { display: grid; gap: 5px; color: var(--muted); font-size: 11px; }
+.assignment-form select, .assignment-form textarea { width: 100%; min-width: 0; padding: 8px 9px; border: 1px solid var(--line); border-radius: 0; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; }
+.assignment-form textarea { resize: vertical; }
+.assignment-form select:disabled, .assignment-form textarea:disabled { opacity: .65; }
+.assignment-confirm { display: flex; align-items: flex-start; gap: 8px; color: var(--ink); font-size: 11px; line-height: 1.5; }
+.assignment-confirm input { flex: 0 0 auto; margin-top: 2px; accent-color: var(--lime); }
+.assignment-preview { min-width: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.assignment-preview summary { padding: 8px 0; color: var(--ink); cursor: pointer; font-size: 11px; }
+.assignment-preview pre { max-height: 360px; overflow: auto; margin: 0; padding: 8px 0; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; font: 11px/1.55 var(--mono); }
+.assignment-status, .assignment-error { margin: 8px 0; padding: 8px 0; color: #f2dba8; font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; }
+.assignment-status { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.assignment-error { color: var(--danger, #ff9c91); }
+.assignment-receipt { display: grid; min-width: 0; gap: 6px; margin: 10px 0; padding: 9px 0; border-top: 1px solid var(--line); font-size: 11px; }
+.assignment-receipt > strong { font-size: 12px; }
+.assignment-receipt small { color: var(--muted); overflow-wrap: anywhere; }
+.assignment-receipt code { overflow-wrap: anywhere; word-break: break-word; font: 10px var(--mono); }
+.assignment-receipt .text-button { justify-self: start; min-height: 32px; }
+@media (max-width: 420px) {
+  .assignment-form select, .assignment-form textarea { font-size: 16px; }
+  .assignment-actions { align-items: stretch; }
+  .assignment-actions button { min-height: 38px; }
+  .assignment-receipt button { min-height: 38px; }
+}
