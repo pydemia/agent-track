@@ -51,7 +51,7 @@ fixture로 검사했다(`native-artifacts-verification.json`).
 - 공개 Trace의 실제 native seq17·redacted 및 취소된 Run의 receipt/종료 상태를 확인했다.
 - 별도 local QA14347은 공개 배포와 분리한 GET-only loopback BFF로 변경했으며
   현재 종료했다. private proxy credential은 서버에만 있고 공개 local-auth 경로는 없다.
-- 빈/오류/인가 철회 전체 UI 행렬과 native 취소 확인 폼 클릭은 미검증이다.
+- 분리 loopback QA에서 네 빈 보기·503/복구·stale·철회·401 만료를 검사했고 임시 탭/프로세스를 종료했다. native 취소 확인 폼 클릭은 미검증이다.
 
 ## 리뷰 반영
 
@@ -70,7 +70,7 @@ unknown 요청은 재시작해도 재전송하지 않는다. 원본 cancel의 at
 
 ## 전체 수용
 
-[goal 기준표](goal-status.md)의 **8/21(38.1%, 동일 가중치)**다. 테스트 수나
+[goal 기준표](goal-status.md)의 **9/21(42.9%, 동일 가중치)**다. 테스트 수나
 배포 경로 준비를 전체 달성률로 환산하지 않는다. 전체 일정은 Projects/
 Assistant 계약과 desktop 위치 미확인으로 산정 불가·신뢰도 낮음이다.
 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.

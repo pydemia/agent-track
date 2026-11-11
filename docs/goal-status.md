@@ -14,7 +14,7 @@
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과 |
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Demian Session href·Run link 미지원 안내. 원본 앱 로그인 후 선택 실기·타 앱 남음 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |
-| AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 부분. 네 화면·SNB·공개 favicon bytes/hash 확인. 빈/오류/인가 철회 전체 UI 실기 남음 |
+| AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 미착수 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 미착수 |
@@ -29,8 +29,8 @@
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **8/21 (38.1%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
-AT-01/02/03/05/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
+현재 전체: **9/21 (42.9%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/05/08/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
 완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
 Projects의 외부 실행 참조·인가, Assistant의 Track 읽기 principal, desktop
 위치가 미확인이다. 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.

@@ -32,7 +32,7 @@ The reviewed shared token source is `C:/Users/pydemia/git/ui/packages/ui/src/sty
 
 ## Remaining integration limits
 
-The frontend displays only what the authenticated snapshot and event endpoints return. Assistant/Projects service reads, approval/resume/retry workflows, code diffs and Run-specific source deep links remain unsupported. Public Entra, authenticated favicon bytes/hash, native Trace, cancellation receipt and responsive SNB/map behavior were checked; the full UI error/revocation matrix remains unverified.
+The frontend displays only what the authenticated snapshot and event endpoints return. Assistant/Projects service reads, approval/resume/retry workflows, code diffs and Run-specific source deep links remain unsupported. Public Entra, authenticated favicon bytes/hash, native Trace, cancellation receipt and responsive SNB/map behavior were checked; controlled empty/error/revocation/expiry UI states were checked through a separate loopback-only proxy. This is not a real Entra membership revocation.
 
 ## Execution map implementation choice
 
@@ -69,3 +69,14 @@ with the same clock suffix and a nonnegative delta; missing/conflicting evidence
 stays unknown. Current loaded-event coverage is shown separately from complete
 history. Actual public Codex metadata showed five paired tools and one ungrouped
 ID-less event; the native tool-free Run correctly supplied no invocation stages.
+
+## Controlled negative UI checks
+
+`scripts/qa-track-states.ts` requires explicit private operator paths/user, binds
+only127.0.0.1:14348 and forwards GET only. It masks command capabilities and
+projects real authorized snapshots into empty/disconnected states; error/revocation
+faults affect this proxy only. It is not deployed or started automatically.
+CUA verified four empty views,503 recovery, stale labels, named revocation and
+plain SSE close followed by401. Expiry clears metadata/events/selection and
+removes the Run query. The QA process/tab were stopped. See
+`ui-state-verification.json`; actual public Entra login/logout proof is separate.

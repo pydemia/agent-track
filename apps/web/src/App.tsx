@@ -176,10 +176,11 @@ export function App() {
       if (!current()) return;
       if (!checkedSnapshot(result)) throw new Error("스냅샷 응답 형식이 올바르지 않습니다.");
       setSnapshot(result);
+      setHealth("ok");
       setPageError("");
       setSelectedKey((current) => current && result.runs.some((item) => item.key === current) ? current : "");
     } catch (error) {
-      if (current()) setPageError(error instanceof Error ? error.message : "스냅샷을 불러오지 못했습니다.");
+      if (current()) { setHealth("unavailable"); setPageError(error instanceof Error ? error.message : "스냅샷을 불러오지 못했습니다."); }
     }
   }, [clearPrivateData]);
 
@@ -195,6 +196,7 @@ export function App() {
         const value: unknown = JSON.parse((event as MessageEvent<string>).data);
         if (checkedSnapshot(value)) {
           setSnapshot(value);
+          setHealth("ok");
           setPageError("");
         }
       } catch { /* A malformed stream frame does not replace the last valid snapshot. */ }
@@ -202,8 +204,8 @@ export function App() {
     stream.addEventListener("authorization_revoked", () => {
       if (source.current === stream) clearPrivateData("접근 권한이 해제되어 실행 데이터를 지웠습니다.");
     });
-    stream.onerror = () => { if (source.current === stream) setStreamState("disconnected"); };
-  }, [clearPrivateData]);
+    stream.onerror = () => { if (source.current === stream) { setStreamState("disconnected"); void loadSnapshot(); } };
+  }, [clearPrivateData, loadSnapshot]);
 
   useEffect(() => {
     void loadSnapshot();
@@ -458,7 +460,7 @@ export function App() {
         <div className="page-heading"><div><div className="breadcrumb">Agent Track <span>/</span> {tabs.find((item) => item.id === tab)?.title}</div><h1>{tabs.find((item) => item.id === tab)?.title}</h1><p className="lead">실제 관측 데이터의 범위와 연결 상태를 함께 확인합니다.</p></div>
           <div className="snapshot-stamp"><span className="overline">SNAPSHOT</span><strong>{snapshot ? timestamp(snapshot.generatedAt) : "—"}</strong><small>revision {snapshot?.revision ?? "—"}</small></div></div>
 
-        {streamState === "disconnected" && <div className="notice warning" role="status"><span>실시간 연결이 끊겼습니다. 마지막으로 받은 스냅샷을 표시합니다.</span><button onClick={connectStream}>다시 연결</button></div>}
+        {streamState === "disconnected" && <div className="notice warning" role="status"><span>{snapshot ? "실시간 연결이 끊겼습니다. 마지막으로 받은 스냅샷을 표시합니다." : "실시간 연결이 끊겼습니다. 연결 복구와 접근 확인 후 데이터를 다시 조회합니다."}</span><button onClick={connectStream}>다시 연결</button></div>}
         {pageError && <div className="notice error" role="alert"><span>{pageError}{snapshot ? " 마지막 정상 스냅샷은 유지됩니다." : " 데이터 없이 화면을 표시하고 있습니다."}</span><button onClick={() => void loadSnapshot()}>다시 불러오기</button></div>}
         {snapshot && (snapshot.sources.some((item) => item.state !== "connected") || snapshot.runs.some((item) => item.stale || item.incomplete)) && <div className="notice warning" role="status"><span>일부 출처가 연결되지 않았거나 관측이 오래되었거나 불완전합니다. 빈 결과를 완전한 기록으로 해석하지 마세요.</span></div>}
 

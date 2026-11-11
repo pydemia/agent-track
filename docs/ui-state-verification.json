@@ -1,0 +1,19 @@
+{
+  "verifiedDate": "2026-11-11",
+  "method": "CUA visible UI through an ephemeral loopback-only fault proxy",
+  "realAuthorizedMetadata": true,
+  "syntheticRuns": false,
+  "productionPermissionsChanged": false,
+  "states": {
+    "empty": { "views": ["Track", "Trail", "Trace", "Map"], "emptyHeading": true, "selectedDetailsCount": 0 },
+    "unavailable": { "httpStatus": 503, "errorHeading": true, "apiUnavailableBadge": true, "retryRestoredRuns": 235, "retryRestoredApiBadge": true },
+    "disconnected": { "lastRecordsPreserved": true, "sourceStateSeparateFromDashboardSse": true, "staleLabels": true },
+    "revoked": { "namedRevocationEvent": true, "runsDetailsEventsCleared": true, "runQueryRemoved": true },
+    "expired": { "streamClosedWithoutRevocationEvent": true, "snapshotReauthorization401": true, "runsDetailsEventsCleared": true, "runQueryRemoved": true, "expiredLoginAlert": true }
+  },
+  "corrections": ["Do not claim a last snapshot is displayed after private data was cleared", "Refresh API reachability after snapshot recovery", "Reauthorize snapshot access when SSE fails"],
+  "qaTabClosed": true,
+  "qaProcessStopped": true,
+  "publicEntraDashboardPreserved": true,
+  "limits": ["Faults were controlled at the loopback proxy; no organization membership or real Entra session was revoked"]
+}
