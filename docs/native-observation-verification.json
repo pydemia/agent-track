@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-11-11T12:08:47.031Z",
+  "liveNativeRun": true,
+  "sourceId": "demian-local",
+  "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+  "sessionId": "095abfb9-01ad-41b9-beff-38c7e76bb05e",
+  "status": "succeeded",
+  "sourceEventCount": 17,
+  "journalEventCount": 17,
+  "cursor": "17",
+  "incomplete": false,
+  "resumedEventsAfterCursor": 0,
+  "metadataMatchesSource": true,
+  "nativeOutputNotStored": true
+}

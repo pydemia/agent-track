@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { RunControls } from "./RunControls.tsx";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
 
 type Tab = "track" | "trail" | "trace" | "map";
@@ -71,11 +72,6 @@ function workspaceName(path: string | null) {
   const normalized = path.replace(/[\\/]+$/, "");
   return normalized.split(/[\\/]/).filter(Boolean).at(-1) ?? path;
 }
-function workspaceKey(path: string) {
-  let hash = 2166136261;
-  for (const char of path) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
-  return `workspace:${(hash >>> 0).toString(36)}`;
-}
 function DisplayState({ run }: { run: RunView }) {
   return <span className={`state ${run.status === "failed" || run.status === "interrupted" ? "bad" : run.status === "waiting_for_permission" ? "warn" : ""}`}>
     <i aria-hidden="true" />{statusNames[run.status] ?? run.status}
@@ -110,6 +106,8 @@ export function App() {
   const sidebarClose = useRef<HTMLButtonElement>(null);
   const sidebarRef = useRef<HTMLElement>(null);
   const source = useRef<EventSource | null>(null);
+  const snapshotGeneration = useRef(0);
+  const snapshotRequest = useRef<AbortController | null>(null);
   const eventGeneration = useRef(0);
   const eventRunKey = useRef("");
   const eventHighWater = useRef("");
@@ -129,6 +127,8 @@ export function App() {
   }, []);
 
   const clearPrivateData = useCallback((reason: string) => {
+    snapshotGeneration.current += 1;
+    snapshotRequest.current?.abort();
     eventGeneration.current += 1;
     eventController.current?.abort();
     eventController.current = null;
@@ -156,20 +156,27 @@ export function App() {
   }, []);
 
   const loadSnapshot = useCallback(async () => {
+    snapshotRequest.current?.abort();
+    const controller = new AbortController();
+    snapshotRequest.current = controller;
+    const generation = snapshotGeneration.current;
+    const current = () => !controller.signal.aborted && generation === snapshotGeneration.current;
     try {
-      const response = await fetch("/api/snapshot", { credentials: "same-origin", cache: "no-store" });
+      const response = await fetch("/api/snapshot", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+      if (!current()) return;
       if (response.status === 401 || response.status === 403) {
         clearPrivateData(response.status === 401 ? "로그인이 만료되어 실행 데이터를 지웠습니다." : "실행 목록 접근 권한이 없어 데이터를 지웠습니다.");
         return;
       }
       if (!response.ok) throw new Error(`스냅샷 조회 실패 (${response.status})`);
       const result: unknown = await response.json();
+      if (!current()) return;
       if (!checkedSnapshot(result)) throw new Error("스냅샷 응답 형식이 올바르지 않습니다.");
       setSnapshot(result);
       setPageError("");
       setSelectedKey((current) => current && result.runs.some((item) => item.key === current) ? current : "");
     } catch (error) {
-      setPageError(error instanceof Error ? error.message : "스냅샷을 불러오지 못했습니다.");
+      if (current()) setPageError(error instanceof Error ? error.message : "스냅샷을 불러오지 못했습니다.");
     }
   }, [clearPrivateData]);
 
@@ -178,8 +185,9 @@ export function App() {
     setStreamState("connecting");
     const stream = new EventSource("/api/stream", { withCredentials: true });
     source.current = stream;
-    stream.addEventListener("open", () => setStreamState("connected"));
+    stream.addEventListener("open", () => { if (source.current === stream) setStreamState("connected"); });
     stream.addEventListener("snapshot", (event) => {
+      if (source.current !== stream) return;
       try {
         const value: unknown = JSON.parse((event as MessageEvent<string>).data);
         if (checkedSnapshot(value)) {
@@ -189,9 +197,9 @@ export function App() {
       } catch { /* A malformed stream frame does not replace the last valid snapshot. */ }
     });
     stream.addEventListener("authorization_revoked", () => {
-      clearPrivateData("접근 권한이 해제되어 실행 데이터를 지웠습니다.");
+      if (source.current === stream) clearPrivateData("접근 권한이 해제되어 실행 데이터를 지웠습니다.");
     });
-    stream.onerror = () => setStreamState("disconnected");
+    stream.onerror = () => { if (source.current === stream) setStreamState("disconnected"); };
   }, [clearPrivateData]);
 
   useEffect(() => {
@@ -200,7 +208,7 @@ export function App() {
       .then((response) => setHealth(response.ok ? "ok" : "unavailable"))
       .catch(() => setHealth("unavailable"));
     connectStream();
-    return () => source.current?.close();
+    return () => { source.current?.close(); source.current = null; snapshotRequest.current?.abort(); };
   }, [connectStream, loadSnapshot]);
 
   useEffect(() => {
@@ -337,15 +345,21 @@ export function App() {
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
   const projectOptions = useMemo(() => {
-    const bindings = [...new Set(accessibleRuns.map((item) => item.binding?.projectTitle).filter((x): x is string => Boolean(x)))].sort();
-    const workspaces = [...new Set(accessibleRuns.filter((item) => !item.binding && item.workspaceId).map((item) => item.workspaceId as string))].sort();
+    const bindingMap = new Map<string, string>();
+    const workspaceMap = new Map<string, string>();
+    for (const run of accessibleRuns) {
+      if (run.binding && run.projectKey) bindingMap.set(run.projectKey, run.binding.projectTitle);
+      if (!run.binding && run.workspaceKey) workspaceMap.set(run.workspaceKey, workspaceName(run.workspaceId));
+    }
+    const bindings = [...bindingMap].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
+    const workspaces = [...workspaceMap].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
     return { bindings, workspaces };
   }, [accessibleRuns]);
   const visibleRuns = useMemo(() => accessibleRuns.filter((item) => {
     const text = `${item.title} ${item.runId} ${item.sessionId} ${item.sourceLabel} ${item.binding?.projectTitle ?? ""} ${item.binding?.taskTitle ?? ""} ${workspaceName(item.workspaceId)}`.toLocaleLowerCase();
     const projectMatch = !filters.project
-      || (filters.project.startsWith("project:") && item.binding?.projectTitle === filters.project.slice(8))
-      || (filters.project.startsWith("workspace:") && !item.binding && item.workspaceId && workspaceKey(item.workspaceId) === filters.project);
+      || (item.projectKey === filters.project)
+      || (!item.binding && item.workspaceKey === filters.project);
     return projectMatch
       && (!filters.source || item.sourceId === filters.source)
       && (!filters.status || item.status === filters.status)
@@ -407,9 +421,9 @@ export function App() {
   };
 
   const selectedProjectLabel = filters.project.startsWith("project:")
-    ? filters.project.slice(8)
+    ? projectOptions.bindings.find((project) => project.key === filters.project)?.label ?? "프로젝트 미확인"
     : filters.project.startsWith("workspace:")
-      ? `업무 미연결 · ${workspaceName(projectOptions.workspaces.find((workspace) => workspaceKey(workspace) === filters.project) ?? null)}`
+      ? `업무 미연결 · ${projectOptions.workspaces.find((workspace) => workspace.key === filters.project)?.label ?? "저장소 미확인"}`
       : "전체 프로젝트";
   const sidebarExpanded = isMobile ? sidebarOpen : !sidebarCollapsed;
 
@@ -434,7 +448,7 @@ export function App() {
         </div>
         {run && <div className="context-block selected-context"><span className="context-label">선택한 실행</span><strong>{run.title || run.runId}</strong><small>{run.sourceLabel} · {run.device}</small>{originUrl(run.sourceUrl) ? <a className="source-link" href={originUrl(run.sourceUrl)!} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a> : <span className="source-link unsupported-link">원본 세션 링크 미지원</span>}<small>Run 전용 딥링크는 지원되지 않습니다.</small></div>}
         <label className="width-control">사이드바 너비 <input type="range" min="180" max="360" step="4" value={sidebarWidth} onChange={(event) => saveSidebarWidth(Number(event.target.value))} aria-label="사이드바 너비 조절" /><span>{sidebarWidth}px</span></label>
-        <div className="sidebar-footer">원본 관측만 표시합니다.<br />대화 내용은 수집하거나 표시하지 않습니다.</div>
+        <div className="sidebar-footer">원본 관측만 표시합니다.<br />대화 원문을 저장하거나 표시하지 않습니다.</div>
       </aside>
       {sidebarOpen && <button className="drawer-scrim" aria-label="사이드바 닫기" onClick={closeMobileSidebar} />}
       <main className="main">
@@ -451,7 +465,7 @@ export function App() {
         </div>
 
         <form className="filters" aria-label="실행 필터" onSubmit={(event) => event.preventDefault()}>
-          <label>프로젝트 / 저장소<select aria-label="프로젝트 / 저장소" value={filters.project} onChange={(event) => setLocation({ filters: { ...filters, project: event.target.value } }, true)}><option value="">모든 프로젝트와 저장소</option>{projectOptions.bindings.length > 0 && <optgroup label="Projects 프로젝트">{projectOptions.bindings.map((project) => <option key={project} value={`project:${project}`}>{project}</option>)}</optgroup>}{projectOptions.workspaces.length > 0 && <optgroup label="업무 미연결 저장소">{projectOptions.workspaces.map((workspace) => <option key={workspace} value={workspaceKey(workspace)}>{workspaceName(workspace)}</option>)}</optgroup>}</select></label>
+          <label>프로젝트 / 저장소<select aria-label="프로젝트 / 저장소" value={filters.project} onChange={(event) => setLocation({ filters: { ...filters, project: event.target.value } }, true)}><option value="">모든 프로젝트와 저장소</option>{projectOptions.bindings.length > 0 && <optgroup label="Projects 프로젝트">{projectOptions.bindings.map((project) => <option key={project.key} value={project.key}>{project.label}</option>)}</optgroup>}{projectOptions.workspaces.length > 0 && <optgroup label="업무 미연결 저장소">{projectOptions.workspaces.map((workspace) => <option key={workspace.key} value={workspace.key}>{workspace.label}</option>)}</optgroup>}</select></label>
           <label>출처<select aria-label="출처" value={filters.source} onChange={(event) => setLocation({ filters: { ...filters, source: event.target.value } }, true)}><option value="">모든 출처</option>{snapshot?.sources.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
           <label>상태<select aria-label="상태" value={filters.status} onChange={(event) => setLocation({ filters: { ...filters, status: event.target.value } }, true)}><option value="">모든 상태</option>{Object.entries(statusNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="search-label">검색<input aria-label="검색" type="search" value={filters.q} placeholder="실행·업무·출처 검색" onChange={(event) => setLocation({ filters: { ...filters, q: event.target.value } }, true)} /></label>
@@ -467,7 +481,7 @@ export function App() {
               {tab === "trail" && <EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} />}
               {tab === "trace" && <EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} />}
             </section>
-            {run && <RunInspector run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
+            {run && <RunInspector onUnauthorized={clearPrivateData} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
           </div>}
         <footer className="page-footer">상태, 관계, 경로는 수집된 근거만 반영합니다. 실행 종료·에이전트 보고·검증·Projects 수용은 각각 별도 정보입니다.</footer>
       </main>
@@ -511,7 +525,7 @@ function EventViewPanel({ title, run, events, loading, error, hasMore, onMore, o
   </section>;
 }
 
-function RunInspector({ run, relations, events, source }: { run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
+function RunInspector({ run, relations, events, source, onUnauthorized }: { onUnauthorized: (reason: string) => void; run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
   const reportEvents = events.filter((item) => /report|result|handoff/i.test(item.type));
   const verifyEvents = events.filter((item) => /verif|test|check/i.test(item.type));
   const sourceHref = originUrl(run.sourceUrl);
@@ -521,8 +535,7 @@ function RunInspector({ run, relations, events, source }: { run: RunView; relati
     <section className="evidence-group"><h3>검증</h3><p>{verifyEvents.length ? `${verifyEvents.length}개 검증 관련 이벤트 관측` : "검증 근거 없음"}</p><small>실행 종료 상태와 검증 결과는 별도입니다.</small></section>
     <section className="evidence-group acceptance"><h3>Projects 수용</h3><p>알 수 없음</p><small>수용 데이터 연결 근거가 제공되지 않았습니다.</small></section>
     <section className="capabilities"><h3>기능 범위</h3><SourceState state={source?.state ?? run.sourceState} /><p>{source?.detail ?? "출처 설명을 사용할 수 없습니다."}</p>
-      <div className="unsupported-actions"><button disabled title="이 연결에서는 실행 재개를 지원하지 않습니다.">재개 · 미지원</button><button disabled title="범용 재시도 계약이 없습니다.">재시도 · 미지원</button><button disabled title="이 화면은 읽기 전용입니다.">취소 · 미지원</button></div>
-      <small>실행 제어는 이 화면에서 지원하지 않습니다.</small>
+      <RunControls key={run.key} run={run} onUnauthorized={onUnauthorized} />
     </section>
     {source?.capabilities.length ? <p className="source-capabilities">출처 기능: {source.capabilities.join(" · ")}</p> : <p className="source-capabilities">출처 기능 정보가 없습니다.</p>}
     {sourceHref ? <><a className="origin-button" href={sourceHref} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a><small className="run-link-note">원본 세션으로 이동합니다. Run 전용 딥링크는 미지원입니다.</small></> : <p className="unsupported-link">이 출처는 원본 세션 딥링크를 제공하지 않습니다.</p>}

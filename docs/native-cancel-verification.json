@@ -1,0 +1,12 @@
+{
+  "verifiedAt": "2026-11-11T11:55:00.508Z",
+  "isolatedNativeRun": true,
+  "runId": "7b2f5cb4-3ed0-4222-8b6a-1afb8ca789e4",
+  "sessionId": "5125b0a8-2331-459f-b0d2-6155c0c6f97a",
+  "runKey": "WyJkZW1pYW4tbG9jYWwiLCI3YjJmNWNiNC0zZWQwLTQyMjItOGI2YS0xYWZiOGNhNzg5ZTQiXQ",
+  "firstReceiptState": "succeeded",
+  "finalReceiptState": "succeeded",
+  "nativeStatus": "cancelled",
+  "exactDuplicateReceipt": true,
+  "scope": "single-owner-native-cancel-only"
+}

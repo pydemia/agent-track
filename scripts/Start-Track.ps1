@@ -1,13 +1,31 @@
 $ErrorActionPreference = 'Stop'
+$startMutex = New-Object System.Threading.Mutex($false, 'Local\Pydemia.AgentTrack.Start')
+if (-not $startMutex.WaitOne(10000)) { throw 'Track start is already in progress.' }
+try {
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $stateDir = Join-Path $env:USERPROFILE '.local/share/agent-track'
 $configPath = Join-Path $stateDir 'track-product.config.json'
 if (-not (Test-Path -LiteralPath $configPath)) { throw 'Private Track product config is required.' }
 $running = $false
-try { $running = (Get-NetTCPConnection -LocalAddress '127.0.0.1' -LocalPort 14345 -State Listen -ErrorAction Stop).Count -gt 0 } catch { }
+try { $listeners = @(Get-NetTCPConnection -LocalAddress '127.0.0.1' -LocalPort 14345 -State Listen -ErrorAction Stop); $running = $listeners.Count -gt 0 } catch { }
+if ($running) {
+    $productPidPath = Join-Path $stateDir 'track-product.pid'
+    if (-not (Test-Path -LiteralPath $productPidPath) -or [int](Get-Content -LiteralPath $productPidPath) -ne $listeners[0].OwningProcess) {
+        throw 'Track listener differs from the recorded PID; existing process preserved.'
+    }
+}
 if (-not $running) {
     $env:TRACK_CONFIG = $configPath
     $process = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @('--import', 'tsx', 'apps/api/main.ts') -WorkingDirectory $repoRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateDir 'track-product.stdout.log') -RedirectStandardError (Join-Path $stateDir 'track-product.stderr.log')
+    $ready = $false
+    for ($attempt = 0; $attempt -lt 10; $attempt++) {
+        $process.Refresh()
+        if ($process.HasExited) { throw 'Track product startup failed; inspect its private log.' }
+        $listening = @(Get-NetTCPConnection -LocalPort 14345 -State Listen -ErrorAction SilentlyContinue)
+        if ($listening.Count -eq 1 -and $listening[0].OwningProcess -eq $process.Id) { $ready = $true; break }
+        Start-Sleep -Milliseconds 200
+    }
+    if (-not $ready) { throw 'Track did not acquire its expected listener; PID was not recorded.' }
     $process.Id | Set-Content (Join-Path $stateDir 'track-product.pid')
 }
 $forwardPidPath = Join-Path $stateDir 'track-forward.pid'
@@ -22,3 +40,4 @@ if (-not $forward) {
     $process.Id | Set-Content -LiteralPath $forwardPidPath
 }
 Write-Output 'Track product and private reverse bridge started; public access requires Entra.'
+} finally { $startMutex.ReleaseMutex(); $startMutex.Dispose() }

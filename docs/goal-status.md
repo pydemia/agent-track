@@ -8,31 +8,32 @@
 | 요구 | 수용 조건 | 상태·증거 |
 | --- | --- | --- |
 | AT-01 | 원본 ID·재수신·충돌 방지 | 검증 완료. `tests/core.test.ts` ID/충돌·dedupe·재시작·binding 검사, 실제 Codex 211 Run의 source/run UNIQUE 원장 |
-| AT-02 | snapshot과 실시간 실행 상태 일치 | 미착수 |
-| AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 미착수 |
-| AT-04 | Trail·파일·산출물 근거와 수집 범위 | 미착수 |
-| AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 미착수 |
-| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 미착수 |
-| AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 미착수 |
-| AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 미착수 |
-| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 미착수 |
+| AT-02 | snapshot과 실시간 실행 상태 일치 | 검증 완료. `recovery-http.test.ts` 초기 snapshot/SSE 일치·할당/실행/권한 대기/취소 중/실패 구분. 실제 native 성공·취소 종료와 공개 Trace 대조 |
+| AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
+| AT-04 | Trail·파일·산출물 근거와 수집 범위 | 부분. 실제 metadata Trail·수집 범위 표시, diff path allowlist 검사. artifact API·증거 상세 미연결 |
+| AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 부분. 실제 native17event·Codex tool metadata. step 계층·상세 시간 검증 남음 |
+| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Demian Session href·Run link 미지원 안내. 원본 앱 로그인 후 선택 실기·타 앱 남음 |
+| AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 부분. source/project 이중 grant·원문 비노출·철회 fixture, 공개 위조/Basic 차단. native Project ACL·다중 사용자 principal 미연결 |
+| AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 부분. 네 화면·SNB·공개 favicon bytes/hash 확인. 빈/오류/인가 철회 전체 UI 실기 남음 |
+| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 재개/재시도는 원본 계약 미지원·UI 취소 클릭 실기 남음 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 미착수 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 미착수 |
 | AT-12 | typed Map·근거·목록·순환/고립 | 미착수 |
-| AT-13 | 보존·backup/restore·cursor/receipt 정합 | 미착수 |
+| AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 미착수 |
-| AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 미착수 |
+| AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
-| AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 설정 준비, 제품 미검증 |
+| AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
 | AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | source 조사, 제품 미검증 |
 | AT-19 | Projects 원본·Run 단위 binding 이력·서로 다른 완료 | source 조사, 제품 미검증 |
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 기획, 제품 미검증 |
-| AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 미착수 |
+| AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
-현재 전체: **2/21 (9.5%)**. 직전 1/21 → +4.7%p. ID·중복/충돌 방지
-계약·지속 원장·SNB 실기를 검사했다. 전체 일정 신뢰도 낮음. 전역 Demian feed, Projects
-외부 실행 참조, Assistant Track 읽기 principal이 기존 API에는 없고 desktop
-위치가 미확인이다. 다음 재산정은 계약/첫 실행 adapter 검사 후다.
+현재 전체: **7/21 (33.3%)**. 동일 가중치 수용 조건 기준이며 작업량 추정치가 아니다.
+AT-01/02/03/13/16/17/21을 검증했다. 취소 일부 지원을 재개·승인·배정
+완료로 계산하지 않는다. 전체 완료 예상 범위는 아직 산정 불가, 신뢰도 낮음.
+Projects의 외부 실행 참조·인가, Assistant의 Track 읽기 principal, desktop
+위치가 미확인이다. 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.
 
 ## 실행 순서
 

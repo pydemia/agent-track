@@ -9,7 +9,7 @@ Assistant·Demian·pydemia-desktop의 실시간 Agent 실행·작업 관리 대�
 | Trace | 실행 단계, 도구 호출, 오류와 성능 근거 |
 | Map | 프로젝트, 목표, 작업, 세션과 의존 관계 |
 
-- 제품 주소: https://track.pydemia.ai — Entra 보호 경로 배포, 최초 동의·로그인 검증 대기
+- 제품 주소: https://track.pydemia.ai — Entra 로그인·실제 Demian 실행 관측 배포/검증
 - 벤치마크 앱: https://trail.pydemia.ai — 원본 AgentTrail의 보호된 원격 접속
 - [제품 기획안](docs/product-plan.md)
 - [단계별 개발계획·작업 목록·현재 상태](docs/development-plan.md)
@@ -20,7 +20,7 @@ Assistant·Demian·pydemia-desktop의 실시간 Agent 실행·작업 관리 대�
 
 Agent Track은 [sodiumsun/agenttrail](https://github.com/sodiumsun/agenttrail)을
 벤치마크하는 독립 제품입니다. Demian 실행을 먼저 연결하고 Projects가 업무
-원본을 유지하도록 설계했습니다. 현재 제품은 조회 기반을 구현한 단계입니다.
+원본을 유지하도록 설계했습니다. 현재 제품은 실제 실행 조회와 단일 소유자의 Demian 취소를 지원하는 단계입니다.
 전체 실행 관리 goal의 달성 상태는 [수용 기준표](docs/goal-status.md)에 있습니다.
 
 ## 실행
@@ -44,7 +44,7 @@ npm start
 ## 현재 지원 범위
 
 - SQLite 이벤트 원장, string int64 cursor, 중복·역순·누락·재시작 검사.
-- Demian Run/Session snapshot·per-Run SSE adapter. 실제 credential 연결 대기.
+- Demian Run/Session snapshot·per-Run SSE adapter·허용된 세션의 Run 이력 탐색. 기존 private credential 참조·실제 Run 수집/공개 Trace 검증.
 - Codex 로컬 metadata 수집: 허용 저장소·기간·파일 수 한계 표시, 대화와 도구
   입출력 저장 제외. 이것은 Demian native 또는 desktop bridge 연결과 별개입니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,

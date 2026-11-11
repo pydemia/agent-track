@@ -14,6 +14,7 @@
       "label": "Demian native",
       "device": "local-pc",
       "users": ["owner@example.com"],
+      "cancelUsers": [],
       "baseUrl": "http://127.0.0.1:8080",
       "uiBaseUrl": "http://localhost:3000",
       "tokenFile": "C:/Users/your-user/.local/share/agent-track/demian-api-token",

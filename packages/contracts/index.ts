@@ -91,6 +91,8 @@ export interface RunView extends RunObservation {
   device: string;
   sourceState: SourceView["state"];
   sourceUrl: string | null;
+  workspaceKey: string | null;
+  projectKey: string | null;
   capabilities: string[];
 }
 export interface RelationView {

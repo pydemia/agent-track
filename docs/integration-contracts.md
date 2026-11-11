@@ -69,3 +69,72 @@ Authenticate Track-to-Assistant through an explicitly created service contract i
 6. **Capability and health display:** distinguish `supported`, `partial`, `unsupported`, `forbidden`, `disconnected`, `incomplete_history`, and `stale`. Store last successful observation and source capability/version. A successful Run, agent report, verification, Projects acceptance, and adapter connectivity are independent states.
 
 Concrete current blockers: (a) Demian has per-Run reads/SSE but no global Track discovery/feed or binding; (b) Projects has no Demian external-reference/read-summary contract; (c) Assistant has no Track read-only principal/feed; (d) project membership, session visibility, and artifact/native-lineage restrictions do not compose automatically across services; (e) host deep-link URL shapes are UI implementation details and not stable published integration contracts. These must be resolved as scoped adapters/contracts; do not represent them as existing support.
+
+
+## 2026-11-11 native/Persona follow-up
+
+Demian installed service was located at `C:/Users/pydemia/.demian/service/`.
+Its `secrets.json` provides an existing loopback bearer via `apiToken`; Track
+references it with `credentialFormat=demian-service`, without copying or printing
+it. This is a trusted single-owner service credential, not a new least-privilege
+multi-user Track principal. Current Track adapters read metadata and optionally dispatch native cancel for an explicitly configured single owner. Cancel rechecks source policy; no multi-user grant is inferred.
+A dedicated empty-workspace native Run succeeded and produced17 durable events;
+Track retained cursor17 through restart and displayed the same public Trace.
+
+At the user's explicit request, the Persona chat `assistant 통합`
+(`01a1ac97-c8d9-7ff0-9f45-5fa3ff3f4797`) checked its current source read-only.
+Its audit baseline is `ce066ebc87d69ff514e63df102767969967eab49` in
+`C:/Users/pydemia/.codex/worktrees/assistant-work-system/persona`.
+The original checkout is `C:/Users/pydemia/git/persona`; its recorded server source
+is `pydemia-server:/home/pydemia/git/persona`.
+
+Additional implemented Assistant reads are:
+
+- `GET /api/work/v1/executions`: owner-scoped, up to100 rows, no list cursor.
+- `GET /api/work/v1/instructions/{instructionId}/executions` and
+  `/api/work/v1/executions/{executionId}`: owner-scoped metadata.
+- `GET /api/work/v1/executions/{executionId}/events?after={sequence}`:
+  JSON `{events,cursor}`, not SSE or Demian's int64 stream.
+- `/api/work/v1/executions/{executionId}/result` includes Note body/attachments;
+  do not use as a metadata-only export.
+- Existing deep links are
+  `https://assistant.pydemia.ai/#workbench/projects/{instructionId}/executions/{executionId}`
+  and `https://assistant.pydemia.ai/?conversation={conversationId}`.
+  The `projects/` selector here is an instructionId, not a Projects Project ID.
+
+These require verified Entra proxy identity plus Assistant session cookie and
+owner checks. Existing Note/Projects HMAC is outbound, audience `note|projects`;
+it does not authorize Track to read Assistant. `/api/session` is login metadata,
+not an execution directory; Workbench runtimeTaskId deliberately returns404 at
+`/api/tasks/{id}`. Thread/turn role metadata is not a desktop-wide API.
+
+The Persona audit did not locate a pydemia-desktop implementation in local
+repositories/worktrees, installed apps/processes or accessible GitHub results.
+There is no evidence that it is another name for Persona/Assistant. This remains
+an unresolved integration location, not proof the app does not exist. The worker
+did not modify source, restart services, read credentials or publish anything.
+
+The Demian chat also answered the user's authorized read-only consultation.
+Its working checkout is `codex/common-sessions`, HEAD
+`297678ea08529358aee5a48bef1b94fbea0d7275`; managed-child/peer modules and the
+Track integration proposal are untracked working files, not that commit's contents.
+Known-operation managed-child reads are
+`GET /api/v1/sessions/{sessionId}/managed-children/{operation}`; peer processing
+receipts have a separate operation-scoped read under stored peer conversations.
+Both require their native user authorization and reject delegated context.
+No complete managed-child history directory exists there. Peer conversation and
+processing responses contain message/output text; do not store them as metadata.
+
+Do not use peer `directory` or `managed-child-targets` as read-only history feeds:
+the former can register a daemon sender and the latter can refresh deployment
+state. The Demian device connector (`docs/device-connections.ko.md`,
+`nodejs/src/device-connector.ts`) is real but does not establish that a separate
+pydemia-desktop app exists. Both consulted chats could not locate that app.
+Whether the user's name instead denotes the current `PYDEMIA-DESKTOP` PC is
+awaiting clarification; no substitute app is fabricated.
+
+Assistant's additional Projects task read is
+`GET /api/work/v1/projects/tasks/{taskId}?projectId=...` in the separate
+`assistant-demian-gateway/persona` worktree (`codex/demian-runtime-gateway`,
+HEAD `ebb507a6ba43877bff530a4a975203b4374516fd`, relevant working changes).
+It is an Assistant task import, not a Track read principal or summary API.

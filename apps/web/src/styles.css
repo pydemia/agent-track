@@ -186,6 +186,15 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .inline-error { background: #2b201e; color: #ffd0c4; }
 .button-secondary, .button-primary { padding: 8px 12px; border: 1px solid #657645; background: #252b1d; color: var(--lime); font-size: 11px; }
 .load-more { margin-top: 8px; }
+.run-controls { margin-top: 10px; }
+.run-controls .unsupported-actions button:enabled, .cancel-confirm button { border: 1px solid #8f7760; background: #30271f; color: #ffdec3; padding: 7px 9px; cursor: pointer; }
+.cancel-confirm { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }
+.cancel-confirm code { display: block; overflow-wrap: anywhere; font-size: 10px; margin-bottom: 8px; }
+.cancel-confirm div { display: flex; gap: 8px; }
+.command-error { color: #ffd0c4; font-size: 11px; }
+.receipt-list { list-style: none; padding: 0; margin: 12px 0; }
+.receipt-list li { border-top: 1px solid var(--line); padding: 8px 0; display: grid; grid-template-columns: 1fr auto; gap: 5px; font-size: 11px; }
+.receipt-list small { grid-column: 1 / -1; }
 
 .empty-state { display: grid; justify-items: center; gap: 9px; max-width: 690px; margin: 38px auto; padding: 32px 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; }
 .empty-state h2 { margin: 0; font-size: 17px; }

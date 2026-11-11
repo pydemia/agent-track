@@ -1,7 +1,9 @@
-import { createServer, type ServerResponse } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
-import { authenticate } from "./auth.ts";
+import { authenticate, validMutationOrigin } from "./auth.ts";
+import { CommandError, CommandService } from "../../packages/commands/index.ts";
+import { commandPorts } from "./commands.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -14,9 +16,22 @@ function json(response: ServerResponse, status: number, value: unknown): void {
   response.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(value));
 }
+async function jsonBody(request: IncomingMessage): Promise<unknown> {
+  if (!request.headers["content-type"]?.startsWith("application/json")) throw new CommandError(415, "json_required", "JSON body required.");
+  const parts: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += Buffer.byteLength(chunk);
+    if (size > 16_384) throw new CommandError(413, "body_too_large", "Command body is too large.");
+    parts.push(Buffer.from(chunk));
+  }
+  try { return JSON.parse(Buffer.concat(parts).toString("utf8")); }
+  catch { throw new CommandError(400, "invalid_json", "Invalid JSON body."); }
+}
 export function createTrackServer(store: Store, config: () => Config, webRoot: string, sources = new Sources(store, config)) {
   const root = resolve(webRoot);
   const snapshot = (user: string) => store.snapshot(user, sources.views(user));
+  const commands = new CommandService(store);
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -27,7 +42,25 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const user = authenticate(request, current);
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       const url = new URL(request.url ?? "/", "http://localhost");
-      if (request.method !== "GET") { json(response, 405, { error: "read_only", detail: "원본 명령 계약이 검증되기 전에는 실행하지 않습니다." }); return; }
+      if (request.method === "POST" && url.pathname === "/api/commands/cancel") {
+        if (!validMutationOrigin(request, current)) { json(response, 403, { error: "invalid_origin" }); return; }
+        const input = await jsonBody(request);
+        const runKey = input && typeof input === "object" && "runKey" in input && typeof input.runKey === "string" ? input.runKey : "";
+        const receipt = await commands.execute(user, input, commandPorts(store, config, snapshot, user, runKey, true));
+        json(response, 200, { receipt }); return;
+      }
+      if (request.method !== "GET") { json(response, 405, { error: "unsupported_method" }); return; }
+      if (url.pathname === "/api/commands") {
+        const key = url.searchParams.get("run") ?? "";
+        if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
+        const receipts = commands.list(user, key);
+        const ports = commandPorts(store, config, snapshot, user, key, false);
+        for (let i = 0; i < receipts.length; i++) {
+          const receipt = receipts[i]!;
+          if (["requested", "dispatching", "accepted", "unknown"].includes(receipt.state)) receipts[i] = await commands.reconcile(user, receipt.id, ports);
+        }
+        json(response, 200, { receipts }); return;
+      }
       if (url.pathname === "/api/health") {
         json(response, 200, { status: "ok", schema: 2, version: "0.1.0", integrity: store.integrity() }); return;
       }
@@ -69,10 +102,13 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const contents = await readFile(target);
         response.writeHead(200, { "Content-Type": type }); response.end(contents);
       } catch { json(response, 404, { error: "asset_not_found" }); }
-    } catch {
+    } catch (error) {
       if (response.headersSent) response.end();
+      else if (error instanceof CommandError) json(response, error.status, { error: error.code, detail: error.message });
       else json(response, 503, { error: "configuration_or_storage_unavailable" });
     }
   });
+  server.requestTimeout = 15_000;
+  server.headersTimeout = 10_000;
   return { server, sources };
 }

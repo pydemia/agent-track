@@ -1,0 +1,67 @@
+{
+  "verifiedAt": "2026-11-11T12:08:57.763Z",
+  "scope": "unauthenticated-public-and-operator-hop",
+  "browserLoginVerified": false,
+  "results": [
+    {
+      "name": "login",
+      "status": 302,
+      "passed": true
+    },
+    {
+      "name": "snapshot-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "stream-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "public-basic-rejected",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "forged-identity-rejected",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "forged-cookie-rejected",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "operator-snapshot",
+      "passed": true,
+      "runs": 233,
+      "workspaces": 7
+    },
+    {
+      "name": "operator-icon",
+      "route": "/assets/favicon-juS3qOhu.svg",
+      "contentType": "image/svg+xml",
+      "bytes": 280,
+      "sha256": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b",
+      "passed": true
+    },
+    {
+      "name": "operator-icon",
+      "route": "/favicon-32.png",
+      "contentType": "image/png",
+      "bytes": 694,
+      "sha256": "936d3c9122dc776b520c99adeac1daf01adcb98e6de11b5b1ce9513ff6dc5228",
+      "passed": true
+    },
+    {
+      "name": "operator-icon",
+      "route": "/favicon.ico",
+      "contentType": "image/x-icon",
+      "bytes": 716,
+      "sha256": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb",
+      "passed": true
+    }
+  ]
+}

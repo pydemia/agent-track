@@ -3,12 +3,15 @@ import { createHash } from "node:crypto";
 import { DemianClient, SourceError } from "../../packages/adapters/demian/index.ts";
 import { CodexCollector } from "../../packages/adapters/codex/index.ts";
 import { terminalStatuses, type SourceView } from "../../packages/contracts/index.ts";
+import { externalKey } from "../../packages/contracts/index.ts";
 import type { Store } from "../../packages/storage/store.ts";
 import type { Config, SourceConfig } from "./config.ts";
 
 export class Sources {
   private states = new Map<string, SourceView>();
   private pending = new Map<string, AbortController>();
+  private authorizations = new Map<string, Promise<void>>();
+  private deniedRevisions = new Map<string, number>();
   private stopped = false;
   private codex: CodexCollector;
   private shutdown = new AbortController();
@@ -17,9 +20,13 @@ export class Sources {
   constructor(private store: Store, private config: () => Config) { this.codex = new CodexCollector(store); }
 
   views(user: string): Array<SourceView & { uiBaseUrl?: string }> {
-    return this.config().sources.filter((source) => source.users.includes(user)).map((source) => ({
-      ...this.state(source), ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
-    }));
+    const config = this.config();
+    const singleOwner = config.auth.mode === "proxy" && config.auth.users.length === 1 && config.auth.users[0] === user;
+    return config.sources.filter((source) => source.users.includes(user)).map((source) => {
+      const view = this.state(source);
+      return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
+        capabilities: [...view.capabilities, ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
+    });
   }
 
   private state(source: SourceConfig): SourceView {
@@ -67,11 +74,17 @@ export class Sources {
           if (source.kind !== "demian" || !source.baseUrl) continue;
           const client = new DemianClient({ sourceId: source.id, baseUrl: source.baseUrl,
             ...(source.tokenFile ? { tokenFile: source.tokenFile } : {}),
+            ...(source.credentialFormat ? { credentialFormat: source.credentialFormat } : {}),
             ...(source.organizationId ? { organizationId: source.organizationId } : {}) });
           try {
+            const deniedRevision = this.deniedRevisions.get(source.id) ?? 0;
             const known = this.store.db.prepare("SELECT run_id FROM runs WHERE source_id=?").all(source.id).map((r) => String(r.run_id));
-            const discovered = source.discoverActive ? await client.discoverActiveRuns() : [];
-            const runIds = new Set([...source.runIds, ...known, ...discovered]);
+            const discovery = source.discoverActive || source.discoverHistory ? await client.discoverRuns({
+              history: source.discoverHistory ?? false, maxPages: source.historyPageLimit ?? 4,
+              cursor: (sessionId) => String(this.store.db.prepare("SELECT value FROM metadata WHERE key=?")
+                .get(`message_cursor:${externalKey(source.id, sessionId)}`)?.value ?? "0"),
+            }) : { runIds: [], cursors: new Map<string, string>(), sessions: 0, incompleteSessions: 0 };
+            const runIds = new Set([...source.runIds, ...known, ...discovery.runIds]);
             for (const runId of runIds) {
               const observation = await client.observe(runId);
               this.store.observeRun(observation);
@@ -79,24 +92,35 @@ export class Sources {
               if (!this.pending.has(key)) {
                 const controller = new AbortController();
                 this.pending.set(key, controller);
+                let authorize!: () => void;
+                let rejectAuthorization!: (error: unknown) => void;
+                const authorization = new Promise<void>((resolve, reject) => { authorize = resolve; rejectAuthorization = reject; });
+                this.authorizations.set(key, authorization);
                 // A bounded stream refreshes authorization and snapshots each cycle.
                 const timeout = setTimeout(() => controller.abort(), terminalStatuses.has(observation.status) ? 5000 : 30_000);
-                void client.stream(runId, this.store.cursor(source.id, runId), (event) => this.store.ingest(event), controller.signal, () => {
-                  this.states.set(source.id, { ...this.state(source), state: "connected", lastObservedAt: new Date().toISOString(),
-                    detail: "명시된 Run 및 허용한 세션의 현재 Run 조회. 전체 과거 실행 feed는 제공되지 않습니다.",
-                    capabilities: ["run.read", "events.read", "session.link"] });
-                })
+                void client.stream(runId, this.store.cursor(source.id, runId), (event) => this.store.ingest(event), controller.signal, authorize)
                   .catch((error: unknown) => {
+                    rejectAuthorization(error);
                     if (error instanceof SourceError && [401, 403, 404].includes(error.status)) {
+                      this.deniedRevisions.set(source.id, (this.deniedRevisions.get(source.id) ?? 0) + 1);
                       this.states.set(source.id, { ...this.state(source), state: "forbidden", detail: "원본 접근이 거부되거나 철회됐습니다." });
                     } else if (!controller.signal.aborted) {
                       this.states.set(source.id, { ...this.state(source), state: "disconnected", detail: "이벤트 연결을 다시 확인합니다. 수집 누락 표시를 확인하세요." });
                     }
-                  }).finally(() => { clearTimeout(timeout); this.pending.delete(key); });
+                  }).finally(() => { clearTimeout(timeout); this.pending.delete(key); this.authorizations.delete(key); });
               }
+              // A late allowed stream must never reopen another Run's denied cache.
+              // Publish connected only after the entire source scope passes both reads.
+              await this.authorizations.get(key);
             }
-            if (!runIds.size && source.discoverActive) this.states.set(source.id, { ...this.state(source), state: "connected",
-              lastObservedAt: new Date().toISOString(), detail: "원본 조회 성공. 현재 발견된 Run이 없습니다.", capabilities: ["run.read", "events.read", "session.link"] });
+            if ((this.deniedRevisions.get(source.id) ?? 0) !== deniedRevision) throw new SourceError(403);
+            // Commit discovery cursors only after every discovered Run was authorized and observed.
+            for (const [sessionId, cursor] of discovery.cursors) this.store.db.prepare("INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
+              .run(`message_cursor:${externalKey(source.id, sessionId)}`, cursor);
+            this.states.set(source.id, { ...this.state(source), state: "connected", lastObservedAt: new Date().toISOString(),
+              detail: !runIds.size ? "원본 조회 성공. 현재 발견된 Run이 없습니다." : source.discoverHistory
+                ? `허용된 ${discovery.sessions}개 세션의 현재 Run·메시지 메타데이터에서 찾은 실행. 부분 이력 ${discovery.incompleteSessions}개 세션. 전역 과거 Run feed와 별개입니다.`
+                : "명시된 Run 및 허용한 세션의 현재 Run 조회. 전체 과거 실행 feed는 제공되지 않습니다.", capabilities: ["run.read", "events.read", "session.link"] });
           } catch (error) {
             const forbidden = error instanceof SourceError && [401, 403, 404].includes(error.status);
             this.states.set(source.id, { ...this.state(source), state: forbidden ? "forbidden" : "disconnected",

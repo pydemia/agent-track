@@ -77,6 +77,19 @@ test("binding history remains Run-scoped and requires both source grants", () =>
   assert.equal(snapshot.runs.find((r) => r.runId === "run-1")?.binding?.taskId, "task-2");
   assert.equal(snapshot.runs.find((r) => r.runId === "run-2")?.binding, null); db.close();
 });
+test("project/workspace filter identities include source IDs and never merge equal titles", () => {
+  const db = new Store(":memory:");
+  db.observeRun(run("native-a")); db.observeRun(run("native-b"));
+  for (const [sourceId, projectId] of [["native-a", "project-a"], ["native-b", "project-b"]]) {
+    db.bind({ sourceId: sourceId!, runId: "run-1", projectSourceId: "projects", projectId: projectId!,
+      projectTitle: "같은 제목", taskId: null, taskRevision: null, taskTitle: null, provenance: "operator" }, "owner");
+  }
+  const runs = db.snapshot("owner", [source("native-a"), source("native-b"), source("projects")]).runs;
+  assert.equal(new Set(runs.map((r) => r.projectKey)).size, 2);
+  assert.equal(new Set(runs.map((r) => r.workspaceKey)).size, 2);
+  assert.ok(runs.every((r) => !r.projectKey?.includes("같은 제목") && !r.workspaceKey?.includes("ws-1")));
+  db.close();
+});
 test("typed relations do not inflate Run counts or merge invocation, cowork and peer", () => {
   const db = new Store(":memory:"); db.observeRun(run());
   db.ingest(event("1", { redacted: true, invocationId: "child", parentInvocationId: "root" }));
@@ -131,6 +144,54 @@ test("native adapter only accepts matching Run and SSE cursor identity", async (
   const client = new DemianClient({ sourceId: "demian", baseUrl: "http://localhost:8080", fetch: fakeFetch });
   await assert.rejects(() => client.observe("run-1"), /identity/);
   await assert.rejects(() => client.stream("run-1", "0", () => {}, AbortSignal.timeout(3000)), /identity/);
+});
+test("native service credential references private JSON without exporting unrelated values", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "track-credential-"));
+  const file = join(dir, "secrets.json");
+  writeFileSync(file, JSON.stringify({ apiToken: "test-only-native-token", databasePassword: "must-not-forward" }));
+  const fakeFetch: typeof fetch = async (_input, init) => {
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("authorization"), "Bearer test-only-native-token");
+    assert.doesNotMatch(JSON.stringify([...headers]), /must-not-forward/);
+    return Response.json({ id: "run-1", session_id: "session-1", status: "running", created_at: timestamp, started_at: timestamp, completed_at: null, workspace_id: "ws", title: "test" });
+  };
+  try {
+    const client = new DemianClient({ sourceId: "demian", baseUrl: "http://localhost:8080", tokenFile: file, credentialFormat: "demian-service", fetch: fakeFetch });
+    // Session identity validation still applies after the credential is resolved.
+    await assert.rejects(() => client.observe("run-1"), /identity/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+test("native cancel uses the fixed Run route and validates the source acknowledgement", async () => {
+  const fakeFetch: typeof fetch = async (input, init) => {
+    assert.equal(new URL(String(input)).pathname, "/api/v1/runs/run-1/cancel");
+    assert.equal(init?.method, "POST");
+    assert.equal(new Headers(init?.headers).get("content-type"), "application/json");
+    assert.deepEqual(JSON.parse(String(init?.body)), {});
+    return Response.json({ id: "run-1", status: "cancelling" });
+  };
+  const client = new DemianClient({ sourceId: "demian", baseUrl: "http://localhost:8080", fetch: fakeFetch });
+  assert.deepEqual(await client.cancel("run-1"), { runId: "run-1", status: "cancelling" });
+  const wrong = new DemianClient({ sourceId: "demian", baseUrl: "http://localhost:8080", fetch: async () => Response.json({ id: "other", status: "cancelled" }) });
+  await assert.rejects(() => wrong.cancel("run-1"), /identity/);
+});
+test("native history discovery retains only Run IDs and a separate string message cursor", async () => {
+  const fakeFetch: typeof fetch = async (input) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith("/workspaces")) return Response.json({ data: [{ id: "ws" }] });
+    if (url.pathname === "/api/v1/sessions") return Response.json({ data: [{ id: "session" }] });
+    if (url.pathname.endsWith("/messages")) {
+      assert.equal(url.searchParams.get("after"), "9007199254740993");
+      return Response.json({ data: ["SECRET MESSAGE"], entries: [{ run_id: "historical-run", sequence: "9007199254740994" }],
+        next_cursor: null, has_more: false, incomplete_history: false });
+    }
+    return Response.json({ active_run_id: null });
+  };
+  const client = new DemianClient({ sourceId: "demian", baseUrl: "http://localhost:8080", fetch: fakeFetch });
+  const result = await client.discoverRuns({ history: true, cursor: () => "9007199254740993" });
+  assert.deepEqual(result.runIds, ["historical-run"]);
+  assert.equal(result.cursors.get("session"), "9007199254740994");
+  assert.equal(result.incompleteSessions, 0);
+  assert.doesNotMatch(JSON.stringify(result), /SECRET|MESSAGE/);
 });
 test("API enforces proxy identity, rejects Basic/forgeries, revokes streams and filters projects", async () => {
   const dir = mkdtempSync(join(tmpdir(), "track-api-"));

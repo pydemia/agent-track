@@ -171,7 +171,7 @@ flowchart LR
 | AT-09/10 | action, dialog / pending·expired·denied | focus, warning, primary | 작업 상세; 효과 범위·중복 클릭 확인 |
 | AT-12 | graph + relationship table | node/edge role, selected | Map; 같은 관계를 키보드·목록으로 탐색 |
 
-favicon은 필수입니다. 승인된 pydemia 심벌 재사용 가능 여부를 확인한 후 SVG와 16/32px ICO 또는 PNG fallback을 준비합니다. 현재 시안의 T 글자 아이콘은 임시 자산입니다. 제품 배포 시 head 경로·Content-Type·인증 redirect·CSP·HTML fallback·실제 bytes/hash·light/dark·브라우저 탭/cache를 검사합니다. 현재 제품 favicon 검증은 미실행입니다.
+favicon은 필수입니다. 승인된 pydemia 심벌 재사용 가능 여부를 확인한 후 SVG와 16/32px ICO 또는 PNG fallback을 준비합니다. 현재 시안의 T 글자 아이콘은 임시 자산입니다. 제품 배포 시 head 경로·Content-Type·인증 redirect·CSP·HTML fallback·실제 bytes/hash·light/dark·브라우저 탭/cache를 검사합니다. 현재 제품의 별도 A favicon SVG/PNG/ICO와 인증 후 관측한 공개 bytes/hash·탭 표시는 검증했습니다. 예시 HTML의 임시 아이콘과 구별합니다.
 
 시안의 HTML/JavaScript 구문은 확인했습니다. 브라우저 도구가 file URL을 차단하여 실제 렌더링·조작·좁은 화면 검수는 미실행입니다. 시안을 다운로드하거나 로컬 브라우저에서 직접 열어 검토할 수 있습니다. 제품 UI의 수용 검사를 통과한 산출물로 취급하지 않습니다.
 
@@ -187,13 +187,13 @@ favicon은 필수입니다. 승인된 pydemia 심벌 재사용 가능 여부를 
 
 성능 수용의 초기 제안은 100개 동시 Run·초당 50 event의 고정 fixture에서 ingest→화면 p95 2초 이내, 30분 단절 후 재수신 데이터 누락 0입니다. 목표치이며 아직 측정하지 않았습니다. 하드웨어·브라우저·로그 adapter 버전·sampling을 고정하고 CPU/메모리·전송량·unknown 비율을 함께 기록합니다. 실제 요구 규모를 확인한 뒤 목표를 조정합니다.
 
-즉시 다음 구현은 P0와 그에 의존하지 않는 P1 기반 작업입니다. 기존 프로젝트/작업 원장의 소유권, 앱별 제어 capability, pydemia-desktop 코드 위치/bridge를 조사합니다. 운영 인증은 Entra ID로 확정했고 전용 앱 등록·credential 설정을 준비했으나 Track 제품에서의 실제 로그인은 아직 미검증입니다. desktop 미확인을 이유로 공통 원장·첫 실데이터 화면까지 모두 대기하지 않습니다. 구현 일정은 계약 조사 후 추정합니다.
+즉시 다음 구현은 P0와 그에 의존하지 않는 P1 기반 작업입니다. 기존 프로젝트/작업 원장의 소유권, 앱별 제어 capability, pydemia-desktop 코드 위치/bridge를 조사합니다. 운영 인증은 Entra ID로 구성했고 Track 전용 로그인·API/SSE·logout·재로그인을 검증했습니다. desktop 미확인을 이유로 공통 원장·첫 실데이터 화면까지 모두 대기하지 않습니다. 구현 일정은 계약 조사 후 추정합니다.
 
 ## 10.1 현재 달성 상태
 
-2026-11-11 구현 goal을 시작했습니다. 제품 웹·API·SQLite 원장·Demian snapshot/SSE adapter·Codex metadata collector를 작성하고 검증 중입니다. 명령·승인·Projects/Assistant/desktop의 native 연결은 남아 있습니다. 현재 전체 수용 기준은 AT-01~21이며 [goal 기준표](goal-status.md)와 [개발계획](development-plan.md)에 상태·증거를 기록합니다. Entra 준비와 AgentTrail 검증을 제품 완료로 환산하지 않습니다.
+2026-11-11 구현 goal을 시작했습니다. 제품 웹·API·SQLite 원장·Demian snapshot/SSE adapter·Codex metadata collector를 작성하고 검증 중입니다. 실제 native Run 관측과 단일 소유자 취소·receipt, 백업/별도 복원을 검증했습니다. 재개·승인·Projects/Assistant/desktop의 native 연결은 남아 있습니다. 현재 전체 수용 기준은 AT-01~21이며 [goal 기준표](goal-status.md)와 [개발계획](development-plan.md)에 상태·증거를 기록합니다. Entra 준비와 AgentTrail 검증을 제품 완료로 환산하지 않습니다.
 
-최근의 다중 프로젝트 관측·SNB 개선·원본 PR #21은 벤치마크 앱 작업입니다. 이 경험은 AT-15/16의 설계 근거로 사용하되 Track에 이미 구현한 기능으로 표시하지 않습니다. 기존 예시 HTML은 전체 프로젝트·SNB 요구를 반영한 실제 제품 화면으로 후속 교체해야 합니다.
+최근의 다중 프로젝트 관측·SNB 개선·원본 PR #21은 벤치마크 앱 작업입니다. 이 경험을 바탕으로 Track의 독립 SNB·전체 저장소 조회를 구현하고 실기 검사했습니다. 기존 예시 HTML은 검토용이며 현재 실제 제품 React 화면과 구별합니다.
 
 ## 11. 근거
 

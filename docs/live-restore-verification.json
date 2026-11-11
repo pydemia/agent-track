@@ -1,0 +1,15 @@
+{
+  "verifiedAt": "2026-11-11T11:57:04.425Z",
+  "liveOnlineBackup": true,
+  "independentRestore": true,
+  "integrity": "ok",
+  "journalCursorBindingDigestsMatch": true,
+  "receiptDigestMatchedBeforeRecovery": true,
+  "pendingReceiptsRecoveredWithoutDispatch": 0,
+  "restoredApiRuns": 232,
+  "restoredApiRelations": 0,
+  "tableCounts": { "metadata": 12, "runs": 232, "events": 17456, "event_digests": 0, "bindings": 0, "receipts": 1 },
+  "productionDatabaseSwitched": false,
+  "backupAndRestoreKeptPrivate": true,
+  "limits": "Live database had no bindings or pending receipts. Those cases and archive tombstones were checked with deterministic fixtures."
+}

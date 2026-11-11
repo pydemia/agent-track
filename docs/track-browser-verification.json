@@ -1,0 +1,11 @@
+{
+  "verifiedDate": "2026-11-11",
+  "origin": "https://track.pydemia.ai",
+  "browser": "Edge",
+  "method": "CUA visible UI and observed page assets; no browser cookies exported",
+  "entra": { "ownAccountConsent": true, "organizationConsent": false, "login": true, "snapshotAndSse": true, "logoutHidesApi": true, "relogin": true },
+  "nativeTrace": { "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c", "terminalStatus": "succeeded", "lastSequence": "17", "redacted": true },
+  "nativeCancelReceipt": { "runId": "7b2f5cb4-3ed0-4222-8b6a-1afb8ca789e4", "runStatus": "cancelled", "receiptLabel": "취소 종료 확인", "terminalCancelButtonDisabled": true, "dispatchMethod": "operator HTTP integration check, not a browser button click" },
+  "favicon": { "authenticatedObservedAssetsMatchBuild": true, "icoBytes": 716, "icoSha256": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb", "svgBytes": 280, "svgSha256": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b" },
+  "limits": ["Native cancel confirmation button flow not yet clicked against a live Run", "Complete empty/error/revocation UI matrix remains unverified"]
+}

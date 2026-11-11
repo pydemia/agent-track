@@ -57,6 +57,7 @@ export interface DemianOptions {
   sourceId: string;
   baseUrl: string;
   tokenFile?: string;
+  credentialFormat?: "plain" | "demian-service";
   organizationId?: string;
   fetch?: typeof fetch;
 }
@@ -68,16 +69,20 @@ export class SourceError extends Error {
 export class DemianClient {
   constructor(readonly options: DemianOptions) {}
 
-  private async request(path: string, signal?: AbortSignal): Promise<Response> {
+  private async request(path: string, signal?: AbortSignal, body?: object): Promise<Response> {
     const headers: Record<string, string> = { Accept: "application/json" };
+    if (body) headers["Content-Type"] = "application/json";
     if (this.options.tokenFile) {
-      const token = (await readFile(this.options.tokenFile, "utf8")).trim();
+      const text = (await readFile(this.options.tokenFile, "utf8")).replace(/^\uFEFF/, "").trim();
+      const token = this.options.credentialFormat === "demian-service"
+        ? z.object({ apiToken: z.string().min(1) }).parse(JSON.parse(text)).apiToken : text;
       if (!token || /\s/.test(token)) throw new Error("Invalid source credential file");
       headers.Authorization = `Bearer ${token}`;
     }
     if (this.options.organizationId) headers["X-Demian-Organization-Id"] = this.options.organizationId;
     const response = await (this.options.fetch ?? fetch)(`${this.options.baseUrl.replace(/\/$/, "")}${path}`, {
       headers, redirect: "error", signal: signal ?? AbortSignal.timeout(15_000),
+      ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
     });
     if (!response.ok) { await response.body?.cancel(); throw new SourceError(response.status); }
     return response;
@@ -99,21 +104,53 @@ export class DemianClient {
       observedAt: new Date().toISOString() });
   }
 
-  async discoverActiveRuns(): Promise<string[]> {
+  async cancel(runId: string): Promise<{ runId: string; status: RunObservation["status"] }> {
+    const raw = z.object({ id: idSchema, status: statusSchema }).parse(await (
+      await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/cancel`, undefined, {})
+    ).json());
+    if (raw.id !== runId) throw new Error("Source cancel identity mismatch");
+    return { runId: raw.id, status: raw.status };
+  }
+
+  async discoverRuns(options: { history?: boolean; maxPages?: number; cursor?: (sessionId: string) => string } = {}): Promise<{ runIds: string[]; cursors: Map<string, string>; sessions: number; incompleteSessions: number }> {
     const workspaces = z.object({ data: z.array(z.object({ id: idSchema })) })
       .parse(await (await this.request("/api/v1/workspaces")).json());
     const runs = new Set<string>();
+    const cursors = new Map<string, string>();
+    let sessionCount = 0;
+    let incompleteSessions = 0;
     for (const workspace of workspaces.data) {
       const sessions = z.object({ data: z.array(z.object({ id: idSchema, active_run_id: idSchema.nullish() })) })
         .parse(await (await this.request(`/api/v1/sessions?workspace_id=${encodeURIComponent(workspace.id)}`)).json());
       for (const session of sessions.data) {
+        sessionCount++;
         // Collection resources may omit active_run_id; an authorized detail read is required.
         const detail = z.object({ active_run_id: idSchema.nullish() })
           .parse(await (await this.request(`/api/v1/sessions/${encodeURIComponent(session.id)}`)).json());
         if (detail.active_run_id) runs.add(detail.active_run_id);
+        if (options.history) {
+          let after = sequenceSchema.parse(options.cursor?.(session.id) ?? "0");
+          let partial = false;
+          for (let page = 0; page < (options.maxPages ?? 4); page++) {
+            // Only entries are retained; message bodies in the native response are discarded.
+            const history = z.object({
+              entries: z.array(z.object({ run_id: idSchema.nullable(), sequence: sequenceSchema })),
+              next_cursor: sequenceSchema.nullable(), has_more: z.boolean(), incomplete_history: z.boolean(),
+            }).parse(await (await this.request(`/api/v1/sessions/${encodeURIComponent(session.id)}/messages?limit=500&after=${after}`)).json());
+            for (const entry of history.entries) if (entry.run_id) runs.add(entry.run_id);
+            const last = history.entries.at(-1)?.sequence;
+            if (last && BigInt(last) > BigInt(after)) { after = last; cursors.set(session.id, after); }
+            partial ||= history.incomplete_history;
+            if (!history.has_more) break;
+            if (!history.next_cursor || BigInt(history.next_cursor) < BigInt(after) || history.entries.length === 0) throw new Error("Invalid native message discovery cursor");
+            after = history.next_cursor;
+            if (page === (options.maxPages ?? 4) - 1) partial = true;
+          }
+          if (partial) incompleteSessions++;
+        }
       }
     }
-    return [...runs];
+    return { runIds: [...runs], cursors, sessions: sessionCount, incompleteSessions };
   }
 
   async stream(runId: string, after: string, consume: (event: ObservationEvent) => void, signal: AbortSignal, opened?: () => void): Promise<void> {

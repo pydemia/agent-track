@@ -187,6 +187,8 @@ export class Store {
         stale: source.state !== "connected" || (!terminalStatuses.has(observation.status) && now - Date.parse(observation.observedAt) > 90_000),
         binding, sourceLabel: source.label, device: source.device,
         sourceState: source.state, sourceUrl, capabilities: source.capabilities,
+        workspaceKey: observation.workspaceId ? `workspace:${createHash("sha256").update(JSON.stringify([observation.sourceId, observation.workspaceId])).digest("base64url")}` : null,
+        projectKey: binding ? `project:${createHash("sha256").update(JSON.stringify([binding.projectSourceId, binding.projectId])).digest("base64url")}` : null,
       });
       relations.push(...this.relations(row.key));
     }

@@ -39,10 +39,8 @@ credential은 `~/.local/share/agent-track-sso/track/`의 mode 600 파일에 둔�
 
 ## 수집과 권한 한계
 
-Demian은 현재 `127.0.0.1:8080`에서 bearer token을 요구한다. 전용 token 파일
-경로를 확인하기 전에는 원본 인증을 약화하지 않는다. source 설정에 tokenFile을
-추가한 뒤 소스 권한 안의 세션·알려진 Run을 조회한다. 전역 과거 Run feed는
-기존 API에 없으므로 명시 Run + 허용한 현재 Run만 수집한다.
+Demian은 현재 `127.0.0.1:8080`에서 bearer token을 요구한다. 기존 private 설치 파일의 apiToken을 직접 참조한다(credentialFormat=demian-service). 원본 인증은 유지하며 source의 소유자 권한 안에서 세션·알려진 Run을 조회한다. 전역 과거 Run feed는
+기존 API에 없으므로 명시 Run + 허용한 현재 Run을 수집한다. `discoverHistory=true`를 명시하면 세션 메시지 entry의 Run ID와 별도 message cursor만 남겨 과거 Run을 찾는다. 메시지 본문은 일시 응답 디코딩 후 버리고 저장/표시하지 않는다. 페이지 상한·부분 이력은 연결 설명에 표시한다.
 
 Codex는 허용한 Git 폴더의 최근 7일·최신100개 jsonl을 읽는다. 64MiB 초과
 파일과 파일 수 제한으로 제외한 개수를 연결 정보에 표시한다. 다른 위치·
@@ -56,7 +54,7 @@ grant로 넘어가는 것을 막는다. label·credential 회전은 identity 변
 
 Projects가 붙은 Run은 Project source의 연결/grant도 있어야 조회할 수 있다.
 현재 구현은 초기 owner 배포용 source grant이며 다중 사용자 native Project ACL
-교집합 검증을 완료한 것이 아니다. 원본 명령·승인은 활성화하지 않았다.
+교집합 검증을 완료한 것이 아니다. 기본 설정 `cancelUsers=[]`는 제어를 닫는다. 현재 운영은 기존 Entra 소유자 한 명만 `cancelUsers`에 명시해 Demian 취소를 연다. `auth.users`가 여러 명이면 취소를 자동 비활성화한다. 원본 credential이 admin 수준이므로 다중 사용자 권한 위임으로 확대하지 않는다. 승인·재개·재시도는 미지원이다.
 
 ## 백업·보존·복구
 
@@ -78,8 +76,16 @@ payload만 줄인다. Run ID·binding·cursor·event digest tombstone은 보존�
 기존 백업을 덮지 않는다. integrity, source cursor, binding, receipt 상태를
 대조한 뒤 시작한다. unknown 명령을 복원만으로 재실행하지 않는다.
 
+## 취소 처리와 한계
+
+`POST /api/commands/cancel`은 Entra proxy principal·정확한 Origin·source grant·Run capability를 검사한다. UUID와 payload digest를 원장에 기록하고 동일 요청은 동일 receipt를 반환한다. 같은 계정/Run에 결과 미확정 요청이 있으면 다른 UUID도 거부한다. native 인가·최신 Run을 다시 확인하고 120초 이내 deadline을 재검사한 뒤 전송한다. 원본 `cancelling`은 이미 진행 중이므로 추가 전송하지 않는다.
+
+접수는 종료와 별도다. 통신 결과 미확정·재시작 시 unknown으로 두고 원본을 읽어서만 정리하며 자동 재전송하지 않는다. native cancel은 expected cursor 조건을 받지 않는다. Track cursor는 로컬 이력의 신선도 검사이며 원본 원자적 version precondition은 아니다. 미확정 기록이 남으면 원본 세션에서 상태를 확인한다. credential·사용자 입력은 브라우저 body/URL에 전달하지 않는다.
+
+실기에서 격리 Run을 accepted→cancelled로 취소하고 동일 요청 재수신을 대조했다. 공개 UI에서 receipt를 확인했다. 버튼 클릭 실기와 나머지 명령은 별도 미검증이다.
+
 ## 남은 운영 검사
 
-최초 Entra 본인 계정 동의·공개 로그인/SSE/logout은 사용자 확인 대기다.
-실제 Demian native 실행, 타 앱 연결, 명령/승인, 다른 장치, 장시간/규모 검증은
+최초 Entra 본인 계정 동의·공개 로그인/SSE/logout·재로그인과 실제 native Run 관측을 확인했다.
+타 앱 연결, 취소 UI 클릭·승인/재개/재시도, 다른 장치, 장시간/규모 검증은
 남아 있다. 현재 서비스 노출과 전체 goal 완료를 구별한다.
