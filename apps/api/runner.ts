@@ -13,6 +13,8 @@ export class Sources {
   private pending = new Map<string, AbortController>();
   private authorizations = new Map<string, Promise<void>>();
   private deniedRevisions = new Map<string, number>();
+  private failedRevisions = new Map<string, number>();
+  private authorizedIdentities = new Map<string, string>();
   private stopped = false;
   private codex: CodexCollector;
   private shutdown = new AbortController();
@@ -58,6 +60,24 @@ export class Sources {
     return sourceIdentity(source);
   }
 
+  private unavailable(source: SourceConfig): void {
+    // A transport failure is not a fresh grant and cannot undo a known denial.
+    // Keep stale data only after this process validated the entire native scope.
+    const authorized = this.authorizedIdentities.get(source.id) === this.identity(source);
+    this.states.set(source.id, { ...this.state(source), state: authorized ? "disconnected" : "forbidden",
+      ...(!authorized ? { capabilities: [] } : {}),
+      detail: authorized ? "원본 연결 실패. 마지막 관측을 보존하고 재시도합니다."
+        : "원본 연결 실패로 인가를 확인하지 못했습니다. 캐시된 실행은 숨기고 재시도합니다." });
+  }
+
+  private deny(source: SourceConfig, detail: string): void {
+    this.deniedRevisions.set(source.id, (this.deniedRevisions.get(source.id) ?? 0) + 1);
+    this.authorizedIdentities.delete(source.id);
+    // Previously opened streams cannot serve as post-denial authorization.
+    for (const [key, controller] of this.pending) if (key.startsWith(`${source.id}/`)) controller.abort();
+    this.states.set(source.id, { ...this.state(source), state: "forbidden", capabilities: [], detail });
+  }
+
   async start(): Promise<void> {
     while (!this.stopped) {
       try {
@@ -65,6 +85,7 @@ export class Sources {
         for (const source of config.sources) {
           const identity = this.identity(source);
           if (!this.store.pinSourceIdentity(source.id, identity)) {
+            this.authorizedIdentities.delete(source.id);
             for (const [key, controller] of this.pending) if (key.startsWith(`${source.id}/`)) controller.abort();
             continue;
           }
@@ -86,6 +107,7 @@ export class Sources {
             ...(source.organizationId ? { organizationId: source.organizationId } : {}) });
           try {
             const deniedRevision = this.deniedRevisions.get(source.id) ?? 0;
+            const failedRevision = this.failedRevisions.get(source.id) ?? 0;
             const known = this.store.db.prepare("SELECT run_id FROM runs WHERE source_id=?").all(source.id).map((r) => String(r.run_id));
             const discovery = source.discoverActive || source.discoverHistory ? await client.discoverRuns({
               history: source.discoverHistory ?? false, maxPages: source.historyPageLimit ?? 4,
@@ -93,10 +115,24 @@ export class Sources {
                 .get(`message_cursor:${externalKey(source.id, sessionId)}`)?.value ?? "0"),
             }) : { runIds: [], cursors: new Map<string, string>(), sessions: 0, incompleteSessions: 0 };
             const runIds = new Set([...source.runIds, ...known, ...discovery.runIds]);
+            if (!runIds.size && !source.discoverActive && !source.discoverHistory) {
+              if (!source.assignmentSessionIds?.length) {
+                this.authorizedIdentities.delete(source.id);
+                this.states.set(source.id, { ...this.state(source), state: "forbidden", capabilities: [],
+                  detail: "조회할 Run 또는 Session 범위가 지정되지 않았습니다. 원본 인가를 확인하기 전입니다." });
+                continue;
+              }
+              // An explicitly scoped existing Session can accept its first Run.
+              // Do not fabricate a connected state merely because the Run set is empty.
+              for (const sessionId of source.assignmentSessionIds) await client.verifySessionAccess(sessionId);
+            }
             for (const runId of runIds) {
               const observation = await client.observe(runId);
-              this.store.observeRun(observation);
               const key = `${source.id}/${runId}`;
+              if (this.pending.get(key)?.signal.aborted) {
+                this.pending.delete(key); this.authorizations.delete(key);
+              }
+              const reuseStream = this.pending.has(key);
               if (!this.pending.has(key)) {
                 const controller = new AbortController();
                 this.pending.set(key, controller);
@@ -106,33 +142,47 @@ export class Sources {
                 this.authorizations.set(key, authorization);
                 // A bounded stream refreshes authorization and snapshots each cycle.
                 const timeout = setTimeout(() => controller.abort(), terminalStatuses.has(observation.status) ? 5000 : 30_000);
-                void client.stream(runId, this.store.cursor(source.id, runId), (event) => this.store.ingest(event), controller.signal, authorize)
+                void client.stream(runId, this.store.cursor(source.id, runId), (event) => this.store.ingest(event), controller.signal, () => {
+                  if (controller.signal.aborted || this.pending.get(key) !== controller ||
+                      (this.deniedRevisions.get(source.id) ?? 0) !== deniedRevision) throw new Error("Source authorization superseded");
+                  // Stage newly discovered metadata until the event read is authorized.
+                  // This also creates the Run before the first synchronous SSE event ingest.
+                  this.store.observeRun(observation); authorize();
+                })
                   .catch((error: unknown) => {
                     rejectAuthorization(error);
+                    if (this.pending.get(key) !== controller) return;
                     if (error instanceof SourceError && [401, 403, 404].includes(error.status)) {
-                      this.deniedRevisions.set(source.id, (this.deniedRevisions.get(source.id) ?? 0) + 1);
-                      this.states.set(source.id, { ...this.state(source), state: "forbidden", detail: "원본 접근이 거부되거나 철회됐습니다." });
+                      this.deny(source, "원본 접근이 거부되거나 철회됐습니다.");
                     } else if (!controller.signal.aborted) {
-                      this.states.set(source.id, { ...this.state(source), state: "disconnected", detail: "이벤트 연결을 다시 확인합니다. 수집 누락 표시를 확인하세요." });
+                      this.failedRevisions.set(source.id, (this.failedRevisions.get(source.id) ?? 0) + 1);
+                      this.unavailable(source);
                     }
-                  }).finally(() => { clearTimeout(timeout); this.pending.delete(key); this.authorizations.delete(key); });
+                  }).finally(() => {
+                    clearTimeout(timeout);
+                    if (this.pending.get(key) === controller) { this.pending.delete(key); this.authorizations.delete(key); }
+                  });
               }
               // A late allowed stream must never reopen another Run's denied cache.
               // Publish connected only after the entire source scope passes both reads.
               await this.authorizations.get(key);
+              if (reuseStream) this.store.observeRun(observation);
             }
             if ((this.deniedRevisions.get(source.id) ?? 0) !== deniedRevision) throw new SourceError(403);
+            if ((this.failedRevisions.get(source.id) ?? 0) !== failedRevision) throw new Error("Source stream failed during observation");
             // Commit discovery cursors only after every discovered Run was authorized and observed.
             for (const [sessionId, cursor] of discovery.cursors) this.store.db.prepare("INSERT INTO metadata(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")
               .run(`message_cursor:${externalKey(source.id, sessionId)}`, cursor);
+            this.authorizedIdentities.set(source.id, identity);
             this.states.set(source.id, { ...this.state(source), state: "connected", lastObservedAt: new Date().toISOString(),
               detail: !runIds.size ? "원본 조회 성공. 현재 발견된 Run이 없습니다." : source.discoverHistory
                 ? `허용된 ${discovery.sessions}개 세션의 현재 Run·메시지 메타데이터에서 찾은 실행. 부분 이력 ${discovery.incompleteSessions}개 세션. 전역 과거 Run feed와 별개입니다.`
                 : "명시된 Run 및 허용한 세션의 현재 Run 조회. 전체 과거 실행 feed는 제공되지 않습니다.", capabilities: ["run.read", "events.read", "session.link"] });
           } catch (error) {
             const forbidden = error instanceof SourceError && [401, 403, 404].includes(error.status);
-            this.states.set(source.id, { ...this.state(source), state: forbidden ? "forbidden" : "disconnected",
-              detail: forbidden ? "원본 인증/조회 권한이 필요합니다. 캐시된 실행도 숨깁니다." : "원본 연결 실패. 마지막 관측을 보존하고 재시도합니다." });
+            if (forbidden) {
+              this.deny(source, "원본 인증/조회 권한이 필요합니다. 캐시된 실행도 숨깁니다.");
+            } else this.unavailable(source);
           }
         }
       } catch { /* Invalid/revoked config is fail-closed by every API authorization. */ }

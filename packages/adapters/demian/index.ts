@@ -125,6 +125,13 @@ export class DemianClient {
     return response;
   }
 
+  async verifySessionAccess(sessionId: string): Promise<void> {
+    idSchema.parse(sessionId);
+    const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`);
+    const session = z.object({ id: idSchema, workspace_id: idSchema }).parse(await response.json());
+    if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
+  }
+
   async observe(runId: string): Promise<RunObservation> {
     const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}`);
     const raw = z.object({

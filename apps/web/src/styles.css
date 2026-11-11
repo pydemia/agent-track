@@ -88,6 +88,12 @@ h1 { margin: 9px 0 3px; font-size: clamp(25px, 2.25vw, 33px); line-height: 1.22;
 .notice { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 16px; padding: 11px 14px; border-left: 2px solid var(--amber); background: #292519; color: #f2dba8; font-size: 12px; }
 .notice.error { border-color: var(--red); background: #2b201e; color: #ffd0c4; }
 .notice button, .inline-error button { flex: none; border: 1px solid currentColor; padding: 5px 10px; background: transparent; color: inherit; font-size: 11px; }
+.source-coverage { margin-top: 8px; }
+.source-coverage summary { width: fit-content; cursor: pointer; }
+.source-coverage dl { display: grid; gap: 12px; margin: 12px 0 0; }
+.source-coverage dt { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.source-coverage dd { margin: 4px 0 0; line-height: 1.6; overflow-wrap: anywhere; }
+.source-coverage dd small { display: block; color: var(--muted); }
 .toolbar { display: flex; align-items: center; gap: 20px; min-height: 47px; border-bottom: 1px solid var(--line); }
 .tabs { display: flex; align-self: stretch; gap: 22px; }
 .tabs button { position: relative; min-width: 50px; padding: 0 3px; border: 0; background: transparent; color: var(--muted); font-size: 13px; }

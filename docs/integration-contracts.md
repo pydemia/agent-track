@@ -157,6 +157,34 @@ Assistant's additional Projects task read is
 HEAD `ebb507a6ba43877bff530a4a975203b4374516fd`, relevant working changes).
 It is an Assistant task import, not a Track read principal or summary API.
 
+### Assistant execution metadata follow-up (2026-11-12)
+
+A second read-only source audit reconfirmed baseline `ce066ebc` without modifying
+the Persona worktree. `workbench/execution-routes.ts:28,83` and
+`workbench/executions.ts:592,603` require the current work owner, list at most100
+executions without a list cursor, and page up to100 metadata events. Native
+event/revision values are safe integers, not Demian PostgreSQL int64 cursors.
+The installed Assistant version and any producer deployment remain unverified.
+
+`packages/contracts/src/workbench.ts:110` has an exact Projects Task reference:
+`sourceService=projects`, `sourceId` **is the Task ID**, `projectId`, revision,
+state, canonical URL and observation time. It is not a Track source ID. Resolving
+it to a Track Task requires an explicitly configured native Projects source and
+fresh current Projects access. Historical reference state is not current acceptance.
+`packages/contracts/src/work-execution.ts:77` carries role assignment/state and
+Assistant runtimeTask/thread/turn IDs, without a parent-child graph. Its execution
+ID and the `runtime.runId` published to Projects are Assistant WorkExecution IDs;
+they must not be joined to Demian Runs by ID or similar timestamps.
+
+Next implementation boundary: a separate optional owner-bound, metadata-only
+Assistant read principal/API, wired through native `main.ts`/`api.ts`. It must
+provide bounded stable execution paging and strict allowlisted events, reject
+mutations and wrong owner/audience/scope/expiry, and reload revocation state on
+each request. Existing UI cookies, Entra proxy secrets and outbound Note/Projects
+credentials are not substitute service credentials. Do not read execution result
+Markdown or Note bodies. Explicit Demian/desktop references remain unavailable
+until their producer supplies them; role membership alone is not delegation.
+
 ## Native artifact metadata implementation
 
 Track now provides authenticated `GET /api/runs/:runKey/artifacts`. It rechecks

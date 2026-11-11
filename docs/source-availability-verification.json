@@ -1,0 +1,160 @@
+{
+  "verifiedAt": "2026-11-11T22:54:31.876Z",
+  "scope": "current owner loopback hop and anonymous public access policy",
+  "native": {
+    "state": "forbidden",
+    "lastObservedAt": null,
+    "detail": "원본 연결 실패로 인가를 확인하지 못했습니다. 캐시된 실행은 숨기고 재시도합니다.",
+    "persistedRuns": 19,
+    "visibleRuns": 0,
+    "eventReadStatus": 404
+  },
+  "sourceStates": [
+    {
+      "id": "demian-local",
+      "kind": "demian",
+      "state": "forbidden"
+    },
+    {
+      "id": "codex-local",
+      "kind": "codex",
+      "state": "connected"
+    },
+    {
+      "id": "projects-native",
+      "kind": "projects",
+      "state": "connected"
+    },
+    {
+      "id": "assistant",
+      "kind": "assistant",
+      "state": "unsupported"
+    },
+    {
+      "id": "desktop",
+      "kind": "desktop",
+      "state": "unsupported"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/assets/favicon-juS3qOhu.svg",
+      "status": 200,
+      "mime": "image/svg+xml",
+      "bytes": 280,
+      "sha256": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b"
+    },
+    {
+      "path": "/favicon-32.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 694,
+      "sha256": "936d3c9122dc776b520c99adeac1daf01adcb98e6de11b5b1ce9513ff6dc5228"
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200,
+      "mime": "image/x-icon",
+      "bytes": 716,
+      "sha256": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb"
+    },
+    {
+      "path": "/assets/index-BHEMiZ4R.js",
+      "status": 200,
+      "mime": "text/javascript; charset=utf-8",
+      "bytes": 430091,
+      "sha256": "f717349e189e1822ed6c773115906078fbcc1c420a4430ea866b1b2c0c38f2af"
+    },
+    {
+      "path": "/assets/index-dHDIbPjD.css",
+      "status": 200,
+      "mime": "text/css; charset=utf-8",
+      "bytes": 33251,
+      "sha256": "3445bc92bf5f1b45f13f3343978979470628d4e67e3dd31eaf2c03e54044235d"
+    },
+    {
+      "path": "/favicon-16.png",
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 381,
+      "sha256": "e7bce1f7148c3c70e80a2fdccfe52faf73401851d4c209470ab4a3c77ba614d5"
+    }
+  ],
+  "publicProbes": [
+    {
+      "url": "https://track.pydemia.ai/",
+      "status": 302
+    },
+    {
+      "url": "https://track.pydemia.ai/api/snapshot",
+      "status": 401
+    },
+    {
+      "url": "https://track.pydemia.ai/favicon.ico",
+      "status": 302
+    },
+    {
+      "url": "https://trail.pydemia.ai/",
+      "status": 302
+    }
+  ],
+  "publicBrowserSessionVerifiedSeparately": true,
+  "limits": [
+    "Native Demian API is unavailable; this is not successful native runtime reauthorization.",
+    "Browser automation replaces tab favicons with a badge; unmodified favicon tab appearance was not independently verified.",
+    "Earlier 6-node/5-edge native dependency Map remains historical verification; current Map intentionally has no native Demian Runs until fresh authorization succeeds."
+  ],
+  "baseRevision": "9a04621eb9e2f9995aaaa121ab00ed5dfff9efcc",
+  "checks": {
+    "trackTests": 275,
+    "failed": 0,
+    "skipped": 0,
+    "typecheck": true,
+    "build": true,
+    "regressionBeforePatch": {
+      "cases": 5,
+      "failed": 4,
+      "passed": 1
+    },
+    "sourceAvailabilityCases": 11,
+    "firstRunAssignmentRegressionPreserved": true,
+    "independentReviewFindingsResolved": 2,
+    "nativeSourceChanged": false,
+    "sourceJournalDeleted": false
+  },
+  "browser": {
+    "publicEntraSession": true,
+    "sourceCoverageKeyboardToggle": true,
+    "traceUnavailableReasonVisible": true,
+    "viewport390": {
+      "documentWidth": 375,
+      "scrollWidth": 375,
+      "coverageExpanded": true
+    },
+    "viewportReset": true,
+    "nativeDependencyMap": {
+      "nodes": 2,
+      "edges": 1,
+      "observedRuns": 0,
+      "relationId": "d66d5baf-9dbd-416b-abf1-bf01465a8610",
+      "edgeKeyboardSelection": true,
+      "currentAndRecordedRevisionDisplayed": true,
+      "source": "projects-native",
+      "prerequisiteTaskId": "b01e84de-941a-4ac5-b921-ed65e2bcfbb9",
+      "dependentTaskId": "a061ce29-f674-4449-86c3-2902b16713c5"
+    },
+    "screenshots": [
+      "track-trace-source-unavailable.jpg",
+      "track-source-coverage-mobile.jpg",
+      "track-native-dependency-current-viewport.jpg"
+    ]
+  },
+  "goal": {
+    "fulfilled": 14,
+    "total": 21,
+    "equalWeight": true,
+    "percent": 66.7,
+    "eta": "unestimable",
+    "confidence": "low"
+  }
+}

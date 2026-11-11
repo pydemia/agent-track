@@ -8,7 +8,7 @@
 | 요구 | 수용 조건 | 상태·증거 |
 | --- | --- | --- |
 | AT-01 | 원본 ID·재수신·충돌 방지 | 검증 완료. `tests/core.test.ts` ID/충돌·dedupe·재시작·binding 검사, 실제 Codex 211 Run의 source/run UNIQUE 원장 |
-| AT-02 | snapshot과 실시간 실행 상태 일치 | 검증 완료. `recovery-http.test.ts` 초기 snapshot/SSE 일치·할당/실행/권한 대기/취소 중/실패 구분. 실제 native 성공·취소 종료와 공개 Trace 대조 |
+| AT-02 | snapshot과 실시간 실행 상태 일치 | 검증 완료. `recovery-http.test.ts` 초기 snapshot/SSE 일치·할당/실행/권한 대기/취소 중/실패 구분. 실제 native 성공·취소 종료와 공개 Trace 대조. `source-availability.test.ts` 시작 시 미인가 캐시 숨김·전 범위 확인 뒤 단절 시 stale·거부 후 새 스트림 인가·단일 SSE 실패의 connected 덮어쓰기 방지. 운영 API 단절 시 native 원장19개 보존/노출0·이벤트404와 공개 사유 안내 대조 |
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 검증 완료. 실제 answer.txt metadata·원본/공개 Trail 대조와 native 파일 편집4Run 조회. 성공3파일의30byte/hash·요청/완료seq, 거절/만료는 실패·파일 없음 구분. 공개 Trail·390px/Tab·Project 철회404/경로 제거→복구, 원문 비노출·이벤트 digest 불변·조회 한도 검사 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과. native212event·lineage9·도구3결과(실패1/성공2)와 Flow 대조·원장 불변, 요청≠실행 시작 구별 |
@@ -37,6 +37,13 @@ principal, desktop 위치·두 번째 실제 장치와 child/peer·dependency �
 새 Flow/업무별 실행 조직의 계획은 `mission-ui-plan.md`, native 대조는
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.
 다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
+
+연결 상태 후속 수정에서는 재시작 직후 전체 원본 인가를 확인하지 못한 실행을
+숨긴다. 접근 거부를 단순 통신 단절로 낮추지 않으며, 이후 새 스트림 인가까지
+확인해야 표시를 복구한다. 공개 업무 Map은 Demian 실행을 표시하지 않는 상태에서도
+별도로 인가된 실제 Projects 업무2개·선행 관계1개를 유지했다. 이전6node/5edge
+실기 증거를 현재 native 연결 정상으로 해석하지 않는다.
+`source-availability-verification.json`에 운영 범위와 회귀 증거를 기록했다.
 
 2026-11-12 KST 운영 점검: Demian 원본 API와 worker가 PostgreSQL 연결 종료로
 중단됐으며 Docker engine이 실행되지 않는다. 재기동 bootstrap은 기존 data block의

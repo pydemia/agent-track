@@ -97,7 +97,7 @@ function DisplayState({ run }: { run: RunView }) {
   </span>;
 }
 function SourceState({ state }: { state: SourceView["state"] }) {
-  const labels = { connected: "연결됨", disconnected: "연결 끊김", forbidden: "접근 거부", unsupported: "미지원" };
+  const labels = { connected: "연결됨", disconnected: "연결 끊김", forbidden: "접근 제한", unsupported: "미지원" };
   return <span className={`source-state ${state}`}>{labels[state]}</span>;
 }
 
@@ -384,6 +384,7 @@ export function App() {
   };
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
+  const unavailableSource = snapshot?.sources.find((source) => source.id === filters.source && source.state !== "connected");
   const projectOptions = useMemo(() => {
     const bindingMap = new Map<string, string>();
     const workspaceMap = new Map<string, string>();
@@ -497,7 +498,7 @@ export function App() {
 
         {streamState === "disconnected" && <div className="notice warning" role="status"><span>{snapshot ? "실시간 연결이 끊겼습니다. 마지막으로 받은 스냅샷을 표시합니다." : "실시간 연결이 끊겼습니다. 연결 복구와 접근 확인 후 데이터를 다시 조회합니다."}</span><button onClick={connectStream}>다시 연결</button></div>}
         {pageError && <div className="notice error" role="alert"><span>{pageError}{snapshot ? " 마지막 정상 스냅샷은 유지됩니다." : " 데이터 없이 화면을 표시하고 있습니다."}</span><button onClick={() => void loadSnapshot()}>다시 불러오기</button></div>}
-        {snapshot && (snapshot.sources.some((item) => item.state !== "connected") || snapshot.runs.some((item) => item.stale || item.incomplete)) && <div className="notice warning" role="status"><span>일부 출처가 연결되지 않았거나 관측이 오래되었거나 불완전합니다. 빈 결과를 완전한 기록으로 해석하지 마세요.</span></div>}
+        {snapshot && (snapshot.sources.some((item) => item.state !== "connected") || snapshot.runs.some((item) => item.stale || item.incomplete)) && <div className="notice warning" role="status"><div><span>일부 출처가 연결되지 않았거나 관측이 오래되었거나 불완전합니다. 빈 결과를 완전한 기록으로 해석하지 마세요.</span><details className="source-coverage"><summary>출처별 연결·수집 범위</summary><dl>{snapshot.sources.map((source) => <div key={source.id}><dt><strong>{source.label}</strong> <SourceState state={source.state} /></dt><dd>{source.detail}<small>마지막 관측 {source.lastObservedAt ? timestamp(source.lastObservedAt) : "미확인"}</small></dd></div>)}</dl></details></div></div>}
 
         <div className="toolbar">
           <nav className="tabs" aria-label="실행 관측 화면">{tabs.map((item) => <button key={item.id} className={tab === item.id ? "active" : ""} aria-current={tab === item.id ? "page" : undefined} onClick={() => setLocation({ tab: item.id })}>{item.label}</button>)}</nav>
@@ -516,8 +517,8 @@ export function App() {
         {unavailable ? <section className="empty-state"><span className="empty-mark">!</span><h2>실행 데이터를 불러올 수 없습니다</h2><p>API 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="button-primary" onClick={() => void loadSnapshot()}>다시 불러오기</button></section>
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
           : tab === "map" && taskMap ? null
-          : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근이 허용되지 않아 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.state === "forbidden" ? "접근이 허용되지 않아 저장된 실행을 표시하지 않습니다." : item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
-          : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>조건에 맞는 실행이 없습니다</h2><p>프로젝트·출처·상태 필터나 검색어를 조정해 보세요.</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
+          : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근을 확인하지 못해 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
+          : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>{unavailableSource ? "선택한 출처의 실행을 표시할 수 없습니다" : "조건에 맞는 실행이 없습니다"}</h2><p>{unavailableSource?.detail ?? "프로젝트·출처·상태 필터나 검색어를 조정해 보세요."}</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
           : <div className={`content-grid ${tab === "map" || tab === "trace" ? "map-content-grid" : ""}`}><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
               {tab === "track" && <><MissionOverview runs={visibleRuns} relations={accessibleRelations} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} onMap={(key) => setLocation({ tab: "map", selected: key })} onTaskMap={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} /><details className="flow-raw-evidence"><summary>전체 실행 목록 · {visibleRuns.length}개 Run</summary><TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} /></details></>}
               {tab !== "track" && run && <><p className="graph-legend">정규 실행 근거 {events.length}건{loadingEvents ? " · 조회 중…" : ""}{hasMore ? " · 추가 근거 있음" : ""}</p>{eventsError && <p className="inline-error" role="alert">{eventsError}<button className="text-button" onClick={() => setEventsRefresh((value) => value + 1)}>실행 근거 다시 조회</button></p>}{hasMore && <button className="button-secondary" disabled={loadingEvents} onClick={loadMoreEvents}>흐름의 실행 근거 더 불러오기</button>}</>}
