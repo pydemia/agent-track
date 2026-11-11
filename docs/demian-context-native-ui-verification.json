@@ -48,19 +48,21 @@
     "nativeWebTestsPassed": 120,
     "nativeWebTypecheckPassed": true,
     "nativeWebBuildPassed": true,
-    "trackTestsPassed": 237,
+    "trackTestsPassed": 238,
     "trackTestsSkippedOnWindows": 0,
     "trackTypecheckPassed": true,
     "trackBuildPassed": true,
     "independentPromotionSourceReviewResolved": true,
     "promotionFailureRegressionsIncludeRealWindowsExclusiveWritesAndProcessIdentity": true,
     "productionExecutionIsNotInferredFromTests": true,
-    "windowsDriveCaseRegression": {
+    "windowsPathAliasRegression": {
       "initialCiRun": 43103788844,
       "initialUbuntuPassed": true,
-      "initialWindowsFailed": "Exact string comparison rejected the same file with a different drive-letter case",
+      "initialWindowsFailed": "Release path comparison rejected a manifest-matching fixture; drive-case and ancestor aliases independently reproduced locally",
       "reproducedLocallyBeforeFix": true,
-      "correctedUsingHostPathComparison": true,
+      "driveCaseOnlyFixCiRun": 43104173538,
+      "driveCaseOnlyFixWasInsufficient": true,
+      "correctedUsingCanonicalRootAndHostPathComparison": true,
       "junctionAndUnexpectedFileRejectionPreserved": true
     }
   },

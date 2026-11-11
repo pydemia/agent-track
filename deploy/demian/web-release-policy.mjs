@@ -10,6 +10,9 @@ const within = (parent, child) => {
 
 /** A frozen release is an exact file set, not just a list of checked files. */
 export async function verifyFrozenRelease(release, manifest) {
+  // The caller chooses the release boundary. Canonicalize it first so an OS
+  // temporary-directory alias is not mistaken for a link inside the payload.
+  release = await realpath(release);
   if (manifest.version !== 1 || typeof manifest.webBuildId !== "string" || !manifest.payloadFiles || Object.keys(manifest.payloadFiles).length > 10000) throw new Error("Invalid release manifest");
   const actual = [];
   const walk = async directory => {

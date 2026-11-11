@@ -45,6 +45,15 @@ test("Windows frozen release accepts a different drive-letter case for the same 
   } finally { await f.cleanup(); }
 });
 
+test("frozen release resolves a caller's ancestor-directory alias before checking its files", async () => {
+  const f = await fixture();
+  try {
+    const alias = join(f.state, "release-directory-alias");
+    await symlink(join(f.state, "track-context/releases"), alias, process.platform === "win32" ? "junction" : "dir");
+    await verifyFrozenRelease(join(alias, "qa"), f.manifest);
+  } finally { await f.cleanup(); }
+});
+
 test("unmanifested public files and edited frozen modules are rejected", async () => {
   const f = await fixture();
   try {
