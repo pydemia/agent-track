@@ -48,13 +48,21 @@
     "nativeWebTestsPassed": 120,
     "nativeWebTypecheckPassed": true,
     "nativeWebBuildPassed": true,
-    "trackTestsPassed": 236,
+    "trackTestsPassed": 237,
     "trackTestsSkippedOnWindows": 0,
     "trackTypecheckPassed": true,
     "trackBuildPassed": true,
     "independentPromotionSourceReviewResolved": true,
     "promotionFailureRegressionsIncludeRealWindowsExclusiveWritesAndProcessIdentity": true,
-    "productionExecutionIsNotInferredFromTests": true
+    "productionExecutionIsNotInferredFromTests": true,
+    "windowsDriveCaseRegression": {
+      "initialCiRun": 43103788844,
+      "initialUbuntuPassed": true,
+      "initialWindowsFailed": "Exact string comparison rejected the same file with a different drive-letter case",
+      "reproducedLocallyBeforeFix": true,
+      "correctedUsingHostPathComparison": true,
+      "junctionAndUnexpectedFileRejectionPreserved": true
+    }
   },
   "production": {
     "promotionExecuted": false,

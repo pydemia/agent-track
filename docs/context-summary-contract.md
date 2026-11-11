@@ -116,7 +116,7 @@ Demian 대화의 BFF·요약 UI는 같은 설치 source와 대조한 분리 Next
 기존 대화 입력 경로와 별도 상태를 사용하고4초 deadline·완료 후15초 polling을 적용한다.
 실제 QA Session에서 요약 연결만 끊은 동안 Run이 성공했고18event·도구0건을 원장과
 대조했다. 복구 후 요약 Run 수는2→3이며 같은 공개 Map의 정확한 Run을 선택했다.
-390px·Tab과 이전 링크 제거도 확인했다. native web120개·Track236개 검사를 통과했다.
+390px·Tab과 이전 링크 제거도 확인했다. native web120개·Track237개 검사를 통과했다.
 `demian-context-native-ui-verification.json`·`../integrations/demian/README.md`가 근거다.
 
 AT-20은 여전히 부분이다. 원본 web 교체 전 기존 Docker DB 연결 종료로 native API와

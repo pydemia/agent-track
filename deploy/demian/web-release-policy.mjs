@@ -29,7 +29,9 @@ export async function verifyFrozenRelease(release, manifest) {
   if (JSON.stringify(actual.sort()) !== JSON.stringify(expected)) throw new Error("Release file set mismatch");
   for (const name of expected) {
     const file = resolve(release, name);
-    if (!within(release, file) || await realpath(file) !== file || sha(await readFile(file)) !== manifest.payloadFiles[name]) throw new Error("Release file mismatch");
+    // path.relative follows the host filesystem's drive-letter casing rules;
+    // a junction/symlink resolving to another path still fails this comparison.
+    if (!within(release, file) || relative(file, await realpath(file)) !== "" || sha(await readFile(file)) !== manifest.payloadFiles[name]) throw new Error("Release file mismatch");
   }
   if (!manifest.payloadFiles["apps/web/server.js"] || !manifest.payloadFiles["apps/web/.next/BUILD_ID"]) throw new Error("Missing native entry");
   if ((await readFile(join(release, "apps/web/.next/BUILD_ID"), "utf8")).trim() !== manifest.webBuildId) throw new Error("Build ID mismatch");

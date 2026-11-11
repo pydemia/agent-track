@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import test from "node:test";
@@ -28,8 +28,20 @@ test("native startup accepts an exact frozen file set and pinned build", async (
   try {
     await verifyFrozenRelease(f.release, f.manifest);
     const release = await loadWebRelease(f.state);
-    assert.equal(release?.entry, join(f.release, "apps/web/server.js"));
+    assert.equal(release?.entry, join(await realpath(f.release), "apps/web/server.js"));
     assert.equal(release?.buildId, "qa-build");
+  } finally { await f.cleanup(); }
+});
+
+test("Windows frozen release accepts a different drive-letter case for the same files", { skip: process.platform !== "win32" }, async () => {
+  const f = await fixture();
+  try {
+    assert.match(f.release, /^[A-Za-z]:\\/);
+    const canonical = await realpath(f.release);
+    const drive = canonical[0] === canonical[0]!.toUpperCase() ? canonical[0]!.toLowerCase() : canonical[0]!.toUpperCase();
+    const alias = drive + canonical.slice(1);
+    assert.notEqual(alias, canonical);
+    await verifyFrozenRelease(alias, f.manifest);
   } finally { await f.cleanup(); }
 });
 
