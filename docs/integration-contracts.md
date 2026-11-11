@@ -264,4 +264,3 @@ late reads cannot overwrite terminal receipts. Interrupted dispatches recover as
 unknown. Created confirms native Task creation, not runtime acceptance or business
 approval. API/UI, startup recovery wiring and native writer provisioning are still
 pending; these modules are not an enabled production write path.
-
