@@ -13,6 +13,7 @@ import { fileEvidence } from "./files.ts";
 import { ProjectTaskCreation } from "./task-creation.ts";
 import { TaskAssignments } from "./task-assignment.ts";
 import { lineageEvidence } from "./lineage.ts";
+import { orchestrationEvidence } from "./orchestration.ts";
 import { toolEvidence } from "./tools.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
@@ -225,6 +226,12 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const files = /^\/api\/runs\/([A-Za-z0-9_-]+)\/files$/.exec(url.pathname);
       if (files) {
         const evidence = await fileEvidence(config, snapshot, user, files[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
+      }
+      const orchestration = /^\/api\/runs\/([A-Za-z0-9_-]+)\/orchestration$/.exec(url.pathname);
+      if (request.method === "GET" && orchestration) {
+        const evidence = await orchestrationEvidence(config, snapshot, user, orchestration[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

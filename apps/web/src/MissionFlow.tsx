@@ -2,11 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView } from "../../../packages/contracts/index.ts";
 import { missionFlow } from "../../../packages/projection/mission-flow.ts";
+import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
 import { withToolEvidence } from "../../../packages/projection/tool-flow.ts";
 import { analyseGraph } from "../../../packages/projection/graph.ts";
 import { useNativeLineage } from "./useNativeLineage.ts";
 import { useToolEvidence } from "./useToolEvidence.ts";
+import { OrchestrationSupport } from "./OrchestrationSupport.tsx";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutFlowGraph } from "./ui/flow-layout.ts";
 import "@xyflow/react/dist/style.css";
@@ -57,9 +59,7 @@ export function MissionFlow({ run, runs, relations, events, mode = "mission", ha
       ariaLabel: `${edge.label} · ${edge.detail}`, markerEnd: { type: MarkerType.ArrowClosed, color: "var(--flow-edge)" } }));
     // Hierarchy sets the columns; chronology connects siblings without pushing
     // every tool into another column or turning record order into dependency.
-    const order = [...model.nodes].sort((a, b) => a.kind.localeCompare(b.kind) ||
-      (a.sequences[0] ?? "0").length - (b.sequences[0] ?? "0").length ||
-      (a.sequences[0] ?? "0").localeCompare(b.sequences[0] ?? "0") || a.key.localeCompare(b.key)).map((node) => node.key);
+    const order = missionNodeOrder(model);
     const laidOut = layoutFlowGraph({ nodes, edges: edges.filter((edge) => !edge.className?.includes("record-order")) }, order);
     return { nodes: laidOut.nodes, edges };
   }, [model, selectedNode?.key, selectedEdge?.key]);
@@ -71,6 +71,7 @@ export function MissionFlow({ run, runs, relations, events, mode = "mission", ha
   return <section className="mission-flow" aria-label={mode === "execution" ? "Trace 실행 흐름" : "업무와 Agent 협업 흐름"}>
     <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => setFitVersion((value) => value + 1)}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
+    <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     {lineage.native && <p className="graph-legend">Native lineage {lineage.observations.length}개 · {lineage.detail}{lineage.hasMore && <button className="text-button" disabled={lineage.capped} onClick={lineage.more}>{lineage.capped ? "1,000개 조회 한도" : "Native 근거 더 불러오기"}</button>}</p>}
     {tools.native && <p className="graph-legend">{tools.page ? `도구 결과 ${tools.page.calls.length}건 · 실패 보고 ${tools.page.calls.filter((call) => call.outcome === "failed").length}건 · 원본 seq ${tools.page.throughSequence}/${tools.page.targetSequence}${tools.page.complete ? "까지 조회" : " · 부분 조회"}` : tools.detail}</p>}
     {!!tools.page?.unidentifiedEvents && <p className="inline-warning">호출 ID가 없어 구조에 연결하지 못한 원본 도구 이벤트 {tools.page.unidentifiedEvents}건이 있습니다.</p>}

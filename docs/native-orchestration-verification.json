@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-11-11T18:29:49.819Z",
+  "ready": true,
+  "runId": "865dd2b3-e362-4f60-9b7b-728ff1c8aeca",
+  "state": "connected",
+  "sessionMode": "single-agent",
+  "support": {
+    "provider": "codex-native",
+    "providerType": "codex-app-server",
+    "providerConfigured": true,
+    "toolOrchestration": "external",
+    "reported": {
+      "goals": true,
+      "cowork": true,
+      "managedChild": true
+    },
+    "workers": 1,
+    "checkedAt": "2026-11-11T18:29:39.613Z"
+  },
+  "nativeMutationsByVerifier": 0,
+  "childTargetsEnumerated": false,
+  "installedRuntime": {
+    "module": "nodejs/dist/index.mjs",
+    "sha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "externalProviderGuardPresent": true,
+    "managedChildExternalGuardPresent": true,
+    "builtBeforeWorkerStart": true
+  },
+  "actualManagedChildExecutionProven": false
+}

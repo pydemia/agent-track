@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-11T18:13:18.164Z",
+  "verifiedAt": "2026-11-11T18:28:06.653Z",
   "scope": "unauthenticated-public-and-operator-hop",
   "publicTransport": "curl-https",
   "browserLoginVerified": false,
@@ -31,6 +31,11 @@
     },
     {
       "name": "lineage-evidence-auth",
+      "status": 401,
+      "passed": true
+    },
+    {
+      "name": "orchestration-support-auth",
       "status": 401,
       "passed": true
     },
@@ -112,7 +117,7 @@
     {
       "name": "operator-snapshot",
       "passed": true,
-      "runs": 338,
+      "runs": 343,
       "workspaces": 7
     },
     {

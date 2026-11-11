@@ -58,3 +58,11 @@
 .mission-run-list { max-height: 320px; overflow: auto; margin-top: 10px; }
 @media (max-width: 1050px) { .mission-flow-workspace { grid-template-columns: minmax(0, 1fr) 235px; } }
 @media (max-width: 760px) { .mission-flow-workspace { grid-template-columns: minmax(0, 1fr); } .flow-inspector { border-left: 1px solid var(--line); border-top: 0; max-height: none; } .mission-flow [data-ui="flow-canvas"] .react-flow__minimap { display: none; } .flow-list-columns { grid-template-columns: minmax(0, 1fr); } .flow-heading { flex-wrap: wrap; } }
+.orchestration-support { margin: 10px 0; border-block: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+.orchestration-support summary { padding: 9px 0; cursor: pointer; color: var(--ink); }
+.orchestration-support summary small { margin-left: 8px; color: var(--muted); overflow-wrap: anywhere; }
+.orchestration-support dl { display: grid; gap: 7px; }
+.orchestration-support dl > div { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.orchestration-support dt { min-width: 110px; }
+.orchestration-support dd { margin: 0; overflow-wrap: anywhere; }
+.orchestration-support p { line-height: 1.6; overflow-wrap: anywhere; }

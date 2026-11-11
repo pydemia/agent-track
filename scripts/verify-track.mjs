@@ -27,6 +27,7 @@ for (const [name, route, headers, expected] of [
   ["artifact-auth", "/api/runs/unknown/artifacts", {}, 401],
   ["file-evidence-auth", "/api/runs/unknown/files", {}, 401],
   ["lineage-evidence-auth", "/api/runs/unknown/lineage", {}, 401],
+  ["orchestration-support-auth", "/api/runs/unknown/orchestration", {}, 401],
   ["tool-evidence-auth", "/api/runs/unknown/tools", {}, 401],
   ["permission-metadata-auth", "/api/runs/unknown/permissions", {}, 401],
   ["permission-review-auth", "/api/runs/unknown/permissions/00000000-0000-4000-8000-000000000001/review", {}, 401],

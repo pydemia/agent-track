@@ -63,6 +63,13 @@ Projects의 dependency는 native Link에 존재하지만 현재 Track의 서명�
 권한과 교차 검사한다. lineage/도구 원문·인수·출력·메시지는 journal에 추가하지
 않는다. 부분 수집·한도·연결 실패·미지원은 각각 표시한다.
 
+실제 Session2·Run2 지도에서 ID 정렬 때문에 소속 연결이 교차하는 증상을 확인했다.
+Session→Run의 명시 소속을 행 순서에 반영하고, 도구는 기존 canonical sequence로
+정렬한다. 이는 배치 변경이며 업무 dependency나 실행 인과를 추가하지 않는다.
+Map·Trace의 조직화 지원 펼침에서는 현재 worker 전역 선언과 선택 provider의 도구
+관리 방식을 구분한다. 실제 installed runtime의 외부 provider 분기와 공개 UI를
+대조했으며 하위 실행의 존재·성공·대상 준비로 표시하지 않는다.
+
 수용 기준은 AT-04/05/08/12/18/19에 연결한다. 기존 완료 조건을 느슨하게 바꾸거나
 기능 추가 개수로 전체 진척률 분모를 바꾸지 않는다. 전체 현황은 `goal-status.md`가
 기준이며, 실제 교차 앱 목표 수행은 아직 완료되지 않았다.

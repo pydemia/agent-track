@@ -58,6 +58,31 @@ The baseline above is the state inspected before this patch. Track now reads the
 2. Keep goal, cowork, managed-child, peer, and native-run evidence as separate typed relationships. Create edges only from explicit IDs/receipts and show their source and status. For managed-child and peer receipts, request them only after the UI has a concrete authorized operation ID; do not enumerate target directories as a substitute.
 3. If task dependencies are needed, add an explicit producer contract carrying stable task/goal IDs and dependency IDs. Current goal event names and prose/status payloads alone do not establish dependency edges.
 
+## Installed worker declaration versus selected provider (18:26 UTC)
+
+The live runtime capability response reports `goals=true`, `cowork=true`, and
+`managed_child_v1=true`. The currently configured provider types are
+`codex-app-server`, `antigravity-acp`, and `claudecode`. The installed runtime
+module, not just working source, contains `usesExternalToolOrchestration` for
+these types and an early empty-target return from managed-child inspection.
+Its SHA-256 and the selected QA Run's authorized BFF response are recorded in
+`native-orchestration-verification.json`.
+
+This establishes a provider-path distinction, not a successful managed-child
+execution. No Session/Run was created, child target directory enumerated, or
+deployment refreshed by that verifier. The global flags do not establish callable
+targets for the selected provider. Track now shows the global declarations and
+provider ownership separately in Map/Trace; new or stale provider types remain
+unknown. These reports are current worker metadata, not historical properties
+of the selected Run and not proof of readiness on a particular device.
+
+The source's direct managed-child API requires a compatible internal orchestration
+provider, multi-agent Session, current callable catalog and native authorization.
+The currently configured external profiles do not satisfy that provider path.
+External executor subagents need their own explicit native provenance/relations;
+ordinary native lineage alone is not a Demian managed-child receipt. Actual
+managed-child/cowork/peer evidence remains outstanding in AT-12/18.
+
 ## Source references
 
 - Track adapter, event normalization and bounded SSE client: `packages/adapters/demian/index.ts`.
