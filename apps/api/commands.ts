@@ -6,7 +6,7 @@ import type { Store } from "../../packages/storage/store.ts";
 import type { Config, SourceConfig } from "./config.ts";
 
 export function commandPorts(store: Store, config: () => Config, snapshot: (user: string) => Snapshot,
-  user: string, runKey: string, writing: boolean): CancelPorts {
+  user: string, runKey: string, writing: boolean, refreshGrants: () => Promise<void> = async () => {}): CancelPorts {
   const authorized = (): { run: RunView; source: SourceConfig } => {
     const current = config();
     if (current.auth.mode === "proxy" ? !current.auth.users.includes(user) : current.auth.user !== user) {
@@ -28,10 +28,12 @@ export function commandPorts(store: Store, config: () => Config, snapshot: (user
     ...(source.credentialFormat ? { credentialFormat: source.credentialFormat } : {}),
     ...(source.organizationId ? { organizationId: source.organizationId } : {}) });
   return {
-    async authorize() { authorized(); },
+    async authorize() { await refreshGrants(); authorized(); },
     async readRun() {
+      await refreshGrants();
       const { run, source } = authorized();
       const observed = await client(source).observe(run.runId);
+      await refreshGrants();
       authorized();
       store.observeRun(observed);
       return { sourceId: source.id, runId: observed.runId, status: observed.status,

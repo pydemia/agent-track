@@ -6,6 +6,7 @@ import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
 import { artifactEvidence } from "./evidence.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
+import { RunBindings } from "./bindings.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -34,6 +35,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const root = resolve(webRoot);
   const snapshot = (user: string) => store.snapshot(user, sources.views(user));
   const commands = new CommandService(store);
+  const bindings = new RunBindings(store, config, sources, snapshot);
   const server = createServer(async (request, response) => {
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -48,11 +50,17 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
+      if (request.method === "POST" && url.pathname === "/api/bindings") {
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const receipt = await bindings.apply(user, await jsonBody(request));
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
       if (request.method === "POST" && url.pathname === "/api/commands/cancel") {
         if (!validMutationOrigin(request, current)) { json(response, 403, { error: "invalid_origin" }); return; }
         const input = await jsonBody(request);
         const runKey = input && typeof input === "object" && "runKey" in input && typeof input.runKey === "string" ? input.runKey : "";
-        const receipt = await commands.execute(user, input, commandPorts(store, config, snapshot, user, runKey, true));
+        const receipt = await commands.execute(user, input, commandPorts(store, config, snapshot, user, runKey, true, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve()));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
@@ -61,7 +69,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const key = url.searchParams.get("run") ?? "";
         if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
         const receipts = commands.list(user, key);
-        const ports = commandPorts(store, config, snapshot, user, key, false);
+        const ports = commandPorts(store, config, snapshot, user, key, false, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
         for (let i = 0; i < receipts.length; i++) {
           const receipt = receipts[i]!;
           if (["requested", "dispatching", "accepted", "unknown"].includes(receipt.state)) receipts[i] = await commands.reconcile(user, receipt.id, ports);
@@ -122,9 +130,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         catch { json(response, 400, { error: "invalid_page_cursor" }); }
         return;
       }
+      const runBinding = /^\/api\/runs\/([A-Za-z0-9_-]+)\/binding$/.exec(url.pathname);
+      if (runBinding) { json(response, 200, bindings.view(user, runBinding[1]!)); return; }
       const artifacts = /^\/api\/runs\/([A-Za-z0-9_-]+)\/artifacts$/.exec(url.pathname);
       if (artifacts) {
-        const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!);
+        const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

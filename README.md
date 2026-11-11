@@ -48,10 +48,11 @@ npm start
 - Codex 로컬 metadata 수집: 허용 저장소·기간·파일 수 한계 표시, 대화와 도구
   입출력 저장 제외. 이것은 Demian native 또는 desktop bridge 연결과 별개입니다.
 - Projects 원본 읽기: 전용 소유자 principal·현재 Project ACL로 실제 업무 제목/revision/상태 조회, 접근 축소 시 관련 metadata 비노출. 등록·배정은 후속 단계입니다.
+- 명시적 Run 업무 연결: 원본 revision 확인, 재연결 이력·동일 요청 receipt·동시 수정 충돌 처리. 실행 성공과 업무 완료를 각각 유지합니다.
 - native Run별 산출물 metadata: 현재 원본 인가와 Run ID를 대조하고, 최근 목록 범위·철회·원문 제외를 표시합니다.
 - 실제 원장을 조회하는 Track·Trail·Trace·typed 관계 목록, 전체 저장소 필터,
   URL 선택 복원, 접힘·너비 조절 SNB·모바일 drawer.
-- 온라인 backup·검사와 백업 선행 archive. 실행 명령·승인·Projects/Assistant/
+- 온라인 backup·검사와 백업 선행 archive. 승인·재개·배정·문맥 요약과 Assistant/
   desktop native 연결은 후속 작업이며 미지원 기능을 성공으로 표시하지 않습니다.
 
 [실제 API 계약 조사](docs/integration-contracts.md),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
+import { RunBindingPanel } from "./RunBindingPanel.tsx";
 import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
@@ -492,7 +493,7 @@ export function App() {
               {tab === "trail" && <>{run && <ArtifactEvidencePanel key={run.key} run={run} onUnauthorized={clearPrivateData} />}<EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
               {tab === "trace" && <>{run && <RunTrace run={run} events={events} hasMore={hasMore} />}<EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></>}
             </section>
-            {run && <RunInspector onUnauthorized={clearPrivateData} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
+            {run && <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />}
           </div>}
         <footer className="page-footer">상태, 관계, 경로는 수집된 근거만 반영합니다. 실행 종료·에이전트 보고·검증·Projects 수용은 각각 별도 정보입니다.</footer>
       </main>
@@ -536,12 +537,13 @@ function EventViewPanel({ title, run, events, loading, error, hasMore, onMore, o
   </section>;
 }
 
-function RunInspector({ run, relations, events, source, onUnauthorized }: { onUnauthorized: (reason: string) => void; run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
+function RunInspector({ run, relations, events, source, sources, onUnauthorized, onSaved }: { onUnauthorized: (reason: string) => void; onSaved: () => Promise<void>; sources: SourceView[]; run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
   const reportEvents = events.filter((item) => /report|result|handoff/i.test(item.type));
   const verifyEvents = events.filter((item) => /verif|test|check/i.test(item.type));
   const sourceHref = originUrl(run.sourceUrl);
   return <aside className="inspector" aria-label="선택한 실행 상세"><div className="inspector-title"><span className="overline">RUN DETAILS</span><h2>{run.title || "제목 없는 실행"}</h2><DisplayState run={run} /><Freshness run={run} /></div>
     <dl className="detail-list"><dt>Run ID</dt><dd>{run.runId}</dd><dt>세션 ID</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>장치</dt><dd>{run.device}</dd><dt>프로젝트 / 저장소</dt><dd>{run.binding ? `${run.binding.projectTitle} / ${run.binding.taskTitle ?? "업무 미지정"}` : run.workspaceId ? `업무 미연결 · ${workspaceName(run.workspaceId)}` : "Projects 업무 미연결"}</dd><dt>시작</dt><dd>{timestamp(run.startedAt)}</dd><dt>종료</dt><dd>{timestamp(run.completedAt)}</dd><dt>마지막 관측</dt><dd>{timestamp(run.observedAt)}</dd><dt>관계 증거</dt><dd>{relations.length}건</dd></dl>
+    <RunBindingPanel key={run.key} run={run} sources={sources} onUnauthorized={onUnauthorized} onSaved={onSaved} />
     <section className="evidence-group"><h3>에이전트 보고</h3><p>{reportEvents.length ? `${reportEvents.length}개 관련 이벤트 관측` : "별도 보고 정보 없음"}</p><small>보고 본문은 표시하지 않습니다.</small></section>
     <section className="evidence-group"><h3>검증</h3><p>{verifyEvents.length ? `${verifyEvents.length}개 검증 관련 이벤트 관측` : "검증 근거 없음"}</p><small>실행 종료 상태와 검증 결과는 별도입니다.</small></section>
     <section className="evidence-group acceptance"><h3>Projects 수용</h3><p>알 수 없음</p><small>수용 데이터 연결 근거가 제공되지 않았습니다.</small></section>

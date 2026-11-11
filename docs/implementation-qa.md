@@ -8,7 +8,7 @@ Git 기록과 대조한다. 최초 commit `1fadf6c`의 원격 CI 성공을 이�
 
 | 검사 | 결과 | 한계 |
 | --- | --- | --- |
-| `npm test` | 74개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
+| `npm test` | 85개 통과·실패0·skip0 | fake HTTP/native fixture와 실제 서비스 실기를 구분 |
 | `npm run typecheck` | 통과 | TS5.9.3·Node24.21.0 |
 | `npm run build` | 통과 | React19·Vite8. 최신 변경 후 build/배포 대조 기록 확인 |
 | 실제 Demian 관측 | native Run 성공, source SSE17개와 원장·cursor17 일치, 재시작/공개 Trace 대조 | 전역 과거 feed가 아닌 허용 세션 기반 |
@@ -82,7 +82,28 @@ unknown 요청은 재시작해도 재전송하지 않는다. 원본 cancel의 at
 
 ## 전체 수용
 
-[goal 기준표](goal-status.md)의 **10/21(47.6%, 동일 가중치)**다. 테스트 수나
+[goal 기준표](goal-status.md)의 **11/21(52.4%, 동일 가중치)**다. 테스트 수나
 배포 경로 준비를 전체 달성률로 환산하지 않는다. 전체 일정은 Projects/
 Assistant 계약과 desktop 위치 미확인으로 산정 불가·신뢰도 낮음이다.
 다음 재산정은 Map/증거와 외부 앱 계약 연결 후다.
+
+## 명시적 Run binding 구현·실기
+
+Track 원장에만 연결을 기록한다. POST /api/bindings는 정확한 Origin, 단일
+Entra 소유자, 최신 native Run/Task와 Project 범위를 확인한다. 요청 UUID와
+예상 binding version으로 append/current/receipt를 한 트랜잭션에서 저장한다.
+원본 Task 생성·배정·완료와 구별한다. GET /api/runs/:key/binding은 현재
+접근 가능한 Project 이력만 반환한다. Artifact/취소 경계도 awaited source
+조회 뒤 Project grant를 갱신한다.
+
+실제 QA Task2개를 원본 UI에서 생성했고, 기존 격리 Run을 A→B로 연결했다.
+A의 원본 revision2 수정 후 stale 선택 저장409, 연결 당시 revision1 보존,
+첫 요청 재수신 시 동일 receipt/이력2건, 제품 재시작 후 보존을 확인했다.
+Run은 succeeded, 두 원본 Task는 todo다. 별도 reader scope에서 QA Project를
+빼면 공개 metadata가 숨겨지고 binding/events/artifacts/commands가404,
+복구 후 이력2건/7프로젝트28업무가 돌아왔다. 기존 Assistant principal과
+업무 자료는 유지했다. 증거: native-binding-verification.json.
+
+390px에서 document client/scroll 모두375px, 연결 이력2건과 Tab→프로젝트
+선택을 확인했다. 일시 viewport를 복구하고 QA 탭을 닫았다.85개 테스트는
+CAS·actor receipt·Run 격리·int64·롤백·재시작/backup·권한 철회 경계를 포함한다.

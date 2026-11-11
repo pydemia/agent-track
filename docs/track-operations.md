@@ -80,6 +80,16 @@ Assistant principal을 보존하고 별도 projects:read/tasks:read만 추가한
 26업무 조회, dedicated reader scope7→6에서 API404·공개 업무 비노출,
 7복구를 확인했다(`projects-live-verification.json`).
 
+현재 Run 상세의 명시적 연결은 `POST /api/bindings`를 사용한다. 이는 Track
+원장의 기록이며 native Task 배정/업무 변경이 아니다. 현재 배포의 단일
+Entra 소유자·연결된 Demian Run·별도 Projects 읽기 범위가 모두 있어야 한다.
+서버가 조회한 Task revision/title을 기록하며 browser title 입력은 받지 않는다.
+UUID receipt·예상 binding version의 CAS와 원장 transaction으로 중복/충돌을
+처리한다. 응답 미확정 시 같은 요청으로 확인하며 다른 UUID를 자동 생성하지
+않는다. 이전 이력은 보존하고 다른 Run·같은 Session에는 전파하지 않는다.
+원본 업무를 삭제하거나 현재 권한이 철회되면 임의 unbind로 접근을 열지 않는다.
+`binding_receipts`는 SQLite online backup/복원에 포함된다.
+
 Snapshot의 `viewEpoch`/`viewVersion`은 BFF 관측 응답 순서다. 원본 이벤트
 cursor·Task revision과 다르다. 클라이언트는 더 오래된 응답과 이전 프로세스
 epoch를 거부해 권한 축소 뒤 늦게 도착한 응답이 metadata를 복원하지 않게 한다.

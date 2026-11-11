@@ -65,10 +65,29 @@ export const bindingSchema = z.object({
   taskId: idSchema.nullable(),
   taskRevision: idSchema.nullable(),
   projectTitle: z.string().min(1).max(240),
-  taskTitle: z.string().max(240).nullable(),
+  taskTitle: z.string().max(300).nullable(),
   provenance: z.enum(["source", "operator"]),
 }).strict();
 export type RunBinding = z.infer<typeof bindingSchema>;
+
+export const bindingRequestSchema = z.object({
+  id: z.uuid(),
+  runKey: idSchema,
+  expectedVersion: sequenceSchema,
+  projectSourceId: z.string().regex(/^[a-z0-9_-]{1,80}$/),
+  projectId: z.uuid(),
+  taskId: z.uuid(),
+  taskRevision: sequenceSchema.refine((value) => value !== "0"),
+}).strict();
+export type BindingRequest = z.infer<typeof bindingRequestSchema>;
+export interface BindingRecord { version: string; binding: RunBinding; actor: string; recordedAt: string }
+export interface BindingReceipt { id: string; runKey: string; version: string; binding: RunBinding; recordedAt: string }
+export interface BindingView {
+  version: string;
+  current: RunBinding | null;
+  history: BindingRecord[];
+  incomplete: boolean;
+}
 
 export interface SourceView {
   id: string;

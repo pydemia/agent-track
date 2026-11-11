@@ -1,0 +1,60 @@
+{
+  "verifiedAt": "2026-11-11T14:05:58.551Z",
+  "scope": "explicit-QA-only native Project tasks and isolated native Run; no runtime assignment",
+  "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+  "runKey": "WyJkZW1pYW4tbG9jYWwiLCI4MmY3ZTFmZC04ZmUyLTRkYTEtODMwNy05OWYzZTAxNmY0OGMiXQ",
+  "projectSourceId": "projects-native",
+  "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+  "taskA": "63f07edf-cdd9-4b81-b1e9-28a48b879a82",
+  "taskB": "00418966-a605-411d-89ee-51344526ec42",
+  "historyCount": 2,
+  "originalRevision": "1",
+  "currentTaskARevision": "2",
+  "firstReceiptReplayedAfterRebind": true,
+  "sourceTaskStates": [
+    "todo",
+    "todo"
+  ],
+  "nativeRunStatus": "succeeded",
+  "browser": [
+    "native Task A/B created in existing test Project",
+    "first binding and rebind through public Entra UI",
+    "stale selected Task revision rejected",
+    "history preserved A revision1 while native A changed to2"
+  ],
+  "restartVerified": true,
+  "restartVerifiedAt": "2026-11-11T14:07:07.585Z",
+  "boundProjectRevocation": {
+    "snapshotRunHidden": true,
+    "routes": {
+      "binding": 404,
+      "events": 404,
+      "artifacts": 404,
+      "commands": 404
+    },
+    "restored": true,
+    "publicUiHidden": true,
+    "publicUiRestored": true,
+    "otherPrincipalsPreserved": true,
+    "businessDataWrites": false
+  },
+  "mobile": {
+    "width": 390,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "keyboardTabFocus": "연결할 프로젝트",
+    "historyCount": 2
+  },
+  "currentReaderScope": {
+    "projects": 7,
+    "tasks": 28,
+    "addedTasks": "Two explicit QA tasks created through native UI; previous business tasks unchanged"
+  },
+  "localChecks": {
+    "tests": 85,
+    "failed": 0,
+    "typecheck": "passed",
+    "build": "passed",
+    "scope": "local current working change; remote CI checked separately after push"
+  }
+}

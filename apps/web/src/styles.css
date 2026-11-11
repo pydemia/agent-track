@@ -227,6 +227,15 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .graph-node[role="button"] { cursor: pointer; }
 .graph-node[role="button"]:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
 .run-controls { margin-top: 10px; }
+.run-binding { grid-column: 1 / -1; border-top: 1px solid var(--line); padding: 12px 0; min-width: 0; font-size: 11px; }
+.run-binding h3 { margin: 0; font-size: 12px; }
+.run-binding p, .run-binding small { color: var(--muted); overflow-wrap: anywhere; }
+.run-binding label { display: grid; gap: 5px; margin: 12px 0; }
+.run-binding select { width: 100%; min-width: 0; padding: 7px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.run-binding > button { margin: 8px 10px 0 0; }
+.binding-history { padding-left: 18px; }
+.binding-history li { margin: 9px 0; }
+.binding-history small { display: block; margin-top: 3px; }
 .run-controls .unsupported-actions button:enabled, .cancel-confirm button { border: 1px solid #8f7760; background: #30271f; color: #ffdec3; padding: 7px 9px; cursor: pointer; }
 .cancel-confirm { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 8px; }
 .cancel-confirm code { display: block; overflow-wrap: anywhere; font-size: 10px; margin-bottom: 8px; }

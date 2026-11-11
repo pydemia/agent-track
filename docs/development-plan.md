@@ -25,6 +25,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 정규 계약 | `packages/contracts/index.ts` | 외부 ID, string int64, metadata allowlist, Run별 binding |
 | 원장 | `packages/storage/store.ts` | SQLite journal, dedupe/gap/cursor, 조회 투영·binding 이력. 백업 선행 archive·dedupe tombstone, 운영 보존 적용 전 |
 | Demian adapter | `packages/adapters/demian/` | Run/Session snapshot·per-Run SSE·활성 Run·명시적으로 허용한 메시지 entry 기반 과거 Run 탐색. 기존 private service credential 참조·실제 native Run17event 수집/재시작/공개 Trace 대조 |
+| Projects·연결 | `packages/adapters/projects/`, `packages/bindings/` | 전용 reader·현재 ACL·원본 metadata7프로젝트28업무. 실제 QA Run A→B 연결/당시 revision·동일 receipt·재시작·scope 철회/복구 |
 | 로컬 수집 | `packages/adapters/codex/` | 허용 저장소의 Codex turn/tool metadata. 원문 제외, 파일/기간/크기 한계 공개 |
 | API | `apps/api/` | loopback 전용·Entra proxy 신뢰 key·사용자 source grant·snapshot/SSE·이력 paging |
 | 산출물 | `apps/api/evidence.ts`, `ArtifactEvidencePanel.tsx` | native 세션 최근 목록의 Run별 미철회 metadata, 원문 제외·현재 인가 재검사. 실제 answer.txt 원본/API/공개 Trail 대조 |
@@ -32,7 +33,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 복구 | `scripts/storage-admin.ts` | 온라인 backup·integrity·binding import. 복원 fixture와 실제 backup→별도 복원 DB/API 대조 통과. 운영 DB 전환 훈련과 구별 |
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
-| 테스트 | `tests/` | 74개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
+| 테스트 | `tests/` | 85개 통과, typecheck 통과. 실제 앱 교차 실행·규모 검증 전 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
@@ -74,10 +75,10 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 10/21 (47.6%)이다. 74개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 11/21 (52.4%)이다. 85개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 
-전체 완료 예상은 아직 신뢰 있게 산정할 수 없다. Projects/Assistant의 신규 읽기·참조 계약과 desktop 위치가 미확인이다. Demian credential과 실제 native 실행 연결은 확인했다. 다음
-재집계는 실제 수집 UI/공개 인증 검증 후이며, 확인 가능한 잔여 작업과 외부
+전체 완료 예상은 아직 신뢰 있게 산정할 수 없다. Projects 문맥 요약·배정, Assistant의 신규 읽기 계약과 desktop 위치가 미확인이다. Demian credential과 실제 native 실행 연결은 확인했다. 다음
+재집계는 원본 명령·문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부
 대기를 분리해 기록한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.

@@ -177,3 +177,19 @@ with native opaque cursor/as_of paging. This is live read support. Explicit
 Run binding workflows, native execution references, assignment/acceptance and
 embedded context summaries remain unimplemented. The actual dedicated-reader
 scope reduction and restoration are recorded in projects-live-verification.json.
+
+## Explicit Track binding implementation
+
+The Run detail now explicitly selects an existing native Task and its observed
+revision. POST /api/bindings is restricted to the current single Entra owner,
+checks native Run/session identity and current Task/Project access, and records
+only the server-derived metadata. It appends Track history, current binding and
+actor/request receipt in one SQLite transaction with an expected binding version.
+Native business state is unchanged. Task edits racing after a GET cannot be
+atomically conditioned across two services; the record preserves the observed
+revision, not a native mutation receipt. Native assignment/start remains separate.
+
+Historical records are filtered against current Project scope. The exact request
+UUID replays its original receipt even after a later binding, provided current
+source/Task/Project access remains valid. Unsupported source commands are not
+introduced by binding. Actual QA evidence is native-binding-verification.json.

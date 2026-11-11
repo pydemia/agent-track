@@ -26,10 +26,14 @@ export class Sources {
   views(user: string): Array<SourceView & { uiBaseUrl?: string }> {
     const config = this.config();
     const singleOwner = config.auth.mode === "proxy" && config.auth.users.length === 1 && config.auth.users[0] === user;
+    const canBind = singleOwner && config.sources.some((source) => projectsReady(source) &&
+      source.users.includes(user) && this.projects.view(source, user).state === "connected");
     return config.sources.filter((source) => source.users.includes(user)).map((source) => {
       const view = projectsReady(source) ? this.projects.view(source, user) : this.state(source);
       return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
-        capabilities: [...view.capabilities, ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
+        capabilities: [...view.capabilities,
+          ...(canBind && source.kind === "demian" && view.state === "connected" ? ["binding.write"] : []),
+          ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
     });
   }
 

@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CodexCollector, readCodexFile } from "../packages/adapters/codex/index.ts";
 import { Store } from "../packages/storage/store.ts";
+import { BindingRepository } from "../packages/bindings/repository.ts";
 
 test("collector indexes actual turn metadata only under allowed repositories and replays idempotently", async () => {
   const dir = mkdtempSync(join(tmpdir(), "track-collector-"));
@@ -40,12 +41,19 @@ test("online backup restores journal, bindings, source cursors and pending comma
       title: "backup", status: "running", createdAt: now, startedAt: now, completedAt: null, observedAt: now });
     db.ingest({ sourceId: "demian", runId: "run", sequence: "1", type: "run.started", occurredAt: now, data: { redacted: true } });
     db.db.prepare("INSERT INTO receipts VALUES (?,?,?,?,?,?,?,?)").run("command", "actor", key, "digest", "unknown", null, now, now);
+    const bindings = new BindingRepository(db);
+    const bindingReceipt = bindings.apply({ actor: "actor", id: "11111111-1111-4111-8111-111111111111", requestDigest: "a".repeat(64), expectedVersion: "0",
+      binding: { sourceId: "demian", runId: "run", projectSourceId: "projects", projectId: "project", taskId: "task", taskRevision: "1", projectTitle: "Project", taskTitle: "Task", provenance: "operator" } });
     await backup(db.db, join(dir, "backup.sqlite"));
     const restored = new Store(join(dir, "backup.sqlite"));
     try {
       assert.equal(restored.integrity(), "ok"); assert.equal(restored.cursor("demian", "run"), "1");
       assert.equal(restored.db.prepare("SELECT state FROM receipts WHERE key='command'").get()?.state, "unknown");
       assert.equal(restored.events(key).events.length, 1);
+      const restoredBindings = new BindingRepository(restored);
+      assert.deepEqual(restoredBindings.receipt("actor", bindingReceipt.id), bindingReceipt);
+      assert.equal(restoredBindings.history(key).length, 1);
+      assert.equal(JSON.parse(restored.run(key)!.binding!).taskRevision, "1");
     } finally { restored.close(); }
   } finally { db.close(); rmSync(dir, { recursive: true, force: true }); }
 });
