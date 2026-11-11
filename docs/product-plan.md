@@ -83,7 +83,7 @@ silent timeout이나 파일 변경만으로 Task를 done으로 만들지 않습�
 | AT-09 | 제어 | 중단·재개·재시도 | capability 기반 노출, idempotency, receipt 대조, timeout 시 unknown·중복 실행 방지 |
 | AT-10 | 제어 | 승인 요청 | 대상·효과·범위·만료 표시, 원 runtime 정책 재검증, 만료·중복·철회 처리 |
 | AT-11 | 제어 | 작업 등록·배정 | 기존 Task 외부 ID와 연결, runtime acceptance 후 시작, 실패 시 초안 유지 |
-| AT-12 | 관계 | Map | dependency·parent_run·artifact 관계를 구별, 출처·시각 표시, 목록 대체·순환 감지 |
+| AT-12 | 관계 | Map·node group | dependency·parent_run·artifact 관계를 구별, 출처·시각 표시, 목록 대체·순환 감지. 원본/명시 binding/사용자 화면 묶음을 구분한 중첩 그룹, 접기·펼치기·내부 탐색·상위 복귀와 깊이별 보기, 원본 node/edge 근거 보존 |
 | AT-13 | 운영 | 장기 데이터·복구 | 보존/삭제 정책, 원장 backup·restore 후 receipt/cursor 정합 검사 |
 | AT-14 | 운영 | 교차 앱 검증 | Assistant 지시→Demian 실행→desktop 접속→Track 검토의 실기 시나리오 통과 |
 | AT-15 | MVP | 전체 프로젝트 기본 대시보드 | 첫 진입에서 여러 프로젝트·장치의 세션을 함께 조회. 프로젝트 필터와 해제 후 동일 선택/상태 유지. 미연결·수집 누락·stale 구분 |
