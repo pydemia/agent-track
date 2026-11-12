@@ -51,7 +51,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key }), []);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
   const grouping = useFlowGrouping(model, { scopeKey: `${actor}:${run.key}:${mode}`, defaultBy: mode === "execution" ? "run" : run.binding?.taskId ? "task" : "session",
-    defaultDepth: mode === "execution" ? "detail" : "structure", chooseNode, chooseEdge });
+    defaultDepth: mode === "execution" ? "detail" : "structure", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
   const selectedNode = grouping.inspectNodes.find((node) => choice?.kind === "node" && choice.key === node.key);
   const selectedEdge = grouping.inspectEdges.find((edge) => choice?.kind === "edge" && choice.key === edge.key);
   const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
@@ -84,7 +84,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const nodeName = (key: string) => grouping.inspectNodes.find((node) => node.key === key)?.label ?? "미조회 대상";
 
   return <section className="mission-flow" aria-label={mode === "execution" ? "Trace 실행 흐름" : "업무와 Agent 협업 흐름"}>
-    <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.resetFocus(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
+    <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.fitAll(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
@@ -98,7 +98,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
     <div className="mission-flow-workspace">
       <FlowCanvas key={`${run.key}:${mode}:${fitVersion}:${topology}:${grouping.topology}`} label={mode === "execution" ? "Agent 실행 Trace" : "업무 실행 Map"} nodes={graph.nodes} edges={graph.edges}
         onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
-        onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...(grouping.focusNodeIds ? { focusNodeIds: grouping.focusNodeIds } : {})}
+        onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
         height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" readOnly />
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
         {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : selectedNode ? <><small>{kinds[selectedNode.kind] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>

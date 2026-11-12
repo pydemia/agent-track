@@ -150,7 +150,7 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
   const chooseEdge = (key: string) => setChoice({ kind: "edge", key });
   const changeNodes = (changes: NodeChange<FlowNode>[]) => { const change = changes.find(item => item.type === "select" && item.selected); if (change?.type === "select") chooseNode(change.id); };
   const changeEdges = (changes: EdgeChange<FlowEdge>[]) => { const change = changes.find(item => item.type === "select" && item.selected); if (change?.type === "select") chooseEdge(change.id); };
-  const grouping = useFlowGrouping(model, { scopeKey: JSON.stringify(entries.map(entry => [entry.sourceId, entry.native.id]).sort()), defaultBy: "project", chooseNode, chooseEdge });
+  const grouping = useFlowGrouping(model, { scopeKey: JSON.stringify(entries.map(entry => [entry.sourceId, entry.native.id]).sort()), defaultBy: "project", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
   const node = grouping.inspectNodes.find(item => choice?.kind === "node" && item.key === choice.key);
   const edge = grouping.inspectEdges.find(item => choice?.kind === "edge" && item.key === choice.key);
   const group = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
@@ -167,12 +167,12 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
   const executionId = node?.kind === "assistant-execution" ? node.id : node?.details.find(item => item.label === "Execution ID")?.value;
   const projectId = node?.kind === "task" ? node.details.find(item => item.label === "Project ID")?.value : undefined;
   return <section className="mission-flow" aria-label="Assistant 업무와 역할 흐름">
-    <div className="flow-semantics"><span>원본 업무 연결 → WorkExecution → 역할 → Runtime 참조</span><span>참조선은 실행 의존 관계가 아닙니다.</span><button className="text-button" onClick={() => { grouping.resetFocus(); setFit(value => value + 1); }}>전체 흐름 맞춤</button></div>
+    <div className="flow-semantics"><span>원본 업무 연결 → WorkExecution → 역할 → Runtime 참조</span><span>참조선은 실행 의존 관계가 아닙니다.</span><button className="text-button" onClick={() => { grouping.fitAll(); setFit(value => value + 1); }}>전체 흐름 맞춤</button></div>
     <p className="graph-legend">현재 조회 창의 {model.nodes.length} nodes · {model.edges.length} edges{model.hiddenNodes ? ` · 표시 한도로 ${model.hiddenNodes}개 생략` : ""}. Demian 연결선은 현재 원본 접근과 operation 영수증을 대조한 경우에 표시합니다. 일반 runtime 참조는 실제 Run으로 변환하지 않습니다.</p>
     <FlowGroupControls state={grouping} />
     <div className="mission-flow-workspace"><FlowCanvas key={`${fit}:${grouping.topology}`} label="Assistant 실행과 역할" nodes={graph.nodes} edges={graph.edges} showMiniMap readOnly
       height="clamp(500px, 65vh, 700px)" onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={changeNodes} onEdgesChange={changeEdges} onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter}
-      {...(grouping.focusNodeIds ? { focusNodeIds: grouping.focusNodeIds } : {})} />
+      {...grouping.canvasProps} />
       <aside className="flow-inspector" aria-label="Assistant node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={model.nodes} edges={model.edges} />
         : node ? <><small>{kinds[node.kind] ?? node.kind}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map((item, index) => <div key={`${item.label}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
           {executionId && <button className="button-secondary" onClick={() => onSelect({ sourceId: node.sourceId, executionId })}>이 실행의 원본 상세 보기</button>}

@@ -69,7 +69,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
   }, [snapshot.page, runs, sources, focusTaskId, assistantExecutions, sourceId, projectId]);
   const chooseNode = (key: string) => setChoice({ kind: "node", key });
   const chooseEdge = (key: string) => setChoice({ kind: "edge", key });
-  const grouping = useFlowGrouping(model, { scopeKey: `${sourceId}:${projectId}`, defaultBy: "project", chooseNode, chooseEdge });
+  const grouping = useFlowGrouping(model, { scopeKey: `${sourceId}:${projectId}`, defaultBy: "project", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
   const node = grouping.inspectNodes.find((n) => choice?.kind === "node" && n.key === choice.key);
   const edge = grouping.inspectEdges.find((e) => choice?.kind === "edge" && e.key === choice.key);
   const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
@@ -107,7 +107,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
   return <section className="mission-flow" aria-label="Projects 업무 의존성 Map">
     <div className="flow-semantics"><span>실선 · 선행 조건 → 의존 업무</span><span>점선 · 명시적 Task 연결 / Session 소속</span>
       <span>의존성은 실행 배정·Task 성공을 뜻하지 않습니다.</span>
-      <button className="text-button" onClick={() => { grouping.resetFocus(); setFit((v) => v + 1); }}>전체 흐름 맞춤</button>
+      <button className="text-button" onClick={() => { grouping.fitAll(); setFit((v) => v + 1); }}>전체 흐름 맞춤</button>
       <button className="text-button" onClick={retryRead}>다시 조회</button></div>
     <p className={snapshot.status === "failure" ? "inline-error" : "graph-legend"} role="status">{message}</p>
     {snapshot.page && <p className="graph-legend">관측 {snapshot.page.observedAt ?? "지원되지 않음"} · {model.nodes.length} nodes · {model.edges.length} edges
@@ -120,7 +120,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
       <div className="mission-flow-workspace">
         <FlowCanvas key={`${fit}:${topology}:${grouping.topology}`} label="Projects 업무 의존성" nodes={graph.nodes} edges={graph.edges}
           onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={selectNode} onEdgesChange={selectEdge} showMiniMap readOnly
-          onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...(grouping.focusNodeIds ? { focusNodeIds: grouping.focusNodeIds } : {})}
+          onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
           height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" />
         <aside className="flow-inspector" aria-label="선택한 업무 또는 관계 상세" aria-live="polite">
           {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>

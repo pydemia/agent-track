@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { MissionNode, MissionEdge } from "../../../packages/projection/mission-flow.ts";
 import { nativeFlowGroupDefinitions, withTaskBundles, groupsForNodes, type FlowGroupBy, type TaskBundle } from "../../../packages/projection/flow-group-definitions.ts";
 import { projectFlowGroups, type FlowGroupSummary } from "../../../packages/projection/flow-groups.ts";
 import { flowGroupContext } from "../../../packages/projection/flow-group-context.ts";
-import type { FlowNode } from "./ui/flow-canvas.tsx";
+import type { FlowNode, FlowCanvasProps, FlowCanvasView, FlowViewRequest } from "./ui/flow-canvas.tsx";
+import { flowNavigationGraph, reconcileFlowHistory, pushFlowHistory, popFlowHistory, validFlowNavigationView,
+  type FlowNavigationHistory, type FlowNavigationFrame, type FlowNavigationSelection } from "./flow-navigation-state.ts";
 
 type Depth = "overview" | "structure" | "detail";
 const byNames: Record<FlowGroupBy, string> = { project: "Project·업무", task: "Task 실행", session: "Session", run: "실행 단위", none: "개별 node" };
@@ -21,6 +23,7 @@ const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter((
 
 export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdge[]; incomplete?: boolean }, options: {
   scopeKey: string; defaultBy: FlowGroupBy; defaultDepth?: Depth; chooseNode: (key: string) => void; chooseEdge: (key: string) => void;
+  selection?: FlowNavigationSelection | null; clearSelection?: () => void;
 }) {
   const [by, setBy] = useState(options.defaultBy);
   const [depth, setDepth] = useState<Depth>(options.defaultDepth ?? "structure");
@@ -59,37 +62,104 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
   for (let current = activeFocus ? groupByKey.get(activeFocus) : undefined; current; current = current.parentKey ? groupByKey.get(current.parentKey) : undefined) breadcrumb.unshift(current);
   const targetIdentity = JSON.stringify(sameScope ? focusTargets.filter(key => projection.nodes.some(node => node.key === key)) : []);
   const focusNodeIds = useMemo(() => { const targets: string[] = JSON.parse(targetIdentity); return targets.length ? targets : activeFocus ? [activeFocus] : undefined; }, [activeFocus, targetIdentity, fitVersion]);
-  const resetFocus = useCallback(() => { setFocus(null); setFocusTargets([]); setFitVersion(value => value + 1); }, []);
-  const enter = useCallback((key: string) => {
+  const modelIdentity = useMemo(() => flowNavigationGraph(model.nodes, model.edges, []), [model]);
+  const graphIdentity = useMemo(() => flowNavigationGraph(model.nodes, model.edges, projection.groups), [model, projection.groups]);
+  const history = useRef<FlowNavigationHistory>({ scope: options.scopeKey, graph: graphIdentity, frames: [] });
+  const safeHistory = reconcileFlowHistory(history.current, options.scopeKey, graphIdentity);
+  const view = useRef<{ scope: string; graph: string; value: FlowCanvasView } | null>(null);
+  const authority = useRef({ scope: options.scopeKey, model: modelIdentity, graph: graphIdentity });
+  authority.current = { scope: options.scopeKey, model: modelIdentity, graph: graphIdentity };
+  const viewId = useRef(0);
+  const [camera, setCamera] = useState<{ scope: string; model: string; graph: string; request: FlowViewRequest } | null>(null);
+  const currentView = sameScope && view.current?.scope === options.scopeKey && view.current.graph === graphIdentity ? view.current.value : null;
+  const pendingCamera = sameScope && camera?.scope === options.scopeKey && camera.model === modelIdentity &&
+    (camera.request.mode === "fit" || camera.graph === graphIdentity) ? camera.request : null;
+  useEffect(() => {
+    history.current = reconcileFlowHistory(history.current, options.scopeKey, graphIdentity);
+    if (view.current && (view.current.scope !== options.scopeKey || view.current.graph !== graphIdentity)) view.current = null;
+    const allowedNodes = new Set(model.nodes.map(node => node.key));
+    const allowedGroups = new Set(projection.groups.map(group => group.key));
+    setFocusTargets(previous => previous.filter(key => allowedNodes.has(key)));
+    setOverrides(previous => new Map([...previous].filter(([key]) => allowedGroups.has(key))));
+    setFocus(previous => previous && allowedGroups.has(previous) ? previous : null);
+    setCamera(previous => previous && (previous.scope !== options.scopeKey || previous.model !== modelIdentity ||
+      previous.request.mode === "restore" && previous.graph !== graphIdentity) ? null : previous);
+  }, [options.scopeKey, modelIdentity, graphIdentity]);
+  const onViewChange = useCallback((value: FlowCanvasView) => {
+    if (authority.current.scope === options.scopeKey && authority.current.graph === graphIdentity && validFlowNavigationView(value))
+      view.current = { scope: options.scopeKey, graph: graphIdentity, value: { ...value } };
+  }, [options.scopeKey, graphIdentity]);
+  const onViewApplied = useCallback((id: number) => setCamera(previous => previous?.request.id === id ? null : previous), []);
+  const requestView = (nodeIds: string[], restore?: FlowCanvasView | null) => {
+    const base = { id: ++viewId.current, ...(nodeIds.length ? { nodeIds: [...nodeIds] } : {}) };
+    setCamera({ scope: options.scopeKey, model: modelIdentity, graph: graphIdentity,
+      request: restore ? { ...base, mode: "restore", view: { ...restore } } : { ...base, mode: "fit" } });
+    setFitVersion(value => value + 1);
+  };
+  const saveFrame = () => {
+    const selected = options.selection;
+    const selectedKnown = selected && (selected.kind === "node"
+      ? [...model.nodes, ...projection.nodes].some(node => node.key === selected.key)
+      : [...model.edges, ...projection.edges].some(edge => edge.key === selected.key));
+    // Read the camera at the action, since panning updates a ref without a render.
+    const latestView = view.current?.scope === options.scopeKey && view.current.graph === graphIdentity ? view.current.value : null;
+    history.current = pushFlowHistory(history.current, options.scopeKey, graphIdentity, {
+      focus: activeFocus, targets: focusTargets.filter(key => model.nodes.some(node => node.key === key)),
+      overrides: [...overrides].filter(([key]) => groupByKey.has(key)),
+      selection: selectedKnown ? { ...selected } : null, view: latestView,
+    });
+  };
+  const restoreFrame = (frame: FlowNavigationFrame) => {
+    setFocus(frame.focus); setFocusTargets(frame.targets); setOverrides(new Map(frame.overrides));
+    if (frame.selection?.kind === "node") options.chooseNode(frame.selection.key);
+    else if (frame.selection?.kind === "edge") options.chooseEdge(frame.selection.key);
+    else options.clearSelection?.();
+    requestView(frame.targets.length ? frame.targets : frame.focus ? [frame.focus] : [], frame.view);
+  };
+  const restoreSaved = (target?: string | null) => {
+    const restored = popFlowHistory(history.current, options.scopeKey, graphIdentity, target);
+    history.current = restored.history;
+    if (!restored.frame) return false;
+    restoreFrame(restored.frame); return true;
+  };
+  const clearHistory = () => { history.current = { scope: options.scopeKey, graph: graphIdentity, frames: [] }; };
+  const fitAll = () => { clearHistory(); view.current = null; setFocus(null); setFocusTargets([]); requestView([]); };
+  const resetFocus = () => { if (!restoreSaved(null)) fitAll(); };
+  const enter = (key: string) => {
+    if (key !== activeFocus && restoreSaved(key)) return;
     if (!groupByKey.has(key)) {
       if (sameScope && bundles.some(bundle => bundle.key === key)) {
+        clearHistory();
         setBy(options.defaultBy === "none" ? "task" : options.defaultBy);
-        setFocus(key); setFocusTargets([]); setFitVersion(value => value + 1); options.chooseNode(key);
+        setFocus(key); setFocusTargets([]); requestView([key]); options.chooseNode(key);
       }
       return;
     }
+    if (key !== activeFocus) saveFrame();
     setOverrides(previous => {
       const next = new Map(previous);
       for (let group = groupByKey.get(key); group; group = group.parentKey ? groupByKey.get(group.parentKey) : undefined) next.set(group.key, false);
       return next;
     });
-    setFocus(key); setFocusTargets([]); setFitVersion(value => value + 1); options.chooseNode(key);
-  }, [groupByKey, options.chooseNode, bundles, sameScope, options.defaultBy]);
-  const toggle = useCallback((key: string) => {
+    setFocus(key); setFocusTargets([]); requestView([key]); options.chooseNode(key);
+  };
+  const toggle = (key: string) => {
     setFocusTargets([]);
     setOverrides(previous => new Map(previous).set(key, !collapsed.has(key)));
     options.chooseNode(key);
     if (activeFocus && groupByKey.get(key)?.leafKeys.some(member => groupByKey.get(activeFocus)?.leafKeys.includes(member))) setFocus(key);
-  }, [collapsed, activeFocus, groupByKey, options.chooseNode]);
+    requestView([key]);
+  };
   const reveal = (keys: string[]) => {
+    saveFrame();
     const ancestors = groupsForNodes(projection.groups, keys);
     setOverrides(previous => { const next = new Map(previous); for (const key of ancestors) next.set(key, false); return next; });
     const direct = projection.groups.find(group => keys.some(key => group.memberKeys.includes(key)));
-    setFocus(direct?.key ?? null); setFocusTargets(keys); setFitVersion(value => value + 1);
+    setFocus(direct?.key ?? null); setFocusTargets(keys); requestView(keys);
   };
   const revealNode = (key: string) => { if (model.nodes.some(node => node.key === key)) { reveal([key]); options.chooseNode(key); } };
   const revealEdge = (key: string) => { const edge = model.edges.find(edge => edge.key === key); if (edge) { reveal([edge.from, edge.to]); options.chooseEdge(key); } };
-  const selectDepth = (next: Depth) => { setDepth(next); setOverrides(new Map()); resetFocus(); };
+  const selectDepth = (next: Depth) => { setDepth(next); setOverrides(new Map()); fitAll(); };
   const decorate = (node: MissionNode, base: FlowNode): FlowNode => {
     const parent = projection.parents.get(node.key);
     const parentProps = parent ? { parentId: parent, extent: "parent" as const } : {};
@@ -111,15 +181,22 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     const keys = [...taskKeys].filter(key => availableTasks.some(task => task.key === key) && !occupied.has(key));
     const title = label.trim(); if (!title || keys.length < 2) return;
     const key = JSON.stringify(["flow-container", "view-task-bundle", crypto.randomUUID()]);
+    clearHistory();
     setBundles(previous => [...previous, { key, label: title, taskKeys: keys }]);
     if (by === "none") setBy(options.defaultBy === "none" ? "task" : options.defaultBy);
     setOverrides(previous => new Map(previous).set(key, false)); setTaskKeys(new Set()); setLabel(""); setFormOpen(false);
-    options.chooseNode(key); setFocus(key); setFocusTargets([]); setFitVersion(value => value + 1);
+    options.chooseNode(key); setFocus(key); setFocusTargets([]); requestView([key]);
   };
-  const removeBundle = (key: string) => { setBundles(previous => previous.filter(bundle => bundle.key !== key)); resetFocus(); };
-  return { by, setBy: (next: FlowGroupBy) => { setBy(next); setOverrides(new Map()); resetFocus(); }, depth, selectDepth,
+  const removeBundle = (key: string) => { setBundles(previous => previous.filter(bundle => bundle.key !== key)); fitAll(); };
+  const canvasProps: Pick<FlowCanvasProps, "fitView" | "minZoom" | "defaultViewport" | "viewRequest" | "onViewChange" | "onViewApplied"> = {
+    fitView: !currentView && !pendingCamera, minZoom: 0.001, onViewChange, onViewApplied,
+    ...(currentView ? { defaultViewport: { x: currentView.x, y: currentView.y, zoom: currentView.zoom } } : {}),
+    ...(pendingCamera ? { viewRequest: pendingCamera } : {}),
+  };
+  return { by, setBy: (next: FlowGroupBy) => { setBy(next); setOverrides(new Map()); fitAll(); }, depth, selectDepth,
     projection, collapsed, groupByKey, decorate, inspectNodes, inspectEdges, topology, focusNodeIds, fitVersion,
-    enter, toggle, resetFocus, revealNode, revealEdge, breadcrumb, activeFocus, formOpen, setFormOpen, label, setLabel, taskKeys, setTaskKeys,
+    enter, toggle, resetFocus, fitAll, back: () => restoreSaved(), canGoBack: sameScope && safeHistory.frames.length > 0,
+    canvasProps, revealNode, revealEdge, breadcrumb, activeFocus, formOpen, setFormOpen, label, setLabel, taskKeys, setTaskKeys,
     availableTasks, validBundles, occupied, createBundle, removeBundle, partial: Boolean(model.incomplete), chooseNode: options.chooseNode, chooseEdge: options.chooseEdge };
 }
 type Grouping = ReturnType<typeof useFlowGrouping>;
@@ -130,7 +207,7 @@ export function FlowGroupControls({ state }: { state: Grouping }) {
       <div role="group" aria-label="흐름 탐색 깊이">{([["overview", "묶음 개요"], ["structure", "실행 구조"], ["detail", "상세 근거"]] as const).map(([key, name]) => <button key={key} type="button" aria-pressed={state.depth === key} onClick={() => state.selectDepth(key)}>{name}</button>)}</div>
       {state.availableTasks.length >= 2 && <button type="button" aria-expanded={state.formOpen} onClick={() => state.setFormOpen(!state.formOpen)}>업무 묶음 만들기</button>}
       <span>{state.projection.groups.length}개 그룹 · 현재 화면 묶음은 재접속 시 저장되지 않습니다.</span></div>
-    <nav className="flow-group-breadcrumb" aria-label="그룹 탐색 경로"><button type="button" onClick={state.resetFocus}>전체 흐름</button>{state.breadcrumb.map(group => <span key={group.key}> / <button type="button" onClick={() => state.enter(group.key)} aria-current={state.activeFocus === group.key ? "location" : undefined}>{group.label}</button></span>)}
+    <nav className="flow-group-breadcrumb" aria-label="그룹 탐색 경로">{state.canGoBack && <button type="button" onClick={state.back}>이전 탐색 복원</button>}<button type="button" onClick={state.resetFocus}>전체 흐름</button>{state.breadcrumb.map(group => <span key={group.key}> / <button type="button" onClick={() => state.enter(group.key)} aria-current={state.activeFocus === group.key ? "location" : undefined}>{group.label}</button></span>)}
       {state.activeFocus && <button type="button" onClick={() => { const parent = state.groupByKey.get(state.activeFocus!)?.parentKey; if (parent) state.enter(parent); else state.resetFocus(); }}>상위 묶음</button>}</nav>
     {state.formOpen && <form className="flow-bundle-form" onSubmit={event => { event.preventDefault(); state.createBundle(); }}><label>화면 묶음 이름<input maxLength={80} value={state.label} onChange={event => state.setLabel(event.target.value)} required /></label>
       <fieldset><legend>묶을 업무 선택 · 두 개 이상</legend>{state.availableTasks.map(task => <label key={task.key}><input type="checkbox" checked={state.taskKeys.has(task.key)} disabled={state.occupied.has(task.key)} onChange={event => state.setTaskKeys(previous => { const next = new Set(previous); if (event.target.checked) next.add(task.key); else next.delete(task.key); return next; })} />{task.label}{state.occupied.has(task.key) ? " · 다른 화면 묶음에 포함" : ""}</label>)}</fieldset>

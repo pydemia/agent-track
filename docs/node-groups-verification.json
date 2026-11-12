@@ -176,5 +176,44 @@
       "screenshot": "track-group-context-live.jpg"
     },
     "goal": {"fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low"}
+  },
+  "navigationRestore": {
+    "dateKst": "2026-11-13",
+    "scope": "Current-screen group navigation; synthetic QA before frontend rollout",
+    "history": "At most32 in-memory frames containing keys/collapse states/selection/viewport only; no persistence or cross-view scope",
+    "invalidation": "Actor scope or native node/edge/group structural identity changes clear history; capture and active state also remove missing IDs; metadata-only refresh preserves frames",
+    "camera": "Wait for initialized viewport and known node dimensions; apply public SDK bounds directly; restore only at same canvas size, otherwise fit current scope",
+    "keyboard": "Group action keys do not select the surrounding node before capturing the prior choice",
+    "typecheck": "passed",
+    "isolatedWebBuild": "passed",
+    "historyTests": {"total": 9, "passed": 9, "failed": 0},
+    "relatedTests": {"total": 25, "passed": 25, "failed": 0},
+    "fullTests": {"total": 681, "passed": 672, "failed": 0, "skipped": 9, "platform": "Windows"},
+    "independentReview": {
+      "scope": "Source-only review of history/helper/canvas/hook/three consumers",
+      "findings": 2,
+      "resolved": ["Capture latest viewport ref at navigation time", "Reconcile active IDs and validate capture after topology changes"],
+      "runtimeIndependentlyVerified": false
+    },
+    "syntheticUi": {
+      "taskMap": {"nodes": 18, "edges": 19, "groups": 7},
+      "checks": [
+        "Zoom immediately before entering a branch; saved camera equals restored parent and global camera exactly",
+        "Parent return restores the selected Task group and collapses the execution as before entry",
+        "Global return restores the original selected Task and empties consumed history",
+        "Typed boundary edge detail opens original relation; Back restores the Task-group selection and exact camera",
+        "390px resize preserves selection while fitting new canvas size; settled document/scroll width375 and viewport override reset",
+        "Native grant withdrawal changes graph18nodes/19edges to12/11 and removes selected Run ID and Back history",
+        "Entering and returning after withdrawal never reintroduces old Run ID/title",
+        "Final global fit includes all13 displayed nodes within316px canvas; final return still restores exact camera and selection"
+      ],
+      "screenshots": "Not available: both documented screenshot APIs timed out in Page.captureScreenshot; no fresh image claim",
+      "fixtureProcessStopped": true,
+      "syntheticCredentialFilesRemoved": 8,
+      "interruptedFixture": "Confirmed original PID missing and ports unowned before a new fixture; cleaned its four files separately",
+      "actualTaskRunOrModelCalls": 0
+    },
+    "production": {"state": "pending"},
+    "goal": {"fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low"}
   }
 }

@@ -1,6 +1,6 @@
 import {
     Background, BaseEdge, Controls, EdgeLabelRenderer, Handle,
-    MiniMap, Position, ReactFlow, ViewportPortal, getSmoothStepPath,
+    MiniMap, Position, ReactFlow, ViewportPortal, getSmoothStepPath, getViewportForBounds,
     type Connection, type Edge, type EdgeProps, type Node,
     type NodeProps, type OnEdgesChange, type OnNodesChange,
     type Viewport, useReactFlow, useNodesInitialized,
@@ -26,6 +26,10 @@ type FlowEdge = Edge<FlowEdgeData, "pyd-flow-edge">;
 type FlowEdgeEditPhase = "start" | "move" | "end";
 type FlowEdgeEdit = (id: string, point: FlowPoint,
     phase: FlowEdgeEditPhase) => void;
+type FlowCanvasView = Viewport & { width: number; height: number };
+type FlowViewRequest = { id: number; nodeIds?: string[] } & (
+    { mode: "fit" } | { mode: "restore"; view: FlowCanvasView }
+);
 const FlowEdgeEditContext = createContext<FlowEdgeEdit | undefined>(undefined);
 const FlowEdgeSelectContext = createContext<((id: string) => void) | undefined>(undefined);
 const FlowGroupActionsContext = createContext<{ toggle?: (id: string) => void; enter?: (id: string) => void }>({});
@@ -46,6 +50,9 @@ type FlowCanvasProps = {
     onGroupToggle?: (id: string) => void;
     onGroupEnter?: (id: string) => void;
     focusNodeIds?: string[];
+    viewRequest?: FlowViewRequest;
+    onViewChange?: (view: FlowCanvasView) => void;
+    onViewApplied?: (id: number) => void;
     onSelectionChange?: (selection: {
         nodes: FlowNode[]; edges: FlowEdge[];
     }) => void;
@@ -53,6 +60,7 @@ type FlowCanvasProps = {
     height?: number | string;
     showMiniMap?: boolean;
     fitView?: boolean;
+    minZoom?: number;
     defaultViewport?: Viewport;
     readOnly?: boolean;
 };
@@ -103,7 +111,7 @@ function FlowGroupCard({ id, data, selected }: NodeProps<FlowNode>) {
             <small>{data.kindLabel ?? "Group"} · {data.group?.basis === "view" ? "화면 묶음" : data.group?.basis === "binding" ? "명시적 업무 연결" : "원본 소속"}
                 {data.group?.partial ? " · 부분 관측" : ""}{data.group?.cyclicMembers ? ` · 순환 ${data.group.cyclicMembers}` : ""}</small>
             <strong>{data.title}</strong><p>{data.description}</p>
-            <div className="flow-group-actions nodrag nopan">
+            <div className="flow-group-actions nodrag nopan" onKeyDown={event => event.stopPropagation()}>
                 {actions.toggle && <button type="button" aria-label={`${data.title} 그룹 ${data.group?.collapsed ? "펼치기" : "접기"}`}
                     aria-expanded={!data.group?.collapsed} onClick={event => { event.stopPropagation(); actions.toggle?.(id); }}>{data.group?.collapsed ? "펼치기" : "접기"}</button>}
                 {actions.enter && <button type="button" aria-label={`${data.title} 내부 흐름`}
@@ -124,6 +132,42 @@ function FlowFocus({ ids }: { ids: string[] | undefined }) {
         if (nodes.length) void instance.fitView({ nodes, padding: 0.14, duration: 0, maxZoom: 1 })
             .catch(() => { /* Optional viewport focus leaves the current graph available. */ });
     }, [identity, initialized, instance]);
+    return null;
+}
+
+function FlowCamera({ request, container, onApplied, minZoom }: {
+    request: FlowViewRequest | undefined;
+    container: { current: HTMLElement | null };
+    onApplied: ((id: number) => void) | undefined;
+    minZoom: number;
+}) {
+    const instance = useReactFlow();
+    const initialized = useNodesInitialized();
+    const applied = useRef<number | null>(null);
+    useEffect(() => {
+        if (!request || !instance.viewportInitialized || applied.current === request.id) return;
+        const known = instance.getNodes();
+        if (!initialized && !known.every(node =>
+            (node.measured?.width ?? node.width ?? 0) > 0 && (node.measured?.height ?? node.height ?? 0) > 0)) return;
+        let cancelled = false;
+        const saved = request.mode === "restore" ? request.view : null;
+        const element = container.current;
+        if (!element || element.clientWidth <= 0 || element.clientHeight <= 0) return;
+        const sameSize = saved && element && saved.width === element.clientWidth && saved.height === element.clientHeight;
+        const valid = saved && [saved.x, saved.y, saved.zoom].every(Number.isFinite) && saved.zoom > 0;
+        const nodes = request.nodeIds?.filter(id => instance.getNode(id));
+        const viewport = sameSize && valid ? { x: saved.x, y: saved.y, zoom: saved.zoom }
+            : getViewportForBounds(instance.getNodesBounds(nodes?.length ? nodes : known),
+                element.clientWidth, element.clientHeight, minZoom, 1, 0.14);
+        // The graph is controlled by its consumer. Apply the measured bounds
+        // directly rather than queueing a fit that depends on a node update.
+        void instance.setViewport(viewport, { duration: 0 }).catch(() => false).then(success => {
+            if (cancelled || !success) return;
+            applied.current = request.id;
+            onApplied?.(request.id);
+        });
+        return () => { cancelled = true; };
+    }, [request?.id, initialized, instance, container, onApplied, minZoom]);
     return null;
 }
 
@@ -223,11 +267,18 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
     onConnect, onNodeDragStart, onNodeDragStop, onNodeSnap,
     onEdgeControlChange,
     onNodeClick, onEdgeClick, onSelectionChange, onGroupToggle, onGroupEnter, focusNodeIds,
+    viewRequest, onViewChange, onViewApplied,
     className, height = 560, showMiniMap = true,
-    fitView = true, defaultViewport, readOnly = true,
+    fitView = true, defaultViewport, readOnly = true, minZoom = 0.25,
 }: FlowCanvasProps) {
     const [guides, setGuides] = useState<FlowGuide[]>([]);
     const zoom = useRef(1);
+    const container = useRef<HTMLElement | null>(null);
+    const reportView = (viewport: Viewport) => {
+        const element = container.current;
+        if (element && element.clientWidth > 0 && element.clientHeight > 0)
+            onViewChange?.({ ...viewport, width: element.clientWidth, height: element.clientHeight });
+    };
     if (typeof label !== "string" || !label.trim()) {
         throw new Error("FlowCanvas requires a label.");
     }
@@ -235,7 +286,7 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
         throw new TypeError("FlowCanvas nodes and edges must be arrays.");
     }
     const style: CSSProperties = { height };
-    return <section data-ui="flow-canvas" aria-label={label}
+    return <section ref={container} data-ui="flow-canvas" aria-label={label}
         className={className} style={style}>
         <FlowEdgeEditContext.Provider value={onEdgeControlChange}>
         <FlowEdgeSelectContext.Provider value={onEdgeClick}>
@@ -272,15 +323,17 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
             edgesFocusable
             edgesReconnectable={false}
             fitView={fitView} {...(defaultViewport ? { defaultViewport } : {})}
-            onInit={(instance) => { zoom.current = instance.getViewport().zoom; }}
+            onInit={(instance) => { const viewport = instance.getViewport(); zoom.current = viewport.zoom; reportView(viewport); }}
             onMove={(_, viewport) => { zoom.current = viewport.zoom; }}
+            onMoveEnd={(_, viewport) => reportView(viewport)}
             fitViewOptions={{ padding: 0.2, maxZoom: 1 }}
-            minZoom={0.25} maxZoom={2}
+            minZoom={minZoom} maxZoom={2}
             zoomOnScroll={false} preventScrolling={false}
             attributionPosition="bottom-left"
             aria-label={`${label} 작업 영역`}>
             <Background gap={20} size={1} color="var(--border)" />
             <FlowFocus ids={focusNodeIds} />
+            <FlowCamera request={viewRequest} container={container} onApplied={onViewApplied} minZoom={minZoom} />
             <ViewportPortal>
                 {guides.map((guide) => <span
                     key={guide.axis}
@@ -309,4 +362,4 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
 
 export { FlowCanvas, FlowEdgePath, FlowGroupCard, FlowNodeCard };
 export type { FlowCanvasProps, FlowEdge, FlowEdgeData, FlowNode,
-    FlowNodeData, FlowPoint };
+    FlowNodeData, FlowPoint, FlowCanvasView, FlowViewRequest };
