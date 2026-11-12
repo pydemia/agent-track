@@ -1,0 +1,102 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementScope": "AT-14/18 execution preparation; not actual organization or cross-app execution acceptance",
+  "nativeSource": {
+    "repository": "pydemia/demian (private)",
+    "originalHead": "297678ea08529358aee5a48bef1b94fbea0d7275",
+    "originalInputsMatched": 692,
+    "preservedOriginalArtifacts": 2,
+    "isolatedSourceSnapshotRevision": "5943eec10c2e334c15b9337c0caab1b19c8cf4ef",
+    "implementationRevision": "d493ae85d77fe7a6d7b25f403ded721fa8e6c6c1",
+    "branch": "codex/agent-track-worker-intake",
+    "publication": "local commits only; not pushed, merged or deployed",
+    "originalSourceModified": false
+  },
+  "implementation": {
+    "frozenReadiness": "Node filesystem/hash only; no worker/DB pool/runtime initialization, provider status/login, recovery or lease",
+    "manifest": "Strict raw-byte SHA256 pin, file size/hash, closed files/directories/link tree, source+installed dependencies+worker/core artifact closure",
+    "runtimeOverride": "rejected",
+    "executingEntry": "Must be the compiled entry in the pinned release",
+    "modes": {
+      "frozen-readiness": "verify and exit; dispatchEnabled false",
+      "general": "existing execution requires explicit opt-in",
+      "qa": "rejected until scoped lease and lifecycle implementation",
+      "missingEmptyUnknown": "rejected before execution configuration"
+    },
+    "limits": "Point-in-time content verification; no atomic filesystem lock, future execution authorization, automatic admission freeze or npm subprocess probe"
+  },
+  "verification": {
+    "platform": "win32 x64",
+    "nodeVersion": "v24.21.0",
+    "npmVersionObservedDuringInstall": "11.19.0",
+    "isolatedInstall": "Root100 + nodejs145 packages from frozen locks; ignore-scripts, no audit/fund",
+    "typecheck": "worker passed",
+    "builds": "core and worker passed in isolated checkout",
+    "sourceTests": {
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0
+    },
+    "compiledCliTests": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullNativeSuite": "not rerun; these results cover readiness and entry only",
+    "independentReview": "Two findings: unlisted empty directory accepted, negative executing-entry binding test missing; both fixed and regression checked by parent",
+    "actualPackagedRelease": {
+      "verifiedAt": "2026-11-12T15:43:31.827Z",
+      "manifestSha256": "c7610b97db24348547aedb0cb2d2b25602325676fba954645cbeeeed26b0ca16",
+      "workerSha256": "0ad45a8cb218ee65b2213b63cf6ec0696e4bae09bd9f2008ecd9699dc8e926c2",
+      "runtimeSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+      "files": 19589,
+      "links": 5,
+      "dependencyFiles": 18886,
+      "sourceAndProvenanceFiles": 701,
+      "payloadBytes": 770727395,
+      "elapsedMs": 18898,
+      "dispatchEnabled": false,
+      "observedForbiddenAttempts": {
+        "additionalModuleImport": 0,
+        "network": 0,
+        "subprocess": 0,
+        "outsidePayloadFile": 0
+      },
+      "observation": "Test tripwire before actual compiled entry; only Node entry bootstrap may read its own executable",
+      "currentSourceAndArtifactsMatched": 702
+    }
+  },
+  "preservation": {
+    "verifiedAt": "2026-11-12T15:45:42.018Z",
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "databaseAllRowsDdlSequencesSecurityCatalogUnchanged": true,
+    "protectedFilesUnchanged": 8,
+    "nativeApiPid": 15940,
+    "nativeApiWebGateAndContainerIdentitiesUnchanged": true,
+    "nativeTables": 45,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "operatingWorkerStarted": false,
+    "taskRunModelCallsCreated": 0,
+    "trackOrTrailDeploymentChanged": false
+  },
+  "remainingBeforeActivation": [
+    "Exact organization/workspace/session/run QA tuple registration with expiry",
+    "Scoped transactional candidate lease and both expired Run recovery/workspace lease cleanup paths",
+    "Synchronous intake close plus prepare/claim, undispatched claim, execution/event/heartbeat/status drain",
+    "Graceful drain versus forced cancellation/timeout result distinction",
+    "Atomic child/peer/delegated QA registration at existing authorized admission transactions",
+    "Current native/Assistant DDL backup/rollback, source mapping and credentials",
+    "Actual child/peer and Assistant-to-Demian task execution and grouped UI evidence"
+  ],
+  "goal": {
+    "status": "active",
+    "fulfilled": 14,
+    "total": 21,
+    "weighting": "equal acceptance criteria",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

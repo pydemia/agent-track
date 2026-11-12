@@ -71,10 +71,33 @@ Track는 그룹 요약·탐색 복원 구현을 게시했으며 실행 준비를
 전체 polling·lease·별도 status publish를 모두 기다리는 계약은 확인하지 못했다.
 worker/config/runtime-bridge의 기존 미커밋 변경은 보존했고 읽기만 했다.
 
-다음 구현의 선행 조건은 worker/core를 함께 고정할 authoritative baseline과
-manifest다. 소유자 대화에 기존 intake freeze/drain/QA 범위 lease 계약의 유무와
-중복 없이 보강할 경계를 읽기 전용으로 문의했다. HEAD만으로 WIP 기능을 복원하거나
-기존 bootstrap을 실행하지 않는다. 준비 단계의 목표는 시작 전 DB·인증/provider
-쓰기를 금지한 frozen readiness, 명시한 QA 범위의 intake, 진행 중 poll/lease/status의
-완료까지 기다리는 stop이다. 실제 기동·credential·DDL 변경은 별도 보존/복구와
-현재 원본 권한을 검증한 뒤 수행한다. 이 문단은 현재 worker의 동작 완료 증거가 아니다.
+소유자 대화의 후속 조사에서 기존 freeze/drain/정확한 QA scope lease 계약은
+없다고 확인했다. 기존 source manifest689개와 metadata 후속8개를 경로로 합친
+현재692개는 전부 SHA가 일치했다. 이 소스와 worker/core 산출물2개를 보존하고
+격리 branch의 `5943eec`에 source snapshot을 기록했다. 원본 WIP는 수정하지 않았다.
+
+그 위에 DB·인증/provider 쓰기를 하지 않는 `frozen-readiness` 진입점을 구현했다.
+별도 설치한 dependency와 소스·worker/core를 manifest 하나로 묶고 외부 pin으로
+전체 tree의 누락·추가·변조·외부 link·만료를 검사한다. 현재 실행 파일도 해당
+payload에 속해야 한다. 모드 누락·빈 값·미지원·아직 구현 전인 `qa`는 일반 실행으로
+넘어가지 않고 거부한다. 이 branch의 일반 실행은 명시적인 `general`에서만 가능하다.
+원본 worker service 설정은 변경하지 않았다.
+
+실제 기동 전 남은 계약은 정확한 org→workspace→session→run tuple의 만료 있는
+QA scope, candidate lease와 만료 복구·workspace lease 삭제의 동일 범위 제한,
+진행 중 prepare/claim·미dispatch claim·실행/event/heartbeat/status를 모두 기다리는
+drain이다. child/peer/delegated의 QA 등록은 기존 admission transaction에서
+권한·Run·receipt와 원자적으로 처리해야 한다. ancestry/tag에서 권한을 상속하지 않는다.
+QA intake 제한과 전역 admission freeze는 다른 기능이다.
+
+준비 검사는 실제 worker 활성화·provider 인증·Task/Run 생성이 아니다. 실제 기동·
+credential·DDL 변경은 최신 보존/복구와 현재 원본 권한을 검증한 뒤 수행한다.
+native Work/runtime DDL 전환에는 기존 schemaUnchanged guard를 재사용하지 않는다.
+
+격리 구현은 `d493ae8`의 로컬 commit이며 아직 원격 게시·운영 적용하지 않았다.
+준비 검사69개·compiled CLI8개와 worker typecheck·core/worker build를 통과했다.
+실제 dependency18,886개 파일을 포함한19,589파일/5link payload의 compiled
+진입점에서도 추가 runtime import·network·subprocess·payload 밖 파일 조회 시도는
+모두0이고 dispatch는 false였다. 원본692입력/산출물2개, DB 전체 행·DDL·sequence·
+보안 catalog, 보호 파일8개와 API/Web/gate/container를 보존했다.
+검사 범위·pin·잔여 조건은 `demian-worker-readiness-verification.json`에 기록한다.

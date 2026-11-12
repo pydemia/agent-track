@@ -1,5 +1,12 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 worker 준비 후속: 원본692입력과 기존 산출물2개를 보존한 별도
+source snapshot 위에 frozen readiness를 구현했다. 실제 소스·설치 dependency·
+worker/core의19,589파일/5link payload를 검증했으며 실행·DB/provider/network
+동작은 시작하지 않았다. 관련69검사와 compiled CLI8검사·typecheck/build는
+통과했다. QA 범위 lease/복구·전체 drain·실제 child/peer/교차 앱 실행은 남아
+전체14/21을 유지한다. `demian-worker-readiness-verification.json` 참고.
+
 기준: 2026-11-12 KST. 기존 AT-01~17을 유지하고 Demian 대화
 `01a1c901-2cea-7a21-9b38-8d12445f0a49`에서 AT-18~21을 추가했다.
 전체 수용 충족률은 동일 가중치 21개 중 검증 완료 개수다. 이는 작업량
