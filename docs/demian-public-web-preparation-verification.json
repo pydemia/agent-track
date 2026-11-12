@@ -87,12 +87,29 @@
       },
       "publicWebActivated": false,
       "entraActivated": false
+    },
+    "frozenOriginalRollback": {
+      "createdAt": "2026-11-12T21:21:11.697Z",
+      "webBuildId": "gULRpDkjzmL9RnPCwAF-4",
+      "manifestSha256": "ab956881454f210d64cfe44bd0d6c5e3850f4fafb8d8188eb74d7008b3724b6b",
+      "files": 1527,
+      "sourceRoots": 3,
+      "sourceFileSetsUnchanged": true,
+      "knownPrivateValuesScanned": 4,
+      "privateMatches": 0,
+      "protectedFiles": 6,
+      "protectedProcessIdentities": 3,
+      "protectedListeners": 3,
+      "preserved": true,
+      "launched": false,
+      "releaseName": "base-gULRpDkjzmL9RnPCwAF-4-dae2d6a8-83a7-43c1-a60c-468b49f23da0",
+      "runtimeReadiness": "Not tested; release not launched"
     }
   },
   "remaining": [
     "Microsoft administrator login; inspect or register separate Demian app with concrete approval where required",
     "Private production credentials, dedicated transport and public SSO cutover",
-    "Fresh verified encrypted backup, independent frozen rollback and production public-only transaction adapter",
+    "Fresh verified encrypted backup, frozen rollback runtime readiness and production public-only transaction adapter",
     "Actual owner login, non-owner/wrong-tenant denial, public Basic rejection, original Session deep link/context UI and outage isolation",
     "Full Assistant/Demian/desktop and additional-device organized workflow"
   ],
@@ -104,5 +121,15 @@
     "eta": "Not estimable",
     "confidence": "Low",
     "premise": "Original web/auth activation and real cross-app/device verification remain"
+  },
+  "publication": {
+    "implementationRevision": "6f87b7bb9f957bba2751be687b4330c384ed99f6",
+    "groupPlanningRevision": "30b8448",
+    "author": "pydemia",
+    "remoteMainMatched": true,
+    "ci": "https://github.com/pydemia/agent-track/actions/runs/43309064099",
+    "windows": "success",
+    "ubuntu": "success",
+    "productionDeployed": false
   }
 }

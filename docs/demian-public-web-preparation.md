@@ -34,8 +34,13 @@ process identity도 전후 대조했다. 원본 worker는 이번 작업으로 �
 
 동결 candidate `CDH-N8gACrby4eI25LO5q`의 manifest SHA-256은
 `72c1e3b2c3a988a6eb0777ea70cde9c5ef85ad42325069d25caf67c7330d7a3e`다.
-실제1538개 파일을 현재 manifest와 다시 대조했다. candidate 검증은 현재 서비스의
-교체나 독립 rollback release 확보를 뜻하지 않는다.
+실제1538개 파일을 현재 manifest와 다시 대조했다. 별도로 현재 서비스와 같은
+`gULRpDkjzmL9RnPCwAF-4` standalone·static·public을 독립 rollback release로
+동결했다.1527파일의 manifest SHA-256은
+`ab956881454f210d64cfe44bd0d6c5e3850f4fafb8d8188eb74d7008b3724b6b`다.
+세 원본 디렉터리의 전후 파일 집합과 각 hash, 알려진 private 값4개의 비포함을
+확인했다. 이 rollback은 아직 기동하지 않았으며 서버 동작 검증은 남았다.
+동결·파일 검증은 현재 서비스 교체나 runtime readiness를 뜻하지 않는다.
 
 ## Demian 전용 SSO 설정
 
@@ -76,7 +81,8 @@ PKCE S256을 사용한다. Caddy는 upstream Authorization을 전용 private 값
 2. 실제 private 환경 파일과 별도 cookie를 제한 권한으로 준비하고 원본/현재
    SSO 설정 hash·포트·프로세스를 다시 확인한다. 실제 secret을 기획·로그에 남기지 않는다.
 3. 공개 웹 전용 operator에 현재 process의 정확한 실행 파일·명령·생성 identity,
-   현재 DB/설정 보존 기준, 검증된 최신 암호화 backup과 동결 rollback을 연결한다.
+   현재 DB/설정 보존 기준, 검증된 최신 암호화 backup과 이미 동결한 rollback의
+   재검증·기동 확인을 연결한다.
    `service.json`·local startup·API·worker·gate·tunnel은 변경하지 않는다.
 4. journal·조건부 metadata 쓰기·종료/시작 출력 유실 복구를 실제 adapter와 연결하고
    preflight 통과 후 공개 웹만 전환한다. 지금의 helper/fixture만으로 실행 준비를

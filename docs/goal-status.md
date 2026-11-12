@@ -7,6 +7,8 @@
 listener·활성화/metadata 충돌을 검사했다. 실제 원본 startup 패치는 생성만 했고,
 동결 candidate1538파일·원본 보호파일6개/프로세스3개/listener3개를 대조했다.
 전체768검사 중759통과·환경skip9·실패0 및 타입 검사·독립 정적 리뷰 통과다.
+현재 원본 build의 독립 rollback1527파일도 동결·전후 hash/알려진 private 값
+비포함을 확인했다. 아직 기동하지 않았으며 runtime 검증과 최신 암호화 backup은 남았다.
 실제 Demian 공개 웹은 여전히 Basic401이며 관리자 로그인·전용 client/secret·
 transport·라우팅·원본 웹 전환은 남았다. AT-06/20 및 전체14/21(66.7%)을 유지한다.
 자세한 경계와 실행 조건은 [공개 웹·Entra 전환 준비](demian-public-web-preparation.md),
