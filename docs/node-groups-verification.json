@@ -101,7 +101,8 @@
   },
   "contextSummary": {
     "dateKst": "2026-11-12",
-    "scope": "Current metadata group inspector; synthetic UI before production rollout",
+    "scope": "Current metadata group inspector; synthetic Task/role UI and actual native production Run/artifact readback",
+    "implementationRevision": "ff8b6b042b0a4fb55bb5e3b67381864177a2553a",
     "sourceScope": "Only current unambiguous source-qualified members and exact typed relations; no API, credential or native runtime changes",
     "statusUnits": ["task", "run", "assistant-execution", "assistant-role", "invocation", "tool"],
     "explicitConcerns": ["Run waiting_for_permission", "role awaiting_connection/awaiting_runtime", "failed execution/role/invocation/tool", "Task in_review"],
@@ -139,7 +140,41 @@
       "modelCalls": 0,
       "actualTaskOrRunCreated": 0
     },
-    "production": {"state": "pending"},
+    "remoteCi": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43211817295",
+      "revision": "ff8b6b042b0a4fb55bb5e3b67381864177a2553a",
+      "conclusion": "success",
+      "typecheckAndBuild": "passed on both platforms",
+      "windows": {"total": 672, "passed": 663, "failed": 0, "skipped": 9},
+      "ubuntu": {"total": 672, "passed": 651, "failed": 0, "skipped": 21},
+      "skipReason": "Native Windows and POSIX permission/process fixtures; no skipped platform behavior claimed"
+    },
+    "production": {
+      "publishedAt": "2026-11-12T11:47:52.931Z",
+      "frontendOnly": true,
+      "backendRevision": "cf7402abad7d7811e586000a1b0c99982450e4c7",
+      "servicesRestarted": 0,
+      "originalTrackProcessPreserved": true,
+      "previousHashNamedChunksRetained": true,
+      "normalEntraOwner": true,
+      "nativeRunId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+      "nativeEvents": 17,
+      "trace": {"nodes": 2, "edges": 1, "groups": 1},
+      "groupSummary": {"members": 2, "nativeRun": 1, "artifacts": 1, "partial": true},
+      "artifact": {"filename": "answer.txt", "sizeBytes": 40, "relationship": "Run output", "nativeIdAndRunSessionMatched": true, "bytesVerifiedByGroupSummary": false},
+      "keyboardSelectionFromSummaryToArtifactDetail": true,
+      "nativeRunsPersisted": 19,
+      "nativeEventsPersisted": 810,
+      "assistantEvents": 37,
+      "nativeDatabaseAllRowsDdlSequencesAndSecurityCatalogPreserved": true,
+      "protectedFilesUnchanged": 8,
+      "nativeApiWebGateAndContainerPreserved": true,
+      "defaultLogin": "Entra ID",
+      "anonymousTrackAndTrailRoots": "302 Entra",
+      "anonymousTrackApi": 401,
+      "newTaskRunOrModelCalls": 0,
+      "screenshot": "track-group-context-live.jpg"
+    },
     "goal": {"fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low"}
   }
 }

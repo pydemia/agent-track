@@ -154,3 +154,12 @@ Track 구현 `cf7402ab`의 Windows/Linux CI 통과 후 운영에 반영하고 �
 재확인했다. native19Run/810event·전체 DB/DDL/sequence·보안 catalog·설정8개와
 API/Web/gate 신원을 보존했다. 운영 source는 v1이므로 새로운 typed 교차 앱
 관계의 운영 실기를 주장하지 않는다. 전체 수용 개수는14/21로 유지한다.
+
+그룹 관측 요약 후속 `ff8b6b0`: 업무/Run/역할/호출/도구 상태를 나누고 명시된
+대기·실패·검토, 선행/후속 업무와 산출물을 원본 상세에 연결했다. 그룹 밖의 Run
+충돌·산출물 소속 불일치는 부분 관측으로 표시한다. 목적·입력·수용 조건은 원본
+미제공이며 제목으로 만들지 않는다. Windows672개 중663통과/실패0/환경skip9와
+Linux CI 통과 후 프런트엔드만 게시했다. 정상 Entra UI에서 실제 Run1·answer.txt
+40byte metadata의 그룹 요약과 키보드 상세 이동을 확인했다. 원본19Run/810event·
+Assistant37event·전체 native DB/DDL/보안 catalog·설정8개·서비스 신원을 보존했다.
+실제 child/peer·교차 앱 업무는 별도이므로 전체14/21(66.7%)을 유지한다.
