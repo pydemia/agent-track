@@ -1,6 +1,7 @@
 import type { MissionNode, MissionEdge } from "./mission-flow.ts";
 import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { assistantFlowGroups } from "./assistant-flow.ts";
+import { sessionRelationGroups } from "./session-relations-flow.ts";
 export { flowGroupKey } from "./flow-groups.ts";
 
 export type FlowGroupBy = "project" | "task" | "session" | "run" | "none";
@@ -83,7 +84,7 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
     }
   }
 
-  for (const group of assistantFlowGroups(model)) {
+  for (const group of [...assistantFlowGroups(model), ...sessionRelationGroups(model)]) {
     groups.set(group.key, group);
     for (const key of group.memberKeys) groupFor.set(key, group.key);
   }

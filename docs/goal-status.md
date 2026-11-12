@@ -5,6 +5,18 @@
 전체 수용 충족률은 동일 가중치 21개 중 검증 완료 개수다. 이는 작업량
 추정치가 아니다. 구현·fixture·서비스 준비만으로 실기 조건을 완료 처리하지 않는다.
 
+최신 후속: Demian 세션 관계 읽기 consumer·typed node/edge와 peer 연결/대화의
+중첩 그룹을 구현했다. 요청 전후 Run/Projects 교집합·credential 변경·암호화
+continuation을 검증하고, 합성 UI에서3Run·13node/12edge·7그룹과 내부 탐색·
+390px·계정 변경 제거를 대조했다. Windows552개 중543통과·실패0·POSIX9skip,
+typecheck·분리 build 통과. 원본 관계 API는 미배포이고 실제 영수증은0이므로
+AT-12/18은 부분 상태다. `session-relations-verification.json` 참고.
+
+현재 Demian DB는 담당 세션의 READ ONLY 점검에서 기존 볼륨·Run19개·기존
+성공 실행17event·migration 식별자24개의 연속성을 확인했다. API8080과 worker는
+가동되지 않았다. 아래 Docker 장애 기록은 과거 진단이며 현재 DB 부재를 뜻하지
+않는다. 디스크 전체 무결성·원본 운영 복구를 완료 처리하지 않는다.
+
 | 요구 | 수용 조건 | 상태·증거 |
 | --- | --- | --- |
 | AT-01 | 원본 ID·재수신·충돌 방지 | 검증 완료. `tests/core.test.ts` ID/충돌·dedupe·재시작·binding 검사, 실제 Codex 211 Run의 source/run UNIQUE 원장 |

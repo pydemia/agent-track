@@ -10,6 +10,8 @@ import { permissionJson, permissionList, permissionReview } from "./permissions.
 import { fileChangeSignal, projectFileChanges, type FileSignal } from "../../projection/file-changes.ts";
 import { canonicalLineageCursor, parseNativeLineagePage, readBoundedLineageJson, type NativeLineagePage } from "./lineage.ts";
 import { projectToolEvidence, type ToolEvidencePage } from "./tool-evidence.ts";
+import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from "./session-relations.ts";
+import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
 
 export type { NativeLineageObservation, NativeLineagePage } from "./lineage.ts";
 export type { ToolEvidenceCall, ToolEvidenceEventType, ToolEvidenceMark, ToolEvidenceOutcome, ToolEvidencePage } from "./tool-evidence.ts";
@@ -97,6 +99,7 @@ export interface DemianOptions {
   credentialFormat?: "plain" | "demian-service";
   organizationId?: string;
   fetch?: typeof fetch;
+  signal?: AbortSignal;
 }
 
 export class SourceError extends Error {
@@ -118,7 +121,7 @@ export class DemianClient {
     }
     if (this.options.organizationId) headers["X-Demian-Organization-Id"] = this.options.organizationId;
     const response = await (this.options.fetch ?? fetch)(`${this.options.baseUrl.replace(/\/$/, "")}${path}`, {
-      headers, redirect: "error", signal: signal ?? AbortSignal.timeout(15_000),
+      headers, redirect: "error", signal: signal ?? this.options.signal ?? AbortSignal.timeout(15_000),
       ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
     });
     if (!response.ok) { await response.body?.cancel(); throw new SourceError(response.status); }
@@ -130,6 +133,17 @@ export class DemianClient {
     const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`);
     const session = z.object({ id: idSchema, workspace_id: idSchema }).parse(await response.json());
     if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
+  }
+
+  async sessionRelations(sessionId: string, kind: SessionRelationKind, after: string | null = null, limit = 250): Promise<NativeSessionRelationPage> {
+    const session = relationUuidSchema.parse(sessionId);
+    if (!["managed-children", "peer-processing"].includes(kind) || !Number.isInteger(limit) || limit < 1 || limit > 250) throw new Error("Invalid session relation query");
+    const cursor = after === null ? null : relationUuidSchema.parse(after);
+    const query = new URLSearchParams({ limit: String(limit), ...(cursor ? { after: cursor } : {}) });
+    const signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request(`/api/v1/sessions/${session}/relations/${kind}?${query}`, signal);
+    const raw = await readBoundedSessionRelationsJson(response, signal);
+    return parseNativeSessionRelationsPage(raw, { kind, sessionId: session, after: cursor, limit });
   }
 
   async observe(runId: string): Promise<RunObservation> {

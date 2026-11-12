@@ -19,6 +19,8 @@ import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { toolEvidence } from "./tools.ts";
 import { projectDependencies } from "./project-dependencies.ts";
 import { AssistantAuthorityError } from "./assistant-authority.ts";
+import { SessionRelations } from "./session-relations.ts";
+import { sessionRelationKindSchema } from "../../packages/contracts/session-relations.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
@@ -53,6 +55,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const permissions = new RunPermissions(store, config, sources, snapshot);
   const approvals = new ApprovalService(store);
   const taskCreation = new ProjectTaskCreation(store, config, sources);
+  const sessionRelations = new SessionRelations(config, snapshot, user => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
   const server = createServer(async (request, response) => {
     let activeActor: string | null = null;
     response.setHeader("Cache-Control", "private, no-store");
@@ -81,7 +84,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
-      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/")) {
+      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") &&
+          !/^\/api\/runs\/[A-Za-z0-9_-]+\/session-relations$/.test(url.pathname)) {
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
@@ -138,6 +142,26 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         json(response, 200, { receipt }); return;
       }
       if (request.method !== "GET") { json(response, 405, { error: "unsupported_method" }); return; }
+      const relationRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/session-relations$/.exec(url.pathname);
+      if (relationRead) {
+        const keys = [...url.searchParams.keys()], kind = sessionRelationKindSchema.safeParse(url.searchParams.get("kind"));
+        if (!kind.success || keys.some((key, index) => !["kind", "cursor"].includes(key) || keys.indexOf(key) !== index) ||
+            request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_relation_query" }); return;
+        }
+        const controller = new AbortController();
+        const cancel = () => { if (!response.writableEnded) controller.abort(); };
+        request.once("aborted", cancel); response.once("close", cancel);
+        try {
+          const evidence = await sessionRelations.read(user, relationRead[1]!, kind.data, url.searchParams.get("cursor"), controller.signal);
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          if (!response.destroyed) json(response, 200, evidence);
+        } catch (error) {
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          throw error;
+        } finally { request.removeListener("aborted", cancel); response.removeListener("close", cancel); }
+        return;
+      }
       const assistantRead = /^\/api\/assistant\/([a-z0-9_-]{1,80})\/executions(?:\/([0-9a-f-]{36})(\/events)?)?$/.exec(url.pathname);
       if (assistantRead) {
         const [, sourceId, executionId, events] = assistantRead;

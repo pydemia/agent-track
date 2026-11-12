@@ -1,3 +1,5 @@
+import { PrivateReadError as AssistantWebError, fetchPrivateJson as request } from "./private-json.ts";
+export { PrivateReadError as AssistantWebError } from "./private-json.ts";
 import { z } from "zod";
 import { sequenceSchema, timestampSchema } from "../../../packages/contracts/index.ts";
 import { assistantExecutionMetadataSchema, assistantExecutionPageSchema,
@@ -45,98 +47,6 @@ const eventsSchema = z.strictObject({ execution: executionSchema,
     afterSchema.safeParse(page.cursor).success && page.events.every(event =>
       nativeRevision.safeParse(event.sequence).success && nativeRevision.safeParse(event.revision).success)) });
 
-type ErrorKind = "unauthorized" | "unavailable" | "failure";
-const messages = {
-  unauthorized: "Assistant authentication is required.",
-  unavailable: "Assistant scope is unavailable.",
-  failure: "Assistant data could not be loaded.",
-} as const;
-export class AssistantWebError extends Error {
-  constructor(public readonly kind: ErrorKind) {
-    super(messages[kind]);
-    this.name = "AssistantWebError";
-  }
-}
-
-const deadlineMs = 12_000;
-const bodyLimit = 2 * 1024 * 1024;
-
-/** The boundary also settles custom transports that ignore AbortSignal. */
-async function request<T>(url: string, signal: AbortSignal,
-  fetcher: typeof fetch, validate: (value: unknown) => T): Promise<T> {
-  const controller = new AbortController();
-  const deadline = performance.now() + deadlineMs;
-  let response: Response | undefined;
-  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-  let finished = false;
-  const cancel = () => {
-    controller.abort();
-    if (reader) void reader.cancel().catch(() => {});
-    else if (response?.body) void response.body.cancel().catch(() => {});
-  };
-  let rejectBoundary!: (error: AssistantWebError) => void;
-  const boundary = new Promise<never>((_, reject) => { rejectBoundary = reject; });
-  const abort = () => { cancel(); rejectBoundary(new AssistantWebError("failure")); };
-  signal.addEventListener("abort", abort, { once: true });
-  const timer = setTimeout(abort, deadlineMs);
-  const check = () => {
-    if (finished || signal.aborted || controller.signal.aborted || performance.now() >= deadline)
-      throw new AssistantWebError("failure");
-  };
-  const work = async () => {
-    check();
-    response = await fetcher(url, { method: "GET", credentials: "same-origin",
-      redirect: "error", signal: controller.signal });
-    // A late response owns a new body even after the outer finally ran.
-    try { check(); } catch (error) { cancel(); throw error; }
-    if (response.status === 401) throw new AssistantWebError("unauthorized");
-    if (response.status === 403 || response.status === 404)
-      throw new AssistantWebError("unavailable");
-    if (!response.ok) throw new AssistantWebError("failure");
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !/^application\/json(?:\s*;[^\r\n]*)?$/i.test(contentType))
-      throw new AssistantWebError("failure");
-    const length = response.headers.get("content-length");
-    if (length !== null && (!/^[0-9]{1,10}$(?![\s\S])/.test(length) || Number(length) > bodyLimit))
-      throw new AssistantWebError("failure");
-    if (!response.body) throw new AssistantWebError("failure");
-    const activeReader = response.body.getReader();
-    reader = activeReader;
-    // One fixed buffer bounds allocation even with millions of tiny chunks.
-    const bytes = new Uint8Array(bodyLimit);
-    let size = 0;
-    try {
-      while (true) {
-        const result = await activeReader.read();
-        check();
-        if (result.done) break;
-        size += result.value.byteLength;
-        if (size > bodyLimit) throw new AssistantWebError("failure");
-        bytes.set(result.value, size - result.value.byteLength);
-      }
-      const value: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true })
-        .decode(bytes.subarray(0, size)));
-      check();
-      const validated = validate(value);
-      check();
-      return validated;
-    } finally {
-      void activeReader.cancel().catch(() => {});
-      activeReader.releaseLock();
-      reader = undefined;
-    }
-  };
-  try { return await Promise.race([work(), boundary]); }
-  catch (error) {
-    // Never expose transport errors, response content or schema diagnostics.
-    throw new AssistantWebError(error instanceof AssistantWebError ? error.kind : "failure");
-  } finally {
-    finished = true;
-    clearTimeout(timer);
-    signal.removeEventListener("abort", abort);
-    cancel();
-  }
-}
 
 function route(sourceId: string, id?: string): string {
   if (!sourceSchema.safeParse(sourceId).success ||

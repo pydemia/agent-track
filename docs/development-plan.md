@@ -3,6 +3,12 @@
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
+최신 증분: 세션별 managed-child/peer metadata consumer와 중첩 peer 문맥 그룹을
+구현했다. 부모 Run·원격 Session이 없는 계약을 그대로 표시하고 실제 Run은
+Session/Run 그룹에만 둔다. Windows552개 중543통과·실패0·9skip, typecheck·
+분리 build와 합성 UI를 검증했다. 원본 API 가동·배포 및 실제 관계 실행은 남아
+있다. `session-relations-integration.md`의 원본 pin·보존 조건과 검증 기록을 따른다.
+
 ## 제품 책임과 변경된 우선순위
 
 Demian 대화 `01a1c901-2cea-7a21-9b38-8d12445f0a49`의 제안을 통합했다.

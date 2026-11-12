@@ -1,5 +1,16 @@
 # Native integration contracts: Demian, Projects, Assistant
 
+## Session-relation consumer follow-up (2026-11-12)
+
+Demian now has source-level GET metadata contracts for session-scoped managed-child
+and peer-processing receipts. Track consumes their closed schemas through a live
+Run/Project authorization intersection and encrypted browser continuations, with
+typed Map/Trace nodes and peer context groups. The source manifest's eight files
+match the current Demian working tree; that tree is uncommitted and not deployed.
+The actual API listener remains unavailable. Native receipt rows are currently
+zero, so fixture graphs are not production execution evidence. See
+`session-relations-integration.md` and `session-relations-verification.json`.
+
 ## Context-summary consumer contract follow-up (2026-11-12)
 
 Track now supplies a private, scope-bound v1 context GET API, Node server client,

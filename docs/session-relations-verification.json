@@ -1,0 +1,86 @@
+{
+  "verifiedOn": "2026-11-12",
+  "scope": "Track consumer implementation and isolated synthetic UI QA; not native managed-child or peer execution acceptance",
+  "requirements": ["AT-12", "AT-18"],
+  "nativeSource": {
+    "branch": "codex/common-sessions",
+    "baseHead": "297678ea08529358aee5a48bef1b94fbea0d7275",
+    "workingTreeImplementation": true,
+    "committedOrDeployed": false,
+    "manifestSha256": "6cebac5063bce40d42baaa7451eb7f0d8a266790ba5ed154e79a5a00a20a744b",
+    "manifestFilesMatched": 8,
+    "nativeApiListenerAvailable": false,
+    "nativeManagedChildReceiptRows": 0,
+    "nativePeerProcessingReceiptRows": 0
+  },
+  "automated": {
+    "command": "npm test",
+    "platform": "Windows",
+    "total": 552,
+    "passed": 543,
+    "failed": 0,
+    "skipped": 9,
+    "skipReason": "POSIX-only permission semantics",
+    "typecheck": "passed",
+    "isolatedWebBuild": "passed",
+    "coverage": [
+      "Closed native schemas, exact session and coverage, increasing UUID Run cursor, bounded JSON deadline and abort",
+      "Real loopback native HTTP through DemianClient and authenticated Track BFF with SQLite",
+      "Current actor, source, selected Run, Projects intersection and credential content rechecks",
+      "Encrypted scope-bound continuation, tampering, expiry, restart key and hidden native UUID",
+      "Monotonic deadline after final grant and parsing, HTTP disconnect and mid-request actor revocation",
+      "No automatic Run discovery, no receipt persistence, no remote Session or parent Run inference",
+      "Peer context nesting, multi-receipt structural edge deduplication and actual Run exclusion from context groups",
+      "Browser transport and current actor scope invalidation, existing Assistant transport regressions"
+    ]
+  },
+  "isolatedUi": {
+    "data": "synthetic, explicitly labelled QA fixture",
+    "nativeModelCalls": 0,
+    "actualBusinessTasksCreated": 0,
+    "runs": 3,
+    "managedChildReceipts": 1,
+    "peerProcessingReceipts": 1,
+    "nodes": 13,
+    "edges": 12,
+    "groups": 7,
+    "checks": [
+      "Session actual Run grouping and separate nested peer connection/conversation groups",
+      "Unknown parent Run remains outside actual Run groups despite matching invocation string",
+      "Group interior, breadcrumb, upper group, keyboard node and typed edge selection",
+      "Readable source/session/connection/conversation/message identifiers and metadata-only detail",
+      "Coverage, observed window, unavailable state and retry disclosures",
+      "390px viewport with document width375px, group navigation and detail access",
+      "Actor switch clears private graph, detail and URL; new actor denial does not reuse prior receipts"
+    ],
+    "fixtureServersStopped": true,
+    "productionExecutionEvidence": false
+  },
+  "nativeDatabaseContinuity": {
+    "reportedBy": "owning Demian development session, read-only transaction and rollback",
+    "sessions": 12,
+    "runs": 19,
+    "runEvents": 810,
+    "sessionMessages": 52,
+    "artifacts": 16,
+    "priorObservedRunRetained": true,
+    "priorObservedRunContinuousEvents": 17,
+    "migrationIdentifiersMatched": 24,
+    "fullDiskIntegrityProven": false,
+    "nativeApiOrWorkerStartedByTrack": false
+  },
+  "remaining": [
+    "Preservation-reviewed native API activation and exact source release",
+    "Normal authorized production native metadata reads",
+    "Actual managed-child and peer execution with original Run and receipt reconciliation",
+    "Cross-application task and second actual device verification"
+  ],
+  "fullGoal": {
+    "complete": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "equal acceptance requirements",
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}
