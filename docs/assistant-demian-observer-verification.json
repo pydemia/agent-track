@@ -1,0 +1,79 @@
+{
+  "dateKst": "2026-11-12",
+  "scope": "Isolated native Assistant source integration and production-preservation readback; not end-to-end cross-app completion",
+  "nativeSource": {
+    "repository": "pydemia/persona",
+    "private": true,
+    "branch": "codex/agent-track-demian-observer",
+    "baseRevision": "5196c8bc9233da493c4146fec17b98e1c835dadc",
+    "implementationRevision": "c7181a1c0cf7f3e86f226ba35f8ce71a0f26be78",
+    "headRevision": "9646e704eb825d610bb188e200a0d3ac4feacd4c",
+    "remoteHeadMatched": true,
+    "draftPr": "https://github.com/pydemia/persona/pull/22",
+    "stackedOn": "https://github.com/pydemia/persona/pull/21",
+    "originalGatewayFilesCompared": 410,
+    "originalGatewayFilesUnchanged": 410,
+    "originalGatewayWorktreeWritten": false,
+    "importedFeatureScope": "Existing gateway, peer, Note input/feedback and artifact support, with native strict reader preserved"
+  },
+  "verification": {
+    "platform": "Windows",
+    "implementationRevision": "c7181a1c0cf7f3e86f226ba35f8ce71a0f26be78",
+    "typecheck": "passed",
+    "build": "passed",
+    "fullTests": { "total": 1177, "passed": 1163, "failed": 0, "skipped": 14 },
+    "finalRelatedTests": { "total": 172, "passed": 172, "failed": 0, "skipped": 0 },
+    "initialFullRun": {
+      "failed": 8,
+      "boundary": "Isolated server and recovery CLI dist had not been built",
+      "resolution": "Ran full workspace build, then the same complete test command passed"
+    },
+    "headOnlyChange": {
+      "kind": "Prettier formatting in two imported source files",
+      "normalizedEsbuildJavascriptMatchedImplementationRevision": true,
+      "all85ChangedFilesPrettierCheck": "passed",
+      "fullTestsRerunAfterFormatting": false
+    },
+    "independentSourceReview": "No concrete findings in the bounded strict observer/v2 paths; original gateway and future consumer excluded",
+    "knownCredentialScan": { "privateValues": 8, "changedFiles": 85, "matches": 0 },
+    "remoteCi": "pending; no CI pass claimed for head revision"
+  },
+  "coveredBehavior": [
+    "Observation uses current exact owner/reference/context/binding and never lifecycle get, dispatch, reconciliation or writes",
+    "Event-loop advancement after observation does not change transport or complete runtime journal",
+    "A deterministic preflight gate proves observation does not advance a pending dispatch intent",
+    "Already verified artifact cache bytes remain unverified in metadata-only observation",
+    "V2 producer, Session and Run references are rebuilt from strict gateway observations, not cached UI locators",
+    "V1 closed wire compatibility and external-row omission; v2 unverified timing and metadata-only references",
+    "Dedicated HTTP reader authentication, no-store responses, method and encoded-path denial, final grant recheck and cross-version cursor rejection"
+  ],
+  "productionReadback": {
+    "verifiedAt": "2026-11-12T10:19:04.213Z",
+    "scope": "Existing owner BFF and browser decoders; no new CUA browser verification",
+    "nativeSourceConnected": true,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "knownRunEvents": 17,
+    "knownRunCursor": "17",
+    "knownRunHighWater": "17",
+    "assistantSameExecution": true,
+    "assistantEvents": 37,
+    "currentProjectsTaskState": "in_review",
+    "servedAssetsMatched": 6,
+    "trackAndTrailAnonymousRoot": 302,
+    "trackAnonymousApi": 401,
+    "apiWebGateTrackProcessIdentityPreserved": true,
+    "newTaskOrRunCreated": 0,
+    "newModelCalls": 0,
+    "nativeServicesOrCredentialsChanged": false,
+    "deployedTrackProtocol": 1
+  },
+  "remaining": [
+    "Current head remote CI",
+    "Track v2 client, explicit producer-to-native source mapping and current Assistant/Projects/native authority intersection",
+    "Typed cross-app graph relation and permission/source removal cleanup",
+    "Root-owned native rollout and execution credentials/worker readiness",
+    "Actual cross-app QA task, managed child/peer organization and second device/desktop scope"
+  ],
+  "goal": { "completed": 14, "total": 21, "percent": 66.7, "weighting": "equal acceptance criteria", "eta": "not estimable", "confidence": "low" }
+}

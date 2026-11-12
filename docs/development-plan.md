@@ -96,7 +96,21 @@ Node group의 계획·구현은 `mission-ui-plan.md`의 AT-12 보완에 연결�
 원본 관계 상세를 제공한다. 공개 Projects 업무2개·선행 관계1개, Codex Run1개·도구4개의
 실기는 `node-groups-verification.json`에 기록했다. 대표 경계선·10,000-depth는 순수
 projection 검사이며 실제 대규모 브라우저 성능이나 child/peer 조직화 실기를 대신하지 않는다.
-다음 그룹 단계는 현재 원본 권한을 재검사하는 계정별 저장 보기·재접속 복원이다.
+사용자의 in-depth 요구에 따라 다음 그룹 단계는 **묶음 요약 → 내부/외부 문맥 탐색
+→ 네 화면 공통 범위 → 저장 보기** 순서로 구체화한다. 기존 그룹 동작은 유지하며
+저장 기능만으로 내부 흐름의 설명을 대신하지 않는다. 상세 시나리오와
+AT-12-G01~G05는 `mission-ui-plan.md`의 작업 묶음 중심 탐색에 연결한다.
+
+| 순서 | 변경 범위·의존성 | 구현 위치·수용 증거 |
+| --- | --- | --- |
+| 1. 묶음 요약 | 기존 구성/상태 집계에 현재 허용된 목적·승인/선행 대기·산출물 근거를 연결. 원본 미제공/부분 관측 구분 | `packages/projection/flow-groups.ts`, `apps/web/src/FlowGrouping.tsx`와 화면별 소비자. AT-12-G03, 혼합 단위·실패/미확인 검사 |
+| 2. 내부/외부 문맥 | 그룹별 펼침·내부 초점·breadcrumb을 재사용하고 외부 선행/후속 목록과 상대 그룹 이동·상위 복귀 문맥을 보강 | `FlowGrouping.tsx`, `flow-group-layout.ts`, 기존 group tests. AT-12-G01/G02, 병렬 분기·합류·경계 대표선·선택/viewport 실기 |
+| 3. 공통 범위 | 현재 허용된 멤버를 네 화면에 전달. Trail은 Run별 lane, Trace는 실행별 흐름, Track은 업무별 요약을 유지 | 기존 화면·URL/인가 경계의 소비 계약을 먼저 확정. AT-12-G04/G05, 화면 전환·철회·서로 다른 source의 동일 ID 검사 |
+| 4. 저장 보기 | 계정별 멤버 ID·묶음 이름·접힘 상태 저장과 재접속 시 원본 권한 재검사. 서버 저장 계약 필요 | 현재 화면 묶음의 임시 상태와 분리. 재접속 복원·권한 제거·계정 전환 검사 후 완료 판정 |
+
+원본 목표·work package·대기 원인이 제공되지 않는 경우 사용자 화면 묶음과
+미확인 상태로 표현한다. UI 계층을 위해 새 실행 관계를 추론하지 않는다.
+실제 child/peer 조직화·교차 앱 업무의 검증은 기존 AT-12/14/18 잔여 조건으로 유지한다.
 
 전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 기존 Docker DB 장애로 원본 적용이 보류 중이다. Assistant native reader 후보의 운영 적용·전용 credential·Track adapter, desktop 의미·위치·다른 장치 연결도 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부

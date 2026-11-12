@@ -5,6 +5,14 @@
 전체 수용 충족률은 동일 가중치 21개 중 검증 완료 개수다. 이는 작업량
 추정치가 아니다. 구현·fixture·서비스 준비만으로 실기 조건을 완료 처리하지 않는다.
 
+Assistant 후속은 기존 gateway·peer·Note source를 배포 reader `5196c8bc` 위에
+격리 통합하고 부작용 없는 observer와 v2 producer 참조를 private draft PR22에
+게시했다. 구현 revision의 전체1177개 중1163통과·실패0·환경skip14, 관련172개
+전부 통과·build/typecheck·원본410파일 보존을 대조했다. 서식 보정 head의 원격
+CI는 진행 중이며 운영 Track은 여전히 v1이다. 소비자3서비스 교차 인가·source
+mapping·Root 소유 native 전환·실제 교차 앱 Task는 미완료다. 전체14/21을 유지한다.
+`assistant-demian-observer.md`·`assistant-demian-observer-verification.json` 참고.
+
 최신 후속: Demian 세션 관계 읽기 consumer·typed node/edge와 peer 연결/대화의
 중첩 그룹을 구현했다. 요청 전후 Run/Projects 교집합·credential 변경·암호화
 continuation을 검증하고, 합성 UI에서3Run·13node/12edge·7그룹과 내부 탐색·

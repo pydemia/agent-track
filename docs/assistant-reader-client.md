@@ -80,6 +80,12 @@ organization. The actual Assistant/Projects/Track metadata path is connected. Re
 `assistant-native-reader-verification.json` and `goal-status.md`. AT-14 remains
 partial; this client does not change the overall 14/21 acceptance count.
 
+The existing Assistant→Demian gateway is now being integrated into an isolated
+native reader source branch. A strict observer and v2 producer-reference endpoint
+are implemented there; this deployed Track client still uses v1. The producer
+contract, v1 omission behavior, native authority checks required of the consumer
+and outstanding activation are recorded in [the observer contract](assistant-demian-observer.md).
+
 ## Live Track API and UI
 
 Optional Assistant source fields are `assistantCredentialFile`, `assistantUser`,

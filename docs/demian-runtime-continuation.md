@@ -38,15 +38,19 @@ Demian 소유 대화 `01a1c901-2cea-7a21-9b38-8d12445f0a49`의
 
 ## 교차 앱 연결
 
-Assistant 소유자 계약 조사에서는 기존 WorkExecution의 Runtime Task/thread/turn을
-Demian Run으로 연결하는 durable adapter가 없었다. Projects의 Assistant 실행 링크는
-WorkExecution ID이므로 Demian Run ID로 덮어쓰지 않는다.
+배포된 Assistant reader `5196c8bc`의 최초 조사에는 Demian dispatch adapter가
+없었다. 이후 통합 Root의 별도 작업 조사에서 기존 durable gateway와 최신 검증
+기록을 확인했다. 별도 gateway의 미커밋 source까지 포함해 `5196c8bc` 기반의
+격리 branch에 통합하고 있다. adapter나 receipt 원장을 새로 중복 구현하지 않는다.
+Projects의 Assistant 실행 링크는 WorkExecution ID이므로 Demian Run ID로
+덮어쓰지 않는다.
 
-후속 구현은 Assistant의 owner-scoped intent 저장 → 전용 서명 work-runtime 요청 →
-Demian의 원본 Run 할당 receipt 검증 → append-only typed Demian 참조 순서다.
-응답 유실은 동일 operation/correlation의 원본 receipt로 조정하며 새 Run 생성으로
-대체하지 않는다. Track 읽기 key·Entra proxy·브라우저 cookie는 실행 권한으로
-사용하지 않는다. 기존 strict context의 임의 필드나 model input에 제어 정보를 넣지 않는다.
+기존 gateway의 owner-scoped intent·서명 요청·POST-once·native receipt와
+GET-only 유실 응답 조정을 재사용한다. strict 관측 및 v2 producer 참조 계약은
+`assistant-demian-observer.md`를 따른다. 현재 운영 Track은 v1이며 v2 소비자의
+정확한 native source mapping·현재 Assistant/Projects/Demian 권한 교집합과
+Root 소유 native 전환이 남았다. Track 읽기 key·Entra proxy·브라우저 cookie는
+실행 권한으로 사용하지 않는다. 기존 model input에 제어 정보를 넣지 않는다.
 
 현재 source 구현·proposal은 운영 activation과 다르다. 실행 준비가 갖춰진 뒤
 명시된 QA 업무 하나에서 실제 parent/child·peer·교차 앱 관계를 생성·대조하고,
