@@ -218,7 +218,10 @@ tmpfs PostgreSQL·v2 registry의 명시 작업1건과 full frozen release를 연
 실행하지 않은 explicit child 경로다. 원본 authority/DDL·새 backup/rollback과
 Assistant 교차 앱 업무는 여전히 필요하다. 완료 뒤 접근 토큰 사본·QA API/DB
 credential·임시 API/Track·owned container를 정리하고 private QA DB 보관본과
-metadata 증거를 남겼다. 보관본의 복원 검증은 수행하지 않았다. worker 종료 뒤
+metadata 증거를 남겼다. 보관본을 새 owned tmpfs DB에 복원해 같은 성공 Run·
+17event·receipt와 실제 assistant-role 응답의 정확한 일치를 확인했다. 사용자
+요청문을 응답 근거로 사용하지 않았고 추가 모델 호출도 없었다. 복원 container와
+credential도 정리했다. worker 종료 뒤
 검증 스크립트의 잘못된 table 조회는 `session_messages` 읽기로 복구했고 Run을
 재실행하지 않았다. 실제 worker 종료 코드는 보관되지 않아 정상 종료 코드0을
 주장하지 않는다. `native-managed-child-verification.json` 참고.

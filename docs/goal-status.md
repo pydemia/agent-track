@@ -10,6 +10,10 @@ native API→Track의6node/8edge/3그룹·관계 상세·네 보기 범위·390p
 container/credential은 정리했다. 부모 모델 조직화·peer·교차 앱·추가 기기와
 운영 Entra GUI는 남아 전체14/21을 유지한다. 실제 QA 결과와 후처리·종료 코드
 증거의 한계는 `native-managed-child-verification.json`에 구분했다.
+수정 `26207aa`의 Windows/Ubuntu CI 통과 후 프런트엔드만 게시하고14개 assets·
+favicon·Entra 익명 경계를 대조했다. 서비스 재시작은 없으며 실제 QA source는
+운영 Track에 등록하지 않았다. QA 보관본의 별도 복원에서도 실제 assistant 응답·
+성공 Run·17event·receipt를 대조하고 복원 container/credential을 정리했다.
 
 2026-11-13 공통 묶음 후속: 선택한 그룹을 Track·Trail·Trace·Map의 공통 범위로
 전달하고 현재 업무 metadata·실행별 lane·의존 관계 Map에 연결했다. 하위 역할의

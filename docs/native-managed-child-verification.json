@@ -24,6 +24,7 @@
     "cursor": "17",
     "highWater": "17",
     "expectedMarkerObserved": true,
+    "responseProof": "Separate QA archive restore verified exact assistant-role response content; request text is not used as response proof",
     "qaStoppedMessageObserved": true,
     "workerExitCode": "not retained: verifier queried a nonexistent messages table after worker exit; corrected recovery queried session_messages without rerunning the task"
   },
@@ -64,7 +65,21 @@
     "typecheck": "pass",
     "tests": { "total": 718, "pass": 709, "fail": 0, "environmentSkipped": 9 },
     "build": "pass, isolated output; existing React Flow directive warning",
-    "publication": "pending implementation CI and frontend publication"
+    "publication": {
+      "frontendRevision": "26207aa978650ac7f979e75dad49493aaf827114",
+      "backendRevision": "54f8a831647efc10141a02a682d27ed704cb2694",
+      "ci": "https://github.com/pydemia/agent-track/actions/runs/43289044145",
+      "windows": "success",
+      "ubuntu": "success",
+      "frontendOnly": true,
+      "servicesRestarted": 0,
+      "assetsByteMatched": 14,
+      "indexSha256": "957f104cab18965a90f876f12e1bd3ee2e0e84292ff47c4a9c7d276a2195a6f8",
+      "faviconBytesContentType": "matched",
+      "anonymousTrack": "root302 to login, API401",
+      "operatingEntraBrowser": "not reverified; existing user input handoff pending",
+      "actualQaSourcePublishedToOperatingTrack": false
+    }
   },
   "preservation": {
     "originalDatabaseAllRowsSchemaSequencesSecurityEqual": true,
@@ -84,7 +99,8 @@
     "tmpfsDisposed": true,
     "qaDatabaseApiControlAccessCredentialsRemoved": true,
     "qaReadOnlyApiAndTrackStopped": true,
-    "privateQaDatabaseArchive": { "bytes": 209367, "sha256": "0818345d1cdc5d3515d3672da1804e1049cf766fb14c00cbd9674d3d27669692", "restoreNotPerformed": true }
+    "privateQaDatabaseArchive": { "bytes": 209367, "sha256": "0818345d1cdc5d3515d3672da1804e1049cf766fb14c00cbd9674d3d27669692", "isolatedRestoreVerified": true },
+    "restore": { "sameSucceededRun": true, "sameReceipt": true, "canonicalEvents": 17, "assistantMessages": 1, "exactAssistantResponseMatched": true, "newModelCalls": 0, "ownedRestoreContainerCredentialRemoved": true }
   },
   "remaining": [
     "Parent-model-driven organization, actual cowork/peer and additional device",
