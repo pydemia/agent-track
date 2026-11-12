@@ -1,5 +1,24 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 공개 Web 운영 반영: `f5b41df`의 Windows·Ubuntu CI 통과 후 원본 public
+Web3001만 동결 build `CDH-N8gACrby4eI25LO5q`로 교체했다. 현재 PID55184의 정확한
+CIM·listener·고유 operation ready 기록을 확인했다. 기존 gate를 통과한 홈200·
+정적 JS hash·실제 Session의3Run/1Session Track 문맥200과 actor403을 대조했다.
+SVG·32px PNG의 head 연결·MIME·bytes/hash도 동결 build와 일치했다. 원본45테이블의
+전체 행·스키마·sequence·보안 catalog와 container·API/gate/tunnel/Track 신원,
+service.json·local startup·worker·credential을 보존했다. 공개 startup·별도 활성화·
+domain metadata와 허용한 helper만 변경했다. 새로운 모델 호출은 없다.
+
+로컬 전체831개 중822통과·POSIX 전용skip9·실패0, 관련57검사와 타입 검사, 최종
+revision의 양 OS 전체 CI/build를 통과했다. 첫 Windows CI의 일반 임시 경로
+fixture 실패는 canonical 경로를 사용하도록 수정했으며 운영 링크 거부는 유지했다.
+실제 교체는 commit·기록 오류 없이 종료됐다. 원본 Entra 관리자 로그인과 전용
+SSO/transport/라우팅, 브라우저 GUI·교차 앱/추가 기기 검증은 남았다. 외부 Demian은
+현재 기존 Basic401, Track/Trail은 기존 Entra302다. 신규 공개 Basic 우회는 없다.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+현재 증거는 `demian-public-web-promotion-verification.json`이다. OS/operator 강제
+종료 후 자동 재개는 미구현이며 journal·receipt를 통한 수동 복구가 필요하다.
+
 2026-11-13 원본 웹 runtime 후속: 동결 rollback을 실제3002에서 기동해 홈200·정적
 파일 byte/hash와 종료/포트 해제를 확인했다. 별도 작업 ID·exclusive 시작/ready 기록·
 정확한 CIM/listener와 native handle 종료 adapter를 구현하고 rollback/candidate 양쪽의

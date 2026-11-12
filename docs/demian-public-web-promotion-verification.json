@@ -1,0 +1,140 @@
+{
+  "dateKst": "2026-11-13",
+  "implementationRevision": "f5b41df0689c6f75d525774df4eae522f65d96c5",
+  "scope": "Actual original public Web3001 replacement through the existing Basic gate; Entra/transport/route activation remains pending",
+  "codeAndTestSha256": {
+    "deploy/demian/native-web-database.mjs": "353846fefff03669b2eeca90477b7591eac36f27ea9e7afbdabc5ccc6e0024bd",
+    "deploy/demian/promote-public-web.mjs": "80a1f111c185818af7504ccdab9e63ea2d7a7312013525fb8497c8a451163e1a",
+    "deploy/demian/public-web-gate.mjs": "66738d5521e5cd1044330863e2a58bf5be03559c34b325f3108a1286d172b988",
+    "deploy/demian/public-web-input.mjs": "7c93222673a8daefd46c43f9229f040d3728e9e707cddb68286e21c22879efe0",
+    "deploy/demian/public-web-transition.mjs": "f0bdb66bc7352951ddd2f50dab0bd9345afc4d73c54aa2415806fae77ec7de4b",
+    "tests/demian-public-web-gate.test.ts": "ec1ffb1c44c1449682b72e06fffbe06da0d5c414da2f4def365fd1c811bf301a",
+    "tests/demian-public-web-input.test.ts": "23d245e0dfd13e338b6235b60f213e81cabd608d4fdff51fbfd2af43d023a91a",
+    "tests/demian-public-web-transition.test.ts": "ea693d96492785f4d68c2c7d89415d56021eb0f74db07cc0ad7a70113181ee45"
+  },
+  "inputSha256": "bbf3ae834206fdd29450e90ff2ed934b557de0d8e242ff73bef6b903804c8ef5",
+  "candidate": {
+    "buildId": "CDH-N8gACrby4eI25LO5q",
+    "manifestSha256": "72c1e3b2c3a988a6eb0777ea70cde9c5ef85ad42325069d25caf67c7330d7a3e"
+  },
+  "rollback": {
+    "buildId": "gULRpDkjzmL9RnPCwAF-4",
+    "manifestSha256": "ab956881454f210d64cfe44bd0d6c5e3850f4fafb8d8188eb74d7008b3724b6b",
+    "independentlyColdStarted": true
+  },
+  "actual": {
+    "verifiedAt": "2026-11-12T23:12:16.109Z",
+    "operationId": "c1ffb4d9-ab76-441f-8d16-8d8fbdf38309",
+    "committed": true,
+    "buildId": "CDH-N8gACrby4eI25LO5q",
+    "publicWebPid": 55184,
+    "exactIdentityAndListener": true,
+    "otherProcessesPreserved": true,
+    "readOnlyProtectedFilesPreserved": 8,
+    "icons": [
+      {
+        "path": "icon.svg",
+        "status": 200,
+        "mime": "image/svg+xml",
+        "bytes": 322,
+        "sha256": "80034e8740cdb7f9873ed04b2b5d67d0f179722aa77b203d60db53abd9e6ceb3",
+        "headLinked": true,
+        "buildBytesMatched": true
+      },
+      {
+        "path": "icon1.png",
+        "status": 200,
+        "mime": "image/png",
+        "bytes": 889,
+        "sha256": "86bd27956f1cfa91b05c3608bc31a92772f16b336065300d89eb32eacd3a7a95",
+        "headLinked": true,
+        "buildBytesMatched": true
+      }
+    ],
+    "anonymous": {
+      "demian": 401,
+      "track": 302,
+      "trail": 302
+    },
+    "verification": {
+      "rootStatus": 200,
+      "assetBytesMatched": true,
+      "contextStatus": 200,
+      "contextState": "connected",
+      "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "runs": 3,
+      "sessions": 1,
+      "wrongActorDenied": 403,
+      "existingGatePreserved": true
+    },
+    "browserGuiVerified": false,
+    "entraActivated": false
+  },
+  "preservation": {
+    "all45TablesRowsSchemaSequencesSecurityMatchVerifiedBackup": true,
+    "apiGateTunnelTrackIdentitiesUnchanged": true,
+    "serviceJsonLocalStartupWorkerAndCredentialsUnchanged": true,
+    "originalDatabaseRestored": false,
+    "originalContainerRestarted": false,
+    "modelCalls": 0,
+    "neverOperatedPorts": [
+      3000,
+      8080,
+      3100,
+      14345
+    ]
+  },
+  "verification": {
+    "localFullSuite": {
+      "revision": "d7ad165e3baf576ed316115a3fd3e2a6e4890792",
+      "total": 831,
+      "passed": 822,
+      "failed": 0,
+      "skipped": 9,
+      "skipReason": "POSIX-only tests"
+    },
+    "currentFixtureAndOperatorTests": {
+      "passed": 57,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "ci": {
+      "runId": 43326210854,
+      "revision": "f5b41df0689c6f75d525774df4eae522f65d96c5",
+      "windows": "success",
+      "ubuntu": "success",
+      "includes": [
+        "typecheck",
+        "full test suite",
+        "frontend build"
+      ]
+    },
+    "initialCiFailure": {
+      "runId": 43325799906,
+      "platform": "Windows",
+      "failedTests": 1,
+      "boundary": "normal temporary-directory fixture path was not canonical",
+      "correction": "Canonical fixture root; existing link/redirection denial unchanged"
+    }
+  },
+  "review": {
+    "independentStaticReview": "No remaining one-shot operator blocker; Docker inspection dependency in fallback corrected and cross-module regression added",
+    "actualExecution": "Reported separately under actual",
+    "automaticOsCrashResumeImplemented": false
+  },
+  "limits": [
+    "Current external Demian route still uses the existing Basic gate; dedicated Entra client, transport and SSO activation are pending.",
+    "Authenticated browser GUI, tab/cache and light/dark 16–64px icon inspection are not verified by HTTP.",
+    "General execution failures have guarded rollback; abrupt OS/operator termination requires journal/receipt inspection and manual recovery.",
+    "Actual additional-device, full cross-app work and operating native nested-worker cutover remain pending."
+  ],
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "Equal acceptance criteria",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "SSO and actual organized cross-app/device verification remain"
+  }
+}

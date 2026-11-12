@@ -143,6 +143,13 @@ PKCE S256을 사용한다. Caddy는 upstream Authorization을 전용 private 값
 
 ## 공개 웹 전용 실행 operator
 
+2026-11-13 실제 운영 반영: 최종 `f5b41df`의 양 OS CI 통과 후 public Web3001을
+동결 candidate로 교체했다. 실제 gate 경유 Session 요약3Run/1Session·actor403과
+HTML/JS·SVG/PNG 자산을 대조하고 원본 DB·다른 서비스·설정 보존을 확인했다.
+아래는 구현 계약이며 현재 실행 증거·남은 SSO/GUI 조건은
+`demian-public-web-promotion-verification.json`에 기록했다. 위 실행 순서3~4의
+공개 웹 교체는 완료했으며 Entra/transport/외부 라우팅은 아직 활성화하지 않았다.
+
 `deploy/demian/promote-public-web.mjs`는 현재 상태를 동결한 private 입력 파일과
 그 SHA-256을 받아 `--preflight` 또는 `--execute`로 동작한다. 실행 범위는
 Windows의 public Web3001 하나다. 입력의 정확한 CIM identity·listener·보호파일,
