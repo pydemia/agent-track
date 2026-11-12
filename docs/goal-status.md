@@ -14,6 +14,9 @@ assistant 응답을 대조했다. 원본 운영 worker/설정은 전환하지 �
 실제 peer/cowork·교차 앱/기기와 운영 Entra GUI는 남아 전체14/21을 유지한다.
 `native-nested-coordinator-verification.json` 참고. 이번 문단의 로컬 UI 검사를
 운영 Entra GUI나 native 운영 전환 완료로 계산하지 않는다.
+구현 `82cbcd9`의 Windows/Ubuntu CI 통과 뒤 프런트엔드만 게시했다.14개 assets와
+favicon/fallback3개·Entra 익명 경계, owner API의 native19Run/Assistant1실행을
+대조했으며 기존 Track PID64216과 backend54f8a83·설정/credential을 유지했다.
 
 2026-11-13 coordinator QA 후속: 실제 모델이 sorter 위임을 선택했으나 child의
 runner 연결 누락으로 하위 Agent가 실행되지 않았고 QA Run을 취소했다. 실제

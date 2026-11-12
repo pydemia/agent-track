@@ -188,5 +188,53 @@
     "percent": 66.7,
     "eta": "unestimable",
     "confidence": "low"
+  },
+  "publication": {
+    "implementationRevision": "82cbcd992a180a43a1d3a9d9603e887e98c1f3d2",
+    "author": "pydemia",
+    "ci": "https://github.com/pydemia/agent-track/actions/runs/43301726987",
+    "ciWindows": "success",
+    "ciUbuntu": "success",
+    "publishedAt": "2026-11-12T20:37:07.803Z",
+    "target": "https://track.pydemia.ai",
+    "frontendOnly": true,
+    "backendRevision": "54f8a831647efc10141a02a682d27ed704cb2694",
+    "servicesRestarted": 0,
+    "trackPidPreserved": 64216,
+    "oldHashNamedChunksRetained": true,
+    "previousIndexBackedUp": true,
+    "indexSha256": "ecc4744c0fc881123ad11bcc0db9c6556175788b476f9c789d2a925d31705dcb",
+    "indexMatches": true,
+    "assetsByteMatched": 14,
+    "javascriptAndCssContentTypes": true,
+    "faviconSvgBytesAndContentType": true,
+    "faviconFallbacksMatched": 3,
+    "anonymous": [
+      {
+        "host": "track.pydemia.ai",
+        "rootStatus": 302,
+        "redirectsToLogin": true,
+        "anonymousApiStatus": 401,
+        "apiRedirectsToLogin": false
+      },
+      {
+        "host": "trail.pydemia.ai",
+        "rootStatus": 302,
+        "redirectsToLogin": true,
+        "anonymousApiStatus": 302,
+        "apiRedirectsToLogin": true
+      }
+    ],
+    "ownerApi": {
+      "snapshot": 200,
+      "nativeSourceConnected": true,
+      "nativeRuns": 19,
+      "assistantList": 200,
+      "assistantSourceConnectedAfterRead": true,
+      "assistantExecutions": 1
+    },
+    "credentialsChanged": false,
+    "productionBrowser": "not reverified; existing Entra user-input handoff remains pending",
+    "newModelCalls": 0
   }
 }
