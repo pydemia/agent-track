@@ -114,3 +114,31 @@ native Work/runtime DDL 전환에는 기존 schemaUnchanged guard를 재사용�
 이 변경도 로컬 commit이며 운영 worker·QA CLI를 활성화하지 않았다. 다음은 현재
 권한에 따른 atomic QA 등록과 pinned runtime/설정 전달이다. 이전 d493ae8의 frozen
 payload를 새 worker의 준비 증거로 재사용하지 않고 활성화 직전 새 closure를 만든다.
+
+## 2026-11-13 원자적 등록과 runtime pin
+
+격리 native `e458d12`는 managed-child·peer-processing·delegated-work의 기존
+권한·Run·receipt transaction에 명시적인 QA 등록을 연결했다. 현재 owner/admin이
+승인한 종류·operation·actor/멤버십 기간·대상 tuple·요청 digest만 등록한다.
+새 요청이 불일치하거나 등록 저장이 실패하면 Run·receipt·event까지 rollback한다.
+같은 Session/root/tag/ancestry로 등록하지 않으며 과거 Run을 replay로 소급
+등록하지 않는다. 기존 native 현재 권한 검사는 그대로 필요하다.
+
+v2 선택은 scope ID·설정 hash·worker·org·만료와 실제 receipt를 대조한다.
+복구 transaction 동안 별도 수행자의 권한 철회가 Run 변경과 workspace lease
+삭제를 분리하지 못하도록 사용자·멤버십·등록 행도 보호한다. 모든 QA worker는
+v1 tuple을 포함해 runtime의 실제 파일 경로·SHA pin을 필수로 받고, cache가
+있어도 다시 검증한다. 환경 URL override나 기존 cache로 fallback하지 않는다.
+
+관련189개 검사를 실제 분리 PostgreSQL·fake provider/CLI와 원본 계층에서
+전부 통과했고 worker/db typecheck·worker build도 통과했다. 새19,599파일/5link
+closure의 compiled 준비 검사에서 추가 import·network·subprocess·payload 밖
+파일 조회 시도는0, dispatch=false였다. 검사 DB·임시 인증 정보는 정리했고
+원본692입력·산출물2개·전체 DB/보안 catalog·보호 파일8개·서비스를 보존했다.
+운영 DB는 읽기 전용 보존 대조만 했으며 migration025는 검사 DB에만 적용했다.
+
+`demian-worker-admission-verification.json`에 revision·검사·pin과 한계를 기록했다.
+현재 code도 로컬 commit이며 QA CLI·운영 worker는 활성화하지 않았다. 다음은
+현재 private 실행 설정과 release/registry를 묶는 trusted QA launcher, 실제
+기동 전 최신 backup/rollback 및 schema/source/image guard다. 실제 조직화·
+교차 앱 업무, 원본 Web 문맥/인증과 desktop/두 번째 장치는 여전히 미완료다.

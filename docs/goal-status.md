@@ -1,5 +1,12 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 admission/pin 후속: 격리 native `e458d12`에 원본 권한·Run·receipt와
+같이 commit/rollback하는 명시적 QA 등록과 모든 QA worker의 runtime pin 강제를
+구현했다. 관련189개 검사와19,599파일/5link closure의 부작용 없는 준비 검사를
+통과했다. 원본 DB에는 migration을 적용하지 않았고 데이터·설정·서비스를
+보존했다. 실제 기동 설정·backup/rollback·교차 앱 실기는 남아 전체14/21을
+유지한다. `demian-worker-admission-verification.json` 참고.
+
 2026-11-13 intake/drain 후속: 격리 native `1c691aa`에 정확한 QA tuple의
 임대·복구·workspace lease 삭제 제한과 전체 종료 drain/cancel을 구현했다.
 관련154검사를 실제 분리 PostgreSQL·fake provider/CLI에서 전부 통과했고,

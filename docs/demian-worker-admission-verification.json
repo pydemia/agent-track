@@ -1,0 +1,130 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementScope": "AT-14/18 native execution preparation; actual organization/cross-app acceptance remains incomplete",
+  "nativeSource": {
+    "repository": "pydemia/demian (private)",
+    "sourceSnapshot": "5943eec10c2e334c15b9337c0caab1b19c8cf4ef",
+    "base": "1c691aaecb61613cd02a15528c1d7aae68626d74",
+    "implementationRevision": "e458d12a3b13fa6e7acdec9ebfccba4e82340b0e",
+    "documentationRevision": "665f8e74904ec641b78c0596883f1a417408e94b",
+    "branch": "codex/agent-track-worker-intake",
+    "publication": "Local commits only; not pushed, merged or deployed",
+    "author": "pydemia"
+  },
+  "implementation": {
+    "migration": "025_worker_qa_admissions.sql applied only in owned test databases; operating native database not migrated",
+    "authority": "Trusted host creates immutable approvals with current owner/admin creator, active actor membership incarnation, exact org/workspace/session, kind/operation and request digest. No HTTP QA permission input.",
+    "atomicity": "Existing managed-child, peer-processing and delegated-work authorization, Run, receipt, events and QA registration commit/rollback together",
+    "noInference": "No Session/root/tag/ancestry-based approval; unplanned native operations stay unregistered. QA selection is separate from a global admission freeze.",
+    "replay": "Registered operation reuses the original Run without a QA write; an old unregistered Run cannot be backfilled by replay",
+    "selection": "v2 requires exact scope ID/config SHA/worker/org/expiry, current creator+actor membership and exact typed native receipt, before candidate limit/lock and in both recovery cleanup paths",
+    "locking": "Scope/approval/user/membership/registered rows stay stable through recovery transaction; actor revocation cannot split Run mutation and workspace cleanup",
+    "dispatch": "Current QA registry authority rechecked before execution and after awaited native authority; existing native fences remain mandatory",
+    "runtime": "Every QA scope, including legacy v1, requires an immutable absolute-file/SHA pin before pool allocation. Every load rechecks file/ancestors/hash/override and uses digest-specific cache without legacy fallback.",
+    "qaCli": "Still rejected; trusted launch/private configuration contract and operating activation not performed"
+  },
+  "verification": {
+    "completedAt": "2026-11-12T16:49:08.333Z",
+    "platform": "win32 x64",
+    "nodeVersion": "v24.21.0",
+    "postgresVersion": "17.11 (Debian 17.11-1.pgdg13+2)",
+    "databaseIsolation": "Separate label-owned loopback-only Docker PostgreSQL, tmpfs, no bind/volume or original credentials; separate fixture databases/schemas",
+    "tests": {
+      "total": 189,
+      "passed": 189,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coverage": {
+      "qaAdmissionPostgres": 9,
+      "delegatedRuntimePostgres": 17,
+      "peerProcessingPostgres": 1,
+      "qaScopeUnit": 18,
+      "qaScopePostgres": 8,
+      "repositoryPostgres": 1,
+      "completionFencingPostgres": 15,
+      "workerLifecycle": 18,
+      "providerLoginDrain": 6,
+      "existingLoginUnit": 3,
+      "fakeCliLogin": 1,
+      "fakeManagedNativeCancellation": 7,
+      "simulatedEntryShutdown": 2,
+      "readinessSource": 69,
+      "compiledReadiness": 8,
+      "runtimePin": 6
+    },
+    "typecheck": "worker and db passed",
+    "workerBuild": "passed",
+    "workerSha256": "6d3e515e1d230e70c9b0affe83f5f9fdcd8830fb73debadfbb268aba329d1f5d",
+    "coreSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "independentReview": "Actor revocation between recovery update and cleanup found, fixed by transaction authority locks and verified by a distinct-actor lock-timeout regression; review was source-only",
+    "fixtureCorrections": "Peer approval fingerprint initially used full persisted authority settings rather than the five public settings; corrected and all final cases passed",
+    "limits": [
+      "Controlled providers/CLI, not external paid model execution",
+      "Windows direct file-symlink creation unavailable; ancestor-junction rejection tested",
+      "Hash-before-import is not an atomic OS filesystem lock",
+      "Full native suite, Linux native CI and real OS signal/cold-start tests not run"
+    ]
+  },
+  "closedRelease": {
+    "verifiedAt": "2026-11-12T16:55:23.752Z",
+    "version": 1,
+    "state": "frozen",
+    "dispatchEnabled": false,
+    "manifestSha256": "e8be3c64a7d0624b103f0053542e0fa374ee58cae243243a870c1609464eb48c",
+    "files": 19599,
+    "links": 5,
+    "workerSha256": "6d3e515e1d230e70c9b0affe83f5f9fdcd8830fb73debadfbb268aba329d1f5d",
+    "runtimeSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "dependencyFiles": 18886,
+    "sourceAndProvenanceFiles": 711,
+    "payloadBytes": 770857689,
+    "elapsedMs": 20492,
+    "observedForbiddenAttempts": {
+      "module": 0,
+      "network": 0,
+      "subprocess": 0,
+      "outsideFile": 0
+    },
+    "scope": "Actual packaged e458d12 compiled frozen-readiness entry only; not dispatch capability"
+  },
+  "preservation": {
+    "verifiedAt": "2026-11-12T16:55:21.012Z",
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "originalDatabaseAllRowsDdlSequencesSecurityCatalogUnchanged": true,
+    "originalDbAccess": "Read-only fingerprint comparison only; no native DDL/DML",
+    "protectedFilesUnchanged": 8,
+    "nativeApiPid": 15940,
+    "nativeApiWebGateContainerIdentitiesUnchanged": true,
+    "nativeTables": 45,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "operatingWorkerStarted": false,
+    "originalTaskRunModelCallsCreated": 0,
+    "syntheticQaRowsCreated": true,
+    "trackTrailDeploymentChanged": false
+  },
+  "cleanup": {
+    "completedAt": "2026-11-12T16:52:52.131Z",
+    "ownedQaContainerRemoved": true,
+    "tmpfsDisposed": true,
+    "ephemeralCredentialFileRemoved": true,
+    "emptyQaHomeRemoved": true
+  },
+  "remainingBeforeActivation": [
+    "Trusted QA launch configuration bound to current private execution config and exact release/registry, no environment fallback",
+    "Latest native/Assistant schema/data backup and rollback guard before live migration or source/image rollout",
+    "Current producer/executor credential and binding/source mapping; no UUID or selector guessing",
+    "Actual managed-child/peer and Assistant-to-Demian task with grouped UI evidence, native Web context/authentication and desktop/second device"
+  ],
+  "goal": {
+    "status": "active",
+    "fulfilled": 14,
+    "total": 21,
+    "weighting": "equal acceptance criteria",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}
