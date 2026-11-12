@@ -1,0 +1,51 @@
+{
+  "dateKst": "2026-11-12",
+  "scope": "Windows current-user frozen API-only logon startup; worker and native Web excluded",
+  "local": {
+    "typecheck": "passed",
+    "nodeSyntax": "passed",
+    "powershellSyntax": "passed",
+    "fullTests": { "total": 600, "passed": 591, "failed": 0, "skipped": 9 },
+    "skipReason": "POSIX-only permission cases on Windows",
+    "nativeWindowsBoundaries": [
+      "CIM process creation identity and actual TCP listener ownership",
+      "Empty port is distinct from a listener query failure",
+      "Cold-start fixture and path quoting with/without executable and entry spaces",
+      "Scope/publication failure cleans up the retained newly created child",
+      "Listener replacement during readiness rejects adoption",
+      "Atomic record CAS, forced termination after stage and after replace, complete JSON and retry"
+    ],
+    "priorFailures": [
+      "Fixture cleanup initially removed its working directory before child exit; corrected cleanup order and explicit HTTP shutdown/wait",
+      "Windows PowerShell null backup argument caused File.Replace failure; replaced with a private previous-record backup and verified interruption recovery",
+      "One full run had unrelated binding API 404 versus expected 503; isolated case and subsequent complete 600-test run passed; cause not established"
+    ]
+  },
+  "independentReview": {
+    "sourceFindingsAddressed": [
+      "Stopped original DB returns not-ready before checking running port metadata",
+      "Exact command spellings support space-free executable and reject unquoted spaced entry",
+      "Final adoption rechecks process creation and listener ownership",
+      "API record uses staged flush and atomic replacement instead of in-place truncation"
+    ]
+  },
+  "preparation": {
+    "actualNativeApiPid": 15940,
+    "action": "reused",
+    "port": 8080,
+    "profileAndFrozenOperatorVerified": true,
+    "readOnlyNativeDatabaseBaselineSaved": true,
+    "nativeTables": 45,
+    "newTaskRunOrModelCalls": 0,
+    "workerStarted": false
+  },
+  "production": { "state": "prepared; task registration and execution pending code CI" },
+  "limitations": [
+    "Actual native API has not been stopped or cold-started for this verification",
+    "No PC reboot or real logon cycle executed",
+    "Startup task is not a continuous API process supervisor",
+    "Current frozen executable/profile changes require explicit revalidation",
+    "Managed-child/peer and complete cross-app task remain incomplete"
+  ],
+  "goal": { "fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low" }
+}
