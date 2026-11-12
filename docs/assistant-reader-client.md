@@ -5,6 +5,8 @@
 Track now includes optional source configuration, live authority/API wiring and a
 distinct WorkExecution UI. Code availability does not activate the source: the
 production reader/configuration and cross-app verification are separate steps.
+The current owner source was activated on 2026-11-12 and verified through normal
+Entra UI login; see `assistant-live-verification.json`.
 
 ## Identity and authentication
 
@@ -70,10 +72,11 @@ snapshot or frozen cutover baseline.
 The Assistant integration Root owns native container/guard changes and has
 provisioned the dedicated credential. Track owns its client configuration and
 private loopback transport. No key or native owner credential is sent to the
-browser. Production source activation awaits the Root's native-ready evidence.
+browser. Production activation followed the Root's native-ready evidence; native read,
+current Projects intersection, UI groups and a Track restart were then verified.
 
-Remaining: native cutover/guard verification, Track production source activation,
-actual current Projects intersection and the actual cross-app task. Refer to
+Remaining: the full Assistant/Demian/desktop cross-app task and second-device
+organization. The actual Assistant/Projects/Track metadata path is connected. Refer to
 `assistant-native-reader-verification.json` and `goal-status.md`. AT-14 remains
 partial; this client does not change the overall 14/21 acceptance count.
 

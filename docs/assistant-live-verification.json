@@ -1,0 +1,91 @@
+{
+  "verifiedAt": "2026-11-12T05:36:05.856Z",
+  "revision": "635169e325974dedcae901a4fc744f3f507ce277",
+  "scope": "actual owner-authenticated loopback BFF with production native reader and current Projects grant",
+  "sourceId": "assistant-native",
+  "listCount": 1,
+  "omitted": 0,
+  "roles": 1,
+  "nativeState": "completed",
+  "nativeTaskRevision": "3",
+  "currentTaskState": "in_review",
+  "currentTaskRevision": "3",
+  "currentProjectIntersection": true,
+  "eventCount": 37,
+  "eventCursor": "37",
+  "assistantJournalRuns": 0,
+  "wrongActorStatus": 401,
+  "modelCalls": 0,
+  "restart": {
+    "verifiedAt": "2026-11-12T05:39:50.493Z",
+    "status": 200,
+    "listCount": 1,
+    "sameExecution": true,
+    "privateBridgeReady": true
+  },
+  "productionActivated": true,
+  "auth": {
+    "default": "Entra ID",
+    "publicUnauthenticatedApiStatus": 401,
+    "basicCredentialsAdded": false
+  },
+  "browser": {
+    "origin": "https://track.pydemia.ai",
+    "normalEntraLogin": true,
+    "executionSelection": true,
+    "trace": {
+      "roles": 1,
+      "attempts": 1,
+      "seconds": 18,
+      "stateEvents": 37,
+      "cursor": "37",
+      "executionState": "completed",
+      "currentTaskState": "in_review",
+      "currentTaskRevision": "3"
+    },
+    "taskMap": {
+      "nodes": 6,
+      "edges": 5,
+      "groups": 3,
+      "groupKinds": [
+        "Project",
+        "Task",
+        "Assistant execution"
+      ],
+      "nestedEnter": true,
+      "breadcrumb": true,
+      "roleNodeDetails": true,
+      "edgeProvenance": true
+    },
+    "mobile": {
+      "width": 390,
+      "documentWidth": 375,
+      "keyboardEnterSelection": true,
+      "detailVisible": true,
+      "viewportReset": true
+    },
+    "screenshots": [
+      "track-assistant-live-trace.jpg",
+      "track-assistant-live-groups.jpg",
+      "track-assistant-live-mobile.jpg"
+    ]
+  },
+  "nativeDeployment": {
+    "owner": "Assistant integration Root",
+    "evidence": "Root reported serial cutover/readback/boot-resume success and complete business/runtime preservation; direct Track native/BFF/UI reads verified separately",
+    "newModelExecutions": 0
+  },
+  "limits": [
+    "Actual window contains one completed execution and one role; multi-execution shared references and work-package nesting were verified with canonical HTTP fixtures, not invented production data.",
+    "Source provides metadata/state events, not tool arguments or artifact bodies.",
+    "This is Assistant-to-Projects-to-Track observation; full Assistant/Demian/desktop business workflow remains partial."
+  ],
+  "goal": {
+    "satisfied": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "equal",
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

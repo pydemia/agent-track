@@ -70,7 +70,24 @@
         "track-assistant-role-mobile.jpg"
       ],
       "fixtureServersStopped": true
-    }
+    },
+    "ci": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43162006080",
+      "conclusion": "success",
+      "windows": {
+        "tests": 521,
+        "pass": 512,
+        "fail": 0,
+        "skip": 9
+      },
+      "ubuntu": {
+        "tests": 521,
+        "pass": 511,
+        "fail": 0,
+        "skip": 10
+      }
+    },
+    "buildRevision": "635169e325974dedcae901a4fc744f3f507ce277"
   },
   "sourceHashes": {
     "apps/api/assistant-authority.ts": "c64636b42ad5484bb99b91e620ad01c493ab9b2ff0f00d7a5559d2e613ae78c3",
@@ -91,7 +108,7 @@
     "packages/projection/flow-groups.ts": "a4f6c319e3cec8466ab50cd900a629afe931fe86cdc036e368e4920677610fdd",
     "scripts/Start-Assistant-Bridge.ps1": "da641cdf809e85cbc978fc9d693c5a984a9e00ebc69156f36dd548f57c55454c",
     "scripts/Start-Track.ps1": "39ea922f4eb629a2777edab7c8d00f5889646f60e8dbbea3597790cae99c15fe",
-    "tests/assistant-api.test.ts": "dbc6384efce7413321d462b9e5ab9bff29cf3665e772f081e863242b4ab54f7e",
+    "tests/assistant-api.test.ts": "6e5540b8472cc7c02ec993ed69d4730ab5d0c745bbb01c322cf9264d4108b815",
     "tests/assistant-authority.test.ts": "1c14882b57a9b5ff669605ca349053fe7791ff18ccb21d32e63a3e0f7c448840",
     "tests/assistant-flow.test.ts": "c0f68f6b8f1e2c8eac6c7f79fd90e6e094c677ecf7d9c872a80f55740c46c3ea",
     "tests/assistant-web-client.test.ts": "0e27dc8537c8c0bac26b168d466957947d9b057e73e7e71f23931706a2ba4489"
@@ -109,5 +126,7 @@
     "weighting": "equal",
     "eta": "not estimable",
     "confidence": "low"
-  }
+  },
+  "implementationRevision": "635169e325974dedcae901a4fc744f3f507ce277",
+  "sourceHashEncoding": "SHA-256 of committed Git blob bytes (LF normalization)"
 }
