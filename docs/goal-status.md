@@ -3,7 +3,8 @@
 2026-11-13 계정별 Flow 저장 보기(AT-12-G06): SQLite의 계정 소유·revision 비교
 저장/갱신/삭제와 현재 Task/Run/Assistant 인가 API, 저장 이름·묶음·접힘·깊이·
 내부 초점의 명시 복원을 구현했다. 로컬 전체857개 중848통과·환경skip9·실패0,
-최종 관련26검사·타입 검사·별도 경로 build와 독립 검토를 통과했다. 합성 UI에서
+최종 관련26검사·타입 검사·별도 경로 build와 독립 검토를 통과했다. 구현 `7e98793`의
+Windows·Ubuntu CI에서 타입·전체 검사·build도 통과했다. 합성 UI에서
 프로세스 재시작·새로고침 복원, 이름 갱신·접힘,390px 컨트롤 범위·Tab 이동과
 Enter 복원을 확인했다. 권한 철회 뒤 남은 이름을 재현·수정했고, 새 Run 추가로
 2node/1edge→4node/3edge가 된 뒤에도 철회한 저장 이름·복원 그룹을 제거했다.
@@ -221,7 +222,8 @@ child/peer·dependency 근거 연결이 남았다.
 새 Flow/업무별 실행 조직의 계획은 `mission-ui-plan.md`, native 대조는
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.
 Node group 추가는 AT-12를 확장하며 전체 분모·완료 개수를 바꾸지 않는다.
-사용자 화면 묶음은 현재 화면 상태이며 서버 저장·재접속 복원은 후속이다.
+네 보기의 공통 화면 선택은 현재 접속 상태다. 별도 계정별 저장 보기의 명시 복원은
+AT-12-G06으로 구현·격리 검증했으며 실제 owner 운영 반영은 후속이다.
 2026-11-13 native QA 기동 후속 `8afec9e`는 descriptor/release/private pin·현재
 registry·home 설정 부재를 검증하고 claim/idle 한도 후 종료한다. 관련245개 검사와
 실제 compiled entry의 임시 DB/제어 provider 실행을 통과했다. 운영 migration·worker

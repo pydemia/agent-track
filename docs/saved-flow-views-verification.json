@@ -104,7 +104,10 @@
     },
     "screenshotVerified": false,
     "actualOwnerEntraSavedViewsVerified": false,
-    "deleteButtonBrowserVerified": false
+    "deleteButtonBrowserVerified": false,
+    "qaProcessStopped": true,
+    "qaPortReleased": true,
+    "qaDatabaseRetainedWithoutCredentials": true
   },
   "review": {
     "independentStaticReview": true,
@@ -137,7 +140,16 @@
     "remaining": "Backup Track DB/config, inspect current receipts/process identity, isolate operating web root, then API/frontend rollout and actual owner verification"
   },
   "ci": {
-    "status": "pending"
+    "status": "success",
+    "runId": 43332855422,
+    "revision": "7e98793fff6274d41fe764b2b94e23d82e5b000a",
+    "windows": "success",
+    "ubuntu": "success",
+    "verifiedChecks": [
+      "typecheck",
+      "full test suite",
+      "frontend build"
+    ]
   },
   "overallGoal": {
     "completed": 14,
@@ -148,5 +160,6 @@
     "confidence": "Low",
     "premise": "Operating saved-view rollout plus SSO/cross-app/additional-device work remain"
   },
-  "sourceHashBasis": "Git index bytes (repository LF normalization); SHA-256, not Git object IDs"
+  "sourceHashBasis": "Git index bytes (repository LF normalization); SHA-256, not Git object IDs",
+  "implementationRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a"
 }
