@@ -98,5 +98,48 @@
     "typecheck": "passed",
     "build": "passed",
     "newBackendOrNativeLifecycleChanges": 0
+  },
+  "contextSummary": {
+    "dateKst": "2026-11-12",
+    "scope": "Current metadata group inspector; synthetic UI before production rollout",
+    "sourceScope": "Only current unambiguous source-qualified members and exact typed relations; no API, credential or native runtime changes",
+    "statusUnits": ["task", "run", "assistant-execution", "assistant-role", "invocation", "tool"],
+    "explicitConcerns": ["Run waiting_for_permission", "role awaiting_connection/awaiting_runtime", "failed execution/role/invocation/tool", "Task in_review"],
+    "dependencies": "Known Task dependency edges retain internal/incoming/outgoing direction and current status; not scheduling eligibility or blocking proof",
+    "artifacts": "Unique metadata references; output/association requires a known member Run and exact typed edge; conflicting provenance remains partial/reference",
+    "unprovided": "Current reader does not supply original purpose, input or acceptance criteria; names and statuses do not invent them",
+    "independentReview": {
+      "scope": "Static inspection of helper, tests and shared inspector only",
+      "findings": 2,
+      "resolved": ["Check Run conflicts across all current nodes, including aliases outside selected group", "Mark contradictory artifact Run provenance partial"],
+      "regressionsAdded": 2,
+      "independentExecution": false
+    },
+    "verification": {
+      "typecheck": "passed",
+      "isolatedWebBuild": "passed",
+      "contextTests": {"total": 11, "passed": 11, "failed": 0},
+      "fullTests": {"total": 672, "passed": 663, "failed": 0, "skipped": 9, "platform": "Windows"},
+      "initialFullRun": {"failed": 1, "boundary": "Existing Windows owned cold-child readiness fixture", "cause": "Not established", "focusedRecheck": "5 passed", "sameFullCommandRecheck": "672 total, 663 passed, 0 failed, 9 platform skips", "operatorOrTimeoutChanged": false}
+    },
+    "syntheticUi": {
+      "taskMap": {"nodes": 18, "edges": 19, "groups": 7},
+      "selectedTaskGroup": {"members": 6, "concerns": 3, "incomingTaskDependencies": 1},
+      "checks": [
+        "Separate Assistant execution running, role runtime-wait/failed and Task review states",
+        "Keyboard Enter opens original dependency with actual endpoints, revisions and relation ID",
+        "Native Run success and tool failure remain separate in Run-group summary",
+        "390px settles to375px document and scroll width; inspector below canvas; temporary viewport reset",
+        "Projects grant withdrawal automatically removes Task title, role name, group summary and Task scope URL"
+      ],
+      "artifactUi": "Synthetic fixture lacks session.link capability; artifact classification is covered by helper tests and awaits native production readback",
+      "screenshots": ["track-group-context-qa.jpg", "track-group-context-mobile-qa.jpg"],
+      "fixtureProcessStopped": true,
+      "syntheticCredentialFilesRemoved": 4,
+      "modelCalls": 0,
+      "actualTaskOrRunCreated": 0
+    },
+    "production": {"state": "pending"},
+    "goal": {"fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low"}
   }
 }
