@@ -145,3 +145,39 @@ test("record order uses minimal successors instead of a complete edge mesh", () 
   assert.equal(result.edges.filter((edge) => edge.kind === "record-order").length, 2);
   assert.equal(result.nodes.filter((node) => node.kind === "tool" && node.status === "completed").length, 3);
 });
+
+test("one parent edge retains raw relation and lifecycle evidence without merging another Run or relation kind", () => {
+  const selected = run("source", "one", "session-one");
+  const other = run("source", "two", "session-two");
+  const relations = [relation(selected, "invocation", "invocation:parent", "invocation:child", "2"),
+    relation(selected, "invocation", "invocation:parent", "invocation:child", "3"),
+    relation(selected, "dependency", "invocation:parent", "invocation:child", "4"),
+    relation(other, "invocation", "invocation:parent", "invocation:child", "5")];
+  const events = [event(selected, "1", "agent.invocation.started", { redacted: true, invocationId: "parent" }),
+    event(selected, "2", "agent.invocation.started", { redacted: true, invocationId: "child", parentInvocationId: "parent" })];
+  const before = structuredClone({ relations, events });
+  const model = missionFlow(selected, [other], relations, events, { includeExecution: true });
+  const parent = model.nodes.find(node => node.kind === "invocation" && node.id === "parent" && node.runKey === selected.key)!;
+  const child = model.nodes.find(node => node.kind === "invocation" && node.id === "child" && node.runKey === selected.key)!;
+  const ancestry = model.edges.filter(edge => edge.from === parent.key && edge.to === child.key && ["invocation", "invocation-parent"].includes(edge.kind));
+  assert.equal(ancestry.length, 1);
+  assert.equal(ancestry[0]!.kind, "invocation-parent");
+  assert.deepEqual(ancestry[0]!.sequences, ["2", "3"]);
+  assert.match(ancestry[0]!.detail, /parentInvocationId/);
+  assert.match(ancestry[0]!.detail, /invocation/);
+  assert.ok(model.edges.some(edge => edge.from === parent.key && edge.to === child.key && edge.kind === "dependency"));
+  assert.ok(model.edges.some(edge => edge.kind === "invocation" && model.nodes.find(node => node.key === edge.to)?.runKey === other.key));
+  assert.deepEqual({ relations, events }, before);
+});
+
+test("conflicting invocation parents keep original relation evidence without promoting one hierarchy", () => {
+  const selected = run("source", "root", "session", null);
+  const relations = [relation(selected, "invocation", "invocation:first", "invocation:child", "1"),
+    relation(selected, "invocation", "invocation:second", "invocation:child", "2")];
+  const events = [event(selected, "1", "agent.invocation.started", { redacted: true, invocationId: "child", parentInvocationId: "first" }),
+    event(selected, "2", "agent.invocation.completed", { redacted: true, invocationId: "child", parentInvocationId: "second" })];
+  const model = missionFlow(selected, [], relations, events, { mode: "execution" });
+  assert.equal(model.edges.filter(edge => edge.kind === "invocation").length, 2);
+  assert.equal(model.edges.filter(edge => edge.kind === "invocation-parent").length, 0);
+  assert.equal(model.nodes.find(node => node.kind === "invocation" && node.id === "child")!.status, "ambiguous");
+});

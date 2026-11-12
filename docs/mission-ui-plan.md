@@ -14,6 +14,14 @@ cross-session으로 Task와 subagent를 조직하고 최종 목표를 수행하�
 실행되지 않은 하위 Agent를 성공한 작업 묶음으로 만들지 않는다.
 `native-coordinator-verification.json`에 실제 실패 경계와 UI 검사를 분리했다.
 
+후속 실제 중첩 위임에서는 원본 invocation 관계와 같은 부모 ID를 가진 lifecycle
+관계가 겹치는 문제를 확인했다. 같은 source/Run/부모/자식이며 부모 근거가 명확한
+경우 하나의 `invocation-parent` 선으로 표시하고 두 근거의 sequence와 원본 관계
+설명을 합친다. 다른 관계 종류·Run·상충하는 부모 근거는 합치지 않는다. 원장과
+원본 relation ID는 바꾸지 않는다. 그룹 요약의 도구 `ok=true` 근거는 성공 보고로
+표시하며 업무 수용과 구별한다. 실제63event에서 전체10node/15edge/5그룹과
+coordinator 묶음5node/5edge·네 보기 유지·390px를 대조했다.
+
 산출물도 Session → Run의 중첩 그룹 안에서 탐색한다. 결과 실선과 첨부 귀속
 점선을 구분하고 node/edge 상세에 identity·종류·관측 범위를 표시한다. 개요에서는
 그룹 요약으로, 내부 흐름/상세 깊이에서는 개별 산출물로 전환한다. 여러 Task의

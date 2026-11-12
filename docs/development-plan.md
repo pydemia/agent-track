@@ -145,6 +145,14 @@ child runtime의 `delegate_agent` 실행 연결이 없어 하위 실행 전 실�
 현재 권한 재검사·대상 provider authority·cwd와 작업 범위·durable context를
 보존해야 하며 cowork/scoped member의 재위임을 자동 허용하지 않는다.
 
+후속 `d0aaa0b`에서 일반 child의 중첩 위임을 수정하고 관련140검사·계정별 문맥과
+권한 철회·terminal 저장 중 취소를 검증했다. 새 frozen release의 별도 실제 QA는
+coordinator의 두 specialist 위임과 최종 종합까지 성공했다. Track의 원본 invocation
+관계/lifecycle 중복 선을 근거 보존 방식으로 정리하고 실제 그룹 상세·하위 범위·
+네 보기로 대조했다. 운영 native worker 전환·cowork/peer·전체 교차 앱·추가 기기는
+잔여 조건이다. 호출 이름은 UUID를 이름으로 추정하지 않고 별도 인가된 configured
+Agent metadata 읽기 계약으로 보강하며 기존 immutable event digest를 변경하지 않는다.
+
 전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 원본 Web 적용은 보류 중이다. Demian API-only는 보존 검증 후 재가동했고 worker는 중단 상태다. Assistant v1 native reader·전용 credential·Track UI는 운영 확인했고, v2 소비자의 명시적 출처 mapping·현재 권한/receipt 대조와 역할→Run 관계도 구현했다. v2 원본 전환·실제 producer/실행 준비, desktop 의미·위치·다른 장치 연결은 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부
 대기를 분리해 기록한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.

@@ -191,7 +191,14 @@ export function missionFlow(
         const child = invocationNodes.get(step.id)!;
         if (step.parentId && step.phase !== "ambiguous") {
           const parent = invocationNodes.get(step.parentId) ?? getNode(run.sourceId, "invocation", step.parentId, `호출 ${step.parentId}`, "unobserved", "명시된 부모 호출 참조; 생명주기는 관측되지 않음", run);
-          addEdge(run.sourceId, parent, child, "invocation-parent", "하위 호출", "명시된 parentInvocationId");
+          const rawKey = edgeKey(run.sourceId, parent.key, child.key, "invocation");
+          const raw = edges.get(rawKey);
+          if (raw) edges.delete(rawKey);
+          const sequences = scopedEvents.filter(event => event.type.startsWith("agent.invocation.") &&
+            event.data.invocationId === step.id && event.data.parentInvocationId === step.parentId).map(event => event.sequence);
+          addEdge(run.sourceId, parent, child, "invocation-parent", "하위 호출",
+            raw ? `명시된 parentInvocationId · 원본 invocation 관계: ${raw.detail}` : "명시된 parentInvocationId",
+            [...(raw?.sequences ?? []), ...sequences]);
         } else if (!step.parentId && step.phase !== "ambiguous") addEdge(run.sourceId, root, child, "invocation-root", "실행 호출", "기록된 parentInvocationId 없음");
       }
       const units = new Map<string, Array<{ node: MissionNode; min: string; max: string }>>();

@@ -1,0 +1,192 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": [
+    "AT-12",
+    "AT-18",
+    "AT-21"
+  ],
+  "scope": "Real nested coordinator execution in isolated native QA; operating native preserved",
+  "nativeImplementation": {
+    "revision": "d0aaa0b988dd169329a6badcb0681340cb370a79",
+    "publication": "Separate local codex/agent-track-worker-intake checkout; not operating source or merged remote release",
+    "relatedTests": {
+      "passed": 128,
+      "failed": 0,
+      "skipped": 0
+    },
+    "contextAuthorityAndTerminalTests": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coreAndWorkerTypecheck": "passed",
+    "coreAndWorkerBuild": "passed",
+    "independentReview": "Closing ancestor check and consistent terminal-save policy findings resolved; decisive tests passed by parent",
+    "authorization": "Fresh descendant account/context; flat closing ancestor checks; no new atomic remote revocation guarantee",
+    "coworkOrDefinedWriteScopeDelegation": "denied including empty scope and internal callback",
+    "cancellation": "No ancestor request after abort; terminal outcome fixed before successful terminal persistence"
+  },
+  "release": {
+    "manifestSha256": "9f21890d80655ce246cf5f6ffc9f92890fd7aa027d23c85df6b826415d6c3dac",
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "runtimeSha256": "b79a28537f92a092f8b237d53ef6ed94416d2035fd39343ab15d57e0b62140de",
+    "files": 19603,
+    "links": 5,
+    "payloadBytes": 770953715,
+    "nodeVersion": "v24.21.0",
+    "npmVersion": "11.19.0",
+    "observedReadinessSideEffects": {
+      "module": 0,
+      "network": 0,
+      "subprocess": 0,
+      "outsideFile": 0
+    },
+    "dispatchEnabledDuringReadiness": false,
+    "unusedFirstBundle": "Wrong npm argument found before use; replaced by separate observed-version bundle; never dispatched"
+  },
+  "actualRun": {
+    "runId": "9607241d-54e6-4392-9dec-f84154c0ecc1",
+    "sessionId": "562c51fb-6697-40f2-aa05-4643801b3f49",
+    "operationId": "be3497bb-ba6f-4826-93d8-32790c9b92dc",
+    "registeredOperations": 1,
+    "status": "succeeded",
+    "attempts": 1,
+    "workerExitCode": 0,
+    "canonicalEvents": 63,
+    "cursor": "63",
+    "highWater": "63",
+    "actualAgentInvocations": [
+      {
+        "agent": "track-qa-coordinator",
+        "invocationId": "inv_90800e2d-fa20-42a0-bd0f-bbbc176f3716",
+        "parentInvocationId": "inv_df1db8d4-2bb1-46ba-97de-5eadafe649b5"
+      },
+      {
+        "agent": "track-qa-sorter",
+        "invocationId": "inv_mwdzrvja_3y4t2hti",
+        "parentInvocationId": "inv_90800e2d-fa20-42a0-bd0f-bbbc176f3716"
+      },
+      {
+        "agent": "track-qa-verifier",
+        "invocationId": "inv_mwdzs1fc_l8uop1ks",
+        "parentInvocationId": "inv_90800e2d-fa20-42a0-bd0f-bbbc176f3716"
+      }
+    ],
+    "outerEnvelopeModelExecuted": false,
+    "specialistsShareImmediateParent": true,
+    "requestedModel": "gpt-6-astra",
+    "serverResolvedModel": "not separately observed",
+    "upstreamRequests": 5,
+    "requestLimit": 5,
+    "usage": {
+      "inputTokens": 6182,
+      "outputTokens": 254,
+      "totalTokens": 6436
+    },
+    "allFiveTransportLedgersCompleteHttp200": true,
+    "rejectedRequests": 0,
+    "actualSpecialistAndAssistantFinalRepliesMatched": true,
+    "upstreamSseForwardedUnchanged": true,
+    "formalTaskDependencyOrPeerExecutionInferred": false
+  },
+  "trackChanges": {
+    "baseRevision": "146b04e6bb4c97bfc4ef66eb06e591dc4cf5a91a",
+    "parentEdge": "Same source/Run/from/to raw invocation and unambiguous lifecycle parent merge to one invocation-parent with sequence/evidence retained",
+    "preservedSeparately": [
+      "different source",
+      "different Run",
+      "different relation kind",
+      "conflicting parent evidence"
+    ],
+    "groupToolSuccessLabel": "성공 보고",
+    "eventSchemaOrDigestsChanged": false,
+    "tests": {
+      "total": 725,
+      "passed": 716,
+      "failed": 0,
+      "skipped": 9,
+      "platform": "Windows",
+      "skipReason": "Existing POSIX-only checks"
+    },
+    "newRegressionTests": 2,
+    "beforeFix": "Equivalent parent-edge regression failed2vs1",
+    "relatedTests": {
+      "passed": 32,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "isolatedBuild": "passed; existing React Flow use-client warning",
+    "review": "Parent source/diff and actual QA browser; no independent Track patch reviewer"
+  },
+  "actualQaBrowser": {
+    "beforeFix": {
+      "nodes": 10,
+      "edges": 18,
+      "groups": 5
+    },
+    "afterFix": {
+      "nodes": 10,
+      "edges": 15,
+      "groups": 5
+    },
+    "coordinatorGroup": {
+      "calls": 3,
+      "successfulTools": 2,
+      "nodes": 5,
+      "edges": 5
+    },
+    "edgeDetail": "One child edge retains invocation-parent kind, source, exact endpoints, raw invocation description and seq17",
+    "allFourViewsKeepSameRunAndSubgroup": true,
+    "mobile": {
+      "viewportWidth": 390,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scopePreserved": true,
+      "overrideReset": true
+    },
+    "screenshot": "Not captured: Page.captureScreenshot timeout5000ms",
+    "newModelCalls": 0,
+    "productionEntraGui": "Not reverified; prior user-login handoff remains pending"
+  },
+  "cleanup": {
+    "executedQaContainerRemoved": true,
+    "qaApisGateTrackAndWorkerStopped": true,
+    "qaAccessTokenProjectionAndApiDatabaseReaderCredentialsRemoved": true,
+    "refreshTokenCopied": false,
+    "privateDbArchive": {
+      "bytes": 211862,
+      "sha256": "471f563ff2d7b2e42f9530b8104475704f74d3644ba4c0b8ddcb30cc3e7512d4",
+      "hashVerified": true,
+      "restorePerformed": false
+    },
+    "postRemovalVerifier": "Old descriptor filename caused ENOENT after removal; exact new filename recovered and absence verified without rerun",
+    "unusedBundleDirectory": "Retained: recursive deletion rejected by automatic approval policy; no credentials or execution"
+  },
+  "preservation": {
+    "originalAuthFileUnchanged": true,
+    "originalTablesAllRowsDdlSequencesSecurityCatalogUnchanged": 45,
+    "protectedFilesUnchanged": 8,
+    "originalServiceProcessIdentitiesUnchanged": 3,
+    "originalApiPid": 15940,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "originalModelCalls": 0,
+    "operatingWorkerOrProfileTransitioned": false
+  },
+  "remaining": [
+    "Operating native runtime/profile and authorization provision with verified backup/rollback",
+    "Actual cowork/peer and Assistant-to-Demian-to-desktop task plus another device",
+    "Configured Agent display names through separately authorized metadata without rewriting immutable digests",
+    "Current production Entra GUI and account-scoped saved group views"
+  ],
+  "overallGoal": {
+    "fulfilled": 14,
+    "total": 21,
+    "equalWeight": true,
+    "percent": 66.7,
+    "eta": "unestimable",
+    "confidence": "low"
+  }
+}

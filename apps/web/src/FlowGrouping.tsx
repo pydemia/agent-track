@@ -16,7 +16,7 @@ const countNames: Record<string, string> = { task: "업무", session: "Session",
 const executionStates: Record<string, string> = { queued: "대기", leasing: "할당 중", running: "실행 중", waiting_for_permission: "승인 대기", cancelling: "취소 중", succeeded: "성공 종료", failed: "실패", cancelled: "취소", expired: "만료", interrupted: "중단", unknown: "미확인", unobserved: "미조회 참조", observed: "관측됨", "observed-reference": "관계 참조", registering: "등록 중", publishing: "게시 처리 중", linking: "연결 처리 중", reconciliation_required: "확인 필요", pending: "준비 대기", preparing: "준비 중", awaiting_connection: "연결 대기", awaiting_runtime: "런타임 대기" };
 export const groupStatusLabel = (kind: string, status: string): string => {
   if (kind === "task") return ({ todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료", cancelled: "취소", bound: "연결 기록 · 현재 상태 미확인", observed: "상태 미확인", "observed-reference": "상태 미확인" } as Record<string, string>)[status] ?? status;
-  if (kind === "invocation" || kind === "tool") return ({ started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "미확인", ambiguous: "기록 모호" } as Record<string, string>)[status] ?? status;
+  if (kind === "invocation" || kind === "tool") return ({ started: "시작 관측", completed: "완료 이벤트 관측", succeeded: "성공 보고", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "미확인", ambiguous: "기록 모호" } as Record<string, string>)[status] ?? status;
   return status === "completed" ? "완료 관측" : executionStates[status] ?? status;
 };
 const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter(([kind]) => group.counts[kind])

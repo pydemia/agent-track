@@ -251,3 +251,34 @@ DB/API credential을 정리했다. 원본45테이블 전체 데이터/DDL/sequen
 catalog·보호파일8·서비스3·source692/산출물2는 같았다. 이 실패를 실제 조직화
 완료로 계산하지 않으며 전체14/21을 유지한다. `native-coordinator-verification.json`
 참고.
+
+## 실제 coordinator 중첩 위임 성공
+
+후속 별도 source `d0aaa0b`는 일반 child에 runner를 연결하고 현재 호출자를 직전
+부모로 전달한다. 기존 대상/승인 검증과 대상별 계정·cwd·session context를
+유지하며 조상·대상·host 검사 뒤 조상 권한을 재확인한다. 검사는 깊이에 선형으로
+증가하며 여러 원격 계정의 원자적 철회를 보장하는 계약은 아니다. Cowork 멤버와
+정의된 writeScope는 내부 callback까지 재위임을 거부한다. 취소된 상위 세션은
+다음 모델 요청을 보내지 않는다. 호출 종료는 모델 응답/terminal 저장 직전 signal로
+결정하므로 저장 중 취소가 완료한 child와 상위 Run을 모순된 상태로 바꾸지 않는다.
+
+관련140검사·core/worker 타입 검사·build와 독립 검토를 통과했다. 최초 packaging의
+npm 버전 인자 오기를 사용 전 발견하고 관측한11.19.0으로 새 bundle을 작성했다.
+선택한19,603파일/5link의 closure는 import/network/subprocess/outside-file 부작용0의
+frozen-readiness를 통과했다. 잘못 기록한 미사용 bundle은 실행하지 않았다.
+
+새 tmpfs DB와 registry1건으로 실제 coordinator가 sorter를 실행하고 실제 정렬
+결과를 verifier에 전달한 뒤 최종 답을 종합했다. Run은1attempt·3invocation·
+5외부 요청/6,436토큰·63event로 성공했고, 실제 assistant-role 답과5개 전송 원장을
+대조했다. 외부 부모 envelope 모델은 실행하지 않았다. 순차 위임을 Projects의
+Task dependency나 cowork/peer 실행으로 해석하지 않는다. actual QA의 snapshot/
+63event와 private DB archive를 보존하고 API/Track/container/인증 사본을 정리했다.
+후처리의 옛 DB descriptor 파일명은 정확한 새 파일명으로 복구해 제거 상태를
+대조했으며 Task를 재실행하지 않았다. 미사용 bundle 폴더의 재귀 삭제는 자동
+승인 검토가 정책상 거부해 남겨 두었다. 원본 DB·설정·소스·서비스는 보존했다.
+
+Track에서는 부모 관계 중복 선을 근거 유지 방식으로 정리한10node/15edge/5그룹과
+coordinator 묶음5node/5edge를 확인했다. 전체63event와 부분 범위를 구별하고,
+네 보기 전환·390px·원본 seq17의 관계 상세를 대조했다. Screenshot은 CDP timeout으로
+확보하지 못했다. `native-nested-coordinator-verification.json` 참고. 실제 operating
+native worker 전환·peer/cowork·Assistant 교차 앱·추가 기기는 남아 전체14/21이다.
