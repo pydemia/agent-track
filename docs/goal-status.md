@@ -127,4 +127,3 @@ Assistant 운영 후속: 통합 Root의 native-ready 후 전용 원본 읽기와
 실행을 확인했다. WorkExecution은 Run 원장에 저장하지 않는다. 새 AI 실행0이며
 기존 완료 업무만 조회했다. 전체 Assistant→Demian→desktop 업무 수행·두 번째
 기기와 child/peer 검증을 대신하지 않아 AT-14와 전체14/21은 그대로다.
-
