@@ -13,9 +13,11 @@ typecheck·분리 build 통과. 후속 원본 API 가동에서도 실제 관계 
 AT-12/18은 부분 상태다. `session-relations-verification.json` 참고.
 
 산출물 후속은 실제 native `answer.txt` result metadata를 원본과 대조하고 Run/
-Session 그룹에 연결한다. 결과·첨부 귀속을 구별하며 조회 철회 시 node/상세를
-제거한다. 분리 합성 UI의 2산출물·7그룹과 실제 산출물 근거를 구분한다.
-`artifact-flow-integration.md` 참고. managed-child/peer의 실제 조직화와 전체 교차
+Session 그룹에 연결했다. 결과·첨부 귀속을 구별하며 조회 철회 시 node/상세를
+제거한다. `bb63ea4`의 Windows/Linux CI와 운영 재시작 후 정상 Entra의 실제
+Map5node/4edge/2그룹·Trace2node/1edge/1그룹·Trail을 확인했다. 분리 합성 UI의
+2산출물·7그룹과 구분하며 원본19Run/810event·Assistant37event를 보존했다.
+`artifact-flow-integration.md`·`artifact-flow-verification.json` 참고. managed-child/peer의 실제 조직화와 전체 교차
 앱 실행은 여전히 미검증이므로 전체 14/21을 유지한다.
 
 Consumer `90ea858`의 Linux/Windows CI 통과 후 Track 운영 재시작·정상 Entra
@@ -44,7 +46,7 @@ sequence1개·role 속성/비밀번호 해시·전체 DDL 및 가동 전후 보�
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 공개 UI 취소 클릭→native cancelled·receipt1건 대조. 재개/재시도는 원본 계약 미지원 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
-| AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 실제 Pydemia FlowCanvas·node/edge 상세·source/Run ID 분리. 실제 same-Task·Session2·Run2 지도·행 정렬, child closure fixture. Projects 실제 dependency1건·업무2·Session2·기존 Run2의6node/5edge, 선행 방향·관계/현재 revision 상세·390px/키보드/URL 이동·범위7→6에서 API404·그래프/URL 제거→7복원 실기. 중첩 그룹·화면 Task 묶음 생성/해제·깊이 preset·접힘 내부 원본 선택·breadcrumb/전체 맞춤·재조회 유지·390px 실기. 현재 업무2/관계1 및 Codex Run1/도구4를 대조, 대표 경계선·순환/소속 충돌·10,000-depth는 fixture 증거. 원본 artifact·관리형 child/peer 근거 실기 남음 (`projects-dependencies-verification.json`, `node-groups-verification.json`) |
+| AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 실제 Pydemia FlowCanvas·node/edge 상세·source/Run ID 분리. 실제 same-Task·Session2·Run2 지도·행 정렬, child closure fixture. Projects 실제 dependency1건·업무2·Session2·기존 Run2의6node/5edge, 선행 방향·관계/현재 revision 상세·390px/키보드/URL 이동·범위7→6에서 API404·그래프/URL 제거→7복원 실기. 중첩 그룹·화면 Task 묶음 생성/해제·깊이 preset·접힘 내부 원본 선택·breadcrumb/전체 맞춤·재조회 유지·390px 실기. 현재 업무2/관계1 및 Codex Run1/도구4를 대조, 대표 경계선·순환/소속 충돌·10,000-depth는 fixture 증거. 원본 artifact result의 Run 그룹·상세·edge는 실제 answer.txt로 확인. 관리형 child/peer 근거 실기 남음 (`projects-dependencies-verification.json`, `node-groups-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분 준비. Track 전용 authority/API·현재 Projects 교집합·별도 WorkExecution/역할 UI·중첩 그룹을 구현하고 canonical HTTP/권한·투영·브라우저 fixture를 검증했다. 통합 Root 원본 cutover 후 Track 운영 활성화·정상 Entra UI·기존 실행1/역할1/18초/37event·현재 Projects 검토 상태·6node5edge/3그룹을 대조했다. 전체 교차 앱 업무는 아직 미검증. 전용 Assistant native 읽기 API·strict coordinator·runtime.observe를 별도 private PR21에 구현. 새18개 SQLite/실제 Tasks/HTTP 검사, 전체899개 중885통과·실패0·환경skip14. Track client98개와 실제 Work/Runtime DB별 암호화·복구를 검증했으나 전체 교차 앱 업무는 미검증 (`assistant-native-reader-verification.json`, `assistant-workspace-verification.json`, `assistant-live-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |
@@ -125,3 +127,4 @@ Assistant 운영 후속: 통합 Root의 native-ready 후 전용 원본 읽기와
 실행을 확인했다. WorkExecution은 Run 원장에 저장하지 않는다. 새 AI 실행0이며
 기존 완료 업무만 조회했다. 전체 Assistant→Demian→desktop 업무 수행·두 번째
 기기와 child/peer 검증을 대신하지 않아 AT-14와 전체14/21은 그대로다.
+

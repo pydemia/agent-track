@@ -50,6 +50,50 @@
     "sourceContentRequested": false,
     "completeHistory": false
   },
-  "production": { "state": "pending CI and deployment verification" },
+  "production": {
+    "state": "deployed and desktop Entra UI verified",
+    "implementationRevision": "bb63ea4416d83cc031579266156fb281400e0c3c",
+    "ci": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43185755064",
+      "conclusion": "success",
+      "windows": { "total": 569, "passed": 560, "failed": 0, "skipped": 9 },
+      "ubuntu": { "total": 569, "passed": 559, "failed": 0, "skipped": 10 },
+      "typecheckAndBuild": "passed on both platforms"
+    },
+    "bffReadbackAt": "2026-11-12T08:53:22.503Z",
+    "nativeMetadataMatches": true,
+    "journalUnchanged": true,
+    "newRunTaskOrModelCalls": 0,
+    "nativeApiAndWebProcessIdentitiesUnchanged": true,
+    "normalEntraOwnerBrowser": {
+      "mapGroupSummary": "Task 1 / Session 1 / Run 1 / artifact 1",
+      "mapNodes": 5,
+      "mapEdges": 4,
+      "mapGroups": 2,
+      "traceNodes": 2,
+      "traceEdges": 1,
+      "traceGroups": 1,
+      "enterRunAndBreadcrumb": true,
+      "artifactNodeMetadataAndOutputEdgeDetail": true,
+      "trailMetadataAndResultKind": true,
+      "filename": "answer.txt",
+      "sizeBytes": 40,
+      "screenshots": ["track-native-artifact-map.jpg", "track-native-artifact-trace.jpg"],
+      "mobileFollowUp": "390px Trail document width 375 observed; artifact Trace check incomplete due browser CDP timeouts. No mobile completion claim. Viewport reset ran before fresh-tab navigation timeout."
+    },
+    "regression": {
+      "nativeRuns": 19,
+      "nativeEvents": 810,
+      "knownRunEventsAndNativeCursor": 17,
+      "localPageCursor": "16463",
+      "assistantEvents": 37,
+      "assistantTaskState": "in_review",
+      "managedChildReceipts": 0,
+      "peerRegistry": "unconfigured",
+      "webAssetsMatched": 6,
+      "anonymousTrackAndTrail": "302 Entra",
+      "anonymousSnapshotAndRelations": 401
+    }
+  },
   "goal": { "fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low" }
 }
