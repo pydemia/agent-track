@@ -95,6 +95,22 @@ Project → Task → WorkExecution → 작업 묶음 → 역할의 기존 그룹
 현재 native·Projects snapshot과 다시 교차 확인하여 단절·철회·Run 누락 시 이전
 관계·실행 상세를 제거한다. 현재 Assistant Task는 native 조회 후에도 재확인한다.
 
+Track 구현 revision `cf7402ab`는 Windows/Linux CI 통과 후 운영에 반영했다.
+정상 Entra UI에서 기존 실행1·역할1·18초·37event, Task Map6node/5edge와
+3중첩 그룹·내부 초점·breadcrumb·상세를 재확인했다. 운영 source는 v1이다.
+같은 native19Run/810event·기존 cursor17, 전체 native DB/DDL/sequence·보안
+catalog·설정8개·API/Web/gate 프로세스와 container를 보존한 것을 대조했다.
+
+원본 전환 시 producer tuple의 출처는 Assistant의 host-only
+`PERSONA_DEMIAN_RUNTIME_CONFIG_FILE`에서 현재 owner membership에 대응하는
+binding이다. counterpart는 Demian의 `DEMIAN_WORK_RUNTIME_CONFIG_FILE`과
+현재 native binding/revision/revocation 및 기존 receipt다. 현재 운영에는 확인된
+selector/tuple이 없다. 실제 binding을 검증한 최소 metadata만 사용하며 key·전체
+JSON은 내보내지 않는다. `selectedOwnerIds`는 새 업무 선택이며 기존 참조의
+소유권 근거가 아니다. API producer origin·loopback transport·브라우저
+publicOrigin은 구별한다. protocol 지원·gateway 설정·실제 참조 존재·현재 접근·
+worker 준비를 각각 확인하고, 읽기 연결을 위해 worker를 시작하지 않는다.
+
 격리된 합성 UI에서 중첩/접힘 관계 선택·원본 edge 상세·동일 Run의 Trace 이동,
 390px·키보드 탐색과 native 권한 철회 후 ID/edge 제거를 확인했다. 실제 원본
 업무 수행의 증거로 계산하지 않는다. independent 검토는 현재 소비자 patch의

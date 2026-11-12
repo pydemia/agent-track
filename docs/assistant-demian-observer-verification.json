@@ -56,8 +56,8 @@
     "Dedicated HTTP reader authentication, no-store responses, method and encoded-path denial, final grant recheck and cross-version cursor rejection"
   ],
   "productionReadback": {
-    "verifiedAt": "2026-11-12T11:18:03.042Z",
-    "scope": "Existing owner BFF and browser decoders; no new CUA browser verification",
+    "verifiedAt": "2026-11-12T11:23:27.065Z",
+    "scope": "Owner BFF/browser decoders and post-rollout normal Entra UI; source remains v1",
     "nativeSourceConnected": true,
     "nativeRuns": 19,
     "nativeEvents": 810,
@@ -70,14 +70,19 @@
     "servedAssetsMatched": 6,
     "trackAndTrailAnonymousRoot": 302,
     "trackAnonymousApi": 401,
-    "apiWebGateTrackProcessIdentityPreserved": true,
+    "apiWebGateProcessIdentityPreserved": true,
+    "trackIntentionallyRestartedSeparately": true,
+    "nativeAllRowsDdlSequencesAndSecurityCatalogPreserved": true,
+    "protectedFilesUnchanged": 8,
+    "nativeContainerImageMountsAndStartTimePreserved": true,
     "newTaskOrRunCreated": 0,
     "newModelCalls": 0,
     "nativeServicesOrCredentialsChanged": false,
     "deployedTrackProtocol": 1
   },
   "trackConsumer": {
-    "scope": "Local consumer patch over aa7f0f9; not native source activation or actual cross-app execution",
+    "scope": "Consumer implementation deployed with existing v1 source; not native v2 activation or actual cross-app execution",
+    "implementationRevision": "cf7402abad7d7811e586000a1b0c99982450e4c7",
     "protocol": "Explicit v1 default or v2; no automatic downgrade",
     "mapping": "Exact server-registered HTTPS producer origin/organization/workspace to configured native source; never fetch DTO origin",
     "authorization": "Current actor/Assistant/Projects/native intersection, known nonstale Run and exact Session/workspace/operation receipt, late policy and credential checks",
@@ -85,6 +90,15 @@
     "typecheck": "passed",
     "isolatedWebBuild": "passed",
     "fullTests": { "total": 661, "passed": 652, "failed": 0, "skipped": 9, "skipReason": "POSIX-only permission semantics on Windows" },
+    "remoteCi": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43208281892",
+      "revision": "cf7402abad7d7811e586000a1b0c99982450e4c7",
+      "conclusion": "success",
+      "windows": { "total": 661, "passed": 652, "failed": 0, "skipped": 9 },
+      "ubuntu": { "total": 661, "passed": 640, "failed": 0, "skipped": 21 },
+      "platformSkipReason": "Windows and POSIX native permission/process fixtures; no skipped platform check claimed",
+      "typecheckAndBuild": "passed on both platforms"
+    },
     "independentReview": "No concrete findings in current authority/config/native join/frontend decoding/cache/graph patch; static source and tests only, no independent execution",
     "syntheticUi": {
       "fixtureOnly": true,
@@ -100,10 +114,21 @@
       "fixtureProcessAndFourSyntheticCredentialFilesRemoved": true
     },
     "productionSourceProtocol": 1,
+    "productionUi": {
+      "normalEntraOwner": true,
+      "sameAssistantExecution": true,
+      "taskMap": { "nodes": 6, "edges": 5, "groups": 3 },
+      "nestedEnterBreadcrumbAndInspector": true,
+      "assistantRoles": 1,
+      "observedRoleSeconds": 18,
+      "assistantEvents": 37,
+      "currentProjectsState": "in_review",
+      "settledDocumentHorizontalOverflow": false,
+      "screenshot": "track-groups-cf7402a-live.jpg"
+    },
     "nativeServicesOrCredentialsChanged": false
   },
   "remaining": [
-    "Track consumer commit/remote CI and production v1 regression after consumer rollout",
     "Root-owned native rollout with new Work/runtime DDL preservation, latest-data backup/rollback and guard",
     "Actual producer mapping, execution credentials and worker readiness",
     "Actual cross-app QA task, managed child/peer organization and second device/desktop scope"
