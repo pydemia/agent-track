@@ -140,3 +140,31 @@ PKCE S256을 사용한다. Caddy는 upstream Authorization을 전용 private 값
 검증 기록은 `demian-public-web-preparation-verification.json`에 연결한다. AT-06·20은
 부분 상태, 전체는 동일 가중치14/21개(66.7%)로 유지한다. 관리자 로그인·원본 웹 운영
 반영·교차 앱/장치 실기가 남아 전체 완료 예상은 산정 불가, 신뢰도 낮음이다.
+
+## 공개 웹 전용 실행 operator
+
+`deploy/demian/promote-public-web.mjs`는 현재 상태를 동결한 private 입력 파일과
+그 SHA-256을 받아 `--preflight` 또는 `--execute`로 동작한다. 실행 범위는
+Windows의 public Web3001 하나다. 입력의 정확한 CIM identity·listener·보호파일,
+동결 candidate/rollback 전체 파일, 암호화 backup과 실제 격리 복원 결과,
+현재45테이블의 행·스키마·sequence·보안 catalog를 대조한다. 이 검사가 실패하면
+원본 Web을 정지하지 않는다. 과거의 dual-profile `promote-web.mjs`를 사용하지 않는다.
+
+실행은 고유 operation 디렉터리와 exclusive journal/lock을 만든 뒤, 허용한 helper·
+공개 startup·활성화·domain metadata만 조건부로 쓴다. 정지 전 의도를 기록하고
+현재 프로세스 identity를 다시 검사한다. 시작 출력이 유실되면 같은 operation의
+starting/ready receipt와 실제 CIM·명령·listener로 대조하며 중복 기동하지 않는다.
+기존 gate를 통과한 HTML·정적 파일·실제 Session의 Track 요약과 actor 거부를
+확인하고 나머지 서비스·설정·DB의 보존 검사 뒤 commit한다.
+
+일반 실행 오류에는 알려진 candidate만 종료하고 독립 동결 rollback을 기동한다.
+Docker 상태 관측 오류가 fallback 기동 자체를 막지 않도록 복구의 소유권 검사와
+정상 전환의 보존 검사를 구별한다. 보존 관측 실패는 결과에 남긴다. commit 후
+결과 기록 오류 때문에 정상 candidate를 종료하지 않는다. OS 종료·operator 강제
+종료 이후의 자동 재개는 구현 범위가 아니다. 남은 journal·lock·정확한 receipt를
+확인하는 수동 복구가 필요하며 같은 입력의 반복 실행은 거부한다.
+
+이 단계는 기존 내부 Basic gate를 보존한 Web 교체다. Entra 활성화·외부 transport·
+Cloudflare 경로 변경과는 별도다. 현재 계정의 Cloudflare Access IdP/organization
+조회는 `access.api.error.not_enabled`를 반환했다. 기존 Access provider가 있다고
+가정하지 않으며 계획한 별도 OAuth2 Proxy 방식으로 계속한다.
