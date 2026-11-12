@@ -1,0 +1,101 @@
+{
+  "verifiedAt": "2026-11-12T01:34:13.738Z",
+  "requirement": "AT-14 consumer library and rollout preparation; actual integration remains incomplete",
+  "files": {
+    "packages/adapters/assistant/index.ts": "43909ae46a84a2c6f559b06befcee8c5cea0f18b6308c64d76ffa92fe982f6c9",
+    "packages/assistant-read/backup.ts": "df004a4f61f68af03e60e693d1c0f2e9648e288e5b67b5e8e7b2c6b92c44a3bb",
+    "tests/assistant-client.test.ts": "7c30adff1a84f33f1b2a54890213d97f86c6cc90e5e08b03be08770f5b1d8562",
+    "tests/assistant-http.test.ts": "5b80a5c56ea6e854c1a76358c83700e1b1d0dc347378f4a133db60411a59333a",
+    "tests/assistant-backup.test.ts": "3ab854803a8bde0426f5182daa3704fceabeb9668dd0eecac2063c81cea5d453"
+  },
+  "client": {
+    "libraryOnly": true,
+    "sourceEnabled": false,
+    "tests": {
+      "passed": 98,
+      "failed": 0,
+      "skipped": 0
+    },
+    "realHttpFixtureTests": 2,
+    "productionCredential": false,
+    "checks": [
+      "Exact configured actor/source/native owner/principal/origin/revision",
+      "Fresh pre/post native capability checks",
+      "Local credential expiry, file bounds and rotation",
+      "Bounded timed JSON metadata; static errors",
+      "Actual HTTP list/detail/events and native revocation",
+      "Actual HTTP redirect refusal without credential forwarding"
+    ],
+    "nativeRuntimeReferencesAreDemianRuns": false
+  },
+  "backup": {
+    "standaloneBuiltinsOnly": true,
+    "windowsSupported": false,
+    "linuxImage": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712",
+    "linux": {
+      "total": 12,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "Windows-only unsupported-platform assertion"
+    },
+    "linuxLogSha256": "99cf8af21effc8baabfbcbed8f2502b670534bb12484c441c5538fdf684dde88",
+    "productionMountsInTests": 0,
+    "network": "none",
+    "checks": [
+      "Typed SQLite rows, duplicates, FTS shadow tables and schema",
+      "Exclusive destinations and link/ownership/private-parent guards",
+      "Byte/row/payload/name/envelope bounds",
+      "Streaming gzip/AES-GCM, invalid keys/tags/ciphertext/metadata",
+      "Full restored SQLite/file verification",
+      "Frozen WAL read snapshot with concurrent writer"
+    ],
+    "regression": {
+      "finding": "pipeline failure can close supplied stream fd, masking the intended static error with EBADF during cleanup",
+      "resolution": "Separate inode-checked stream descriptors from retained identity descriptors",
+      "sameFailureCaseRetained": true
+    },
+    "deadline": "Cooperative between synchronous SQLite calls; parent process watchdog still required",
+    "productionSnapshotCreated": false
+  },
+  "rootVerification": {
+    "command": "npm test",
+    "total": 422,
+    "passed": 413,
+    "failed": 0,
+    "skipped": 9,
+    "skips": "POSIX-only backup integration cases on Windows",
+    "typecheck": "passed",
+    "build": "passed",
+    "buildWarning": "Existing use client directive notice from flow component package",
+    "normalization": "Full-suite/typecheck/build source differs only by LF normalization and removal of trailing empty lines; Linux backup suite rerun on final exact files"
+  },
+  "productionPreflight": {
+    "readOnlySourceMount": true,
+    "separateProcess": true,
+    "credentialMounts": 0,
+    "network": "none",
+    "originalAssistantContainerUnchanged": true,
+    "workBytes": 45719552,
+    "runtimeBytes": 5203521536,
+    "activeWork": 0,
+    "sourceRowAndPayloadBudgetsMet": true,
+    "snapshotCreated": false
+  },
+  "independentReview": "Parent source and execution review; new independent review unavailable after selector returned local",
+  "remaining": [
+    "Fresh actual snapshot/encrypted restore verification",
+    "New deployment operator/plan and exact guard pins",
+    "Dedicated native reader provisioning/private transport",
+    "Track config/source/API and fresh Projects grant intersection",
+    "Distinct WorkExecution/role UI and actual cross-app task"
+  ],
+  "goal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "equalWeight": true,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

@@ -39,9 +39,14 @@ principal, desktop 위치·두 번째 실제 장치와 child/peer·dependency �
 Node group 추가는 AT-12를 확장하며 전체 분모·완료 개수를 바꾸지 않는다.
 사용자 화면 묶음은 현재 화면 상태이며 서버 저장·재접속 복원은 후속이다.
 Assistant metadata 계약·선택적 읽기 service와 native route 후보를 별도 PR21에
-구현했으나 운영 배포·principal·Track adapter는 연결하지 않았다. AT-14의 실제
+구현했다. Track client 라이브러리의98개 검사(실제 loopback HTTP2개 포함)와
+별도 Linux 후보 이미지의 backup/암복호화11개 검사를 통과했다. Windows 전체
+422개 중413통과·실패0·POSIX 한정9skip이며, 운영 DB는 읽기 전용 사전 점검만
+실행했다. 운영 배포·principal·Track source/API/UI는 연결하지 않았다. AT-14의 실제
 업무 증거로 세지 않는다. Native lifecycle getter의 다른 Task 중단 부작용을 분리한
 관측 경로를 실제 Tasks/query-only DB에서 검사했다.
+Client/복구 도구의 검증과 한계는 `assistant-client-verification.json`,
+`assistant-reader-client.md`, `assistant-backup-primitives.md`에 기록했다.
 다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
 
 연결 상태 후속 수정에서는 재시작 직후 전체 원본 인가를 확인하지 못한 실행을
