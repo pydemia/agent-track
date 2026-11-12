@@ -61,6 +61,14 @@ peer 연결·대화를 중첩 문맥 그룹으로 묶고 실제 Run은 기존 Se
 
 ## 검증과 남은 운영 작업
 
+Track consumer는 `90ea858`로 게시·운영 재시작했다. 해당 revision의 Linux·
+Windows CI가 모두 통과했다. 실제 Entra 소유자 UI에서 기존 Assistant/Projects
+Map의6node/5edge·3중첩 그룹·내부 탐색·breadcrumb을 다시 확인했다. 실제
+브라우저 decoder로 운영 BFF의 동일 Assistant 실행1개·역할1개·37event와
+현재 Projects `in_review` revision3을 대조했다. Codex 관계는 `unsupported`,
+미인가 Demian 관계는404이며 기존 Demian Run19개·Assistant Run0개를 보존했다.
+공개 익명 snapshot401·Track/Trail Entra redirect와 자산6개 bytes도 대조했다.
+
 `session-relations-verification.json`은 parser·loopback HTTP·Track 인증/SQLite·
 권한 교집합·cursor·투영·브라우저 검사를 구분한다. UI QA는 합성 Run3개·
 관계2개·13node/12edge·7그룹, 미확인 부모, peer 내부 탐색, 키보드·390px과

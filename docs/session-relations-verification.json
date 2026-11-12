@@ -1,7 +1,10 @@
 {
   "verifiedOn": "2026-11-12",
   "scope": "Track consumer implementation and isolated synthetic UI QA; not native managed-child or peer execution acceptance",
-  "requirements": ["AT-12", "AT-18"],
+  "requirements": [
+    "AT-12",
+    "AT-18"
+  ],
   "nativeSource": {
     "branch": "codex/common-sessions",
     "baseHead": "297678ea08529358aee5a48bef1b94fbea0d7275",
@@ -82,5 +85,63 @@
     "weighting": "equal acceptance requirements",
     "eta": "not estimable",
     "confidence": "low"
+  },
+  "ci": {
+    "revision": "90ea858ca3f2272d9661bcc0ee4b1ca8bf7a4233",
+    "url": "https://github.com/pydemia/agent-track/actions/runs/43169425211",
+    "conclusion": "success",
+    "windows": {
+      "total": 552,
+      "passed": 543,
+      "failed": 0,
+      "skipped": 9
+    },
+    "ubuntu": {
+      "total": 552,
+      "passed": 542,
+      "failed": 0,
+      "skipped": 10
+    }
+  },
+  "production": {
+    "verifiedAt": "2026-11-12T06:41:35.454Z",
+    "revision": "90ea858ca3f2272d9661bcc0ee4b1ca8bf7a4233",
+    "scope": "production owner loopback BFF using the actual browser decoder and current native Assistant/Projects authority",
+    "assistant": {
+      "sameExecution": true,
+      "listCount": 1,
+      "roles": 1,
+      "eventCount": 37,
+      "eventCursor": "37",
+      "currentTaskState": "in_review",
+      "currentTaskRevision": "3",
+      "journalRuns": 0,
+      "wrongActorStatus": 401
+    },
+    "sessionRelations": {
+      "codexState": "unsupported",
+      "codexRelations": 0,
+      "hiddenNativeStatus": 404,
+      "nativePersistedRuns": 19,
+      "nativeApiAvailable": false,
+      "actualNativeRelationEvidence": false
+    },
+    "browser": {
+      "normalEntraOwner": true,
+      "actualAssistantTaskMap": {
+        "nodes": 6,
+        "edges": 5,
+        "groups": 3,
+        "nestedEnter": true,
+        "breadcrumb": true
+      },
+      "screenshot": "track-groups-90ea858-live.jpg"
+    },
+    "nativeLifecycleChanges": 0,
+    "defaultAuth": "Entra ID",
+    "newModelCalls": 0,
+    "assetsMatched": 6,
+    "publicAnonymousSnapshotStatus": 401,
+    "publicTrackAndTrailRedirectToEntra": true
   }
 }

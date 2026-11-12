@@ -12,6 +12,10 @@ continuation을 검증하고, 합성 UI에서3Run·13node/12edge·7그룹과 내
 typecheck·분리 build 통과. 원본 관계 API는 미배포이고 실제 영수증은0이므로
 AT-12/18은 부분 상태다. `session-relations-verification.json` 참고.
 
+Consumer `90ea858`의 Linux/Windows CI 통과 후 Track 운영 재시작·정상 Entra
+UI·기존 Assistant/Projects3중첩 그룹과 실제37event를 재확인했다. 새 원본
+관계 API를 가동한 결과는 아니며 수용 개수는14/21로 유지한다.
+
 현재 Demian DB는 담당 세션의 READ ONLY 점검에서 기존 볼륨·Run19개·기존
 성공 실행17event·migration 식별자24개의 연속성을 확인했다. API8080과 worker는
 가동되지 않았다. 아래 Docker 장애 기록은 과거 진단이며 현재 DB 부재를 뜻하지
