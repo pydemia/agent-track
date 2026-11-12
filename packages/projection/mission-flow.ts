@@ -42,7 +42,7 @@ const compareSequence = (a: string, b: string): number => a.length - b.length ||
 export const missionEntityKey = (sourceId: string, kind: string, id: string, runId?: string): string =>
   JSON.stringify([sourceId, JSON.stringify(runId && ["invocation", "tool", "permission", "group", "member"].includes(kind) ? [kind, runId, id] : [kind, id])]);
 const edgeKey = (sourceId: string, from: string, to: string, kind: string): string => JSON.stringify([sourceId, from, to, kind]);
-const phaseLabel: Record<string, string> = { started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", unknown: "확인 불가", ambiguous: "기록 모호" };
+const phaseLabel: Record<string, string> = { started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "확인 불가", ambiguous: "기록 모호" };
 const relationLabels: Record<RelationKind, string> = {
   invocation: "호출", cowork: "협업", "managed-child": "관리 하위 실행", peer: "연결 세션", dependency: "의존성", artifact: "산출물",
 };

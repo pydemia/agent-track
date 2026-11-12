@@ -30,3 +30,15 @@ test("the same invocation and call IDs in different Runs remain distinct and par
   const incomplete = withToolEvidence(base, run, { ...page, complete: false, calls: [{ ...page.calls[0]!, outcome: "succeeded" }] });
   assert.equal(incomplete.nodes.find((node) => node.kind === "tool")?.status, "completed"); assert.equal(incomplete.incomplete, true);
 });
+
+test("fresh tool evidence cannot restore a running badge after Run termination without its own end", () => {
+  const pending: ToolEvidencePage = { ...page, calls: [{ ...page.calls[0]!, outcome: "unknown",
+    started: [{ type: "tool.started", sequence: "2", occurredAt: at }], ended: [] }] };
+  const base = missionFlow(run, [], [], [], { mode: "execution" });
+  const result = withToolEvidence(base, run, pending);
+  assert.equal(result.nodes.find((node) => node.kind === "tool")!.status, "unfinished");
+  assert.equal(result.nodes.find((node) => node.kind === "run")!.status, "succeeded");
+  const active = { ...run, status: "running" as const };
+  assert.equal(withToolEvidence(missionFlow(active, [], [], [], { mode: "execution" }), active, pending)
+    .nodes.find((node) => node.kind === "tool")!.status, "started");
+});

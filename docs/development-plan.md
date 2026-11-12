@@ -127,15 +127,23 @@ Assistant 전체 이력은 하위 묶음 이력으로 표시하지 않는다. �
 [Task 묶음의 흐름 해석](mission-ui-plan.md#task-묶음의-흐름-해석)에 추가했다.
 순차·분기·합류·위임·재시도·공유 작업의 표현과 원본 근거를 구별하고,
 그룹 선택 → 선택한 가지 펼침 → 원본 끝점/실행 상세 → 상위 복귀의 동작을
-기존 구현과 대조했다. 다음 공통 범위 단계는 현재 화면 묶음의 멤버 ID와
-권한 재검사 계약을 먼저 확정한 뒤, Map → Trace → Trail → Track 이동에
-연결한다. 이후 계정별 저장을 추가한다. 새 구현 검증에는 동일한 분기·합류
+기존 구현과 대조했다. 구현한 공통 범위는 현재 화면 묶음의 멤버 ID와
+권한 재검사 계약을 바탕으로 Map → Trace → Trail → Track 이동에
+연결한다. 계정별 저장은 후속이다. 새 구현 검증에는 동일한 분기·합류
 사례와 승인 대기·실패·공유 Session·철회·모바일을 사용하며, 실제 협업 실행과
 합성 fixture를 별도로 기록한다. 이 기획 보완으로 수용 완료 수를 올리지 않는다.
 
 원본 목표·work package·대기 원인이 제공되지 않는 경우 사용자 화면 묶음과
 미확인 상태로 표현한다. UI 계층을 위해 새 실행 관계를 추론하지 않는다.
 실제 child/peer 조직화·교차 앱 업무의 검증은 기존 AT-12/14/18 잔여 조건으로 유지한다.
+
+2026-11-13 실제 coordinator QA는 정렬 담당을 선택하는 모델 호출까지 진행했으나
+child runtime의 `delegate_agent` 실행 연결이 없어 하위 실행 전 실패했다. Run은
+제한 시간에 취소했고 원본에는 호출 종료 이벤트가 없었다. 이 사례를 바탕으로
+명시된 호출 취소와 Run만 종료된 호출의 종료 미확인을 구별하도록 Trace·그룹
+요약을 수정했다. 원본 event와 digest 형식은 변경하지 않았다. 중첩 위임 수정은
+현재 권한 재검사·대상 provider authority·cwd와 작업 범위·durable context를
+보존해야 하며 cowork/scoped member의 재위임을 자동 허용하지 않는다.
 
 전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 원본 Web 적용은 보류 중이다. Demian API-only는 보존 검증 후 재가동했고 worker는 중단 상태다. Assistant v1 native reader·전용 credential·Track UI는 운영 확인했고, v2 소비자의 명시적 출처 mapping·현재 권한/receipt 대조와 역할→Run 관계도 구현했다. v2 원본 전환·실제 producer/실행 준비, desktop 의미·위치·다른 장치 연결은 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부

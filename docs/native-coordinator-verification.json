@@ -1,0 +1,100 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": ["AT-12", "AT-18", "AT-21"],
+  "scope": "Real coordinator model in isolated native QA; delegation failed before a specialist ran; group UI correction verified separately",
+  "native": {
+    "sourceRevision": "8afec9ea08e7b74c56733d92d74117e668855b8f",
+    "releaseManifestSha256": "dddd14ab7a935e04d2a824d22a898cb746272d79ddf7844953912f5e5c3f271e",
+    "runId": "bbbe4903-a5f9-4f01-9a97-9798f55b9115",
+    "sessionId": "b893c71e-7fda-415b-b179-e9d6031a78a2",
+    "operationId": "8fddabc9-6b4b-47e7-afb8-2718730b784b",
+    "registeredOperations": 1,
+    "status": "cancelled",
+    "attempts": 1,
+    "canonicalEvents": 47,
+    "cursor": "47",
+    "highWater": "47",
+    "workerExitCode": 0,
+    "workerExitMeaning": "QA worker stopped; not task success",
+    "actualInvocationsStarted": ["track-qa-coordinator"],
+    "actualSelectedDelegation": "track-qa-sorter",
+    "toolCompletedOk": false,
+    "failure": "delegate_agent is not available in this session.",
+    "rootCause": "Child execution omits runAgentSession, so tool context has no runner",
+    "specialistExecuted": false,
+    "verificationExecuted": false,
+    "finalAnswerMatched": false,
+    "requestedModel": "gpt-6-astra",
+    "serverResolvedModel": "not separately observed",
+    "upstreamRequests": 1,
+    "upstreamHttpStatus": 200,
+    "usage": { "inputTokens": 1304, "outputTokens": 64, "totalTokens": 1368 },
+    "remoteRequestLimit": 5,
+    "gateRejectedBeforeUpstream": 27,
+    "watchdogSeconds": 180,
+    "invocationCancellationEventObserved": false,
+    "originalServicesOrNativeSourcesModified": false
+  },
+  "displayCorrection": {
+    "explicitInvocationCancellation": "cancelled; never inferred from Run state",
+    "startedCallWithoutOwnEndInTerminalRun": "unfinished / Run 종료 · 호출 종료 미확인",
+    "terminalRunStatuses": ["succeeded", "failed", "cancelled", "expired"],
+    "conflictingOrDuplicateInvocationEnds": "ambiguous with no chosen end timestamp",
+    "supplementalToolEvidence": "Cannot restore started/running when Run is terminal and the call has no end",
+    "immutableEventSchemaOrDigestsChanged": false,
+    "identityOrTaskDependenciesInferred": false
+  },
+  "localChecks": {
+    "tests": { "total": 723, "passed": 714, "failed": 0, "skipped": 9, "platform": "Windows", "skipReason": "Existing POSIX-only checks" },
+    "newRegressionTests": 5,
+    "beforeFix": "New explicit cancellation and terminal-Run missing-end regressions failed",
+    "typecheck": "passed",
+    "isolatedWebBuild": "passed; existing React Flow use-client warning",
+    "diffWhitespace": "passed",
+    "independentReview": "Read-only code/test review; no findings; no independent runtime execution"
+  },
+  "actualQaBrowser": {
+    "providerCalls": 0,
+    "fullTrace": { "nodes": 6, "edges": 8, "groups": 3 },
+    "selectedInvocationGroup": { "nodes": 2, "edges": 1, "calls": 1, "tools": 1 },
+    "checks": [
+      "Cancelled Run remains distinct from invocation without its own end",
+      "Group unit summary shows unfinished invocation and failed delegation tool",
+      "Collapsed group can become the common four-view scope",
+      "Track, Trail, Map and Trace retain the same one Run and selected subgroup",
+      "Trace subgroup remains two nodes and one tool-of edge",
+      "390px viewport retains scope and unfinished label; document/body width375; override reset"
+    ],
+    "screenshot": "Not captured: Page.captureScreenshot timed out after5000ms",
+    "productionEntraBrowser": "Not reverified; prior user-login handoff remains pending"
+  },
+  "cleanup": {
+    "privateQaArchive": { "bytes": 210116, "sha256": "bf4b5bd3d8edde0f1a7252b5f3cc7040cd4785f0619e6b276706be69863f2f66", "restorePerformed": false },
+    "gateAndApisAndTrackStopped": true,
+    "ownedTmpfsContainerRemoved": true,
+    "accessTokenProjectionRemoved": true,
+    "refreshTokenCopied": false,
+    "apiAndDatabaseCredentialFilesRemoved": true,
+    "readerCredentialRemoved": true
+  },
+  "preservation": {
+    "originalAuthFileUnchanged": true,
+    "originalTablesAllRowsDdlSequencesSecurityCatalogUnchanged": 45,
+    "protectedFilesUnchanged": 8,
+    "nativeServiceProcessIdentitiesUnchanged": 3,
+    "nativeApiPid": 15940,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "originalWorkerStarted": false,
+    "originalModelCalls": 0
+  },
+  "remaining": [
+    "Guarded ordinary-child nested delegation with fresh target authority and preserved cwd/scope/context; cowork/scoped descendants remain denied",
+    "Actual sorter and verifier execution and final synthesis",
+    "Actual peer, Assistant-to-Demian-to-desktop task and additional device",
+    "Current production Entra GUI verification and account-scoped saved group views"
+  ],
+  "overallGoal": { "fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low" }
+}

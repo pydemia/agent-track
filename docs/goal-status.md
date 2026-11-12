@@ -1,5 +1,17 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 coordinator QA 후속: 실제 모델이 sorter 위임을 선택했으나 child의
+runner 연결 누락으로 하위 Agent가 실행되지 않았고 QA Run을 취소했다. 실제
+외부1회/1,368토큰·1attempt·47event이며 worker 종료 코드0을 업무 성공으로
+계산하지 않는다. 이 사례에서 호출 종료 없는 Run 종료를 계속 실행 중으로
+표시하던 Trace·그룹 요약을 수정했다. 명시 호출 취소·종료 미확인·충돌을 구별하고
+723검사 중714통과·실패0·환경skip9, typecheck/분리 build·독립 소스 검토와 실제
+2node/1edge 하위 범위의 네 보기 유지·390px를 확인했다. 원본 데이터·권한·
+설정·서비스와 source692/산출물2를 보존하고 owned QA를 정리했다. 실제 중첩
+위임·peer·교차 앱/기기와 Entra GUI는 남아 전체14/21(66.7%)를 유지한다.
+`native-coordinator-verification.json` 참고. 이 문단의 로컬 검사를 원격 CI나
+운영 게시 완료로 해석하지 않는다.
+
 2026-11-13 실제 provider child 후속: 기존 Codex HTTP adapter·접근 토큰만의
 격리 QA·명시 registry1건·full pinned compiled worker를 연결한 실제 관리형
 child Run1건이 성공했다. 모델 요청1회·641토큰·17event/cursor17과 receipt,

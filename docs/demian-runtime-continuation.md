@@ -225,3 +225,29 @@ credential도 정리했다. worker 종료 뒤
 검증 스크립트의 잘못된 table 조회는 `session_messages` 읽기로 복구했고 Run을
 재실행하지 않았다. 실제 worker 종료 코드는 보관되지 않아 정상 종료 코드0을
 주장하지 않는다. `native-managed-child-verification.json` 참고.
+
+## 실제 coordinator QA의 실패 경계
+
+2026-11-13 같은 고정 release로 coordinator → sorter → verifier → 최종 종합을
+시도했다. 명시 registry1건과 외부 요청 최대5회의 별도 QA 범위다. 실제 외부
+모델 요청은1회/1,368토큰이고 coordinator가 sorter에 대한 `delegate_agent`를
+선택했다. 그러나 child 실행에는 runner callback이 전달되지 않아 도구가
+`delegate_agent is not available in this session.`을 반환했다. 하위 Agent는
+실행되지 않았으며 검증·종합 결과도 없다. 뒤의27회 요청은 gate에서 upstream
+전 차단했고,180초 watchdog이 Run을 취소했다. worker 종료 코드0은 QA worker
+종료의 근거이며 업무 성공이 아니다. Run은1attempt·47event/cursor47로 남았다.
+
+원본에는 Run의 취소만 있고 invocation 취소 이벤트는 없다. 실제 UI에서도
+Run 취소·호출 종료 미확인·도구 실패를 구별하고, 그룹 내부/접기/네 보기 공통
+범위의2node/1edge와390px를 대조했다. 명시 invocation 취소 이벤트 처리와
+종료 근거 충돌은 별도의 회귀 검사로 확인했다. screenshot은 CDP timeout으로
+확보하지 못했다. Native source는 수정하지 않았으며 자체 소스 검토에서도
+child callback 누락을 확인했다. 단순 연결 전에 호출자·depth/allowlist·취소와
+원본 권한/계정·cwd·작업 범위·durable context를 보존하는 검사가 필요하다.
+Cowork/scoped member의 재위임 허용으로 확장하지 않는다.
+
+격리 DB는 private 보관본으로 남기고 QA container/API/Track·access token 사본·
+DB/API credential을 정리했다. 원본45테이블 전체 데이터/DDL/sequence/보안
+catalog·보호파일8·서비스3·source692/산출물2는 같았다. 이 실패를 실제 조직화
+완료로 계산하지 않으며 전체14/21을 유지한다. `native-coordinator-verification.json`
+참고.

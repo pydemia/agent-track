@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { EventView, RelationView, RunView } from "../packages/contracts/index.ts";
 import { missionFlow } from "../packages/projection/mission-flow.ts";
+import { flowGroupContext } from "../packages/projection/flow-group-context.ts";
+import { nativeFlowGroupDefinitions } from "../packages/projection/flow-group-definitions.ts";
+import { projectFlowGroups } from "../packages/projection/flow-groups.ts";
 
 const at = "2026-11-11T12:00:00.000Z";
 function run(sourceId: string, runId: string, sessionId: string, taskId: string | null = "task"): RunView {
@@ -17,6 +20,29 @@ function relation(owner: RunView, kind: RelationView["kind"], from: string, to: 
 function event(runValue: RunView, sequence: string, type: string, data: EventView["data"]): EventView {
   return { sourceId: runValue.sourceId, runId: runValue.runId, sequence, type, occurredAt: at, data, key: `${runValue.key}:${sequence}`, receivedAt: at };
 }
+
+test("cancelled invocation remains cancelled inside its collapsed group without inventing a sibling end", () => {
+  const selected = run("source", "cancelled-run", "session", null);
+  selected.status = "cancelled";
+  const events = [
+    event(selected, "1", "agent.invocation.started", { redacted: true, invocationId: "cancelled" }),
+    event(selected, "2", "agent.invocation.started", { redacted: true, invocationId: "open" }),
+    event(selected, "3", "agent.invocation.cancelled", { redacted: true, invocationId: "cancelled" }),
+  ];
+  const model = missionFlow(selected, [], [], events, { mode: "execution" });
+  const cancelled = model.nodes.find((node) => node.kind === "invocation" && node.id === "cancelled")!;
+  assert.equal(cancelled.status, "cancelled");
+  assert.ok(cancelled.details.some((detail) => detail.label === "상태" && detail.value === "취소 이벤트 관측"));
+  assert.equal(model.nodes.find((node) => node.kind === "invocation" && node.id === "open")!.status, "unfinished");
+  const definitions = nativeFlowGroupDefinitions(model, "run");
+  const own = definitions.find((group) => group.kind === "invocation" && group.memberKeys.includes(cancelled.key))!;
+  const grouped = projectFlowGroups(model, definitions, new Set([own.key]));
+  const summary = grouped.groups.find((group) => group.key === own.key)!;
+  assert.equal(summary.statusCounts.cancelled, 1);
+  const context = flowGroupContext(summary, model.nodes, model.edges);
+  assert.deepEqual(context.statusByKind, [{ kind: "invocation", states: [{ state: "cancelled", count: 1 }] }]);
+  assert.equal(context.concerns.length, 0);
+});
 
 test("mission binds exact task runs across sources and retains typed relation evidence without inventing observed Runs", () => {
   const selected = run("source-a", "root", "session-1");

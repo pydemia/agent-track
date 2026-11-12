@@ -67,6 +67,57 @@ test("preserves unfinished and unknown events; missing call IDs count as unident
   assert.equal(result.unidentifiedEvents, 1);
 });
 
+test("observed invocation cancellation ends only that invocation without changing completed tools", () => {
+  const input = [
+    event("1", "agent.invocation.started", { redacted: true, invocationId: "cancelled", parentInvocationId: "parent" }),
+    event("2", "tool.completed", { redacted: true, invocationId: "cancelled", callId: "done", tool: "read" }),
+    event("3", "agent.invocation.started", { redacted: true, invocationId: "open" }),
+    event("4", "agent.invocation.cancelled", { redacted: true, invocationId: "cancelled" }, { occurredAt: "2026-11-11T12:00:02.000Z" }),
+  ];
+  const before = structuredClone(input);
+  const result = projectTrace(run, input);
+  const cancelled = result.steps.find((step) => step.id === "cancelled")!;
+  assert.equal(cancelled.phase, "cancelled");
+  assert.equal(cancelled.parentId, "parent");
+  assert.equal(cancelled.completedAt, "2026-11-11T12:00:02.000Z");
+  assert.equal(cancelled.tools[0]!.phase, "completed");
+  assert.equal(result.steps.find((step) => step.id === "open")!.phase, "started");
+  assert.deepEqual(input, before);
+});
+
+test("cancellation alone is terminal, while conflicting cancellation evidence stays ambiguous", () => {
+  assert.equal(projectTrace(run, [event("1", "agent.invocation.cancelled", { redacted: true, invocationId: "only" })]).steps[0]!.phase, "cancelled");
+  for (const other of ["completed", "failed", "cancelled"]) {
+    const result = projectTrace(run, [
+      event("1", "agent.invocation.started", { redacted: true, invocationId: "conflict" }),
+      event("2", "agent.invocation.cancelled", { redacted: true, invocationId: "conflict" }),
+      event("3", `agent.invocation.${other}`, { redacted: true, invocationId: "conflict" }),
+    ]).steps[0]!;
+    assert.equal(result.phase, "ambiguous", other);
+    assert.equal(result.completedAt, null, other);
+  }
+});
+
+test("terminal Run does not invent invocation or tool cancellation when their own ends are absent", () => {
+  const input = [
+    event("1", "agent.invocation.started", { redacted: true, invocationId: "open" }),
+    event("2", "tool.started", { redacted: true, invocationId: "open", callId: "pending" }),
+    event("3", "agent.invocation.cancelled", { redacted: true, invocationId: "explicit" }),
+  ];
+  for (const status of ["succeeded", "failed", "cancelled", "expired"] as const) {
+    const result = projectTrace({ ...run, status }, input);
+    const open = result.steps.find((step) => step.id === "open")!;
+    assert.equal(open.phase, "unfinished", status);
+    assert.equal(open.completedAt, null, status);
+    assert.equal(open.tools[0]!.phase, "unfinished", status);
+    assert.equal(open.tools[0]!.completedAt, null, status);
+    assert.equal(result.steps.find((step) => step.id === "explicit")!.phase, "cancelled", status);
+  }
+  for (const status of ["running", "cancelling", "interrupted", "unknown"] as const) {
+    assert.equal(projectTrace({ ...run, status }, input).steps[0]!.phase, "started", status);
+  }
+});
+
 test("marks duplicate starts, conflicting sequence evidence and duplicate ends ambiguous", () => {
   const result = projectTrace(run, [
     event("1", "agent.invocation.started", { redacted: true, invocationId: "amb" }),

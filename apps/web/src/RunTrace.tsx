@@ -2,7 +2,7 @@ import type { EventView, RunView } from "../../../packages/contracts/index.ts";
 import { projectTrace, type ToolTrace, type TracePhase } from "../../../packages/projection/trace.ts";
 
 const phaseNames: Record<TracePhase, string> = {
-  started: "시작 관측 · 종료 미확인", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", unknown: "알 수 없음", ambiguous: "근거 충돌 · 미확정",
+  started: "시작 관측 · 종료 미확인", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "알 수 없음", ambiguous: "근거 충돌 · 미확정",
 };
 function clock(value: string | null) { return value ? new Date(value).toLocaleTimeString("ko-KR") : "알 수 없음"; }
 function ToolCalls({ tools }: { tools: ToolTrace[] }) {

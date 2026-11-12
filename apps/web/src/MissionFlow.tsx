@@ -28,7 +28,7 @@ const kinds: Record<string, string> = { task: "업무", workspace: "Workspace", 
   "managed-parent-reference": "부모 호출 참조 · Run 미확인", "peer-connection": "peer 연결 참조", "peer-conversation": "처리 대화 참조", "peer-message": "처리 메시지 참조", "session-relation-receipt": "관계 영수증" };
 const statuses: Record<string, string> = { bound: "명시 연결", observed: "관측됨", "observed-reference": "관계 참조", unobserved: "미조회 참조", queued: "대기", leasing: "할당 중", running: "실행 중", started: "실행 중", waiting_for_permission: "승인 대기",
   cancelling: "취소 중", succeeded: "성공 종료", completed: "완료 보고", complete: "완료 보고", failed: "실패 보고", cancelled: "취소 종료", expired: "만료",
-  interrupted: "중단", unknown: "미확인", ambiguous: "근거 충돌", idle: "미확인", todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료" };
+  interrupted: "중단", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "미확인", ambiguous: "근거 충돌", idle: "미확인", todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료" };
 function cardStatus(value: string): "idle" | "running" | "complete" | "error" {
   if (["running", "started", "leasing", "queued", "waiting_for_permission", "in_progress"].includes(value)) return "running";
   if (["completed", "complete", "succeeded", "done"].includes(value)) return "complete";

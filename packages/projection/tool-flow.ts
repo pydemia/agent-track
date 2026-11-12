@@ -1,5 +1,5 @@
 import type { ToolEvidencePage } from "../adapters/demian/tool-evidence.ts";
-import type { RunView } from "../contracts/index.ts";
+import { terminalStatuses, type RunView } from "../contracts/index.ts";
 import { missionEntityKey, type MissionFlow, type MissionNode } from "./mission-flow.ts";
 
 const order = (values: string[]) => [...new Set(values)].sort((a, b) => a.length - b.length || a.localeCompare(b));
@@ -25,7 +25,7 @@ export function withToolEvidence(base: MissionFlow, run: RunView, page: ToolEvid
     else if (call.outcome === "failed" || node.status === "failed") node.status = "failed";
     else if (call.outcome === "succeeded" && page.complete) node.status = "succeeded";
     else if (call.ended.length === 1) node.status = "completed";
-    else if (call.started.length === 1) node.status = "started";
+    else if (call.started.length === 1) node.status = terminalStatuses.has(run.status) ? "unfinished" : "started";
     else node.status = "unknown";
     detail(node, "도구 호출 ID", call.callId); detail(node, "원본 결과", call.outcome === "succeeded" ? "성공 보고 (ok=true)" : call.outcome === "failed" ? "실패 보고" : call.outcome === "ambiguous" ? "근거 충돌" : "결과 성공 여부 미확인");
     // Request timestamps are never substituted for execution start.
