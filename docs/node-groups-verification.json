@@ -179,7 +179,8 @@
   },
   "navigationRestore": {
     "dateKst": "2026-11-13",
-    "scope": "Current-screen group navigation; synthetic QA before frontend rollout",
+    "scope": "Current-screen group navigation deployed; synthetic UI and owner BFF verified, current production browser awaiting Entra login",
+    "implementationRevision": "86eedd8daabd41f85894565a126c31e09a6da548",
     "history": "At most32 in-memory frames containing keys/collapse states/selection/viewport only; no persistence or cross-view scope",
     "invalidation": "Actor scope or native node/edge/group structural identity changes clear history; capture and active state also remove missing IDs; metadata-only refresh preserves frames",
     "camera": "Wait for initialized viewport and known node dimensions; apply public SDK bounds directly; restore only at same canvas size, otherwise fit current scope",
@@ -213,7 +214,38 @@
       "interruptedFixture": "Confirmed original PID missing and ports unowned before a new fixture; cleaned its four files separately",
       "actualTaskRunOrModelCalls": 0
     },
-    "production": {"state": "pending"},
+    "remoteCi": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43244634083",
+      "revision": "86eedd8daabd41f85894565a126c31e09a6da548",
+      "conclusion": "success",
+      "typecheckAndBuild": "passed on both platforms",
+      "windows": {"total": 681, "passed": 672, "failed": 0, "skipped": 9},
+      "ubuntu": {"total": 681, "passed": 660, "failed": 0, "skipped": 21},
+      "skipReason": "Platform-specific Windows/POSIX permission and process checks; no skipped behavior claimed"
+    },
+    "production": {
+      "publishedAt": "2026-11-12T15:11:38.444Z",
+      "frontendOnly": true,
+      "backendRevision": "cf7402abad7d7811e586000a1b0c99982450e4c7",
+      "servicesRestarted": 0,
+      "originalTrackProcessPreserved": true,
+      "previousHashNamedChunksRetained": true,
+      "ownerBffVerifiedAt": "2026-11-12T15:12:10.646Z",
+      "nativeRunsPersisted": 19,
+      "nativeEventsPersisted": 810,
+      "knownRunEventsAndCursor": 17,
+      "assistantEvents": 37,
+      "servedRootAssetsMatched": 6,
+      "nativeDatabaseAllRowsDdlSequencesAndSecurityCatalogPreserved": true,
+      "protectedFilesUnchanged": 8,
+      "nativeApiWebGateAndContainerPreserved": true,
+      "defaultLogin": "Entra ID",
+      "anonymousTrackAndTrailRoots": "302 Entra",
+      "anonymousTrackApi": 401,
+      "newTaskRunOrModelCalls": 0,
+      "currentBrowser": "New browser session lacks Entra cookie; user login requested, GUI post-rollout restoration not yet verified",
+      "screenshot": "Not captured; browser screenshot APIs unavailable in current QA session"
+    },
     "goal": {"fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low"}
   }
 }

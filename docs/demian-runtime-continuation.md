@@ -59,3 +59,22 @@ schemaUnchanged guard 대신 최신 데이터 보존·backup/rollback 계약을 
 명시된 QA 업무 하나에서 실제 parent/child·peer·교차 앱 관계를 생성·대조하고,
 고유 Run 집계·nested group·경계 edge·검증/수용 상태의 구분을 확인한다. 별도
 desktop 앱인지 현재 PC 실행 환경인지의 사용자 답변과 두 번째 실제 장치도 남아 있다.
+
+## 2026-11-13 읽기 전용 재확인과 다음 경계
+
+Native PR22는 `b449f5fe`의 open/draft 상태다. API-only PID15940과 원본
+19Run/810event·45테이블은 유지했고 worker/runtime/credential을 변경하지 않았다.
+Track는 그룹 요약·탐색 복원 구현을 게시했으며 실행 준비를 대신하지 않는다.
+
+현재 worker source의 `start()`는 provider 로그인 worker와 상태 발행·만료 복구를
+거쳐 lease를 시작한다. `stop()`은 active execution과 로그인 worker를 기다리지만
+전체 polling·lease·별도 status publish를 모두 기다리는 계약은 확인하지 못했다.
+worker/config/runtime-bridge의 기존 미커밋 변경은 보존했고 읽기만 했다.
+
+다음 구현의 선행 조건은 worker/core를 함께 고정할 authoritative baseline과
+manifest다. 소유자 대화에 기존 intake freeze/drain/QA 범위 lease 계약의 유무와
+중복 없이 보강할 경계를 읽기 전용으로 문의했다. HEAD만으로 WIP 기능을 복원하거나
+기존 bootstrap을 실행하지 않는다. 준비 단계의 목표는 시작 전 DB·인증/provider
+쓰기를 금지한 frozen readiness, 명시한 QA 범위의 intake, 진행 중 poll/lease/status의
+완료까지 기다리는 stop이다. 실제 기동·credential·DDL 변경은 별도 보존/복구와
+현재 원본 권한을 검증한 뒤 수행한다. 이 문단은 현재 worker의 동작 완료 증거가 아니다.
