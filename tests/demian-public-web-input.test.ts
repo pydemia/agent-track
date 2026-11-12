@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, readFile, link, symlink, rm } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, realpath, link, symlink, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import test from "node:test";
@@ -45,7 +45,10 @@ test("public plan fixes scope, roles, helper destinations, startup and backup bo
 });
 
 test("regular target checks reject hard links and redirected parent directories without touching either project", async () => {
-  const temp = resolve(await mkdtemp(join(tmpdir(), "demian-public-input-")));
+  // Runner TEMP may itself use a redirected or short Windows path. The normal
+  // fixture must be canonical; only the explicit redirect below is untrusted.
+  const tempRoot = await realpath(tmpdir());
+  const temp = await realpath(await mkdtemp(join(tempRoot, "demian-public-input-")));
   try {
     const own = join(temp, "own"), foreign = join(temp, "foreign"); await mkdir(own); await mkdir(foreign);
     const file = join(own, "target.json"), other = join(foreign, "target.json"); await writeFile(file, "own"); await writeFile(other, "foreign");
@@ -56,7 +59,7 @@ test("regular target checks reject hard links and redirected parent directories 
     await assert.rejects(assertRegularPublicFile(join(redirect, "target.json")));
     await assert.rejects(assertRegularPublicFile(join(redirect, "missing.json"), true));
     assert.equal(await readFile(file, "utf8"), "own"); assert.equal(await readFile(other, "utf8"), "foreign");
-  } finally { assert.equal(dirname(temp), resolve(tmpdir())); assert(basename(temp).startsWith("demian-public-input-")); await rm(temp, { recursive: true, force: true }); }
+  } finally { assert.equal(dirname(temp), tempRoot); assert(basename(temp).startsWith("demian-public-input-")); await rm(temp, { recursive: true, force: true }); }
 });
 
 test("verification HTTP reads cap bodies and cancel an overflowing response without echoing its contents", async () => {
