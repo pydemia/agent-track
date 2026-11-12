@@ -13,6 +13,7 @@ Assistant·Demian·pydemia-desktop의 실시간 Agent 실행·작업 관리 대�
 - 벤치마크 앱: https://trail.pydemia.ai — 원본 AgentTrail의 보호된 원격 접속
 - [제품 기획안](docs/product-plan.md)
 - [단계별 개발계획·작업 목록·현재 상태](docs/development-plan.md)
+- [Node Group·작업 묶음·깊이별 Flow 탐색 기획](docs/mission-ui-plan.md#node-group과-탐색-깊이)
 - [화면 시안](docs/prototype.html) — 예시 데이터로 동작하는 검토용 HTML
 - [AgentTrail 운영 안내](docs/trail-operations.md)
 - [Entra ID 기본 인증 구성·활성화 상태](docs/entra-sso.md)
