@@ -9,8 +9,10 @@ runner 연결 누락으로 하위 Agent가 실행되지 않았고 QA Run을 취�
 2node/1edge 하위 범위의 네 보기 유지·390px를 확인했다. 원본 데이터·권한·
 설정·서비스와 source692/산출물2를 보존하고 owned QA를 정리했다. 실제 중첩
 위임·peer·교차 앱/기기와 Entra GUI는 남아 전체14/21(66.7%)를 유지한다.
-`native-coordinator-verification.json` 참고. 이 문단의 로컬 검사를 원격 CI나
-운영 게시 완료로 해석하지 않는다.
+`native-coordinator-verification.json` 참고. 구현 `c6f335f`의 Windows/Ubuntu CI
+통과 후 프런트엔드만 게시했다.14개 assets와 favicon/fallback3개, 익명 Entra
+경계와 owner API의 Demian19Run·Assistant1실행 읽기를 대조했다. 서비스 재시작과
+credential 변경은 없으며 현재 운영 Entra GUI 검수와 구별한다.
 
 2026-11-13 실제 provider child 후속: 기존 Codex HTTP adapter·접근 토큰만의
 격리 QA·명시 registry1건·full pinned compiled worker를 연결한 실제 관리형
