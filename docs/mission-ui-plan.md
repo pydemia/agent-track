@@ -6,6 +6,12 @@ cross-session으로 Task와 subagent를 조직하고 최종 목표를 수행하�
 
 ## 화면별 책임
 
+산출물도 Session → Run의 중첩 그룹 안에서 탐색한다. 결과 실선과 첨부 귀속
+점선을 구분하고 node/edge 상세에 identity·종류·관측 범위를 표시한다. 개요에서는
+그룹 요약으로, 내부 흐름/상세 깊이에서는 개별 산출물로 전환한다. 여러 Task의
+화면 묶음은 명시적인 사용자 구성으로 유지하며 artifact 파일 이름이나 기록 순서로
+Task 묶음·의존 관계를 만들지 않는다. 세부 계약은 `artifact-flow-integration.md` 참고.
+
 최신 관계 그룹: 원본 세션별 읽기 계약을 바탕으로 peer 연결 → 대화 → 메시지/
 처리 영수증을 중첩 문맥 그룹으로 탐색한다. 실제 Run은 기존 Session/Run 그룹에
 남기고 경계를 넘는 관계선으로 연결한다. 부모 Run ID가 없는 managed-child의

@@ -167,6 +167,7 @@ export interface ArtifactMetadata {
   id: string;
   runId: string;
   sessionId: string;
+  kind: "attachment" | "result";
   filename: string;
   mediaType: string;
   sizeBytes: number;

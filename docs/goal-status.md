@@ -12,6 +12,12 @@ continuation을 검증하고, 합성 UI에서3Run·13node/12edge·7그룹과 내
 typecheck·분리 build 통과. 후속 원본 API 가동에서도 실제 관계 영수증은0이므로
 AT-12/18은 부분 상태다. `session-relations-verification.json` 참고.
 
+산출물 후속은 실제 native `answer.txt` result metadata를 원본과 대조하고 Run/
+Session 그룹에 연결한다. 결과·첨부 귀속을 구별하며 조회 철회 시 node/상세를
+제거한다. 분리 합성 UI의 2산출물·7그룹과 실제 산출물 근거를 구분한다.
+`artifact-flow-integration.md` 참고. managed-child/peer의 실제 조직화와 전체 교차
+앱 실행은 여전히 미검증이므로 전체 14/21을 유지한다.
+
 Consumer `90ea858`의 Linux/Windows CI 통과 후 Track 운영 재시작·정상 Entra
 UI·기존 Assistant/Projects3중첩 그룹과 실제37event를 재확인했다. 새 원본
 관계 API를 가동한 결과는 아니며 수용 개수는14/21로 유지한다.

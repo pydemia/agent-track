@@ -85,7 +85,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") &&
-          !/^\/api\/runs\/[A-Za-z0-9_-]+\/session-relations$/.test(url.pathname)) {
+          !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
@@ -289,9 +289,22 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       }
       const artifacts = /^\/api\/runs\/([A-Za-z0-9_-]+)\/artifacts$/.exec(url.pathname);
       if (artifacts) {
-        const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
-        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
-        json(response, 200, evidence); return;
+        if (url.search || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_artifact_query" }); return;
+        }
+        const controller = new AbortController();
+        const cancel = () => { if (!response.writableEnded) controller.abort(); };
+        request.once("aborted", cancel); response.once("close", cancel);
+        try {
+          const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!,
+            () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), { signal: controller.signal });
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          if (!response.destroyed) json(response, 200, evidence);
+        } catch (error) {
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          throw error;
+        } finally { request.removeListener("aborted", cancel); response.removeListener("close", cancel); }
+        return;
       }
       const files = /^\/api\/runs\/([A-Za-z0-9_-]+)\/files$/.exec(url.pathname);
       if (files) {

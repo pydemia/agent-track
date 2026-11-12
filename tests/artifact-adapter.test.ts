@@ -46,7 +46,7 @@ test("artifacts reads only the authorized session list and returns allowlisted R
   const result = await client.artifacts(runId, sessionId);
   assert.equal(calls, 1);
   assert.deepEqual(result, {
-    artifacts: [{ id: id(10), runId, sessionId, filename: "report.txt", mediaType: "text/plain",
+    artifacts: [{ id: id(10), runId, sessionId, kind: "result", filename: "report.txt", mediaType: "text/plain",
       sizeBytes: 42, sha256: "a".repeat(64), representation: "original", createdAt: timestamp }],
     scanned: 4, limit: 100, complete: false,
   });
@@ -82,4 +82,12 @@ test("artifacts rejects mismatched sessions and malformed native metadata", asyn
   }
   await assert.rejects(() => clientWith({ object: "list", data: [], limit: 99 }).artifacts(runId, sessionId));
   await assert.rejects(() => clientWith({ object: "list", data: Array(101).fill(manifest()), limit: 100 }).artifacts(runId, sessionId));
+});
+
+test("artifacts preserves attachment semantics and rejects duplicate native identities", async () => {
+  const result = await clientWith({ object: "list", data: [manifest({ kind: "attachment" })], limit: 100 }).artifacts(runId, sessionId);
+  assert.equal(result.artifacts[0]!.kind, "attachment");
+  for (const duplicate of [manifest(), manifest({ id: id(10).toUpperCase() })]) {
+    await assert.rejects(clientWith({ object: "list", data: [manifest(), duplicate], limit: 100 }).artifacts(runId, sessionId), /Duplicate native artifact identity/);
+  }
 });

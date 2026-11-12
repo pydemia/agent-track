@@ -39,10 +39,11 @@ test("bound Project policy is freshly read after awaited native evidence and com
   try {
     await assert.rejects(artifactEvidence(() => config, snapshot, user, key, refresh), (error: unknown) => error instanceof Error && "status" in error && error.status === 404);
     assert.equal(cachedGrant, false, "evidence must not reuse its earlier allowed Project grant");
+    assert.equal(refreshes, 2, "artifact grants are refreshed before and after the native read");
     policy = true; cachedGrant = true; revokeAt = "run";
     const ports = commandPorts(store, () => config, snapshot, user, key, false, refresh);
     await assert.rejects(ports.readRun(), (error: unknown) => error instanceof Error && "code" in error && error.code === "source_forbidden");
     assert.equal(cachedGrant, false, "command observation must refresh policy before returning to the dispatcher");
-    assert.equal(refreshes, 3);
+    assert.equal(refreshes, 4, "command observation retains its own two grant refreshes");
   } finally { native.closeAllConnections(); await new Promise<void>((resolve) => native.close(() => resolve())); store.close(); }
 });

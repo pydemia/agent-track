@@ -12,6 +12,7 @@ import { canonicalLineageCursor, parseNativeLineagePage, readBoundedLineageJson,
 import { projectToolEvidence, type ToolEvidencePage } from "./tool-evidence.ts";
 import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from "./session-relations.ts";
 import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
+import { readBoundedNativeJson } from "./json.ts";
 
 export type { NativeLineageObservation, NativeLineagePage } from "./lineage.ts";
 export type { ToolEvidenceCall, ToolEvidenceEventType, ToolEvidenceMark, ToolEvidenceOutcome, ToolEvidencePage } from "./tool-evidence.ts";
@@ -147,14 +148,15 @@ export class DemianClient {
   }
 
   async observe(runId: string): Promise<RunObservation> {
-    const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}`);
+    const signal = this.options.signal ?? AbortSignal.timeout(15_000);
+    const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}`, signal);
     const raw = z.object({
       id: idSchema, session_id: idSchema, status: statusSchema,
       created_at: z.string(), started_at: z.string().nullable(), completed_at: z.string().nullable(),
-    }).parse(await response.json());
+    }).parse(await readBoundedNativeJson(response, signal));
     if (raw.id !== runId) throw new Error("Source Run identity mismatch");
-    const sessionResponse = await this.request(`/api/v1/sessions/${encodeURIComponent(raw.session_id)}`);
-    const session = z.object({ id: idSchema, workspace_id: idSchema, title: z.string() }).parse(await sessionResponse.json());
+    const sessionResponse = await this.request(`/api/v1/sessions/${encodeURIComponent(raw.session_id)}`, signal);
+    const session = z.object({ id: idSchema, workspace_id: idSchema, title: z.string() }).parse(await readBoundedNativeJson(sessionResponse, signal));
     if (session.id !== raw.session_id) throw new Error("Source Session identity mismatch");
     return runSchema.parse({ sourceId: this.options.sourceId, runId: raw.id, sessionId: raw.session_id,
       workspaceId: session.workspace_id, title: session.title.slice(0, 240), status: raw.status,
@@ -294,12 +296,14 @@ export class DemianClient {
   async artifacts(runId: string, sessionId: string): Promise<ArtifactMetadataPage> {
     artifactManifestSchema.shape.run_id.unwrap().parse(runId);
     artifactManifestSchema.shape.session_id.parse(sessionId);
-    const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/artifacts`);
-    const page = artifactPageSchema.parse(await response.json());
+    const signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/artifacts`, signal);
+    const page = artifactPageSchema.parse(await readBoundedNativeJson(response, signal));
+    if (new Set(page.data.map(row => row.id.toLowerCase())).size !== page.data.length) throw new Error("Duplicate native artifact identity");
     const artifacts = page.data.flatMap((raw) => {
       if (raw.session_id !== sessionId) throw new Error("Source artifact session identity mismatch");
       if (raw.revoked_at !== null || raw.run_id !== runId) return [];
-      return [{ id: raw.id, runId: raw.run_id, sessionId: raw.session_id, filename: raw.filename,
+      return [{ id: raw.id, runId: raw.run_id, sessionId: raw.session_id, kind: raw.kind, filename: raw.filename,
         mediaType: raw.media_type, sizeBytes: raw.size_bytes, sha256: raw.sha256,
         representation: raw.representation, createdAt: raw.created_at }];
     });

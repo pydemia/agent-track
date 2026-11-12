@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView } from "../../../packages/contracts/index.ts";
 import { missionFlow } from "../../../packages/projection/mission-flow.ts";
@@ -12,6 +12,9 @@ import { OrchestrationSupport } from "./OrchestrationSupport.tsx";
 import { withSessionRelations } from "../../../packages/projection/session-relations-flow.ts";
 import { useSessionRelations } from "./useSessionRelations.ts";
 import { SessionRelationsSupport } from "./SessionRelationsSupport.tsx";
+import { withArtifactEvidence } from "../../../packages/projection/artifact-flow.ts";
+import { useArtifactEvidence } from "./useArtifactEvidence.ts";
+import { ArtifactSupport } from "./ArtifactSupport.tsx";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
@@ -42,8 +45,9 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const lineage = useNativeLineage(run, onUnauthorized);
   const tools = useToolEvidence(run, onUnauthorized);
   const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
-  const model = useMemo(() => withSessionRelations(withNativeLineage(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run,
-    lineage.observations, lineage.hasMore || lineage.capped), run, runs, sessionRelations.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, sessionRelations.evidence]);
+  const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
+  const model = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeLineage(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run,
+    lineage.observations, lineage.hasMore || lineage.capped), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, sessionRelations.evidence, artifacts.evidence]);
   const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key }), []);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
   const grouping = useFlowGrouping(model, { scopeKey: `${actor}:${run.key}:${mode}`, defaultBy: mode === "execution" ? "run" : run.binding?.taskId ? "task" : "session",
@@ -51,6 +55,9 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const selectedNode = grouping.inspectNodes.find((node) => choice?.kind === "node" && choice.key === node.key);
   const selectedEdge = grouping.inspectEdges.find((edge) => choice?.kind === "edge" && choice.key === edge.key);
   const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
+  useEffect(() => {
+    if (choice && !selectedNode && !selectedEdge && !selectedGroup) setChoice(null);
+  }, [choice, selectedNode, selectedEdge, selectedGroup]);
   const dependencyCycles = useMemo(() => analyseGraph({ nodes: model.nodes,
     edges: model.edges.filter((edge) => edge.kind === "dependency").map((edge) => ({ ...edge, kind: "dependency" as const })) }).cyclic, [model]);
   // Refit when asynchronously loaded evidence changes topology, while preserving
@@ -81,6 +88,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
+    <ArtifactSupport value={artifacts} />
     {lineage.native && <p className="graph-legend">Native lineage {lineage.observations.length}개 · {lineage.detail}{lineage.hasMore && <button className="text-button" disabled={lineage.capped} onClick={lineage.more}>{lineage.capped ? "1,000개 조회 한도" : "Native 근거 더 불러오기"}</button>}</p>}
     {tools.native && <p className="graph-legend">{tools.page ? `도구 결과 ${tools.page.calls.length}건 · 실패 보고 ${tools.page.calls.filter((call) => call.outcome === "failed").length}건 · 원본 seq ${tools.page.throughSequence}/${tools.page.targetSequence}${tools.page.complete ? "까지 조회" : " · 부분 조회"}` : tools.detail}</p>}
     {!!tools.page?.unidentifiedEvents && <p className="inline-warning">호출 ID가 없어 구조에 연결하지 못한 원본 도구 이벤트 {tools.page.unidentifiedEvents}건이 있습니다.</p>}

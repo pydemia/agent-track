@@ -45,7 +45,7 @@
 .mission-flow [data-slot="flow-status"] { flex-shrink: 0; }
 .mission-flow [data-ui="flow-canvas"] .react-flow__minimap { bottom: 30px; }
 .mission-flow [data-ui="flow-edge-label"] { font: 10px "Segoe UI", "Malgun Gothic", sans-serif; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
-.mission-flow .mission-edge-ownership .react-flow__edge-path, .mission-flow .mission-edge-task-binding .react-flow__edge-path { stroke-dasharray: 4 5; opacity: .7; }
+.mission-flow .mission-edge-ownership .react-flow__edge-path, .mission-flow .mission-edge-task-binding .react-flow__edge-path, .mission-flow .mission-edge-artifact-association .react-flow__edge-path { stroke-dasharray: 4 5; opacity: .7; }
 .mission-flow .mission-edge-record-order .react-flow__edge-path { stroke: #8f9fba; }
 .mission-flow .mission-edge-dependency .react-flow__edge-path { stroke: var(--amber); stroke-width: 2.5; }
 .mission-flow .mission-edge-managed-child .react-flow__edge-path, .mission-flow .mission-edge-invocation .react-flow__edge-path { stroke: var(--lime); }

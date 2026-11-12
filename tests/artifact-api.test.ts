@@ -56,6 +56,10 @@ test("artifact HTTP API enforces native and Track grants without caching denied 
   const base = await listen(server);
   const get = (user = "owner@example.com") => fetch(`${base}/api/runs/${key}/artifacts`, { headers: { "x-track-proxy-key": secret, "x-forwarded-email": user } });
   try {
+    const auth = { "x-track-proxy-key": secret, "x-forwarded-email": "owner@example.com" };
+    assert.equal((await fetch(`${base}/api/runs/${key}/artifacts?limit=1`, { headers: auth })).status, 400);
+    assert.equal((await fetch(`${base}/api/runs/${key}/artifacts`, { method: "POST", headers: auth })).status, 405);
+    assert.equal(artifactCalls, 0);
     const success = await get(); assert.equal(success.status, 200);
     const body = await success.json(); assert.equal(body.artifacts.length, 1); assert.equal(body.complete, false);
     assert.doesNotMatch(JSON.stringify(body), /PRIVATE_|owner_user_id|organization_id|content_base64/);
@@ -66,7 +70,7 @@ test("artifact HTTP API enforces native and Track grants without caching denied 
     const pending = get(); await waitingRequest;
     users = [];
     release();
-    const revoked = await pending; assert.equal(revoked.status, 403);
+    const revoked = await pending; assert.equal(revoked.status, 401);
     assert.doesNotMatch(await revoked.text(), /report.txt|PRIVATE_/);
   } finally { release(); await close(server); await close(native); store.close(); rmSync(directory, { recursive: true, force: true }); }
 });

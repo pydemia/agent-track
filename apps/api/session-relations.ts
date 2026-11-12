@@ -1,30 +1,17 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes } from "node:crypto";
-import { constants, openSync, fstatSync, readSync, closeSync } from "node:fs";
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { DemianClient, SourceError, type DemianOptions } from "../../packages/adapters/demian/index.ts";
 import { CommandError } from "../../packages/commands/index.ts";
 import type { RunView, Snapshot } from "../../packages/contracts/index.ts";
 import { relationUuidSchema, sessionRelationKindSchema, sessionRelationsEvidenceSchema,
   type SessionRelationKind, type SessionRelationsEvidence } from "../../packages/contracts/session-relations.ts";
-import type { Config, SourceConfig } from "./config.ts";
+import type { Config } from "./config.ts";
 import { sourceIdentity } from "./source-identity.ts";
+import { sourceCredentialStamp as credentialStamp } from "./source-credential.ts";
 
 type Reader = Pick<DemianClient, "observe" | "sessionRelations">;
 const missing = () => new CommandError(404, "run_not_found", "현재 접근 가능한 실행이 아닙니다.");
 const invalid = () => new CommandError(400, "invalid_relation_cursor", "관계 조회 창을 처음부터 다시 확인하세요.");
-
-function credentialStamp(source: SourceConfig): string | null {
-  if (!source.tokenFile) return null;
-  const handle = openSync(source.tokenFile, constants.O_RDONLY | constants.O_NONBLOCK);
-  try {
-    const stat = fstatSync(handle);
-    if (!stat.isFile() || stat.size > 65_536) throw new SourceError(503);
-    const bytes = Buffer.alloc(65_537); let used = 0;
-    while (used < bytes.length) { const count = readSync(handle, bytes, used, bytes.length - used, null); if (!count) break; used += count; }
-    if (used > 65_536) throw new SourceError(503);
-    return createHash("sha256").update(bytes.subarray(0, used)).digest("hex");
-  } finally { closeSync(handle); }
-}
 
 /** Opaque per-process continuations: native hidden Run IDs never enter a browser cursor. */
 export class SessionRelationCursors {

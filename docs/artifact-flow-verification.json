@@ -1,0 +1,55 @@
+{
+  "dateKst": "2026-11-12",
+  "scope": "AT-12 Run/Session group metadata overlay; recent native artifacts only",
+  "local": {
+    "fullCommand": "npm test",
+    "total": 569,
+    "passed": 560,
+    "failed": 0,
+    "skipped": 9,
+    "skipReason": "POSIX-only permissions on Windows",
+    "finalAuthorityFollowUp": { "total": 8, "passed": 8, "failed": 0 },
+    "typecheck": "passed",
+    "isolatedWebBuild": "passed",
+    "priorFailures": [
+      "Old Project refresh-count expectation changed from 3 to 4; verified two refreshes per evidence and command read",
+      "One full run had two unrelated Assistant API 503 failures; isolated 19/19 and subsequent full 569-test run passed; cause not established"
+    ]
+  },
+  "independentReview": {
+    "findingsFixed": [
+      "Recheck native access after the final bounded Projects refresh and before final synchronous scope and credential checks",
+      "Clear invalid graph selection so restored metadata does not reopen the old inspector"
+    ]
+  },
+  "syntheticBrowser": {
+    "actualModelRuns": 0,
+    "artifactNodes": 2,
+    "nodeGroups": 7,
+    "mapNodes": 15,
+    "mapEdges": 14,
+    "runAndSessionMembership": true,
+    "enterGroupAndBreadcrumb": true,
+    "resultVsAttachmentDetail": true,
+    "attachmentNotInputOrDependency": true,
+    "denialRemovesNodesAndInspector": true,
+    "restorationDoesNotReopenInspector": true,
+    "actorChangeClearsPrivateDataAndRunUrl": true,
+    "privateBodyAbsent": true
+  },
+  "nativePreflight": {
+    "verifiedAt": "2026-11-12T08:44:41.288Z",
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "sessionId": "095abfb9-01ad-41b9-beff-38c7e76bb05e",
+    "filename": "answer.txt",
+    "kind": "result",
+    "matchedArtifacts": 1,
+    "metadataMatchesNative": true,
+    "runAndSessionGroup": true,
+    "runCountAndJournalUnchanged": true,
+    "sourceContentRequested": false,
+    "completeHistory": false
+  },
+  "production": { "state": "pending CI and deployment verification" },
+  "goal": { "fulfilled": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "unestimable", "confidence": "low" }
+}
