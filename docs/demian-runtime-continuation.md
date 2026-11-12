@@ -142,3 +142,43 @@ closure의 compiled 준비 검사에서 추가 import·network·subprocess·payl
 현재 private 실행 설정과 release/registry를 묶는 trusted QA launcher, 실제
 기동 전 최신 backup/rollback 및 schema/source/image guard다. 실제 조직화·
 교차 앱 업무, 원본 Web 문맥/인증과 desktop/두 번째 장치는 여전히 미완료다.
+
+## 고정 설정을 사용하는 QA 기동 후속
+
+별도 native branch의 로컬 `8afec9e`는 명시적인 `qa` 진입점을 구현했다.
+descriptor 원문 pin·현재 v2 registry·closed release/실제 entry를 확인한 뒤
+DB/runtime을 초기화한다. config·deployment·참조 service config·private 환경과
+DB 설정은 payload 밖에서 각각 hash로 고정한다. 암묵적인 홈 설정은 부재를
+재검사하고 환경 fallback을 차단한다. descriptor 만료는 release/scope 안으로
+제한하며 작업·dispatch마다 executable/private pin과 현재 권한을 다시 확인한다.
+
+QA는 전역 login 큐·provider 계정/status probe를 시작하지 않는다. 승인된
+managed-child Session만 catalog를 검사·갱신하고 inspection 중 철회는 upsert를
+차단한다. claim 수와 다음 claim까지의 idle 한도 후 종료하며 event/heartbeat/
+status·pool을 정리한다. idle 한도는 실행 중 provider 전체의 wall-clock 한도가
+아니며 `qa_stopped`는 Run 성공·업무 수용을 뜻하지 않는다.
+
+실제 compiled entry·pinned core·임시 PostgreSQL·제어된 HTTP provider에서 등록
+Run 한 개의 성공·receipt·budget·종료 event와 process 종료를 확인했다. 별도
+실제 core QA 검사는 actor journal도 대조했다. managed-child/peer fixture·
+범위/철회/복구/종료를 포함해 관련245개
+검사를 모두 통과했다(skip0). 독립 리뷰의 홈 설정·service config·release 유효성
+지적 세 건을 수정하고 재검토했다. 전체 native/Linux·실제 OS signal 검증은 아니다.
+
+새19,601파일/5link payload의 frozen-readiness는 추가 import·network·subprocess·
+외부 파일 조회 시도0, dispatch=false였고 현재 source/산출물714개와 일치했다.
+전체 dependency/source closure는 preflight에서 검사하며 이후 callback에서는
+manifest·worker/core·private pin을 재검사한다. 나머지 파일은 operator-owned
+freezing이 전제이며 filesystem의 원자적 잠금으로 설명하지 않는다.
+
+원본692입력·산출물2·전체 DB/DDL/sequence/보안 catalog·보호파일8과 기존
+API/Web/gate/container를 보존했다. label-owned 검사 DB·tmpfs·임시 credential을
+정리했으며 원본19Run/810event는 그대로다. 새 코드는 로컬 commit만 있고
+운영 migration025·worker·producer 전환은 수행하지 않았다.
+`demian-worker-launch-verification.json`에 현재 증거와 한계를 기록한다.
+
+사용자의 기존 세션 문의 지시에 따라 Demian과 Persona Root에 현재 credential
+참조·provider profile·실제 binding과 최신 backup/rollback guard를 읽기 전용으로
+문의했다. 배포·binding 변경이나 worker 기동을 요청한 것은 아니다. 다음은
+현재 소유자 메타데이터 대조, 실제 대상의 새 보존/rollback 검사, 명시 QA 업무의
+native 실행·group UI 대조다. 전체 수용 완료14/21은 유지한다.

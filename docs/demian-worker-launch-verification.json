@@ -1,0 +1,133 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementScope": "AT-14/18 native execution preparation; actual organization/cross-app acceptance incomplete",
+  "nativeSource": {
+    "repository": "pydemia/demian (private)",
+    "base": "665f8e74904ec641b78c0596883f1a417408e94b",
+    "implementationRevision": "8afec9ea08e7b74c56733d92d74117e668855b8f",
+    "branch": "codex/agent-track-worker-intake",
+    "author": "pydemia",
+    "publication": "Local commit only; not pushed, merged or deployed"
+  },
+  "implementation": {
+    "entry": "Explicit qa mode requires trusted raw descriptor pin, exact v2 registry and verified release/actual compiled entry before execution imports or pool allocation; no general fallback",
+    "configuration": "Exact private input pins outside closed release, including all deployment service config paths; services restricted to selected worker/org; canonical directories and absent implicit home configs rechecked",
+    "environment": "Basic OS projection plus explicitly pinned provider environment only; separate QA/CLI homes; DATABASE_URL, DEMIAN overrides and private NODE/DATABASE/PG/path/home overrides rejected",
+    "guard": "Descriptor expiry bounded by scope and release; each work/dispatch guard rehashes descriptor/private inputs/manifest/worker/core and checks registry/native authority",
+    "intake": "Immutable maxClaims and idleTimeoutMs; idle wait bounded by remaining deadline; normal exit drains events/heartbeat/status and pool",
+    "catalog": "Only currently approved managed-child Sessions inspected and updated; revocation during awaited inspection prevents upsert; peer/delegated-only approvals do not broaden discovery",
+    "authentication": "No global interactive login queue or provider account/status probe in QA; selected runtime local contract capabilities only",
+    "output": "qa_stopped proves disposal, not Run success/Task acceptance; QA CLI failures are bounded without raw config values"
+  },
+  "verification": {
+    "completedAt": "2026-11-12T17:39:04.159Z",
+    "platform": "win32 x64",
+    "nodeVersion": "v24.21.0",
+    "postgresVersion": "17.11 (Debian 17.11-1.pgdg13+2)",
+    "tests": {
+      "total": 245,
+      "passed": 245,
+      "failed": 0,
+      "skipped": 0
+    },
+    "targets": [
+      "packages/db/test/worker-qa-admissions.integration.test.ts",
+      "packages/db/test/work-runtime-runs.integration.test.ts",
+      "packages/db/test/peer-processing.integration.test.ts",
+      "packages/db/test/worker-qa-scope.test.ts",
+      "packages/db/test/worker-qa-scope.integration.test.ts",
+      "packages/db/test/database.integration.test.ts",
+      "packages/db/test/run-completion-fencing.integration.test.ts",
+      "apps/worker/test/worker-lifecycle.test.ts",
+      "apps/worker/test/provider-login-drain.test.ts",
+      "apps/worker/test/provider-login.test.ts",
+      "apps/worker/test/provider-login.integration.test.ts",
+      "apps/worker/test/criteria-native-cancel.integration.test.ts",
+      "apps/worker/test/main-shutdown.test.ts",
+      "apps/worker/test/readiness.test.ts",
+      "apps/worker/test/worker-entry.test.ts",
+      "apps/worker/test/readiness-cli.test.mjs",
+      "apps/worker/test/runtime-pin.test.ts",
+      "apps/worker/test/qa-launch.test.ts",
+      "apps/worker/test/delegated-work-runtime.integration.test.ts",
+      "apps/worker/test/managed-child.integration.test.ts",
+      "apps/worker/test/peer-processing.integration.test.ts"
+    ],
+    "typecheck": "worker and db passed",
+    "workerBuild": "passed",
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "coreSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "compiledExecution": "Actual compiled entry and pinned core in a minimal inventoried integration payload, disposable PostgreSQL and controlled HTTP provider: one registered Run succeeded; one provider request, immutable receipt, completed budget, final event, no workspace lease or account status rows, process exited after drain",
+    "independentReview": "Three source findings (implicit home config, referenced deployment config pins, ongoing release expiry/runtime pins) fixed; targeted read-only recheck found no remaining concrete blocker under operator-owned freezing assumptions; reviewer did not execute tests",
+    "initialFailures": "Legacy delegated fixtures rejected migration-only DATABASE_URL inherited from test runner; removed that variable from test process after migration without weakening production guard. Two temporary diagnostic test processes were cancelled after verified ownership and are not counted as passes.",
+    "limits": [
+      "Controlled provider/CLI, not paid external model or operating Task execution",
+      "Entire native suite and native Linux CI not run",
+      "Actual OS signal/cold-start behavior not verified",
+      "maxClaims/idle bound intake; no overall wall-clock deadline for an uncooperative active provider",
+      "Full dependency/source tree hashed at preflight; subsequent guards rehash executable/private pins, relying on operator-owned freezing for remaining payload files; hash/read is not an atomic OS lock",
+      "Full packaged dependency closure below was verified in frozen-readiness mode, not dispatched as an operating worker"
+    ],
+    "directCoreExecution": "Separate pinned actual-core QA case verifies two actor-scoped user/assistant journal entries, native receipt, completed budget, provider request and final event; this is independent of compiled-entry assertions"
+  },
+  "closedRelease": {
+    "verifiedAt": "2026-11-12T17:40:26.702Z",
+    "version": 1,
+    "state": "frozen",
+    "dispatchEnabled": false,
+    "manifestSha256": "dddd14ab7a935e04d2a824d22a898cb746272d79ddf7844953912f5e5c3f271e",
+    "files": 19601,
+    "links": 5,
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "runtimeSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "dependencyFiles": 18886,
+    "sourceAndProvenanceFiles": 713,
+    "payloadBytes": 770921266,
+    "elapsedMs": 18440,
+    "observedForbiddenAttempts": {
+      "module": 0,
+      "network": 0,
+      "subprocess": 0,
+      "outsideFile": 0
+    },
+    "sourceAndArtifactsMatched": 714,
+    "scope": "Actual full packaged compiled frozen-readiness entry; not operating dispatch capability"
+  },
+  "preservation": {
+    "verifiedAt": "2026-11-12T17:40:26.461Z",
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "originalDatabaseAllRowsDdlSequencesSecurityCatalogUnchanged": true,
+    "originalDbAccess": "Read-only fingerprint comparison only; no operating native DDL/DML",
+    "protectedFilesUnchanged": 8,
+    "nativeApiPid": 15940,
+    "nativeApiWebGateContainerIdentitiesUnchanged": true,
+    "nativeTables": 45,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "operatingWorkerStarted": false,
+    "originalTaskRunModelCallsCreated": 0,
+    "trackTrailDeploymentChanged": false
+  },
+  "cleanup": {
+    "completedAt": "2026-11-12T17:40:27.917Z",
+    "ownedQaContainerRemoved": true,
+    "tmpfsDisposed": true,
+    "ephemeralCredentialFileRemoved": true,
+    "emptyQaHomeRemoved": true
+  },
+  "remainingBeforeActivation": [
+    "Current real producer/executor credential references and exact source/binding mapping; owner sessions asked read-only, no rollout requested",
+    "Fresh native/Assistant schema/data backup and rollback guard before operating migration025/source/image rollout",
+    "Actual managed-child/peer and Assistant-to-Demian Task, grouped UI evidence, native Web context/authentication, desktop/second device"
+  ],
+  "goal": {
+    "status": "active",
+    "fulfilled": 14,
+    "total": 21,
+    "weighting": "equal acceptance criteria",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

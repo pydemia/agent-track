@@ -98,6 +98,13 @@ child/peer·dependency 근거 연결이 남았다.
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.
 Node group 추가는 AT-12를 확장하며 전체 분모·완료 개수를 바꾸지 않는다.
 사용자 화면 묶음은 현재 화면 상태이며 서버 저장·재접속 복원은 후속이다.
+2026-11-13 native QA 기동 후속 `8afec9e`는 descriptor/release/private pin·현재
+registry·home 설정 부재를 검증하고 claim/idle 한도 후 종료한다. 관련245개 검사와
+실제 compiled entry의 임시 DB/제어 provider 실행을 통과했다. 운영 migration·worker
+기동·실제 협업 Task와는 구별하며 AT-14/18 완료로 올리지 않는다. 원본692입력/
+산출물2·DB/보안 catalog·설정8개·서비스를 보존하고 검사 DB·credential은 정리했다.
+새 전체 payload는 frozen-readiness만 검증했다. `demian-worker-launch-verification.json`
+참고. 실제 binding/credential·최신 rollout guard는 기존 승인에 따라 소유 대화에 문의했다.
 Assistant metadata 계약·선택적 읽기 service와 native route 후보를 별도 PR21에
 구현했다. Track client 라이브러리의98개 검사(실제 loopback HTTP2개 포함)와
 별도 Linux 후보 이미지의 backup/암복호화11개 검사를 통과했다. Windows 전체
