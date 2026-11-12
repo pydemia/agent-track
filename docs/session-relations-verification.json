@@ -9,12 +9,13 @@
     "branch": "codex/common-sessions",
     "baseHead": "297678ea08529358aee5a48bef1b94fbea0d7275",
     "workingTreeImplementation": true,
-    "committedOrDeployed": false,
     "manifestSha256": "6cebac5063bce40d42baaa7451eb7f0d8a266790ba5ed154e79a5a00a20a744b",
     "manifestFilesMatched": 8,
-    "nativeApiListenerAvailable": false,
+    "nativeApiListenerAvailable": true,
     "nativeManagedChildReceiptRows": 0,
-    "nativePeerProcessingReceiptRows": 0
+    "nativePeerProcessingReceiptRows": 0,
+    "sourceCommitted": false,
+    "apiArtifactActivated": true
   },
   "automated": {
     "command": "npm test",
@@ -143,5 +144,15 @@
     "assetsMatched": 6,
     "publicAnonymousSnapshotStatus": 401,
     "publicTrackAndTrailRedirectToEntra": true
+  },
+  "nativeReactivationFollowUp": {
+    "evidence": "demian-api-reactivation-verification.json",
+    "actualNativeRelationRows": 0,
+    "workerStarted": false,
+    "peerRegistryConfigured": false,
+    "visibleNativeRuns": 19,
+    "nativeJournalEvents": 810,
+    "normalEntraTraceVerified": true,
+    "fullGoalComplete": false
   }
 }

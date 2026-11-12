@@ -1,0 +1,295 @@
+{
+  "verifiedAt": "2026-11-12T06:58:38.437Z",
+  "ok": true,
+  "phase": "passed",
+  "apiBundleSha256": "11bd7cd308a6f11b2a25a71dc3fca9afff750de99bee8b10d75cb98a8d22ed66",
+  "sourceFilesMatched": 8,
+  "boundTo": "127.0.0.1:18080",
+  "databaseReadOnlyEnforced": true,
+  "optionalFeatureSelectorsPassed": 0,
+  "sourceRegistered": false,
+  "nativeApi8080Activated": false,
+  "workerStarted": false,
+  "originalLaunchersChanged": false,
+  "ownedCanaryStopped": true,
+  "checks": {
+    "ready": true,
+    "actualRun": {
+      "id": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+      "sessionId": "095abfb9-01ad-41b9-beff-38c7e76bb05e",
+      "status": "succeeded",
+      "eventCount": 17,
+      "lastSequence": "17"
+    },
+    "managed": {
+      "availability": "available",
+      "relations": 0,
+      "coverage": "managed-child-receipts"
+    },
+    "peer": {
+      "availability": "unconfigured",
+      "relations": 0,
+      "coverage": "peer-processing-receipts"
+    },
+    "anonymousStatus": 401,
+    "delegationStatus": 403
+  },
+  "preservation": {
+    "tables": 45,
+    "schemaSha256": "f61d08853ad70be312480298f0365f9bbb97f875148c51de0a87ae7bdff9ad8c",
+    "dataSha256": "c683b386c86ccd444e7affac252ad01cb0391cccee8d0140482970b9f0b28905",
+    "startupAndReadsEqual": true,
+    "counts": {
+      "artifacts": "16",
+      "managed_child_receipts": "0",
+      "peer_processing_receipts": "0",
+      "run_events": "810",
+      "runs": "19",
+      "session_messages": "52",
+      "sessions": "12"
+    }
+  },
+  "limit": "Current native rows contain no managed-child/peer receipts; empty authorized responses are not actual relationship execution evidence.",
+  "scope": "Actual ephemeral read-only native API using the existing DB; not production activation or actual child/peer execution",
+  "databaseRecovery": {
+    "verifiedAt": "2026-11-12T07:33:07.903Z",
+    "ok": true,
+    "backup": {
+      "format": "ATPG1: roles-only SQL plus pg_dump custom",
+      "algorithm": "AES-256-GCM",
+      "keyProtection": "Windows DPAPI CurrentUser",
+      "encryptedExportComplete": true,
+      "plainBytes": 242068,
+      "plainSha256": "ada0a091e45c16ee007f8e71e87595b71c838f097e5bafcb4c8809fea3313bfa",
+      "cipherSha256": "5a6e4ba6904a6f9f149dc5e477d561ee52d07156a87c9d801846e30589914969",
+      "authenticatedReadback": true,
+      "tamperRejected": true,
+      "plaintextWrittenToDisk": false,
+      "transactionSnapshot": true,
+      "streamed": true
+    },
+    "restore": {
+      "isolationVerified": true,
+      "network": "none",
+      "rootFilesystem": "read-only",
+      "postgresData": "new tmpfs only",
+      "originalVolumeMounted": false,
+      "tableCount": 45,
+      "dataAndSchemaEqual": true,
+      "ownedContainerDisposed": true,
+      "sourceRoles": 1,
+      "rolesAndPasswordHashEqual": true,
+      "sequenceCount": 1,
+      "sequenceStateEqual": true,
+      "rawSchemaDumpEqual": false,
+      "fullSchemaSemanticsEqual": true,
+      "isolatedBootstrapRole": "disposable bootstrap administrator"
+    },
+    "preservation": {
+      "dataSha256": "c683b386c86ccd444e7affac252ad01cb0391cccee8d0140482970b9f0b28905",
+      "schemaSha256": "f61d08853ad70be312480298f0365f9bbb97f875148c51de0a87ae7bdff9ad8c",
+      "sequenceSha256": "ee02ba55474f13f7e53f572d2dcb0a9f61356dd4bab3cb87aabeb1c7d710180f",
+      "originalDataAndSettingsUnchanged": true,
+      "tableCount": 45,
+      "runs": 19,
+      "runEvents": 810
+    },
+    "schemaComparison": {
+      "rawDumpEqual": false,
+      "canonicalEqual": true,
+      "normalization": "pg_get_constraintdef(oid,true) for each named public table CHECK; all other DDL bytes unchanged",
+      "checks": 91,
+      "reason": "One device_connections CHECK had equivalent associative AND parentheses after parsing the dump; all other DDL bytes were unchanged."
+    },
+    "streamingPrimitiveTests": 6,
+    "schemaCanonicalizationTests": 2,
+    "failureHistory": [
+      "Host-wide memory floor stopped the initial whole-buffer design before export or clone; replaced with bounded streaming and separate host/Docker VM budgets.",
+      "A role metadata query used a view-only column; corrected before any export.",
+      "Strict raw schema comparison rejected equivalent CHECK parentheses; retained the raw mismatch and compared every named CHECK using PostgreSQL canonical definitions, without omitting other DDL."
+    ],
+    "limits": [
+      "Database logical backup; not a whole-disk integrity audit.",
+      "Backup key is tied to the current Windows account and machine; independent off-machine key escrow is not proven.",
+      "Artifact bytes in PostgreSQL are included; external workspace files and provider runtime directories are not part of this DB dump."
+    ]
+  },
+  "frozenRelease": {
+    "bundleSha256": "11bd7cd308a6f11b2a25a71dc3fca9afff750de99bee8b10d75cb98a8d22ed66",
+    "inputManifestSha256": "a7711dfb2b36bf5a3f3fccb28f3c6c1a0675fb85b49f241d7bc15f377006d9bd",
+    "inputFiles": 444,
+    "twoBuildsMatched": true,
+    "installedBundleEqual": true,
+    "esbuildVersion": "0.25.12",
+    "sourceWorkingTreeUncommitted": true
+  },
+  "productionActivation": {
+    "verifiedAt": "2026-11-12T07:44:51.657Z",
+    "ok": true,
+    "phase": "passed",
+    "committed": true,
+    "reportingFailure": false,
+    "rollbackVerified": false,
+    "apiBundleSha256": "11bd7cd308a6f11b2a25a71dc3fca9afff750de99bee8b10d75cb98a8d22ed66",
+    "sourceClosureFiles": 444,
+    "nativeApi8080Activated": true,
+    "workerStarted": false,
+    "optionalFeatureSelectorsPassed": 0,
+    "sourceConfigChanged": false,
+    "originalDatabaseOrContainerRestored": false,
+    "existingPublicBasicGateUnchanged": true,
+    "trackAndTrailDefaultAuth": "Entra ID",
+    "automaticStartupConfigured": false,
+    "checks": {
+      "ready": true,
+      "knownRun": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+      "status": "succeeded",
+      "events": 17,
+      "cursor": "17",
+      "managed": {
+        "state": "available",
+        "receipts": 0
+      },
+      "peer": {
+        "state": "unconfigured",
+        "receipts": 0
+      },
+      "anonymousStatus": 401
+    },
+    "preservation": {
+      "dataSha256": "c683b386c86ccd444e7affac252ad01cb0391cccee8d0140482970b9f0b28905",
+      "schemaSha256": "f61d08853ad70be312480298f0365f9bbb97f875148c51de0a87ae7bdff9ad8c",
+      "sequenceSha256": "ee02ba55474f13f7e53f572d2dcb0a9f61356dd4bab3cb87aabeb1c7d710180f",
+      "securityCatalogSha256": "22f885d11212f5223a441b36701124d92f1face24c202af7778d0ce717bfd3d5",
+      "tables": 45,
+      "originalDataEqual": true
+    },
+    "limits": [
+      "Original public Demian Basic gate remains separate from Track Entra.",
+      "Worker and optional work/peer/deployment runtimes were not activated.",
+      "No actual child/peer receipt rows; full relationship and cross-app task acceptance remain outstanding."
+    ],
+    "ownedProcessVerified": true
+  },
+  "productionTrackReadback": {
+    "verifiedAt": "2026-11-12T07:47:30.528Z",
+    "scope": "actual production owner BFF and browser decoders after native API-only activation",
+    "source": "demian-local",
+    "sourceState": "connected",
+    "visibleNativeRuns": 19,
+    "journal": {
+      "runs": 19,
+      "uniqueRunIds": 19,
+      "events": 810,
+      "assistantRuns": 0
+    },
+    "knownRun": {
+      "key": "WyJkZW1pYW4tbG9jYWwiLCI4MmY3ZTFmZC04ZmUyLTRkYTEtODMwNy05OWYzZTAxNmY0OGMiXQ",
+      "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+      "events": 17,
+      "nativeCursor": "17",
+      "nativeHighWater": "17",
+      "localPageCursor": "16463",
+      "hasMore": false
+    },
+    "managed": {
+      "state": "connected",
+      "relations": 0,
+      "coverage": "managed-child-receipts"
+    },
+    "peer": {
+      "state": "unconfigured",
+      "relations": 0,
+      "coverage": "peer-processing-receipts"
+    },
+    "assistant": {
+      "sameExecution": true,
+      "events": 37,
+      "taskState": "in_review"
+    },
+    "assetsMatched": 6,
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://track.pydemia.ai/api/runs/WyJkZW1pYW4tbG9jYWwiLCI4MmY3ZTFmZC04ZmUyLTRkYTEtODMwNy05OWYzZTAxNmY0OGMiXQ/session-relations?kind=managed-children",
+        "status": 401
+      }
+    ],
+    "sourceStates": [
+      {
+        "id": "demian-local",
+        "kind": "demian",
+        "state": "connected"
+      },
+      {
+        "id": "codex-local",
+        "kind": "codex",
+        "state": "connected"
+      },
+      {
+        "id": "projects-native",
+        "kind": "projects",
+        "state": "connected"
+      },
+      {
+        "id": "assistant-native",
+        "kind": "assistant",
+        "state": "connected"
+      },
+      {
+        "id": "desktop",
+        "kind": "desktop",
+        "state": "unsupported"
+      }
+    ],
+    "newModelCalls": 0,
+    "newTaskOrRunCreated": 0,
+    "browserVerifiedSeparately": true,
+    "browser": {
+      "origin": "https://track.pydemia.ai",
+      "normalEntraOwner": true,
+      "nativeConnected": true,
+      "knownRun17": {
+        "metadataCoverageVisible": true,
+        "managedReceipts": 0,
+        "peerRegistryUnconfigured": true
+      },
+      "toolRun212": {
+        "events": 212,
+        "lineage": 9,
+        "tools": 3,
+        "reportedFailures": 1,
+        "nodes": 6,
+        "edges": 7,
+        "nestedGroups": 2,
+        "enterGroup": true,
+        "breadcrumb": true,
+        "toolRequestNotStart": true,
+        "typedEdgeSourceAndSequences": true
+      },
+      "screenshots": [
+        "track-demian-reactivated-relations.jpg",
+        "track-demian-reactivated-trace.jpg"
+      ]
+    }
+  },
+  "fullGoal": {
+    "complete": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "equal acceptance requirements",
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

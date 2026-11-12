@@ -13,8 +13,9 @@ AT-12·AT-18의 managed-child·peer 근거를 원본 세션별 읽기 API로 연
 
 Demian 작업 트리는 `codex/common-sessions`, HEAD `297678ea` 위의 미커밋·
 미추적 구현이다. HEAD만으로 새 API가 재현되지 않는다. 원본 검증 manifest의
-8개 파일을 현재 bytes와 대조해 모두 일치했다. 원본의 운영 배포·가동을
-증명한 것은 아니다. 원본 페이지는 UUID Run ID 순서이며 SSE sequence와 다르다.
+8개 파일을 현재 bytes와 대조해 모두 일치했다. 후속 보존/복구 검사 후444개
+입력을 별도 고정한 API bundle을 기존8080에서 가동했다. 원본 checkout은 수정하지
+않았다. 원본 페이지는 UUID Run ID 순서이며 SSE sequence와 다르다.
 peer 범위는 처리 영수증이 있는 관계다. 원문·주소·계정·credential은 제외한다.
 
 ## Track 조회와 권한
@@ -76,10 +77,12 @@ Map의6node/5edge·3중첩 그룹·내부 탐색·breadcrumb을 다시 확인했
 
 Demian 담당 세션은 READ ONLY 점검으로 기존 DB 대상·컨테이너·볼륨, Run19개,
 지정 Run의 성공·연속17event·산출물 참조, migration 식별자24개를 과거 기록과
-대조했다. 이는 디스크 전체 무결성이나 API 가동의 증명이 아니다. 8080 listener는
-없고 현재 managed-child·peer receipt는 각각0이다.
+대조했다. 초기 이 점검만으로 디스크 전체 무결성이나 API 가동을 증명한 것은
+아니다. 아래 후속 가동과 구분하며 managed-child·peer receipt는 여전히 각각0이다.
 
-다음 단계는 기존 데이터·권한의 보존과 백업 근거를 갖춘 원본 API 가동·새 계약
-배포, 실제 계정 조회, 실제 child/peer 및 교차 기기 업무 대조다. desktop 앱의
+후속 API-only 가동으로 같은19Run·810event가 Track에 중복 없이 다시 연결됐고
+새 metadata GET의 실제 인가된 빈 응답·peer 미구성과 공개 Entra Trace를 대조했다.
+worker·원본 Web·자동 startup 연결, 실제 child/peer 및 교차 기기 업무가 남았다.
+`demian-api-reactivation-verification.json`을 참고한다. desktop 앱의
 위치·계약은 미확정이며 hostname만으로 만들지 않는다. 합성 관계를 운영 실행으로
 계산하지 않아 전체 수용 상태는14/21로 유지한다.

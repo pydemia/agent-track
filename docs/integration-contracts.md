@@ -6,10 +6,14 @@ Demian now has source-level GET metadata contracts for session-scoped managed-ch
 and peer-processing receipts. Track consumes their closed schemas through a live
 Run/Project authorization intersection and encrypted browser continuations, with
 typed Map/Trace nodes and peer context groups. The source manifest's eight files
-match the current Demian working tree; that tree is uncommitted and not deployed.
-The actual API listener remains unavailable. Native receipt rows are currently
+match the Demian working tree; that tree remains uncommitted. A separately frozen
+444-input API bundle was reproduced and activated on the original loopback8080
+after read-only canary and encrypted DB/role recovery verification. Worker and
+optional runtimes remain stopped/unconfigured. Native receipt rows are currently
 zero, so fixture graphs are not production execution evidence. See
 `session-relations-integration.md` and `session-relations-verification.json`.
+The actual API/Track/Entra readback and preservation scope are recorded in
+`demian-api-reactivation-verification.json`.
 
 ## Context-summary consumer contract follow-up (2026-11-12)
 

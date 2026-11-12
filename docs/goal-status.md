@@ -9,17 +9,21 @@
 중첩 그룹을 구현했다. 요청 전후 Run/Projects 교집합·credential 변경·암호화
 continuation을 검증하고, 합성 UI에서3Run·13node/12edge·7그룹과 내부 탐색·
 390px·계정 변경 제거를 대조했다. Windows552개 중543통과·실패0·POSIX9skip,
-typecheck·분리 build 통과. 원본 관계 API는 미배포이고 실제 영수증은0이므로
+typecheck·분리 build 통과. 후속 원본 API 가동에서도 실제 관계 영수증은0이므로
 AT-12/18은 부분 상태다. `session-relations-verification.json` 참고.
 
 Consumer `90ea858`의 Linux/Windows CI 통과 후 Track 운영 재시작·정상 Entra
 UI·기존 Assistant/Projects3중첩 그룹과 실제37event를 재확인했다. 새 원본
 관계 API를 가동한 결과는 아니며 수용 개수는14/21로 유지한다.
 
-현재 Demian DB는 담당 세션의 READ ONLY 점검에서 기존 볼륨·Run19개·기존
-성공 실행17event·migration 식별자24개의 연속성을 확인했다. API8080과 worker는
-가동되지 않았다. 아래 Docker 장애 기록은 과거 진단이며 현재 DB 부재를 뜻하지
-않는다. 디스크 전체 무결성·원본 운영 복구를 완료 처리하지 않는다.
+현재 Demian은 READ ONLY canary와 암호화 DB·role 백업/격리 복원 후 API8080만
+고정444-input bundle로 재가동했다. 같은 source19Run·810event·native17cursor와
+정상 Entra의 실제212event/lineage9/도구3·중첩 그룹2개를 대조했다. 테이블45개·
+sequence1개·role 속성/비밀번호 해시·전체 DDL 및 가동 전후 보안 catalog와 원본
+설정/프로세스를 보존했다. worker는 중단·peer registry 미구성이며 원본 Web 요약
+적용·자동 startup은 후속이다. 아래 Docker 장애 기록은 과거 진단이다. 디스크 전체
+무결성·전체 원본 운영 복구를 완료 처리하지 않는다. `demian-api-reactivation.md`·
+`demian-api-reactivation-verification.json` 참고.
 
 | 요구 | 수용 조건 | 상태·증거 |
 | --- | --- | --- |

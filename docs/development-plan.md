@@ -6,8 +6,10 @@
 최신 증분: 세션별 managed-child/peer metadata consumer와 중첩 peer 문맥 그룹을
 구현했다. 부모 Run·원격 Session이 없는 계약을 그대로 표시하고 실제 Run은
 Session/Run 그룹에만 둔다. Windows552개 중543통과·실패0·9skip, typecheck·
-분리 build와 합성 UI를 검증했다. 원본 API 가동·배포 및 실제 관계 실행은 남아
-있다. `session-relations-integration.md`의 원본 pin·보존 조건과 검증 기록을 따른다.
+분리 build와 합성 UI를 검증했다. 후속으로 원본 DB·role 암호화 백업/격리 복원과
+읽기 전용 canary를 거쳐 API8080만 고정 bundle로 가동했다. 운영의 같은19Run·
+810event·Entra 실제 Trace/그룹을 재확인했다. worker·원본 Web 요약·자동 startup,
+실제 관계 실행은 남았다. `demian-api-reactivation.md`의 보존·대조 기록을 따른다.
 
 ## 제품 책임과 변경된 우선순위
 
@@ -43,7 +45,7 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 | 인증 준비 | `deploy/sso/`, `deploy/track/` | 전용 Entra 앱/credential 준비. Track 공개 로그인·API/SSE·logout·재로그인 검증 |
 | 명령 | `packages/commands/`, `apps/api/commands.ts` | 단일 owner 명시 opt-in cancel·receipt·deadline·unknown·재시작·중복 방지. 실제 native 접수/취소 종료 확인, 재개/재시도 미지원 |
 | 승인 | `packages/approvals/`, `apps/api/permissions.ts`, `RunApprovals.tsx` | native 요청/명시 검토·fingerprint·scope/expiry·receipt/unknown·권한 재확인. 실제 단일 호출 허용/거절/자동 만료·철회/복구·모바일 대조 |
-| 테스트 | `tests/` | 312개 통과, typecheck·build 통과. Node group16개·미연결 Assistant reader21개 포함. 실제 교차 앱·전체 화면 규모 검증과 구별 |
+| 테스트 | `tests/` | 코드 CI552개: Windows543통과/9skip, Ubuntu542통과/10skip·실패0. typecheck·build 통과. 원본 DB 복구·실제 API/Entra 대조는 별도 증거로 구별 |
 
 Node 24 LTS의 `node:sqlite`, TypeScript 5.9.3, React 19, Vite 8을 사용한다.
 한 서버의 journal writer부터 시작한다. 다중 사용자 source 권한 위임은 별도
