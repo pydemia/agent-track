@@ -1,0 +1,11 @@
+.group-workspace { --border: var(--line); --accent: var(--lime); min-width: 0; }
+.group-workspace > section { margin-top: 1.5rem; }
+.group-task-list > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .25rem 1rem; padding: .7rem 0; border-bottom: 1px solid var(--border); }
+.group-task-list small { grid-column: 1 / -1; color: var(--muted); overflow-wrap: anywhere; }
+.group-execution-lane { border-top: 1px solid var(--border); padding: .75rem 0; min-width: 0; }
+.group-lane-toggle { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 1rem; background: transparent; border: 0; padding: .4rem 0; text-align: left; color: inherit; }
+.group-lane-toggle strong { overflow-wrap: anywhere; }
+.group-lane-toggle small { flex-basis: 100%; color: var(--muted); overflow-wrap: anywhere; }
+.group-lane-toggle[aria-expanded="true"] strong { color: var(--accent); }
+.group-lane-detail { padding-top: .75rem; min-width: 0; }
+@media (max-width: 720px) { .group-task-list > div { grid-template-columns: minmax(0, 1fr); } .group-task-list small { grid-column: 1; } }

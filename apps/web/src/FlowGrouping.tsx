@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { GroupWorkspaceContext } from "./group-workspace-context.ts";
 import type { MissionNode, MissionEdge } from "../../../packages/projection/mission-flow.ts";
 import { nativeFlowGroupDefinitions, withTaskBundles, groupsForNodes, type FlowGroupBy, type TaskBundle } from "../../../packages/projection/flow-group-definitions.ts";
 import { projectFlowGroups, type FlowGroupSummary } from "../../../packages/projection/flow-groups.ts";
@@ -13,7 +14,7 @@ const kindNames: Record<string, string> = { project: "Project 범위", task: "Ta
 const basisNames = { native: "원본 소속", binding: "명시적 업무 연결", view: "사용자가 고른 화면 묶음" };
 const countNames: Record<string, string> = { task: "업무", session: "Session", uniqueRun: "관측 Run", "assistant-execution": "Assistant 실행", "assistant-role": "역할", "assistant-runtime-task": "Runtime Task 참조", "assistant-thread": "Thread 참조", "assistant-turn": "Turn 참조", invocation: "호출", tool: "도구", permission: "승인", group: "원본 협업 그룹", member: "협업 멤버", artifact: "산출물", "peer-message": "처리 메시지", "session-relation-receipt": "관계 영수증", "managed-parent-reference": "부모 Run 미확인 참조" };
 const executionStates: Record<string, string> = { queued: "대기", leasing: "할당 중", running: "실행 중", waiting_for_permission: "승인 대기", cancelling: "취소 중", succeeded: "성공 종료", failed: "실패", cancelled: "취소", expired: "만료", interrupted: "중단", unknown: "미확인", unobserved: "미조회 참조", observed: "관측됨", "observed-reference": "관계 참조", registering: "등록 중", publishing: "게시 처리 중", linking: "연결 처리 중", reconciliation_required: "확인 필요", pending: "준비 대기", preparing: "준비 중", awaiting_connection: "연결 대기", awaiting_runtime: "런타임 대기" };
-const groupStatusLabel = (kind: string, status: string): string => {
+export const groupStatusLabel = (kind: string, status: string): string => {
   if (kind === "task") return ({ todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료", cancelled: "취소", bound: "연결 기록 · 현재 상태 미확인", observed: "상태 미확인", "observed-reference": "상태 미확인" } as Record<string, string>)[status] ?? status;
   if (kind === "invocation" || kind === "tool") return ({ started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", unknown: "미확인", ambiguous: "기록 모호" } as Record<string, string>)[status] ?? status;
   return status === "completed" ? "완료 관측" : executionStates[status] ?? status;
@@ -219,12 +220,14 @@ export function FlowGroupControls({ state }: { state: Grouping }) {
 }
 
 export function FlowGroupInspector({ group, state, nodes, edges }: { group: FlowGroupSummary; state: Grouping; nodes: MissionNode[]; edges: MissionEdge[] }) {
+  const workspace = useContext(GroupWorkspaceContext);
   const members = new Set(group.leafKeys);
   const internal = edges.filter(edge => members.has(edge.from) && members.has(edge.to));
   const boundary = edges.filter(edge => members.has(edge.from) !== members.has(edge.to));
   const name = (key: string) => nodes.find(node => node.key === key)?.label ?? key;
   return <><small>{kindNames[group.kind] ?? group.kind} · {basisNames[group.basis]}</small><h3>{group.label}</h3><p>{group.description}</p>
     <div className="flow-group-inspector-actions"><button type="button" onClick={() => state.toggle(group.key)}>{state.collapsed.has(group.key) ? "이 그룹 펼치기" : "이 그룹 접기"}</button><button type="button" onClick={() => state.enter(group.key)}>내부 흐름 보기</button></div>
+    {workspace && <button type="button" className="button-secondary" onClick={() => workspace.open(group, nodes, edges)}>이 묶음을 네 보기의 범위로 선택</button>}
     <p>{summary(group)}</p>
     <FlowGroupContextDetails group={group} state={state} nodes={nodes} edges={edges} />
     <details><summary>소속·관계 근거</summary><dl><div><dt>소속 근거</dt><dd>{basisNames[group.basis]}</dd></div><div><dt>출처</dt><dd>{group.sourceId === "visual-group" ? "현재 화면의 사용자 묶음" : group.sourceId}</dd></div><div><dt>내부 / 경계 관계</dt><dd>{group.internalEdges} / {group.boundaryEdges}건</dd></div><div><dt>의존 관계 순환</dt><dd>{group.cyclicMembers ? `${group.cyclicMembers}개 항목` : "현재 내부 근거에서 발견되지 않음"}</dd></div></dl></details>

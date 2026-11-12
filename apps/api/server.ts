@@ -16,6 +16,7 @@ import { lineageEvidence } from "./lineage.ts";
 import { orchestrationEvidence } from "./orchestration.ts";
 import { authenticateContextReader, contextReaderStamp } from "./context-auth.ts";
 import { contextSummary, parseContextPath } from "./context-summary.ts";
+import { projectTaskMetadata } from "./project-task-metadata.ts";
 import { toolEvidence } from "./tools.ts";
 import { projectDependencies } from "./project-dependencies.ts";
 import { AssistantAuthorityError } from "./assistant-authority.ts";
@@ -229,6 +230,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const page = await projectDependencies(config, sources, user, dependencyRoute[1]!, dependencyRoute[2]!);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, page); return;
+      }
+      const projectTask = /^\/api\/projects\/([a-z0-9_-]{1,80})\/([0-9a-f-]{36})\/tasks\/([0-9a-f-]{36})$/.exec(url.pathname);
+      if (projectTask) {
+        if (request.method !== "GET") { json(response, 405, { error: "read_only_task_metadata" }); return; }
+        if (url.search) { json(response, 400, { error: "invalid_task_metadata_query" }); return; }
+        const value = await projectTaskMetadata(sources, user, projectTask[1]!, projectTask[2]!, projectTask[3]!);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, value); return;
       }
       const projectTasks = /^\/api\/projects\/([a-z0-9_-]+)\/([0-9a-f-]{36})\/tasks$/.exec(url.pathname);
       if (projectTasks) {

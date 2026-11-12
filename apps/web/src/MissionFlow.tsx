@@ -17,6 +17,7 @@ import { useArtifactEvidence } from "./useArtifactEvidence.ts";
 import { ArtifactSupport } from "./ArtifactSupport.tsx";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
+import { groupModelSubset } from "../../../packages/projection/group-workspace-flow.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
@@ -35,9 +36,10 @@ function cardStatus(value: string): "idle" | "running" | "complete" | "error" {
 }
 type Choice = { kind: "node" | "edge"; key: string } | null;
 
-export function MissionFlow({ actor, run, runs, relations, events, mode = "mission", hasMore = false, onSelectRun, onUnauthorized }: {
+export function MissionFlow({ actor, run, runs, relations, events, mode = "mission", hasMore = false, onSelectRun, onUnauthorized, scopeNodeKeys }: {
   actor: string; run: RunView; runs: RunView[]; relations: RelationView[]; events: EventView[];
   mode?: "mission" | "execution"; hasMore?: boolean; onSelectRun: (key: string) => void; onUnauthorized: (reason: string) => void;
+  scopeNodeKeys?: readonly string[];
 }) {
   const [choice, setChoice] = useState<Choice>(null);
   const [fitVersion, setFitVersion] = useState(0);
@@ -46,8 +48,9 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const tools = useToolEvidence(run, onUnauthorized);
   const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
   const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
-  const model = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeLineage(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run,
+  const fullModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeLineage(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run,
     lineage.observations, lineage.hasMore || lineage.capped), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, sessionRelations.evidence, artifacts.evidence]);
+  const model = useMemo(() => scopeNodeKeys ? groupModelSubset(fullModel, scopeNodeKeys) : fullModel, [fullModel, scopeNodeKeys]);
   const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key }), []);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
   const grouping = useFlowGrouping(model, { scopeKey: `${actor}:${run.key}:${mode}`, defaultBy: mode === "execution" ? "run" : run.binding?.taskId ? "task" : "session",
@@ -86,6 +89,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   return <section className="mission-flow" aria-label={mode === "execution" ? "Trace 실행 흐름" : "업무와 Agent 협업 흐름"}>
     <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.fitAll(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
+    {scopeNodeKeys && <p className="graph-legend">선택한 하위 묶음의 관측 항목만 표시합니다. 현재 조회에서 찾지 못한 항목은 전체 실행으로 넓히지 않습니다. 전체 원장 근거는 아래에서 별도로 확인할 수 있습니다.</p>}
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
     <ArtifactSupport value={artifacts} />
@@ -101,7 +105,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
         onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
         height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" readOnly />
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
-        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : selectedNode ? <><small>{kinds[selectedNode.kind] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
+        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[selectedNode.kind] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
           <dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
           {selectedNode.sequences.length > 0 && <p className="flow-evidence">근거 seq {selectedNode.sequences.join(", ")}</p>}
           {selectedNode.runKey && selectedNode.runKey !== run.key && <button className="button-secondary" onClick={() => onSelectRun(selectedNode.runKey!)}>이 Run의 실행 근거 보기</button>}

@@ -41,6 +41,7 @@ export function projectDependenciesFlow(page: ProjectDependencyPage, runs: RunVi
     const previous = nodes.get(key);
     if (previous) return previous;
     const node: MissionNode = { key, id: t.id, kind: "task", sourceId: page.sourceId,
+      taskRef: { sourceId: page.sourceId, projectId: t.projectId, taskId: t.id },
       label: t.title || t.id, status: t.state, description: `현재 원본 revision ${t.revision}`,
       sequences: [], details: [
         { label: "Task ID", value: t.id }, { label: "Project ID", value: t.projectId },

@@ -182,3 +182,17 @@ API/Web/gate/container를 보존했다. label-owned 검사 DB·tmpfs·임시 cre
 문의했다. 배포·binding 변경이나 worker 기동을 요청한 것은 아니다. 다음은
 현재 소유자 메타데이터 대조, 실제 대상의 새 보존/rollback 검사, 명시 QA 업무의
 native 실행·group UI 대조다. 전체 수용 완료14/21은 유지한다.
+
+2026-11-13 소유자 회신 대조: Demian·Persona Root·gateway 개발 세션의 읽기
+전용 확인에서 현재 로컬 executor credential/binding이 provision된 근거는
+확인되지 않았다. gateway 담당자가 canonical `public.work_runtime_bindings`
+전체0행·활성0행, `PERSONA_DEMIAN_RUNTIME_CONFIG_FILE` 배치 미확인과 native
+launcher의 `DEMIAN_WORK_RUNTIME_CONFIG_FILE` 미주입을 보고했다. 기존 API
+token/reader key·Workspace/Session·도메인을 executor tuple로 대체하지 않는다.
+이는 해당 로컬 호스트와 조회 시점의 결과이며 다른 온프레미스 호스트의 부재를
+뜻하지 않는다. 원본 worker profile은 native CLI의 명시적 개인 OAuth home을
+사용하므로 QA HOME 변경만으로 인증을 격리할 수 없다. 실제 provision에는
+현재 authority/별도 자격 증명·Root 소유 DDL 전환·새 backup/rollback guard와
+provider 실행 가능성 확인이 선행되어야 한다. 원본 worker·DB·OAuth home은
+변경하지 않았다. UI의 공통 그룹 범위 구현을 이 provision 또는 실제 협업 실행
+완료로 계산하지 않는다.

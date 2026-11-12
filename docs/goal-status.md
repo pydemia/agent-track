@@ -1,5 +1,16 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 공통 묶음 후속: 선택한 그룹을 Track·Trail·Trace·Map의 공통 범위로
+전달하고 현재 업무 metadata·실행별 lane·의존 관계 Map에 연결했다. 하위 역할의
+명시된 Run은 시각적 소속과 구분한 경계 문맥이며 current grant/operation을
+재검사한다. 합성 UI에서 업무2·Assistant2·관련 Run4의 네 보기 유지, 하위 역할2·
+관련 Run2의4node/2edge·키보드 관계 상세·390px·철회 후 이름/구성 제거와 복원 후
+자동 재노출 차단을 확인했다. Windows717개 중708통과·환경skip9·실패0과
+typecheck/분리 build를 통과했다. 브라우저 screenshot은 capture timeout으로
+확보하지 못했고 운영 반영·실제 조직화 업무·저장 보기는 미완료다.
+`group-workspace-verification.json` 참고. 전체14/21(66.7%)·ETA 산정 불가·신뢰도
+낮음을 유지한다.
+
 2026-11-13 admission/pin 후속: 격리 native `e458d12`에 원본 권한·Run·receipt와
 같이 commit/rollback하는 명시적 QA 등록과 모든 QA worker의 runtime pin 강제를
 구현했다. 관련189개 검사와19,599파일/5link closure의 부작용 없는 준비 검사를

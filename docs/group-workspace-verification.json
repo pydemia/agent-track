@@ -1,0 +1,48 @@
+{
+  "dateKst": "2026-11-13",
+  "requirement": "AT-12-G04/G05 shared source-qualified group scope across Track, Trail, Trace and Map",
+  "implementationBase": "63f1b9c3aff90dadb7e36958d7f3da13e519841b",
+  "scope": "Local implementation and synthetic HTTP/browser verification; not production or real cross-app execution",
+  "implemented": [
+    "Ephemeral group selection keeps typed Task, observed Run and Assistant execution anchors across all four views",
+    "Task metadata GET revalidates native Projects grants before/after read and actor after await",
+    "Related native Runs require an explicit selected role edge and a currently authorized source/execution/role/operation receipt",
+    "Visual ownership stays exclusive while role-to-Run boundary context remains navigable",
+    "Run histories keep independent sequence and pagination; no global timestamp causality or automatic Task completion",
+    "Detailed Run subgroups keep exact node/event scope without whole-Run fallback",
+    "Detailed Assistant role rows and native links stay selected; unattributed execution history is omitted with explanation",
+    "Permission loss invalidates the whole selected scope and removes its title and members without dashboard fallback",
+    "Bounded reads, body caps, hard deadlines, cancellation/draining and non-sensitive error messages"
+  ],
+  "localChecks": {
+    "typecheck": "pass",
+    "tests": { "total": 717, "pass": 708, "fail": 0, "skipped": 9, "skipReason": "Existing POSIX-only checks on Windows" },
+    "build": "pass, isolated .runtime output; existing React Flow use-client directive warning",
+    "diffWhitespace": "pass",
+    "independentReview": "One subgroup scope-widening finding fixed; selected role projection and boundary-context regression coverage added"
+  },
+  "syntheticBrowser": {
+    "modelCalls": 0,
+    "taskBundle": { "tasks": 2, "assistantExecutions": 2, "relatedRuns": 4, "fourViewsRetainScope": true },
+    "nestedWorkPackage": { "selectedRoles": 2, "assistantExecutions": 1, "relatedRuns": 2, "graphNodes": 4, "graphEdges": 2 },
+    "checks": [
+      "Create a view Task bundle and choose it as shared scope",
+      "Track/Trail/Trace/Map preserve the same two Tasks, two Assistant executions and four actual fixture Runs",
+      "Run Trace renders four canonical events and original tool failure; Trail separates status, tool and artifact evidence",
+      "Keyboard-select nested Work package and role-to-Run edge; inspector keeps actual operation and endpoint evidence",
+      "Nested role table omits peers and explains absence of role-attributed execution history",
+      "390px viewport document width <= viewport; temporary override reset",
+      "Projects grant revocation clears the selected group title and members; grant restoration does not resurrect scope",
+      "Private fixture response/thread/turn markers absent from selected detail"
+    ],
+    "screenshot": "Unverified: CDP Page.captureScreenshot timed out; no screenshot artifact claimed",
+    "cleanup": "Owned QA process stopped and four synthetic credential files plus owned temporary directory removed"
+  },
+  "remaining": [
+    "Remote CI and coordinated backend/frontend production publication",
+    "Current Entra production browser verification",
+    "Real native managed-child/peer and cross-app/cross-device organized work",
+    "Account-scoped saved views and restoration contract"
+  ],
+  "overallGoal": { "completed": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "Not estimable", "confidence": "Low", "premise": "Real execution provision, original app and additional-device evidence remain outstanding" }
+}

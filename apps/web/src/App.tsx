@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentProps, CSSProperties, ReactNode } from "react";
+import type { ComponentProps, ContextType, CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
 import { RunBindingPanel } from "./RunBindingPanel.tsx";
 import { RunApprovals } from "./RunApprovals.tsx";
@@ -15,10 +15,13 @@ import { removeDeniedTaskContext, removeDeniedTaskQuery, type TaskMapContext } f
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
 import { useAssistantExecutions, assistantMatches } from "./useAssistantExecutions.ts";
 import type { AssistantSelection } from "./AssistantWorkspace.tsx";
+import { GroupWorkspaceContext } from "./group-workspace-context.ts";
+import { createGroupWorkspaceScope, resolveGroupWorkspaceScope, type GroupWorkspaceScope } from "../../../packages/projection/group-workspace-scope.ts";
 
 const LazyMissionFlow = lazy(() => import("./MissionFlow.tsx").then((module) => ({ default: module.MissionFlow })));
 const LazyTaskDependencyMap = lazy(() => import("./TaskDependencyMap.tsx").then((module) => ({ default: module.TaskDependencyMap })));
 const LazyAssistantWorkspace = lazy(() => import("./AssistantWorkspace.tsx").then(module => ({ default: module.AssistantWorkspace })));
+const LazyGroupWorkspace = lazy(() => import("./GroupWorkspace.tsx").then(module => ({ default: module.GroupWorkspace })));
 
 type Tab = "track" | "trail" | "trace" | "map";
 type Health = "checking" | "ok" | "unavailable";
@@ -115,6 +118,7 @@ export function App() {
   const [selectedKey, setSelectedKey] = useState(initial.current.selected);
   const [assistantSelection, setAssistantSelection] = useState<AssistantSelection | null>(null);
   const [taskMap, setTaskMap] = useState<TaskMapContext | null>(initial.current.taskMap);
+  const [groupWorkspace, setGroupWorkspace] = useState<{ scope: GroupWorkspaceScope } | { unavailable: true } | null>(null);
   const [filters, setFilters] = useState<Filters>(initial.current.filters);
   const [events, setEvents] = useState<EventView[]>([]);
   const [eventsError, setEventsError] = useState("");
@@ -143,7 +147,7 @@ export function App() {
   const pendingTail = useRef(false);
   const eventController = useRef<AbortController | null>(null);
   const handledEventsRefresh = useRef(0);
-  const run = useMemo(() => snapshot?.runs.find((item) => item.key === selectedKey) ?? null, [snapshot, selectedKey]);
+  const run = useMemo(() => groupWorkspace ? null : snapshot?.runs.find((item) => item.key === selectedKey) ?? null, [snapshot, selectedKey, groupWorkspace]);
 
   useEffect(() => {
     const media = matchMedia("(max-width: 720px)");
@@ -173,6 +177,7 @@ export function App() {
     setSelectedKey("");
     setAssistantSelection(null);
     setTaskMap(null);
+    setGroupWorkspace(null);
     setPageError(reason);
     setStreamState("disconnected");
     const params = new URLSearchParams(location.search);
@@ -391,6 +396,22 @@ export function App() {
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
   const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); }, accessibleRuns);
+  const groupAuthority = useRef({ actor: snapshot?.user ?? "", runs: accessibleRuns, sources: snapshot?.sources ?? [], executions: assistant.executions });
+  groupAuthority.current = { actor: snapshot?.user ?? "", runs: accessibleRuns, sources: snapshot?.sources ?? [], executions: assistant.executions };
+  const groupSelection = groupWorkspace && "scope" in groupWorkspace ? groupWorkspace.scope : null;
+  const resolvedGroup = groupSelection && snapshot ? resolveGroupWorkspaceScope(groupSelection, snapshot.user, accessibleRuns, snapshot.sources, assistant.executions) : null;
+  const invalidateGroup = useCallback(() => setGroupWorkspace({ unavailable: true }), []);
+  const closeGroup = useCallback(() => setGroupWorkspace(null), []);
+  const openGroup: NonNullable<ContextType<typeof GroupWorkspaceContext>>["open"] = useCallback((group, nodes, edges) => {
+    const current = groupAuthority.current;
+    const scope = createGroupWorkspaceScope(current.actor, group, nodes, edges);
+    if (!scope || !resolveGroupWorkspaceScope(scope, current.actor, current.runs, current.sources, current.executions)) { invalidateGroup(); return; }
+    eventGeneration.current += 1; eventController.current?.abort(); eventController.current = null;
+    eventInFlight.current = false; pendingTail.current = false; eventRunKey.current = "";
+    setEvents([]); setEventsError(""); setHasMore(false);
+    setGroupWorkspace({ scope });
+  }, [invalidateGroup]);
+  useEffect(() => { if (groupSelection && !resolvedGroup) invalidateGroup(); }, [groupSelection, Boolean(resolvedGroup), invalidateGroup]);
   const selectAssistantNativeRun = (key: string) => {
     const target = accessibleRuns.find(run => run.key === key && run.sourceState === "connected" && !run.stale);
     if (!target) return;
@@ -485,7 +506,7 @@ export function App() {
       : "전체 프로젝트";
   const sidebarExpanded = isMobile ? sidebarOpen : !sidebarCollapsed;
 
-  return <div className="app" style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
+  return <GroupWorkspaceContext.Provider value={{ open: openGroup }}><div className="app" style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
     <header className="topbar">
       <button className="sidebar-toggle" ref={sidebarToggle} aria-controls="context-sidebar" aria-label={sidebarExpanded ? "문맥 사이드바 닫기" : "문맥 사이드바 열기"} aria-expanded={sidebarExpanded} title={sidebarExpanded ? "사이드바 접기" : "사이드바 펼치기"} onClick={toggleSidebar}>{sidebarExpanded ? "‹" : "☰"}</button>
       <a className="brand" href="/" aria-label="Agent Track 홈"><span className="brand-mark">A</span><span>Agent <b>Track</b></span></a>
@@ -519,15 +540,22 @@ export function App() {
 
         <div className="toolbar">
           <nav className="tabs" aria-label="실행 관측 화면">{tabs.map((item) => <button key={item.id} className={tab === item.id ? "active" : ""} aria-current={tab === item.id ? "page" : undefined} onClick={() => setLocation({ tab: item.id })}>{item.label}</button>)}</nav>
-          <div className="toolbar-state"><span>Run {visibleRuns.length}개 · Assistant {visibleAssistantCount}개</span><span className={`live-indicator ${streamState}`}>{streamState === "connected" ? "LIVE" : "PAUSED"}</span></div>
+          <div className="toolbar-state"><span>{groupWorkspace ? `선택 묶음 · Run ${resolvedGroup?.runs.length ?? 0}개 · Assistant ${resolvedGroup?.executions.length ?? 0}개` : `Run ${visibleRuns.length}개 · Assistant ${visibleAssistantCount}개`}</span><span className={`live-indicator ${streamState}`}>{streamState === "connected" ? "LIVE" : "PAUSED"}</span></div>
         </div>
 
-        <form className="filters" aria-label="실행 필터" onSubmit={(event) => event.preventDefault()}>
+        {!groupWorkspace && <form className="filters" aria-label="실행 필터" onSubmit={(event) => event.preventDefault()}>
           <label>프로젝트 / 저장소<select aria-label="프로젝트 / 저장소" value={filters.project} onChange={(event) => setLocation({ filters: { ...filters, project: event.target.value } }, true)}><option value="">모든 프로젝트와 저장소</option>{projectOptions.bindings.length > 0 && <optgroup label="Projects 프로젝트">{projectOptions.bindings.map((project) => <option key={project.key} value={project.key}>{project.label}</option>)}</optgroup>}{projectOptions.workspaces.length > 0 && <optgroup label="업무 미연결 저장소">{projectOptions.workspaces.map((workspace) => <option key={workspace.key} value={workspace.key}>{workspace.label}</option>)}</optgroup>}</select></label>
           <label>출처<select aria-label="출처" value={filters.source} onChange={(event) => setLocation({ filters: { ...filters, source: event.target.value } }, true)}><option value="">모든 출처</option>{snapshot?.sources.map((item) => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
           <label>상태<select aria-label="상태" value={filters.status} onChange={(event) => setLocation({ filters: { ...filters, status: event.target.value } }, true)}><option value="">모든 상태</option>{Object.entries(statusNames).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label className="search-label">검색<input aria-label="검색" type="search" value={filters.q} placeholder="실행·업무·출처 검색" onChange={(event) => setLocation({ filters: { ...filters, q: event.target.value } }, true)} /></label>
-        </form>
+        </form>}
+
+        {groupWorkspace ? (snapshot && groupSelection && resolvedGroup ? <Suspense fallback={<p role="status">묶음의 현재 범위를 확인하는 중…</p>}>
+          <LazyGroupWorkspace key={JSON.stringify([snapshot.user, groupSelection.key, groupSelection.nodeKeys])} actor={snapshot.user} scope={groupSelection}
+            runs={resolvedGroup.runs} executions={resolvedGroup.executions} sources={snapshot.sources} relations={accessibleRelations} mode={tab}
+            onClose={closeGroup} onUnavailable={invalidateGroup} onUnauthorized={clearPrivateData} onView={view => setLocation({ tab: view })}
+            onTaskMap={(sourceId, projectId, taskId) => { closeGroup(); setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } }); }} />
+        </Suspense> : <section className="empty-state compact" aria-label="묶음 범위 확인 불가"><h2>이 묶음의 현재 범위를 확인할 수 없습니다</h2><p>이전 이름과 구성은 지웠습니다. 다시 접근 가능한 범위에서 묶음을 선택하세요.</p><button type="button" className="button-secondary" onClick={closeGroup}>묶음 범위 해제</button></section>) : <>
 
         {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onMapTask={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
         {snapshot && !(tab === "map" && taskMap) && snapshot.sources.some(source => source.kind === "assistant" && source.state !== "unsupported") && <Suspense fallback={<p role="status">Assistant 원본 실행 화면을 불러오는 중…</p>}>
@@ -550,10 +578,11 @@ export function App() {
             </section>
             {run && (tab === "map" || tab === "trace" ? <details className="flow-run-controls"><summary>선택한 Run의 실행 제어와 원본 상세</summary><RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} /></details> : <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />)}
           </div>}
+        </>}
         <footer className="page-footer">상태, 관계, 경로는 수집된 근거만 반영합니다. 실행 종료·에이전트 보고·검증·Projects 수용은 각각 별도 정보입니다.</footer>
       </main>
     </div>
-  </div>;
+  </div></GroupWorkspaceContext.Provider>;
 }
 
 function MissionFlow(props: ComponentProps<typeof LazyMissionFlow>) {

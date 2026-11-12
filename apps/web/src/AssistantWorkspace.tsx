@@ -6,6 +6,7 @@ import type { AssistantExecutionEvent } from "../../../packages/contracts/assist
 import { assistantFlow, authorizedAssistantLinks } from "../../../packages/projection/assistant-flow.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
+import { groupAssistantRoles, groupAssistantFlowSubset } from "../../../packages/projection/group-workspace-flow.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import { AssistantWebError, fetchAssistantExecution, fetchAssistantEvents } from "./assistant-client.ts";
 import { assistantMatches, type useAssistantExecutions } from "./useAssistantExecutions.ts";
@@ -65,11 +66,13 @@ export function AssistantWorkspace({ mode, sources, runs = [], collection, selec
   </section>;
 }
 
-function AssistantSelectionView({ mode, initial, sources, runs, onSelect, onTaskMap, onSelectRun, onUnauthorized, onUnavailable }: {
+export function AssistantSelectionView({ mode, initial, sources, runs, onSelect, onTaskMap, onSelectRun, onUnauthorized, onUnavailable, scopeNodeKeys, taskMapLabel }: {
   mode: "track" | "trail" | "trace" | "map"; initial: AssistantExecutionView; sources: SourceView[];
   onSelect: (selection: AssistantSelection | null) => void; onTaskMap: (sourceId: string, projectId: string, taskId: string) => void;
   onUnauthorized: (reason: string) => void; onUnavailable: () => void;
   runs: RunView[]; onSelectRun?: (key: string) => void;
+  scopeNodeKeys?: readonly string[];
+  taskMapLabel?: string;
 }) {
   const [detail, setDetail] = useState<AssistantExecutionView | null>(null);
   const [events, setEvents] = useState<AssistantExecutionEvent[]>([]);
@@ -79,8 +82,9 @@ function AssistantSelectionView({ mode, initial, sources, runs, onSelect, onTask
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [more, setMore] = useState(0);
-  const showEvents = mode === "trail" || mode === "trace";
-  const nativeLinks = detail ? authorizedAssistantLinks(detail, sources, runs) : [];
+  const showEvents = !scopeNodeKeys && (mode === "trail" || mode === "trace");
+  const scopedRoles = detail ? groupAssistantRoles(detail, scopeNodeKeys) : [];
+  const nativeLinks = detail ? authorizedAssistantLinks(detail, sources, runs).filter(link => scopedRoles.some(role => role.id === link.roleId)) : [];
   useEffect(() => {
     const controller = new AbortController();
     setBusy(true); setDetail(null); setEvents([]); setCursor("0"); setHasMore(false); setError(""); setMore(0);
@@ -121,29 +125,31 @@ function AssistantSelectionView({ mode, initial, sources, runs, onSelect, onTask
     return () => controller.abort();
   }, [more]);
   return <section className="assistant-selected" aria-label="선택한 Assistant 실행 상세">
-    <div className="section-heading"><h3>원본 WorkExecution 상세</h3><button className="text-button" onClick={() => setRefresh(value => value + 1)}>상세 다시 조회</button></div>
+    <div className="section-heading"><h3>{scopeNodeKeys ? "선택한 하위 역할 · 부모 WorkExecution 문맥" : "원본 WorkExecution 상세"}</h3><button className="text-button" onClick={() => setRefresh(value => value + 1)}>상세 다시 조회</button></div>
+    {scopeNodeKeys && <p className="graph-legend">아래 실행·업무 상태는 부모 실행의 문맥입니다. 역할 표와 실행 연결은 선택한 하위 범위만 표시합니다. 원본 상태 이력에는 역할별 귀속이 없어 이 범위의 이력으로 표시하지 않습니다.</p>}
     {busy && <p role="status" className="graph-legend">현재 원본 권한과 실행을 확인하고 있습니다.</p>}{error && <p role="alert" className="inline-error">{error}</p>}
     {detail && <><dl className="assistant-summary"><div><dt>Execution ID</dt><dd>{detail.native.id}</dd></div><div><dt>Assistant 실행 상태</dt><dd>{states[detail.native.state] ?? detail.native.state} · r{detail.native.revision}</dd></div>
       <div><dt>업무 연결 당시</dt><dd>{detail.native.task ? `${detail.native.task.state} · r${detail.native.task.revision} · ${time(detail.native.task.observedAt)}` : "연결 없음"}</dd></div>
-      <div><dt>현재 Projects 업무</dt><dd>{detail.currentTask ? <>{states[detail.currentTask.task.state] ?? detail.currentTask.task.state} · r{detail.currentTask.task.revision} <button className="text-button" onClick={() => onTaskMap(detail.currentTask!.projectsSourceId, detail.currentTask!.project.id, detail.currentTask!.task.id)}>업무·실행 통합 Map</button></> : "원본 연결 없음"}</dd></div></dl>
+      <div><dt>현재 Projects 업무</dt><dd>{detail.currentTask ? <>{states[detail.currentTask.task.state] ?? detail.currentTask.task.state} · r{detail.currentTask.task.revision} <button className="text-button" onClick={() => onTaskMap(detail.currentTask!.projectsSourceId, detail.currentTask!.project.id, detail.currentTask!.task.id)}>{taskMapLabel ?? "업무·실행 통합 Map"}</button></> : "원본 연결 없음"}</dd></div></dl>
       {detail.demianLinks && <section aria-label="Demian 원본 실행 연결"><h4>Demian 원본 실행</h4><p className="graph-legend">{nativeLinks.length ? detail.demianLinks.detail : "현재 접근 가능한 Demian 실행 연결을 확인하지 못했습니다. 미구성·원본 참조 없음·철회·단절은 전체 실행이 없다는 뜻이 아닙니다."}</p>
         {nativeLinks.map(link => <div key={link.roleId} className="assistant-window-status"><span>{detail.native.roles.find(role => role.id === link.roleId)?.label} → {states[link.status] ?? link.status} · Run {link.runId}</span>
           {onSelectRun && <button className="text-button" onClick={() => onSelectRun(link.runKey)}>Demian Trace의 호출·도구·산출물 보기</button>}</div>)}</section>}
-      <div className="table-wrap"><table><caption>원본 역할별 시간 관측 · 외부 runtime 시각은 미검증이며 측정 시간으로 합산하지 않습니다.</caption><thead><tr><th>역할 · Agent</th><th>책임</th><th>상태</th><th>시도</th><th>관측 시간</th></tr></thead><tbody>{detail.native.roles.map(role => <tr key={role.id}><td>{role.label}<small>{role.teamLabel} · {role.agentLabel}</small></td><td>{role.responsibility}</td><td>{states[role.state] ?? role.state}</td><td>{role.attempts}</td><td>{role.observation.seconds === null ? "미확인" : `${role.observation.seconds}초`}{!role.observation.timingComplete && " · 부분 관측"}</td></tr>)}</tbody></table></div>
+      <div className="table-wrap"><table><caption>원본 역할별 시간 관측 · 외부 runtime 시각은 미검증이며 측정 시간으로 합산하지 않습니다.</caption><thead><tr><th>역할 · Agent</th><th>책임</th><th>상태</th><th>시도</th><th>관측 시간</th></tr></thead><tbody>{scopedRoles.map(role => <tr key={role.id}><td>{role.label}<small>{role.teamLabel} · {role.agentLabel}</small></td><td>{role.responsibility}</td><td>{states[role.state] ?? role.state}</td><td>{role.attempts}</td><td>{role.observation.seconds === null ? "미확인" : `${role.observation.seconds}초`}{!role.observation.timingComplete && " · 부분 관측"}</td></tr>)}</tbody></table></div>
       {showEvents && <section className="assistant-events" aria-label="Assistant 원본 상태 이력"><h4>{mode === "trail" ? "상태 경과" : "실행 상태 Trace"}</h4><p className="graph-legend">원본 execution sequence · 현재 계약은 상태 metadata만 제공합니다. 도구 호출·산출물 내용은 이 이력에 포함되지 않습니다.</p>
         {events.length ? <ol>{events.map(event => <li key={event.sequence}><strong>#{event.sequence} · {states[event.state] ?? event.state}</strong><span>{time(event.occurredAt)} · 실행 r{event.revision}{event.errorCode ? ` · ${event.errorCode}` : ""}</span></li>)}</ol> : <p className="empty-inline">현재 조회 창에 원본 상태 이벤트가 없습니다.</p>}
         {hasMore && <button className="button-secondary" disabled={busy || events.length >= 500} onClick={() => setMore(value => value + 1)}>다음 상태 이력</button>}
         {hasMore && events.length >= 500 && <p className="graph-legend">현재 화면의 500개 상태 이력 한도에 도달했습니다.</p>}
         <p className="graph-legend">관측 cursor {cursor} · {events.length}개 · 전체 기록을 보장하지 않습니다.</p></section>}
-      {mode !== "trail" && <AssistantFlowMap entries={[detail]} sources={sources} runs={runs} onSelect={onSelect} onTaskMap={onTaskMap} {...(onSelectRun ? { onSelectRun } : {})} />}
+      {mode !== "trail" && <AssistantFlowMap entries={[detail]} sources={sources} runs={runs} onSelect={onSelect} onTaskMap={onTaskMap} {...(onSelectRun ? { onSelectRun } : {})} {...(scopeNodeKeys ? { scopeNodeKeys } : {})} />}
     </>}
   </section>;
 }
 
-export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTaskMap, onSelectRun }: { entries: AssistantExecutionView[]; sources: SourceView[];
+export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTaskMap, onSelectRun, scopeNodeKeys }: { entries: AssistantExecutionView[]; sources: SourceView[];
   onSelect: (selection: AssistantSelection | null) => void; onTaskMap: (sourceId: string, projectId: string, taskId: string) => void;
-  runs?: RunView[]; onSelectRun?: (key: string) => void }) {
-  const model = useMemo(() => assistantFlow(entries, sources, { maxNodes: 500, runs }), [entries, sources, runs]);
+  runs?: RunView[]; onSelectRun?: (key: string) => void; scopeNodeKeys?: readonly string[] }) {
+  const fullModel = useMemo(() => assistantFlow(entries, sources, { maxNodes: 500, runs }), [entries, sources, runs]);
+  const model = useMemo(() => scopeNodeKeys ? groupAssistantFlowSubset(fullModel, scopeNodeKeys) : fullModel, [fullModel, scopeNodeKeys]);
   const [choice, setChoice] = useState<{ kind: "node" | "edge"; key: string } | null>(null);
   const [fit, setFit] = useState(0);
   const chooseNode = (key: string) => setChoice({ kind: "node", key });
@@ -169,11 +175,12 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
   return <section className="mission-flow" aria-label="Assistant 업무와 역할 흐름">
     <div className="flow-semantics"><span>원본 업무 연결 → WorkExecution → 역할 → Runtime 참조</span><span>참조선은 실행 의존 관계가 아닙니다.</span><button className="text-button" onClick={() => { grouping.fitAll(); setFit(value => value + 1); }}>전체 흐름 맞춤</button></div>
     <p className="graph-legend">현재 조회 창의 {model.nodes.length} nodes · {model.edges.length} edges{model.hiddenNodes ? ` · 표시 한도로 ${model.hiddenNodes}개 생략` : ""}. Demian 연결선은 현재 원본 접근과 operation 영수증을 대조한 경우에 표시합니다. 일반 runtime 참조는 실제 Run으로 변환하지 않습니다.</p>
+    {scopeNodeKeys && <p className="graph-legend">선택한 역할과 명시적으로 연결된 Demian Run을 경계 문맥으로 함께 표시합니다. Run의 전체 실행 근거는 아래 참여 실행에서 따로 펼칩니다.</p>}
     <FlowGroupControls state={grouping} />
     <div className="mission-flow-workspace"><FlowCanvas key={`${fit}:${grouping.topology}`} label="Assistant 실행과 역할" nodes={graph.nodes} edges={graph.edges} showMiniMap readOnly
       height="clamp(500px, 65vh, 700px)" onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={changeNodes} onEdgesChange={changeEdges} onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter}
       {...grouping.canvasProps} />
-      <aside className="flow-inspector" aria-label="Assistant node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={model.nodes} edges={model.edges} />
+      <aside className="flow-inspector" aria-label="Assistant node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} />
         : node ? <><small>{kinds[node.kind] ?? node.kind}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map((item, index) => <div key={`${item.label}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
           {executionId && <button className="button-secondary" onClick={() => onSelect({ sourceId: node.sourceId, executionId })}>이 실행의 원본 상세 보기</button>}
           {node.runKey && onSelectRun && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Demian Trace의 호출·도구·산출물 보기</button>}

@@ -114,6 +114,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
           "현재 Task ID": current.task.id, "현재 Task revision": current.task.revision,
           "현재 Task 상태": current.task.state, "현재 Task 관측 시각": current.observedAt } : {}),
       }));
+    execution.assistantExecutionRef = { sourceId: view.sourceId, executionId: native.id };
     if (current) {
       const task = add(current.projectsSourceId, "task", current.task.id, current.task.title || current.task.id,
         current.task.state, "현재 Projects 원본 업무 상태 · Assistant 실행 상태와 별도", details({
@@ -121,6 +122,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
           "현재 원본 revision": current.task.revision, "현재 원본 상태": current.task.state,
           "현재 관측 시각": current.observedAt, "테스트 필요": current.task.requiresTest,
         }), dependencyEntityKey(current.projectsSourceId, "task", current.task.id));
+      task.taskRef = { sourceId: current.projectsSourceId, projectId: current.project.id, taskId: current.task.id };
       edge(task, execution, "assistant-task-binding", "원본 업무 연결",
         `WorkExecution.task; Project ID: ${current.project.id}; Task ID: ${current.task.id}; Projects Source ID: ${current.projectsSourceId}; 현재 식별자·권한 대조; 실행 의존·업무 완료 근거 아님`);
     }
@@ -137,6 +139,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
           "시간 관측 완전성": role.observation.timingComplete, "시간 관측 근거": role.observation.basis,
           "Runtime Task ID": role.runtime.taskId, "Thread ID": role.runtime.threadId, "Turn ID": role.runtime.turnId,
         }), assistantRoleKey(view.sourceId, native.id, role.id));
+      roleNode.assistantExecutionRef = { sourceId: view.sourceId, executionId: native.id };
       edge(execution, roleNode, "assistant-role", "원본 역할",
         `WorkExecution.roles; Execution ID: ${native.id}; Role ID: ${role.id}; 명시적 실행 내 역할 소속`);
       for (const [kind, id, label, field] of [
@@ -170,6 +173,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
       edge(role, runNode, "assistant-demian-runtime", "Demian 원본 실행",
         "원본 역할과 실제 Demian 실행의 명시된 연결");
       const connection = edges.get(JSON.stringify([runNode.sourceId, "assistant-demian-runtime", role.key, runNode.key]))!;
+      connection.assistantRunRef = { sourceId: view.sourceId, executionId: native.id, roleId: link.roleId, operationId: link.operationId };
       connection.detail = [
         `「${role.label}」의 원본 Demian 실행입니다. 현재 업무·Assistant·Demian 접근과 원본 operation 영수증을 대조했습니다.`,
         `Assistant 출처: ${view.sourceLabel} (${view.sourceId})`, `Assistant 실행: ${native.id}`, `역할 ID: ${link.roleId}`,

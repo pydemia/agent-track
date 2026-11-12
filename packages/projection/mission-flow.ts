@@ -10,6 +10,8 @@ export interface MissionNode {
   description: string;
   sourceId: string;
   runKey?: string;
+  taskRef?: { sourceId: string; projectId: string; taskId: string };
+  assistantExecutionRef?: { sourceId: string; executionId: string };
   callId?: string;
   invocationId?: string;
   details: Array<{ label: string; value: string }>;
@@ -25,6 +27,7 @@ export interface MissionEdge {
   detail: string;
   sourceId: string;
   sequences: string[];
+  assistantRunRef?: { sourceId: string; executionId: string; roleId: string; operationId: string };
 }
 
 export interface MissionFlowOptions { mode?: "mission" | "execution"; maxNodes?: number; hasMoreEvents?: boolean; includeExecution?: boolean }
@@ -98,6 +101,7 @@ export function missionFlow(
   const binding = selected.binding;
   if (mode === "mission" && binding?.taskId && binding.provenance === "operator") {
     taskNode = getNode(binding.projectSourceId, "task", binding.taskId, binding.taskTitle || binding.taskId, "bound", "선택 실행의 명시적 작업 연결");
+    taskNode.taskRef = { sourceId: binding.projectSourceId, projectId: binding.projectId, taskId: binding.taskId };
     addDetail(taskNode, "프로젝트 ID", binding.projectId); addDetail(taskNode, "프로젝트 출처", binding.projectSourceId);
     addDetail(taskNode, "업무 ID", binding.taskId); addDetail(taskNode, "연결 당시 업무 revision", binding.taskRevision);
     addDetail(taskNode, "바인딩", binding.provenance);
