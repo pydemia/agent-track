@@ -1,4 +1,4 @@
-import type { MissionEdge, MissionNode } from "./mission-flow.ts";
+import { missionUnitKind, type MissionEdge, type MissionNode } from "./mission-flow.ts";
 
 export const flowGroupKey = (kind: string, key: string) => JSON.stringify(["flow-container", kind, key]);
 
@@ -144,7 +144,8 @@ export function projectFlowGroups(
     const edgeIndices = new Set<number>();
     for (const key of leafKeys) {
       const node = native.get(key)!;
-      counts[node.kind] = (counts[node.kind] ?? 0) + 1;
+      const unitKind = missionUnitKind(node);
+      counts[unitKind] = (counts[unitKind] ?? 0) + 1;
       statusCounts[node.status] = (statusCounts[node.status] ?? 0) + 1;
       if (node.kind === "run" && node.runKey) runs.add(JSON.stringify([node.sourceId, node.runKey]));
       for (const edgeIndex of incident.get(key) ?? []) edgeIndices.add(edgeIndex);

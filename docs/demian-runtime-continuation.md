@@ -196,3 +196,29 @@ token/reader key·Workspace/Session·도메인을 executor tuple로 대체하지
 provider 실행 가능성 확인이 선행되어야 한다. 원본 worker·DB·OAuth home은
 변경하지 않았다. UI의 공통 그룹 범위 구현을 이 provision 또는 실제 협업 실행
 완료로 계산하지 않는다.
+
+## 실제 Codex HTTP 관리형 child QA
+
+2026-11-13 기존 `codex` HTTP adapter를 별도 QA profile로 구성했다. 운영의
+`codex-app-server`·Claude·Antigravity CLI 설정은 그대로다. 실제 모델 목록을
+조회하고 `gpt-6-astra`를 명시적으로 고정했다. 목록 adapter의 첫 항목 표시를
+서버가 지정한 기본 모델로 해석하지 않는다. 원본 인증에서 access token/account
+참조만 QA 파일로 제한하고 갱신 토큰을 복사하지 않았으며, 원본 auth hash와
+native 전체 데이터·설정·서비스를 대조했다. 실제 provider 응답 확인 후 별도
+tmpfs PostgreSQL·v2 registry의 명시 작업1건과 full frozen release를 연결했다.
+
+실제 native managed-child API로 생성한 Run1건이 compiled worker에서 성공했다.
+모델 요청1회·641토큰·canonical17event·서로 다른 부모/child invocation ID와
+응답 marker를 대조했다. loopback 전송 gate는 실제 upstream으로 전달하며,
+영속 단일 operation claim·모델/무도구/만료/본문 한도·오류 본문 제한을 적용했다.
+이 gate는 모델 응답을 모의 생성하지 않는다. 준비용 smoke 요청1회/58토큰과
+구분하며 이번 QA provider 요청은 합계2회/699토큰이다.
+
+원본 서비스나 Work runtime binding을 전환한 결과가 아니며, 부모 모델 자체는
+실행하지 않은 explicit child 경로다. 원본 authority/DDL·새 backup/rollback과
+Assistant 교차 앱 업무는 여전히 필요하다. 완료 뒤 접근 토큰 사본·QA API/DB
+credential·임시 API/Track·owned container를 정리하고 private QA DB 보관본과
+metadata 증거를 남겼다. 보관본의 복원 검증은 수행하지 않았다. worker 종료 뒤
+검증 스크립트의 잘못된 table 조회는 `session_messages` 읽기로 복구했고 Run을
+재실행하지 않았다. 실제 worker 종료 코드는 보관되지 않아 정상 종료 코드0을
+주장하지 않는다. `native-managed-child-verification.json` 참고.

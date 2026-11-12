@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView } from "../../../packages/contracts/index.ts";
-import { missionFlow } from "../../../packages/projection/mission-flow.ts";
+import { missionFlow, missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
 import { withToolEvidence } from "../../../packages/projection/tool-flow.ts";
@@ -23,7 +23,7 @@ import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
 import "./mission-flow.css";
 
-const kinds: Record<string, string> = { task: "업무", workspace: "Workspace", session: "Session", run: "Run", invocation: "Agent 호출",
+const kinds: Record<string, string> = { task: "업무", workspace: "Workspace", session: "Session", run: "Run", invocation: "Agent 호출", "invocation-reference": "호출 참조 · 생명주기 미관측",
   tool: "도구 호출", permission: "승인", artifact: "산출물", group: "협업 그룹", member: "협업 멤버", lifecycle: "실행 단계", event: "관측", reference: "원본 참조", unknown: "미확인 참조",
   "managed-parent-reference": "부모 호출 참조 · Run 미확인", "peer-connection": "peer 연결 참조", "peer-conversation": "처리 대화 참조", "peer-message": "처리 메시지 참조", "session-relation-receipt": "관계 영수증" };
 const statuses: Record<string, string> = { bound: "명시 연결", observed: "관측됨", "observed-reference": "관계 참조", unobserved: "미조회 참조", queued: "대기", leasing: "할당 중", running: "실행 중", started: "실행 중", waiting_for_permission: "승인 대기",
@@ -70,8 +70,8 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const graph = useMemo(() => {
     const nodes: FlowNode[] = grouping.projection.nodes.map((node) => grouping.decorate(node, { id: node.key, type: "pyd-flow-node", position: { x: 0, y: 0 },
       selected: selectedNode?.key === node.key, width: 240, height: 136, style: { width: 240, height: 136 },
-      ariaLabel: `${kinds[node.kind] ?? node.kind} · ${node.label} · ${statuses[node.status] ?? node.status}`,
-      data: { title: node.label, description: node.description, kindLabel: kinds[node.kind] ?? node.kind, statusLabel: statuses[node.status] ?? node.status,
+      ariaLabel: `${kinds[missionUnitKind(node)] ?? node.kind} · ${node.label} · ${statuses[node.status] ?? node.status}`,
+      data: { title: node.label, description: node.description, kindLabel: kinds[missionUnitKind(node)] ?? node.kind, statusLabel: statuses[node.status] ?? node.status,
         kind: node.kind === "permission" ? "condition" : node.kind === "artifact" ? "result" : node.kind === "task" ? "trigger" : "action", status: cardStatus(node.status) } }));
     const edges: FlowEdge[] = grouping.projection.edges.map((edge) => ({ id: edge.key, source: edge.from, target: edge.to, type: "pyd-flow-edge",
       label: edge.label, selected: selectedEdge?.key === edge.key, className: `mission-edge-${edge.kind}`,
@@ -105,7 +105,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
         onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
         height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" readOnly />
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
-        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[selectedNode.kind] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
+        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
           <dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
           {selectedNode.sequences.length > 0 && <p className="flow-evidence">근거 seq {selectedNode.sequences.join(", ")}</p>}
           {selectedNode.runKey && selectedNode.runKey !== run.key && <button className="button-secondary" onClick={() => onSelectRun(selectedNode.runKey!)}>이 Run의 실행 근거 보기</button>}
@@ -117,7 +117,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
     </div>
     <details className="flow-accessible-list"><summary>Node·edge 목록으로 탐색 <small>{model.nodes.length + model.edges.length}개 항목</small></summary>
       <label>흐름 항목 검색 <input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="업무·도구·관계 이름" /></label>
-      <div className="flow-list-columns"><section><h3>Nodes</h3>{model.nodes.filter((node) => `${node.label} ${node.kind} ${node.id}`.toLowerCase().includes(filter.toLowerCase())).map((node) => <button key={node.key} className="flow-list-choice" aria-pressed={selectedNode?.key === node.key} onClick={() => grouping.revealNode(node.key)}><strong>{node.label}</strong><span>{kinds[node.kind] ?? node.kind} · {statuses[node.status] ?? node.status}</span></button>)}</section>
+      <div className="flow-list-columns"><section><h3>Nodes</h3>{model.nodes.filter((node) => `${node.label} ${node.kind} ${node.id}`.toLowerCase().includes(filter.toLowerCase())).map((node) => <button key={node.key} className="flow-list-choice" aria-pressed={selectedNode?.key === node.key} onClick={() => grouping.revealNode(node.key)}><strong>{node.label}</strong><span>{kinds[missionUnitKind(node)] ?? node.kind} · {statuses[node.status] ?? node.status}</span></button>)}</section>
         <section><h3>Edges</h3>{model.edges.filter((edge) => `${edge.label} ${nodeName(edge.from)} ${nodeName(edge.to)}`.toLowerCase().includes(filter.toLowerCase())).map((edge) => <button key={edge.key} className="flow-list-choice" aria-pressed={selectedEdge?.key === edge.key} onClick={() => grouping.revealEdge(edge.key)}><strong>{edge.label}</strong><span>{nodeName(edge.from)} → {nodeName(edge.to)}</span></button>)}</section></div>
     </details>
   </section>;

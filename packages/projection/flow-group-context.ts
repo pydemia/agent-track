@@ -1,5 +1,5 @@
 import type { FlowGroupSummary } from "./flow-groups.ts";
-import type { MissionEdge, MissionNode } from "./mission-flow.ts";
+import { missionUnitKind, type MissionEdge, type MissionNode } from "./mission-flow.ts";
 
 export interface FlowGroupContext {
   partial: boolean;
@@ -78,9 +78,10 @@ export function flowGroupContext(
       countedRuns.add(identity);
     }
     if (statusKinds.has(node.kind)) {
-      const states = counts.get(node.kind) ?? new Map<string, number>();
+      const unitKind = missionUnitKind(node);
+      const states = counts.get(unitKind) ?? new Map<string, number>();
       states.set(node.status, (states.get(node.status) ?? 0) + 1);
-      counts.set(node.kind, states);
+      counts.set(unitKind, states);
     }
     let concern: FlowGroupContext["concerns"][number]["kind"] | undefined;
     if (node.kind === "run" && node.status === "waiting_for_permission") concern = "approval_wait";

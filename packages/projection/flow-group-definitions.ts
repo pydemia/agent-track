@@ -1,4 +1,4 @@
-import type { MissionNode, MissionEdge } from "./mission-flow.ts";
+import { missionUnitKind, type MissionNode, type MissionEdge } from "./mission-flow.ts";
 import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { assistantFlowGroups } from "./assistant-flow.ts";
 import { sessionRelationGroups } from "./session-relations-flow.ts";
@@ -27,7 +27,7 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
   const groupFor = new Map<string, string>();
   const insert = (anchor: MissionNode, kind: string, basis: FlowGroupDefinition["basis"], description: string) => {
     const key = flowGroupKey(kind, anchor.key);
-    const group: FlowGroupDefinition = { key, kind, label: `${kind === "task" ? "업무 실행" : kind === "session" ? "Session" : kind === "run" ? "Run" : kind === "invocation" ? "호출 범위" : "협업 범위"} · ${anchor.label}`,
+    const group: FlowGroupDefinition = { key, kind, label: `${kind === "task" ? "업무 실행" : kind === "session" ? "Session" : kind === "run" ? "Run" : kind === "invocation" ? "호출 범위" : kind === "invocation-reference" ? "호출 참조 범위" : "협업 범위"} · ${anchor.label}`,
       sourceId: anchor.sourceId, basis, memberKeys: [anchor.key], description };
     groups.set(key, group); groupFor.set(anchor.key, key); return group;
   };
@@ -54,23 +54,26 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
   }
   const invocations = model.nodes.filter(node => node.kind === "invocation" && node.runKey);
   for (const invocation of invocations) {
-    const group = insert(invocation, "invocation", "native", "명시된 호출 ID, 상위 호출과 도구·승인 참조로 묶은 실행 범위입니다.");
+    const reference = missionUnitKind(invocation) === "invocation-reference";
+    const group = insert(invocation, missionUnitKind(invocation), "native", reference
+      ? "이 Run에서 기록된 호출 ID 참조입니다. 호출 생명주기나 부모 Run의 실제 실행을 관측한 결과가 아닙니다."
+      : "명시된 호출 ID, 상위 호출과 도구·승인 참조로 묶은 실행 범위입니다.");
     const run = actualRuns.find(run => run.runKey === invocation.runKey && run.sourceId === invocation.sourceId);
     const runGroup = run ? groups.get(flowGroupKey("run", run.key)) : undefined;
     if (runGroup) { runGroup.memberKeys = runGroup.memberKeys.filter(key => key !== invocation.key); group.parentKey = runGroup.key; }
   }
   for (const invocation of invocations) {
-    const group = groups.get(flowGroupKey("invocation", invocation.key))!;
+    const group = groups.get(flowGroupKey(missionUnitKind(invocation), invocation.key))!;
     const parents = model.edges.filter(edge => edge.to === invocation.key && edge.kind === "invocation-parent")
       .map(edge => nodes.get(edge.from)).filter((node): node is MissionNode => !!node && node.kind === "invocation" &&
         node.sourceId === invocation.sourceId && node.runKey === invocation.runKey);
-    if (new Set(parents.map(node => node.key)).size === 1) group.parentKey = flowGroupKey("invocation", parents[0]!.key);
+    if (new Set(parents.map(node => node.key)).size === 1) group.parentKey = flowGroupKey(missionUnitKind(parents[0]!), parents[0]!.key);
   }
   for (const node of model.nodes.filter(node => ["tool", "permission"].includes(node.kind) && node.runKey)) {
     const owners = model.edges.filter(edge => edge.to === node.key && ["tool-of", "native-tool", "permission"].includes(edge.kind))
       .map(edge => nodes.get(edge.from)).filter((owner): owner is MissionNode => !!owner && owner.kind === "invocation" &&
         owner.sourceId === node.sourceId && owner.runKey === node.runKey);
-    if (new Set(owners.map(owner => owner.key)).size === 1) attachLeaf(node.key, groups.get(flowGroupKey("invocation", owners[0]!.key))!);
+    if (new Set(owners.map(owner => owner.key)).size === 1) attachLeaf(node.key, groups.get(flowGroupKey(missionUnitKind(owners[0]!), owners[0]!.key))!);
   }
   for (const anchor of model.nodes.filter(node => node.kind === "group" && node.runKey)) {
     const group = insert(anchor, "cowork", "native", "원본 cowork 객체와 명시된 멤버 관계입니다. 화면 묶음·관리형 child Run·peer와 구별합니다.");

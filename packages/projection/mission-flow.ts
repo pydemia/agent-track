@@ -33,6 +33,11 @@ export interface MissionEdge {
 export interface MissionFlowOptions { mode?: "mission" | "execution"; maxNodes?: number; hasMoreEvents?: boolean; includeExecution?: boolean }
 export interface MissionFlow { nodes: MissionNode[]; edges: MissionEdge[]; hiddenNodes: number; eventCount: number; incomplete: boolean }
 
+/** A referenced invocation ID does not establish an observed invocation lifecycle. */
+export const missionUnitKind = (node: Pick<MissionNode, "kind" | "status">): string =>
+  node.kind === "invocation" && ["unobserved", "observed-reference", "unknown"].includes(node.status)
+    ? "invocation-reference" : node.kind;
+
 const compareSequence = (a: string, b: string): number => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
 export const missionEntityKey = (sourceId: string, kind: string, id: string, runId?: string): string =>
   JSON.stringify([sourceId, JSON.stringify(runId && ["invocation", "tool", "permission", "group", "member"].includes(kind) ? [kind, runId, id] : [kind, id])]);

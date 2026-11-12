@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { RunView } from "../packages/contracts/index.ts";
+import type { RunView, EventView, RelationView } from "../packages/contracts/index.ts";
 import type { SessionRelation, SessionRelationsEvidence } from "../packages/contracts/session-relations.ts";
 import { missionEntityKey, missionFlow } from "../packages/projection/mission-flow.ts";
 import { withNativeLineage } from "../packages/projection/lineage-flow.ts";
 import { withSessionRelations } from "../packages/projection/session-relations-flow.ts";
 import { nativeFlowGroupDefinitions } from "../packages/projection/flow-group-definitions.ts";
 import { projectFlowGroups } from "../packages/projection/flow-groups.ts";
+import { flowGroupContext } from "../packages/projection/flow-group-context.ts";
 
 const at = "2026-11-11T12:00:00.000Z";
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -33,6 +34,38 @@ function page(rows: SessionRelation[], selected = run()): SessionRelationsEviden
     coverage: child ? "managed-child-receipts" : "peer-processing-receipts", observedAt: at, detail: "receipt window" };
 }
 const base = (selected = run()) => missionFlow(selected, [], [], []);
+
+test("managed-child parent references do not inflate observed invocation counts", () => {
+  const selected = run();
+  const event = (sequence: string, type: string, invocationId: string, parentInvocationId?: string): EventView => ({
+    key: sequence, sourceId: selected.sourceId, runId: selected.runId, sequence, type, occurredAt: at, receivedAt: at,
+    data: { redacted: true, invocationId, ...(parentInvocationId ? { parentInvocationId } : {}) },
+  });
+  // Reduced from a real 17-event explicit managed-child Run: the parent ID
+  // exists as relationship evidence, but its lifecycle/Run was not executed.
+  const events = [event("4", "agent.invocation.started", "child", "parent"), event("16", "agent.invocation.completed", "child")];
+  const relations: RelationView[] = [{ key: "relationship", runKey: selected.key, kind: "invocation",
+    from: "invocation:parent", to: "invocation:child", evidenceSequence: "4", observedAt: at }];
+  const receipt = { ...managed(selected), parentInvocationId: "parent", childInvocationId: "child" };
+  const graph = (input: EventView[]) => withSessionRelations(missionFlow(selected, [selected], relations, input,
+    { mode: "execution" }), selected, [selected], [page([receipt], selected)]);
+  const model = graph(events), definitions = nativeFlowGroupDefinitions(model, "run");
+  const projected = projectFlowGroups(model, definitions, new Set());
+  const summary = projected.groups.find(group => group.kind === "run")!;
+  assert.equal(summary.counts.invocation, 1);
+  assert.equal(summary.counts["invocation-reference"], 1);
+  assert.equal(definitions.filter(group => group.kind === "invocation").length, 1);
+  assert.equal(definitions.filter(group => group.kind === "invocation-reference").length, 1);
+  const parent = model.nodes.find(node => node.kind === "managed-parent-reference")!;
+  assert.equal(parent.runKey, undefined);
+  assert.equal(parent.status, "unknown");
+  assert.ok(model.edges.some(edge => edge.from === parent.key && edge.kind === "managed-child"));
+  assert.equal(flowGroupContext(summary, model.nodes, model.edges).statusByKind.find(row => row.kind === "invocation")?.states[0]?.count, 1);
+  const observed = graph([event("2", "agent.invocation.started", "parent"), event("3", "agent.invocation.completed", "parent"), ...events]);
+  const observedGroups = projectFlowGroups(observed, nativeFlowGroupDefinitions(observed, "run"), new Set());
+  assert.equal(observedGroups.groups.find(group => group.kind === "run")?.counts.invocation, 2);
+  assert.equal(observedGroups.groups.find(group => group.kind === "run")?.counts["invocation-reference"] ?? 0, 0);
+});
 
 test("peer context groups are nested while processing Runs retain native Session ownership", () => {
   const selected = run(), target = run(2);

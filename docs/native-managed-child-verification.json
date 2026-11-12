@@ -1,0 +1,96 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": ["AT-12", "AT-18", "AT-21"],
+  "scope": "Actual explicit managed-child Run with a real Codex HTTP provider in isolated native PostgreSQL; original operating services preserved",
+  "native": {
+    "sourceRevision": "8afec9ea08e7b74c56733d92d74117e668855b8f",
+    "releaseManifestSha256": "dddd14ab7a935e04d2a824d22a898cb746272d79ddf7844953912f5e5c3f271e",
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "coreSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "fullClosedPayload": { "files": 19601, "links": 5, "compiledWorkerDispatched": true },
+    "runId": "e6a24bed-8d2d-4ec8-b529-b6bc9967182d",
+    "sessionId": "1b9bad7b-9006-4fcc-9d7d-bd614a0f2402",
+    "operationId": "bb1eaab6-f85e-4422-ab80-8b315dd75e79",
+    "status": "succeeded",
+    "attempts": 1,
+    "registeredOperations": 1,
+    "parentAndChildInvocationIdsDistinct": true,
+    "parentModelExecuted": false,
+    "modelRequested": "gpt-6-astra",
+    "serverResolvedModel": "not separately observed",
+    "modelRequests": 1,
+    "usage": { "inputTokens": 628, "outputTokens": 13, "totalTokens": 641 },
+    "canonicalEvents": 17,
+    "cursor": "17",
+    "highWater": "17",
+    "expectedMarkerObserved": true,
+    "qaStoppedMessageObserved": true,
+    "workerExitCode": "not retained: verifier queried a nonexistent messages table after worker exit; corrected recovery queried session_messages without rerunning the task"
+  },
+  "providerPreparation": {
+    "existingAdapter": "Demian Codex HTTP provider; distinct from codex-app-server CLI orchestration",
+    "remoteCatalog": "One actual OAuth catalog GET; static/cache fallback rejected",
+    "modelSelection": "Explicit gpt-6-astra pin with catalog membership check; adapter first-entry flag is not a server-declared default",
+    "smoke": { "requests": 1, "httpStatus": 200, "expectedMarkerObserved": true, "totalTokens": 58 },
+    "combinedQaModelRequests": 2,
+    "combinedQaReportedTokens": 699,
+    "auth": "Access-token/account reference only in private QA file; no refresh token or original profile copied; original auth file hash unchanged; projection removed after execution",
+    "transport": "Loopback one-operation gate forwards to the real upstream provider; durable exclusive claim before POST, fixed model/no tools/expiry/body bound, redirect rejection and bounded upstream error replacement",
+    "temporaryDirectories": "Managed child HOME/USERPROFILE/APPDATA/LOCALAPPDATA/TEMP/TMP redirected to owned QA paths; not a claim of zero writes anywhere under the user profile",
+    "operatingProviderConfigurationChanged": false
+  },
+  "track": {
+    "sourceId": "demian-actual-managed-qa",
+    "environment": "Local QA Track using actual native API and current product adapters/renderer; not operating Entra UI",
+    "observedRuns": 1,
+    "canonicalEvents": 17,
+    "canonicalRelations": 2,
+    "trace": { "nodes": 6, "edges": 8, "groups": 3 },
+    "checks": [
+      "Actual managed-child receipt edge and operation/Run/Session details",
+      "Unknown parent Run remains a separate reference without an invented Run",
+      "Run group separates one observed invocation, one invocation reference and one answer.txt artifact",
+      "Keyboard group and edge selection",
+      "Same actual Run scope retained across Track, Trail, Trace and Map",
+      "390px viewport has no document overflow; temporary override reset"
+    ],
+    "screenshot": "Not captured: CDP screenshot timeout",
+    "organizationSupportDiagnostic": "Separate support diagnostic reported unavailable in QA API configuration; receipt/history reads succeeded"
+  },
+  "regressionFix": {
+    "before": "Relation-only parent invocation ID counted as an observed invocation and labeled as a normal Agent call",
+    "after": "Invocation reference category used in group counts, per-kind status, reference containers and node labels; original keys, edges and evidence preserved",
+    "promotion": "Actual lifecycle evidence restores observed invocation classification; no ID-only merge of unknown parent Run references",
+    "typecheck": "pass",
+    "tests": { "total": 718, "pass": 709, "fail": 0, "environmentSkipped": 9 },
+    "build": "pass, isolated output; existing React Flow directive warning",
+    "publication": "pending implementation CI and frontend publication"
+  },
+  "preservation": {
+    "originalDatabaseAllRowsSchemaSequencesSecurityEqual": true,
+    "originalTables": 45,
+    "originalRuns": 19,
+    "originalEvents": 810,
+    "protectedFilesEqual": 8,
+    "originalSourceInputsEqual": 692,
+    "originalCompiledArtifactsEqual": 2,
+    "nativeApiWebGateProcessIdentitiesPreserved": true,
+    "originalContainerImageMountsStartTimePreserved": true,
+    "originalWorkerStarted": false,
+    "originalTaskRunOrModelCalls": 0
+  },
+  "cleanup": {
+    "ownedQaContainerRemoved": true,
+    "tmpfsDisposed": true,
+    "qaDatabaseApiControlAccessCredentialsRemoved": true,
+    "qaReadOnlyApiAndTrackStopped": true,
+    "privateQaDatabaseArchive": { "bytes": 209367, "sha256": "0818345d1cdc5d3515d3672da1804e1049cf766fb14c00cbd9674d3d27669692", "restoreNotPerformed": true }
+  },
+  "remaining": [
+    "Parent-model-driven organization, actual cowork/peer and additional device",
+    "Original service executor provisioning, current canonical binding and DDL/cutover guards",
+    "Actual Assistant/Projects/desktop end-to-end task",
+    "Operating Entra browser verification"
+  ],
+  "overallGoal": { "completed": 14, "total": 21, "equalWeight": true, "percent": 66.7, "eta": "Not estimable", "confidence": "Low" }
+}

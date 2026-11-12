@@ -3,6 +3,7 @@ import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { RunView, RelationView, SourceView } from "../../../packages/contracts/index.ts";
 import type { AssistantExecutionView } from "../../../packages/contracts/assistant-view.ts";
 import type { ProjectDependencyPage } from "../../../packages/contracts/project-dependencies.ts";
+import { missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { groupWorkspaceFlow, type GroupTaskRecord } from "../../../packages/projection/group-workspace-flow.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
@@ -58,7 +59,7 @@ export function GroupWorkspaceMap({ tasks, runs, executions, sources, relations,
     const nodes: FlowNode[] = grouping.projection.nodes.map(item => grouping.decorate(item, {
       id: item.key, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: 240, height: 136, style: { width: 240, height: 136 },
       selected: node?.key === item.key, ariaLabel: `${item.label} · ${groupStatusLabel(item.kind, item.status)}`,
-      data: { title: item.label, description: item.description, kindLabel: item.kind, statusLabel: groupStatusLabel(item.kind, item.status),
+      data: { title: item.label, description: item.description, kindLabel: missionUnitKind(item) === "invocation-reference" ? "호출 참조 · 생명주기 미관측" : item.kind, statusLabel: groupStatusLabel(item.kind, item.status),
         kind: item.kind === "task" ? "trigger" : "action", status: ["running", "in_progress", "queued", "waiting_for_permission"].includes(item.status) ? "running" : ["done", "succeeded", "completed"].includes(item.status) ? "complete" : item.status === "failed" ? "error" : "idle" },
     }));
     const edges: FlowEdge[] = grouping.projection.edges.map(item => ({ id: item.key, source: item.from, target: item.to, type: "pyd-flow-edge", label: item.label,
@@ -81,7 +82,7 @@ export function GroupWorkspaceMap({ tasks, runs, executions, sources, relations,
       onNodesChange={selectNode} onEdgesChange={selectEdge} onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps} showMiniMap readOnly
       height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" />
       <aside className="flow-inspector" aria-label="묶음 node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={model.nodes} edges={model.edges} />
-        : node ? <><small>{node.kind} · {groupStatusLabel(node.kind, node.status)}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
+        : node ? <><small>{missionUnitKind(node) === "invocation-reference" ? "호출 참조 · 생명주기 미관측" : node.kind} · {groupStatusLabel(node.kind, node.status)}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
           {node.runKey && <button type="button" onClick={() => onRun(node.runKey!)}>이 실행의 흐름 펼치기</button>}
           {node.assistantExecutionRef && <button type="button" onClick={() => onAssistant(node.assistantExecutionRef!.sourceId, node.assistantExecutionRef!.executionId)}>이 Assistant 실행 펼치기</button>}</>
           : edge ? <><h3>{edge.label}</h3><p>{edge.kind}</p><p className="edge-evidence-detail">{edge.detail}</p><FlowGroupEdgeEvidence edgeKey={edge.key} state={grouping} nodes={model.nodes} /></>

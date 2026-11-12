@@ -28,7 +28,7 @@ test("keeps explicit statuses separate by kind, counts members once and excludes
   assert.deepEqual(result.statusByKind, [
     { kind: "assistant-execution", states: [{ state: "completed", count: 1 }] },
     { kind: "assistant-role", states: [{ state: "pending", count: 1 }] },
-    { kind: "invocation", states: [{ state: "unknown", count: 1 }] },
+    { kind: "invocation-reference", states: [{ state: "unknown", count: 1 }] },
     { kind: "run", states: [{ state: "completed", count: 1 }] },
     { kind: "task", states: [{ state: "completed", count: 1 }] },
     { kind: "tool", states: [{ state: "failed", count: 2 }] },
