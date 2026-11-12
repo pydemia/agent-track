@@ -38,8 +38,22 @@
     "screenshot": "Unverified: CDP Page.captureScreenshot timed out; no screenshot artifact claimed",
     "cleanup": "Owned QA process stopped and four synthetic credential files plus owned temporary directory removed"
   },
+  "publication": {
+    "revision": "54f8a831647efc10141a02a682d27ed704cb2694",
+    "author": "pydemia",
+    "ci": "https://github.com/pydemia/agent-track/actions/runs/43281715991",
+    "ciWindows": "success",
+    "ciUbuntu": "success",
+    "target": "https://track.pydemia.ai",
+    "backendAndFrontend": true,
+    "backup": "Private SQLite online backup, config and previous web index; no pending restart-recovery commands",
+    "backendTaskMetadata": { "actualTaskRead": 200, "exactActorAndTuple": true, "query": 400, "method": 405, "wrongActor": 401 },
+    "frontend": { "indexSha256": "b4d4558e758bd460f315c24a2fbbf5fcc1013483e346ea6b1e5a82977ea0166f", "assetsByteMatched": 14, "faviconBytesAndContentType": true, "oldChunksRetained": true },
+    "anonymous": { "trackRoot": 302, "trackApi": 401, "trailRoot": 302, "trailApi": "302 to existing login; original AgentTrail preserved" },
+    "preservation": { "privateConfigCredentialFileHashes": 6, "nativeApiWebGateProcessIdentities": 3, "nativeRuns": 19, "nativeCanonicalEvents": 810, "newModelCalls": 0 },
+    "productionBrowser": "Not reverified: existing Entra user-input handoff remains pending; loopback API and HTTP assets do not replace authenticated UI evidence"
+  },
   "remaining": [
-    "Remote CI and coordinated backend/frontend production publication",
     "Current Entra production browser verification",
     "Real native managed-child/peer and cross-app/cross-device organized work",
     "Account-scoped saved views and restoration contract"

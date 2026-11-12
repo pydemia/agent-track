@@ -7,7 +7,11 @@
 관련 Run2의4node/2edge·키보드 관계 상세·390px·철회 후 이름/구성 제거와 복원 후
 자동 재노출 차단을 확인했다. Windows717개 중708통과·환경skip9·실패0과
 typecheck/분리 build를 통과했다. 브라우저 screenshot은 capture timeout으로
-확보하지 못했고 운영 반영·실제 조직화 업무·저장 보기는 미완료다.
+확보하지 못했다. 구현 `54f8a83`의 Windows/Ubuntu CI 통과 후 Track DB·설정·이전
+index를 백업하고 API/프런트엔드를 함께 게시했다. 실제 업무 metadata200·query400·
+method405·다른 actor401,14개 assets와 favicon bytes/Content-Type을 대조했다.
+설정/credential 파일6개 hash·native API/Web/gate 프로세스3개·19Run/810event를
+보존했다. 운영 Entra GUI 검수·실제 조직화 업무·저장 보기는 미완료다.
 `group-workspace-verification.json` 참고. 전체14/21(66.7%)·ETA 산정 불가·신뢰도
 낮음을 유지한다.
 
