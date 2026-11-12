@@ -52,8 +52,9 @@ Interactive/Limited 로그온 작업이며 사용자명·패스워드 로그인�
 늦게 준비되면 실패 후 1분 간격 최대 3회 재시도한다. 원본 API를 정기 재시작하는
 감시자는 아니며 재부팅 자체를 이 단계의 검증으로 대신하지 않는다.
 
-현재 user logon task 등록·실제 task 실행·등록 전후 전체 DB/보안 catalog와
-설정·process 신원 보존은 운영 확인 후 별도 verification에 기록한다. 분리
+현재 user logon task를 등록하고 실제 실행 결과0·기존 PID15940 재사용을 확인했다.
+등록 전후 전체 DB/보안 catalog·설정 8개·process 신원과 container의 image·mount·
+시작 시각을 대조했다. `demian-api-startup-verification.json`에 기록한다. 분리
 Windows fixture의 cold-start와 실제 native DB에 대한 cold-start를 구분한다.
 원본 API를 종료해서 재기동하거나 PC를 재부팅하는 시험은 수행하지 않는다.
 

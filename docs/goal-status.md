@@ -29,7 +29,10 @@ UI·기존 Assistant/Projects3중첩 그룹과 실제37event를 재확인했다.
 정상 Entra의 실제212event/lineage9/도구3·중첩 그룹2개를 대조했다. 테이블45개·
 sequence1개·role 속성/비밀번호 해시·전체 DDL 및 가동 전후 보안 catalog와 원본
 설정/프로세스를 보존했다. worker는 중단·peer registry 미구성이며 원본 Web 요약
-적용·자동 startup은 후속이다. 아래 Docker 장애 기록은 과거 진단이다. 디스크 전체
+적용은 후속이다. API-only 자동 startup은 `bbcfe95`에서 구현·등록하고 실제 task
+결과0·PID15940 재사용, 원본 전체 DB·보안 catalog·설정8개·process 보존을 확인했다.
+Native cold start·PC 재부팅을 수행한 결과는 아니다. `demian-api-startup-verification.json`
+참고. 아래 Docker 장애 기록은 과거 진단이다. 디스크 전체
 무결성·전체 원본 운영 복구를 완료 처리하지 않는다. `demian-api-reactivation.md`·
 `demian-api-reactivation-verification.json` 참고.
 

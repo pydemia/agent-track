@@ -39,7 +39,57 @@
     "newTaskRunOrModelCalls": 0,
     "workerStarted": false
   },
-  "production": { "state": "prepared; task registration and execution pending code CI" },
+  "production": {
+    "state": "current-user logon task registered and executed; existing API adopted",
+    "implementationRevision": "bbcfe955c4b20d2a8b6ad2c5fac2d6c2dd818fb8",
+    "ci": {
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43191736824",
+      "conclusion": "success",
+      "windows": { "total": 600, "passed": 591, "failed": 0, "skipped": 9 },
+      "ubuntu": { "total": 600, "passed": 579, "failed": 0, "skipped": 21 },
+      "skipReason": "Platform-specific native Windows and POSIX permissions; no platform was claimed for skipped checks",
+      "typecheckAndBuild": "passed on both platforms"
+    },
+    "task": {
+      "name": "Pydemia Demian API Only",
+      "verifiedAt": "2026-11-12T09:32:58.0455975Z",
+      "lastRunTime": "2026-11-12T09:32:50.0000000Z",
+      "lastTaskResult": 0,
+      "state": "Ready",
+      "ownerSidMatches": true,
+      "logonType": "Interactive",
+      "runLevel": "Limited",
+      "oneExpectedLogonTriggerAndFrozenAction": true,
+      "multipleInstances": "IgnoreNew",
+      "restartCount": 3,
+      "restartInterval": "PT1M",
+      "passwordStored": false,
+      "realRebootTested": false
+    },
+    "frozenOperatorMatchesPublishedSource": true,
+    "activeRecordAutomaticStartupConfigured": true,
+    "preservation": {
+      "verifiedAt": "2026-11-12T09:33:41.303Z",
+      "originalDatabaseAllRowsAndSchemaEqual": true,
+      "sequencesEqual": true,
+      "securityCatalogEqual": true,
+      "protectedFilesEqual": true,
+      "protectedFileCount": 8,
+      "nativeApiSamePidAndCreation": true,
+      "nativeApiPid": 15940,
+      "nativeWebAndGateSameProcesses": true,
+      "trackSameProcess": true,
+      "containerImageMountsAndStartTimeEqual": true,
+      "tables": 45,
+      "runs": 19,
+      "events": 810,
+      "workerStarted": false,
+      "newTaskRunOrModelCalls": 0
+    },
+    "artifactBffRegressionAt": "2026-11-12T09:33:42.451Z",
+    "artifactNativeMetadataAndRunGroupMatch": true,
+    "testFixtureCleanup": "Owned old fixture processes verified by creation/executable/command and held process handle; known regular files removed individually, empty directories removed without recursive deletion"
+  },
   "limitations": [
     "Actual native API has not been stopped or cold-started for this verification",
     "No PC reboot or real logon cycle executed",

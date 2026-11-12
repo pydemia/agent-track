@@ -17,10 +17,11 @@ Demian 소유 대화 `01a1c901-2cea-7a21-9b38-8d12445f0a49`의
 
 ## 실행 준비
 
-1. API-only 자동 시작은 기존 frozen entry·hash·실행 계정·격리 home·설정을
-   검증한다. listener의 PID·exe·entry·creation time이 소유 기록과 일치하면 재사용하고,
-   다른 listener는 보존한다. 포트가 비었을 때만 동일 entry를 실행한다. 기존
-   Docker·Web·worker를 함께 시작하는 launcher는 사용하지 않는다.
+1. API-only 자동 시작은 `bbcfe95`에서 구현하고 현재 사용자 로그온 작업을 등록했다.
+   실제 task 결과0·기존 PID15940 재사용과 전체 native DB/보안 catalog·설정 8개·
+   process 보존을 확인했다. 실행 계정·격리 home·설정·frozen entry/hash와 현재
+   listener의 PID·exe·entry·creation time을 대조한다. 다른 listener는 보존한다.
+   실제 native cold start·PC 재부팅과 구분한다. `demian-api-startup.md` 참고.
 2. Worker는 기동 즉시 상태 발행·만료 복구·작업 임대를 시작한다. queued=0은
    새 작업 유입 차단이 아니다. 현재 stop은 진행 중인 polling·임대와 별도 상태
    발행을 모두 기다리지 않으므로 작업 수신 제어와 종료 경합을 먼저 해소한다.
