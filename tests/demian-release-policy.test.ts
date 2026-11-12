@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } from "node
 import { tmpdir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import test from "node:test";
-import { loadWebRelease, verifyFrozenRelease, type FrozenWebManifest } from "../deploy/demian/web-release-policy.mjs";
+import { loadWebRelease, verifyFrozenRelease, webProfilePort, type FrozenWebManifest } from "../deploy/demian/web-release-policy.mjs";
 
 const hash = (data: string | Buffer) => createHash("sha256").update(data).digest("hex");
 async function fixture() {
@@ -84,4 +84,42 @@ test("missing opt-in retains the original native web without side effects", asyn
     assert.equal(await loadWebRelease(f.state), null);
     assert.equal(await readFile(join(f.release, "apps/web/server.js"), "utf8"), "// Frozen fixture entry\n");
   } finally { await f.cleanup(); }
+});
+
+test("public-only activation is invisible to legacy/local startup and never adopts its shared activation", async () => {
+  const f = await fixture();
+  try {
+    const active = join(f.state, "track-context/active.json");
+    const publicActive = join(f.state, "track-context/active-public.json");
+    const legacyBytes = await readFile(active, "utf8");
+    assert.equal(await loadWebRelease(f.state, "public"), null);
+    await writeFile(publicActive, JSON.stringify({ ...JSON.parse(legacyBytes), profile: "public" }));
+    assert.equal((await loadWebRelease(f.state, "public"))?.buildId, "qa-build");
+    await rm(active);
+    assert.equal(await loadWebRelease(f.state), null);
+    assert.equal((await loadWebRelease(f.state, "public"))?.buildId, "qa-build");
+    await writeFile(publicActive, legacyBytes);
+    assert.equal(await loadWebRelease(f.state, "public"), null);
+    await writeFile(publicActive, JSON.stringify({ ...JSON.parse(legacyBytes), profile: "local" }));
+    assert.equal(await loadWebRelease(f.state, "public"), null);
+  } finally { await f.cleanup(); }
+});
+
+test("a corrupt public-only activation preserves original fallback instead of trying a valid shared release", async () => {
+  const f = await fixture();
+  try {
+    await writeFile(join(f.state, "track-context/active-public.json"), "{invalid");
+    assert.equal(await loadWebRelease(f.state, "public"), null);
+    assert.equal((await loadWebRelease(f.state))?.buildId, "qa-build");
+  } finally { await f.cleanup(); }
+});
+
+test("each web launch has one explicit port; public configuration cannot claim the foreign local port", () => {
+  assert.equal(webProfilePort("public", 3001), 3001);
+  assert.equal(webProfilePort("local", 3001), 3000);
+  assert.equal(webProfilePort("qa", 3001), 3002);
+  for (const port of [3000, 3002, 8080, "3001", undefined, null]) {
+    assert.throws(() => webProfilePort("public", port), /Public web port/);
+  }
+  assert.throws(() => webProfilePort("other", 3001), /web profile/);
 });

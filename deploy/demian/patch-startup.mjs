@@ -6,7 +6,9 @@ function once(text, original, replacement) {
 }
 
 /** Only the web launch changes; API, worker, gate and tunnel launches remain. */
-export function patchStartup(text, profile) {
+export function patchStartup(text, profile, { publicOnly = false } = {}) {
+  assert.equal(typeof publicOnly, "boolean");
+  assert(!publicOnly || profile === "public", "A public-only patch cannot modify local startup");
   if (profile === "local") {
     text = once(text, "const repo = config.repository", "const repo = config.repository\nconst trackWeb = await import('./track-context/web-release-policy.mjs').then(module => module.loadWebRelease(state)).catch(() => null)");
     text = once(text,
@@ -16,7 +18,9 @@ export function patchStartup(text, profile) {
       "  ...commonEnv, DEMIAN_API_INTERNAL_URL: config.apiUrl, DEMIAN_WEB_PUBLIC_URL: config.webUrl,\n  ...(trackWeb ? { HOSTNAME: '127.0.0.1', PORT: '3000', DEMIAN_TRACK_CONTEXT_FILE: trackWeb.contextFile } : {}),");
   } else {
     assert.equal(profile, "public");
-    text = once(text, "const children=[]", "const trackWeb = await import('./track-context/web-release-policy.mjs').then(module => module.loadWebRelease(root)).catch(() => null)\nconst children=[]");
+    const guard = publicOnly ? "if(config.webPort!==3001)throw new Error('Public web must use port 3001')\n" : "";
+    const load = publicOnly ? "module.loadWebRelease(root,'public')" : "module.loadWebRelease(root)";
+    text = once(text, "const children=[]", `${guard}const trackWeb = await import('./track-context/web-release-policy.mjs').then(module => ${load}).catch(() => null)\nconst children=[]`);
     text = once(text,
       "[service.repository+'/node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',String(config.webPort)],service.repository+'/apps/web',",
       "trackWeb ? [trackWeb.entry] : [service.repository+'/node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',String(config.webPort)],trackWeb?.cwd ?? service.repository+'/apps/web',");

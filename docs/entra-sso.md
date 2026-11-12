@@ -4,6 +4,13 @@
 
 ## 현재 상태
 
+2026-11-13 추가: 아래 Trail/Track 최초 등록 기록과 별도로 Demian 원본 웹의
+기본 인증도 Entra로 연결할 준비를 진행했다. 전용 설정의 설치 바이너리 검사는
+통과했지만 실제 등록·secret·공개 라우팅은 아직 적용하지 않았다. 현재 Demian은
+Basic401이다. [공개 웹·Entra 전환 준비](demian-public-web-preparation.md)를 따른다.
+Track의 이후 실제 배포·로그인 증거는 `track-server-verification.json`과
+`goal-status.md`의 AT-17을 기준으로 하며 아래 최초 등록 당시의 미검증 기록과 구별한다.
+
 - 기존 조직 tenant: `fb44f64f-973f-480d-ab48-f30f3bababb6` (`pydemia.ai`). 조직 계정으로 Entra 관리 화면 접속 확인.
 - `Pydemia AgentTrail` 등록 상태와 single-tenant Web callback을 브라우저에서 확인. Client ID `8e026114-f50c-454c-9d70-76490df3dfd0`, object ID `a24150fb-a49a-4dbd-bcff-ec251bf48da3`. 사용자 입력 credential로 프록시 운영 전환 및 실제 로그인 성공.
 - 후속 사용자 승인으로 `Pydemia Agent Track` 앱 등록 제출·성공 알림·조직 전용 계정 유형을 확인. Client ID `4d28c8bb-ab49-489e-aa85-b0934479620b`, object ID `593f0b2b-c1ba-4bd4-a4cd-389d9bd8113a`. credential 저장·파일 권한600·설정 유효성 검사 확인. 제품 미배포이며 실제 token 교환·사용자 로그인은 미검증.

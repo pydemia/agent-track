@@ -41,3 +41,29 @@ test("unknown native source and already patched startup are rejected for review"
   assert.throws(() => patchStartup(patchStartup(local, "local"), "local"), /Native startup changed/);
   assert.throws(() => patchStartup(patchStartup(publicWeb, "public"), "public"), /Native startup changed/);
 });
+
+test("public-only patch selects only public activation and keeps backend launch bytes intact", () => {
+  const result = patchStartup(publicWeb, "public", { publicOnly: true });
+  assert.ok(result.includes("module.loadWebRelease(root,'public')"));
+  assert.ok(result.includes("if(config.webPort!==3001)throw new Error('Public web must use port 3001')"));
+  assert.ok(result.includes(gateLaunch));
+  assert.ok(result.includes(tunnelLaunch));
+  assert.ok(!result.includes("loadWebRelease(root)"));
+  assert.throws(() => patchStartup(local, "local", { publicOnly: true }), /public-only/);
+  assert.throws(() => patchStartup(result, "public", { publicOnly: true }), /Native startup changed/);
+});
+
+test("public-only startup refuses port 3000 before any launch, while its 3001 fallback preserves gate and tunnel", async () => {
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction("config", "service", "secret", "env", "root", "state", "process", "launch",
+    patchStartup(publicWeb, "public", { publicOnly: true }));
+  const launches: string[] = [];
+  const invoke = (webPort: number) => run({ webPort, publicUrl: "https://fixture.invalid", tokenFile: "/fixture/token" },
+    { repository: "/fixture/repo", apiUrl: "http://127.0.0.1:8080" }, { apiToken: "fixture-only" }, {},
+    "/fixture/root", "/fixture/domain", { execPath: "/fixture/node", argv: ["--with-tunnel"] },
+    async (name: string) => { launches.push(name); });
+  await assert.rejects(invoke(3000), /Public web must use port 3001/);
+  assert.deepEqual(launches, []);
+  await invoke(3001);
+  assert.deepEqual(launches, ["public-web", "auth-gate", "domain-tunnel"]);
+});

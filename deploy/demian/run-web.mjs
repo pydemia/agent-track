@@ -7,7 +7,7 @@ import { homedir } from "node:os";
 import { dirname, isAbsolute, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { verifyFrozenRelease } from "./web-release-policy.mjs";
+import { verifyFrozenRelease, webProfilePort } from "./web-release-policy.mjs";
 import { launchRecordedWeb } from "./owned-child.mjs";
 
 const execute = promisify(execFile);
@@ -27,9 +27,8 @@ const manifest = JSON.parse(manifestBytes.toString("utf8"));
 await verifyFrozenRelease(release, manifest);
 const service = JSON.parse(await readFile(join(state, "service.json"), "utf8"));
 const domain = JSON.parse(await readFile(join(state, "domain/config.json"), "utf8"));
+const port = webProfilePort(profile, domain.webPort);
 const secret = JSON.parse(await readFile(join(state, "secrets.json"), "utf8"));
-const port = profile === "qa" ? 3002 : profile === "local" ? 3000 : domain.webPort;
-assert([3000, 3001, 3002].includes(port));
 const occupied = await new Promise(resolve => {
   const client = net.connect({ host: "127.0.0.1", port });
   client.once("connect", () => { client.destroy(); resolve(true); });

@@ -1,5 +1,12 @@
 # Demian 실행 연결 후속 순서
 
+2026-11-13 원본 웹 후속: [공개 웹·Entra 전환 준비](demian-public-web-preparation.md)의
+별도 public 활성화·포트/복구 경계와 Demian SSO renderer를 구현·검사했다. 운영
+웹/인증은 아직 교체하지 않았다. 기존 dual-profile `promote-web.mjs`를 그대로
+실행하지 않는다. 다음 실제 전환에는 public-only adapter·현재 보존 기준·암호화
+backup·독립 동결 rollback이 필요하다. Microsoft 관리자 탭은 비밀번호 입력 대기이며
+Demian의 새 등록/secret은 아직 없다. 기존 Track/Trail 설정을 재생성하지 않는다.
+
 기준: 2026-11-12 KST. Track의 산출물 그룹 연결은 기존 native metadata를
 읽어 검증했다. 현재 API-only 관측과 worker 실행 준비를 구분한다. 전체 수용
 조건은 14/21(66.7%, 동일 가중치), 완료 예상 산정 불가·신뢰도 낮음이다.

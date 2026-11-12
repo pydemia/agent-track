@@ -1,0 +1,108 @@
+{
+  "dateKst": "2026-11-13",
+  "scope": "AT-06/AT-20 preparation only; no production activation",
+  "baseRevision": "f60a1f49d6e92c6449fd87df49c6271e9e46a412",
+  "codeAndTestSha256": {
+    "deploy/sso/demian-profile.mjs": "727eb878c596950b93a1c333dfabbaf1e3a1bc7811a2ac598485122b1a001366",
+    "deploy/sso/demian-profile.d.mts": "9ad3f83afdec2da5dd74a128c4e005c746d083fad12f066d32d71ac9fb999c28",
+    "deploy/demian/patch-startup.mjs": "7f328aec3e0fb851e20fbc74faa703faacbccf54ba4f1bbd0728ace2742cbea1",
+    "deploy/demian/patch-startup.d.mts": "d9c6d7150ea8863bc75e48bd063cc91f36dedb9f9923920041c269851919f5f9",
+    "deploy/demian/web-release-policy.mjs": "ea78ff09212963ac08091da979f2b9eaa4fe9979ff267cbda14e338488779f3a",
+    "deploy/demian/web-release-policy.d.mts": "2bc3b842c7451378ac867279251255b77b8b65ef77b70ffb8cdcc36b6d3e271d",
+    "deploy/demian/run-web.mjs": "242adc1d2b10c69881e722c5dd5103b03a1d6e47eaf9a46108dd0fe5cca11ffd",
+    "deploy/demian/recover-webs.mjs": "ecd96aefdc23a62eeae758939cffbb3358a7c28f0f29e1d07511a1ea1b8cd781",
+    "deploy/demian/recover-webs.d.mts": "394d57204fae8903ca2976fe9aa833922e1e53d07a501e53d34b099e7120b077",
+    "tests/demian-sso-profile.test.ts": "c3f3065b5bbf758ea05e2a6764583d11175dc8c2c927709d94b7c90a1aea775b",
+    "tests/demian-startup-patch.test.ts": "8821e62def761ab022f73bbd350886b1fd6c8a4df77c0156b76a9763464f0e97",
+    "tests/demian-release-policy.test.ts": "a0a3e76e846f648c25bbe872508701702ca8cc2a3049c77d8e3eeca69052c3b3",
+    "tests/demian-recovery.test.ts": "c68cd259dd208e0e034c6c989180b668c2acad0172ae0e932659f43570c60a2e"
+  },
+  "implementation": {
+    "demianSsoRenderer": "Separate single-tenant owner-restricted config, cookie, units and credentials; no writes or activation",
+    "publicActivation": "Explicit public profile reads active-public.json only; legacy/local activation remains isolated",
+    "portGuard": "Public3001 only; local3000 and QA3002 are separate existing profiles",
+    "recovery": "Explicit public records, journal-before-stop, exact identity inspection contract, known live replacement versus foreign occupancy, stop-output-loss reconciliation, verified live fallback and separate activation/metadata failure flags",
+    "productionOperatorComplete": false
+  },
+  "verification": {
+    "fullTests": {
+      "command": "npm test",
+      "platform": "Windows",
+      "node": "24.21.0",
+      "total": 768,
+      "passed": 759,
+      "failed": 0,
+      "skipped": 9,
+      "skipReason": "Existing POSIX-only cases on Windows"
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    "build": "Frontend unchanged; no local web build rerun for these deployment helpers",
+    "independentReviews": {
+      "sso": "Static review found no blocking defect; actual login not verified",
+      "publicWeb": "Static review after parent corrections found no blocking defect under documented callback contracts; actual production adapter remains required"
+    },
+    "parentCorrections": [
+      "An exited original may have the known replacement holding the same port; do not label that occupied port free",
+      "Independently inspect the fallback process and listener before committing its metadata"
+    ],
+    "installedBinaryChecks": {
+      "oauth2Proxy": "7.15.2 --config-test exit0",
+      "caddy": "2.11.7 validate exit0",
+      "systemd": "systemd-analyze --user verify exit0",
+      "syntheticCredentialsOnly": true,
+      "qaRemoved": true,
+      "protectedFiles": 9,
+      "protectedFileHashesAndModesUnchanged": true,
+      "existingServiceStatesUnchanged": true,
+      "warnings": [
+        "Caddy formatting advisory",
+        "Existing unrelated spice-vdagent Install field warning"
+      ]
+    },
+    "actualNativeReadOnly": {
+      "checkedAt": "2026-11-12T21:12:34.667Z",
+      "actualPublicStartupPatch": {
+        "generatedOnly": true,
+        "gateAndTunnelLaunchBytesPreserved": true,
+        "sourceSha256": "0e013f7b31e780694e814cb360e8082a2a19358a8b1ca7c9543dbbf2a587d8e9",
+        "publicScope": true
+      },
+      "frozenCandidate": {
+        "webBuildId": "CDH-N8gACrby4eI25LO5q",
+        "files": 1538,
+        "manifestSha256": "72c1e3b2c3a988a6eb0777ea70cde9c5ef85ad42325069d25caf67c7330d7a3e",
+        "verified": true
+      },
+      "protectedFiles": 6,
+      "protectedProcessIdentities": 3,
+      "protectedListeners": 3,
+      "preserved": true,
+      "anonymous": {
+        "demian": 401,
+        "track": 302,
+        "trail": 302
+      },
+      "publicWebActivated": false,
+      "entraActivated": false
+    }
+  },
+  "remaining": [
+    "Microsoft administrator login; inspect or register separate Demian app with concrete approval where required",
+    "Private production credentials, dedicated transport and public SSO cutover",
+    "Fresh verified encrypted backup, independent frozen rollback and production public-only transaction adapter",
+    "Actual owner login, non-owner/wrong-tenant denial, public Basic rejection, original Session deep link/context UI and outage isolation",
+    "Full Assistant/Demian/desktop and additional-device organized workflow"
+  ],
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "Equal acceptance criteria",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "Original web/auth activation and real cross-app/device verification remain"
+  }
+}

@@ -8,6 +8,15 @@ const within = (parent, child) => {
   return !!rel && !rel.startsWith(".." + sep) && rel !== ".." && !isAbsolute(rel);
 };
 
+/** A public-only transition must never claim the unrelated local 3000 listener. */
+export function webProfilePort(profile, publicPort) {
+  if (profile === "qa") return 3002;
+  if (profile === "local") return 3000;
+  if (profile !== "public") throw new Error("Invalid web profile");
+  if (publicPort !== 3001) throw new Error("Public web port must be 3001");
+  return 3001;
+}
+
 /** A frozen release is an exact file set, not just a list of checked files. */
 export async function verifyFrozenRelease(release, manifest) {
   // The caller chooses the release boundary. Canonicalize it first so an OS
@@ -41,13 +50,15 @@ export async function verifyFrozenRelease(release, manifest) {
 }
 
 /** Optional startup override; failure retains the original native web. */
-export async function loadWebRelease(serviceState) {
+export async function loadWebRelease(serviceState, profile) {
   try {
+    if (profile !== undefined && profile !== "public") throw new Error("Invalid activation profile");
     const root = join(serviceState, "track-context");
     let active;
-    try { active = JSON.parse(await readFile(join(root, "active.json"), "utf8")); }
+    try { active = JSON.parse(await readFile(join(root, profile === "public" ? "active-public.json" : "active.json"), "utf8")); }
     catch (error) { if (error.code === "ENOENT") return null; throw error; }
     if (active.version !== 1 || active.enabled !== true) return null;
+    if (profile === "public" && active.profile !== "public") throw new Error("Invalid public activation scope");
     if (!isAbsolute(active.releaseDir) || !isAbsolute(active.contextFile)) throw new Error("Invalid active release");
     const releases = await realpath(join(root, "releases"));
     const release = await realpath(active.releaseDir);
