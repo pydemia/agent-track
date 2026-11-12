@@ -12,7 +12,8 @@
     "Read-only edge labels are focusable selection buttons connected to the same inspector.",
     "Existing pyd-flow-group renderer adds explicit membership-basis/count summaries and keyboard collapse/enter actions; native cowork nodes remain distinct from visual containers.",
     "Optional viewport focus fits an entered group or revealed native member after node initialization, with parent/global navigation owned by Track.",
-    "Layout spaces dependency columns using their maximum actual node/group width instead of a fixed width to avoid overlapping expanded groups."
+    "Layout spaces dependency columns using their maximum actual node/group width instead of a fixed width to avoid overlapping expanded groups.",
+    "MiniMap renders expanded groups as transparent outlines and leaf nodes in theme/status colors, retaining collapsed group areas and a smaller viewport-aware overview."
   ],
   "items": [
     {

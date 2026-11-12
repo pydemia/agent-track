@@ -289,7 +289,16 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
                         { top: guide.value }} />)}
             </ViewportPortal>
             <Controls showInteractive={false} position="bottom-right" />
-            {showMiniMap && <MiniMap pannable zoomable position="bottom-left"
+            {showMiniMap && <MiniMap<FlowNode> pannable zoomable position="bottom-left"
+                style={{ width: 148, height: 112 }}
+                nodeColor={(node) => node.type === "pyd-flow-group"
+                    ? node.data.group?.collapsed ? "var(--surface-subtle)" : "transparent"
+                    : node.data.status === "error" ? "var(--danger)"
+                    : node.data.status === "running" || node.data.status === "complete"
+                        ? "var(--accent)" : "var(--muted)"}
+                nodeStrokeColor={(node) => node.selected ? "var(--accent)"
+                    : node.type === "pyd-flow-group" ? "var(--border)" : "var(--background)"}
+                nodeStrokeWidth={2} maskStrokeColor="var(--accent)"
                 ariaLabel={`${label} 미니맵`} />}
         </ReactFlow>
         </FlowGroupActionsContext.Provider>

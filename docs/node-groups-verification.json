@@ -61,5 +61,42 @@
   "sourceAvailability": {"demian": "Native API unavailable; journal retains 19 Runs, none visible after fresh authorization could not be confirmed; event read404", "projects": "connected", "codex": "connected", "assistant": "unsupported", "desktop": "unsupported"},
   "publicAnonymousPolicy": {"trackRoot": 302, "trackSnapshot": 401, "trailRoot": 302},
   "limits": ["No actual native managed-child/peer/cowork organization or artifact relationship was introduced by grouping", "Boundary aggregation and very deep graphs have fixture evidence, not real large-scale browser or native collaboration evidence", "No account-owned saved view or reconnect restoration yet", "Existing Demian Docker/API incident and separate desktop definition remain unresolved", "Optional Assistant reader library is tested but not wired, provisioned or deployed"],
-  "goal": {"completed": 14, "total": 21, "percent": 66.7, "weighting": "equal acceptance criteria", "eta": "not estimable", "confidence": "low"}
+  "goal": {"completed": 14, "total": 21, "percent": 66.7, "weighting": "equal acceptance criteria", "eta": "not estimable", "confidence": "low"},
+  "miniMapFollowUp": {
+    "verifiedOn": "2026-11-12",
+    "scope": "Actual Entra Demian Trace after API-only reactivation",
+    "before": {
+      "defaultNodeFill": "rgb(226, 226, 226)",
+      "expandedGroupsOpaque": true,
+      "leafNodesIndistinguishable": true
+    },
+    "after": {
+      "expandedGroups": "transparent outline",
+      "collapsedGroup": "theme surface fill",
+      "leafNodes": "observed status color; unknown remains muted",
+      "width": 148,
+      "height": 112
+    },
+    "actualTrace": {
+      "nativeEvents": 212,
+      "lineage": 9,
+      "tools": 3,
+      "reportedFailures": 1,
+      "nodes": 6,
+      "edges": 7,
+      "groups": 2
+    },
+    "checks": [
+      "Expanded group2 plus6 leaf rectangles have distinct computed fills",
+      "Collapsed invocation removes its internal nodes and retains group rectangle",
+      "Expand and enter group restore the same native graph",
+      "Keyboard Enter selects typed edge and source/sequence detail",
+      "390px viewport settles to375px document/root width; existing mobile minimap hiding retained",
+      "Temporary viewport override reset"
+    ],
+    "screenshot": "track-demian-minimap-fixed.jpg",
+    "typecheck": "passed",
+    "build": "passed",
+    "newBackendOrNativeLifecycleChanges": 0
+  }
 }
