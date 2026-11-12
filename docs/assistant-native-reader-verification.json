@@ -191,7 +191,7 @@
     }
   ],
   "remaining": [
-    "Fresh current-state backup and code-only rollback plan",
+    "Fresh pre-cutover comparison and executable code-only rollback/guard plan",
     "New source/image/container guard pins and native deployment",
     "Dedicated owner reader provisioning and private hop",
     "Track adapter plus fresh current Projects grant intersection",
@@ -205,5 +205,12 @@
     "equalWeight": true,
     "eta": "not estimable",
     "confidence": "low"
+  },
+  "recovery": {
+    "verified": true,
+    "evidence": "assistant-native-recovery-verification.json",
+    "perDatabase": true,
+    "atomicAcrossDatabases": false,
+    "readerStillNotDeployed": true
   }
 }

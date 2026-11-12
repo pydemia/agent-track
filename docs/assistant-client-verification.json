@@ -1,5 +1,5 @@
 {
-  "verifiedAt": "2026-11-12T01:34:13.738Z",
+  "verifiedAt": "2026-11-12T02:01:53.057Z",
   "requirement": "AT-14 consumer library and rollout preparation; actual integration remains incomplete",
   "files": {
     "packages/adapters/assistant/index.ts": "43909ae46a84a2c6f559b06befcee8c5cea0f18b6308c64d76ffa92fe982f6c9",
@@ -56,7 +56,8 @@
       "sameFailureCaseRetained": true
     },
     "deadline": "Cooperative between synchronous SQLite calls; parent process watchdog still required",
-    "productionSnapshotCreated": false
+    "productionSnapshotCreated": true,
+    "productionSnapshotEvidence": "assistant-native-recovery-verification.json"
   },
   "rootVerification": {
     "command": "npm test",
@@ -84,7 +85,6 @@
   },
   "independentReview": "Parent source and execution review; new independent review unavailable after selector returned local",
   "remaining": [
-    "Fresh actual snapshot/encrypted restore verification",
     "New deployment operator/plan and exact guard pins",
     "Dedicated native reader provisioning/private transport",
     "Track config/source/API and fresh Projects grant intersection",
@@ -97,5 +97,31 @@
     "equalWeight": true,
     "eta": "not estimable",
     "confidence": "low"
+  },
+  "ci": {
+    "revision": "a6bf0db501d6efe33f3c19f198c777f77e27ce6f",
+    "runId": 43135432821,
+    "url": "https://github.com/pydemia/agent-track/actions/runs/43135432821",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (ubuntu-latest)",
+        "total": 422,
+        "passed": 412,
+        "failed": 0,
+        "skipped": 10
+      },
+      {
+        "name": "verify (windows-latest)",
+        "total": 422,
+        "passed": 413,
+        "failed": 0,
+        "skipped": 9
+      }
+    ],
+    "backupLinuxCasesRan": true,
+    "typecheck": "passed",
+    "build": "passed",
+    "logSha256": "1d42ce4eab8ec2e136d881483d6687bfa8b570e9279db39685f6ae73413ca52b"
   }
 }

@@ -62,8 +62,13 @@ producer with the built-in fetch transport: list/detail/events, post-read native
 revocation, and redirect refusal without credential forwarding. These HTTP tests
 use a fixture port, not a production native database or credential.
 
-Remaining: current-state recovery verification, bounded code-only deployment and
-guard replacement, dedicated native reader provisioning/private transport,
+Native per-database encrypted snapshots, SQLite restoration and Windows DPAPI
+owner verification are recorded separately in
+`assistant-native-recovery-verification.json`; they are not an atomic cross-DB
+snapshot or frozen cutover baseline.
+
+Remaining: fresh pre-cutover comparison, bounded code-only deployment and guard
+replacement, dedicated native reader provisioning/private transport,
 Track source/config/API wiring, current Projects authorization intersection,
 distinct execution/role UI and the actual cross-app task. Refer to
 `assistant-native-reader-verification.json` and `goal-status.md`. AT-14 remains

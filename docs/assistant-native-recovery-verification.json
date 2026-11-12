@@ -1,0 +1,95 @@
+{
+  "verifiedAt": "2026-11-12T02:01:53.057Z",
+  "scope": "Fresh native Assistant Work and Runtime SQLite copies only; not full filesystem, authority or server recovery",
+  "implementation": {
+    "trackRevision": "a6bf0db501d6efe33f3c19f198c777f77e27ce6f",
+    "backupSourceSha256": "df004a4f61f68af03e60e693d1c0f2e9648e288e5b67b5e8e7b2c6b92c44a3bb",
+    "nativeCandidateImage": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712"
+  },
+  "nativeSnapshots": [
+    {
+      "database": "work",
+      "plainBytes": 45719552,
+      "cipherBytes": 30178964,
+      "backupCalls": 1,
+      "heldReadTransaction": true,
+      "sourceWrites": 0,
+      "fullSQLiteRestoreVerified": true,
+      "plaintextCopiesRemoved": true
+    },
+    {
+      "database": "runtime",
+      "plainBytes": 5203521536,
+      "cipherBytes": 806842968,
+      "backupCalls": 1,
+      "heldReadTransaction": true,
+      "sourceWrites": 0,
+      "fullSQLiteRestoreVerified": true,
+      "plaintextCopiesRemoved": true
+    }
+  ],
+  "sourceVolumeReadOnly": true,
+  "separateProcess": true,
+  "modelOrTaskCalls": 0,
+  "productionRestorePerformed": false,
+  "applicationCutoverPerformed": false,
+  "consistency": {
+    "perDatabaseConsistent": true,
+    "atomicAcrossDatabases": false,
+    "notAFrozenCutoverBaseline": true,
+    "freshPreCutoverComparisonRequired": true
+  },
+  "ownerVerification": {
+    "keyProtection": "Windows DPAPI CurrentUser",
+    "privateAclVerified": true,
+    "encryptedFilesCopiedToOwnerHost": true,
+    "encryptedBytes": 837021932,
+    "fullAuthenticationTagAndPlainHashVerified": true,
+    "windowsPlaintextDatabaseFileWritten": false,
+    "windowsSQLiteRestorePerformed": false,
+    "nativeSQLiteRestoreVerifiedSeparately": true
+  },
+  "preserved": {
+    "originalAssistantContainer": true,
+    "protectedCanonicalConfigurations": 13,
+    "protectedProcesses": 13,
+    "oldDatabaseOrAuthorityRestored": false,
+    "readerCredentialProvisioned": false
+  },
+  "cleanup": {
+    "freshSnapshotAndRestoredDatabaseFilesRemoved": true,
+    "freshSQLiteSidecarsRemoved": 8,
+    "plaintextDatabaseFilesRemaining": 0,
+    "encryptedCopiesRetained": true
+  },
+  "operationalFindings": [
+    {
+      "finding": "2GiB helper memory summary excluded file cache; cgroup hit memory.max and repeatedly reclaimed/refaulted cached database pages",
+      "resolution": "Verified host memory headroom and increased only this isolated helper Memory/MemorySwap to8GiB; original app unchanged",
+      "originalPlanPreserved": true,
+      "separateResourceReview": true
+    },
+    {
+      "finding": "Original export wrapper rejected raw Docker Mounts list ordering after both database verifications completed",
+      "originalWrapperCompleted": false,
+      "resolution": "Separate export review reconstructed exact baseline hashes by permuting current mount entries; all mount fields, Config/HostConfig/network and process identities retained; canonical destination ordering stable for13protected services",
+      "originalFailureReceiptRetained": true,
+      "productionChangesToResolve": false
+    }
+  ],
+  "remaining": [
+    "Executable bounded native deployment operator, clone tests and exact new guard/renderer peer receipts",
+    "Dedicated native reader volume/config/key and private transport",
+    "Native reader real HTTP verification",
+    "Track source/API/UI plus current Projects authorization",
+    "Actual cross-app task and second device/managed-child evidence"
+  ],
+  "goal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "equalWeight": true,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

@@ -20,7 +20,7 @@
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 실제 Pydemia FlowCanvas·node/edge 상세·source/Run ID 분리. 실제 same-Task·Session2·Run2 지도·행 정렬, child closure fixture. Projects 실제 dependency1건·업무2·Session2·기존 Run2의6node/5edge, 선행 방향·관계/현재 revision 상세·390px/키보드/URL 이동·범위7→6에서 API404·그래프/URL 제거→7복원 실기. 중첩 그룹·화면 Task 묶음 생성/해제·깊이 preset·접힘 내부 원본 선택·breadcrumb/전체 맞춤·재조회 유지·390px 실기. 현재 업무2/관계1 및 Codex Run1/도구4를 대조, 대표 경계선·순환/소속 충돌·10,000-depth는 fixture 증거. 원본 artifact·관리형 child/peer 근거 실기 남음 (`projects-dependencies-verification.json`, `node-groups-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분 준비. 전용 Assistant native 읽기 API·strict coordinator·runtime.observe를 별도 private PR21에 구현. 새18개 SQLite/실제 Tasks/HTTP 검사, 전체899개 중885통과·실패0·환경skip14. 운영 배포·credential·Track adapter·현재 Projects 교집합·실제 교차 앱 업무는 미검증 (`assistant-native-reader-verification.json`) |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분 준비. 전용 Assistant native 읽기 API·strict coordinator·runtime.observe를 별도 private PR21에 구현. 새18개 SQLite/실제 Tasks/HTTP 검사, 전체899개 중885통과·실패0·환경skip14. Track client98개와 실제 Work/Runtime DB별 암호화·복구를 검증했으나 원본 배포·credential·Track source/API/UI·현재 Projects 교집합·실제 교차 앱 업무는 미검증 (`assistant-native-reader-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
@@ -47,6 +47,13 @@ Assistant metadata 계약·선택적 읽기 service와 native route 후보를 �
 관측 경로를 실제 Tasks/query-only DB에서 검사했다.
 Client/복구 도구의 검증과 한계는 `assistant-client-verification.json`,
 `assistant-reader-client.md`, `assistant-backup-primitives.md`에 기록했다.
+실제 native Work/Runtime SQLite의 DB별 읽기 snapshot·암호화·별도 복구·전체
+측정값 대조와 Windows DPAPI 소유자 키의 스트리밍 인증/평문 hash 대조도
+완료했다. 두 DB의 원자적 동시 snapshot이나 배포 직전 고정 baseline으로
+간주하지 않는다. 원본 앱·보호 대상13개의 설정/프로세스를 유지했고,
+원본 DB 복원·reader credential 생성·원본 앱 교체는 실행하지 않았다.
+`assistant-native-recovery-verification.json`에 범위와 원래 export wrapper의
+mount 순서 비교 실패·별도 재검증을 함께 기록했다.
 다음 재산정은 실제 child/peer·외부 앱 계약 연결 후다.
 
 연결 상태 후속 수정에서는 재시작 직후 전체 원본 인가를 확인하지 못한 실행을
