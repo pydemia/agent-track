@@ -1,0 +1,106 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementScope": "AT-14/18: scoped worker execution preparation; actual organization/cross-app acceptance remains incomplete",
+  "nativeSource": {
+    "repository": "pydemia/demian (private)",
+    "originalHead": "297678ea08529358aee5a48bef1b94fbea0d7275",
+    "sourceSnapshot": "5943eec10c2e334c15b9337c0caab1b19c8cf4ef",
+    "previousReadinessRevision": "d493ae85d77fe7a6d7b25f403ded721fa8e6c6c1",
+    "implementationRevision": "1c691aaecb61613cd02a15528c1d7aae68626d74",
+    "branch": "codex/agent-track-worker-intake",
+    "publication": "local commits only; not pushed, merged or deployed",
+    "author": "pydemia"
+  },
+  "implementation": {
+    "qaScope": "Deep immutable version1/expiresAt/exact organization-workspace-session-run tuples, bounded256, UUID validation, conflicting membership rejected",
+    "lease": "Tuple intersection before LIMIT/FOR UPDATE SKIP LOCKED; QA locks Run/Session/Workspace relation; DB-clock expiry fences on claim writes and precommit rollback",
+    "recovery": "Both expired Run update and workspace lease cleanup use the same exact tuple scope; expiry before commit rolls back",
+    "dispatch": "Scope expiry checked again during execution preparation, immediately before runtime entry and after awaited existing native dispatch authority",
+    "shutdown": "Synchronous intake closure, coalesced preparation/claim, fenced undispatched-claim settlement, execution/event/heartbeat/status/login drain before DB end",
+    "stopModes": "Default cancel preserves callers; explicit drain waits begun execution; cancel may escalate a pending drain",
+    "settlementFailure": "Rejected writes and lost fences report shutdown reconciliation failure, not success",
+    "providerLogin": "QA does not start the global interactive-login queue; general login tracks direct executions, late claims, heartbeat callbacks and all owned login/probe children through termination",
+    "cliSignals": "SIGTERM requests drain; SIGINT may escalate while disposal waits; startup failure disposes the worker",
+    "legacyFences": "Deployment, managed-child, prepared, artifact, worker lease and expected-attempt authority retained",
+    "qaCli": "Still rejected; no runtime/registration activation performed"
+  },
+  "verification": {
+    "completedAt": "2026-11-12T16:13:53.792Z",
+    "platform": "win32 x64",
+    "nodeVersion": "v24.21.0",
+    "postgresVersion": "17.11 (Debian 17.11-1.pgdg13+2)",
+    "databaseIsolation": "New label-owned loopback-only Docker PostgreSQL, tmpfs data, no bind/volume, no original credentials; fixtures use separate databases/schemas",
+    "tests": {
+      "total": 154,
+      "passed": 154,
+      "failed": 0,
+      "skipped": 0
+    },
+    "coverage": {
+      "qaScopeUnit": 17,
+      "qaScopePostgres": 8,
+      "workerLifecycle": 17,
+      "providerLoginDrain": 6,
+      "existingLoginUnit": 3,
+      "fakeCliLoginIntegration": 1,
+      "simulatedEntryShutdown": 2,
+      "existingRepositoryPostgres": 1,
+      "completionFencingPostgres": 15,
+      "fakeManagedNativeCancellation": 7,
+      "readinessSource": 69,
+      "compiledReadiness": 8
+    },
+    "typecheck": "worker and db passed",
+    "workerBuild": "passed",
+    "workerArtifactSha256": "c530b2ea946a040e262ad1173e90b1136057b7594d12bba6f2a43eceb86be09a",
+    "coreArtifactSha256": "28603009e7b9cc4a26db7ffb9db21d4147db600fcf558f901b2c5916c7740673",
+    "independentReviews": "Two bounded source reviews; preparation/precommit expiry, login-heartbeat ownership, signal-handler removal timing and swallowed late-auth settlement findings fixed with parent regression checks",
+    "fixtureCorrections": "Initial SQL parameter typing and one-active-Run-per-Session fixtures corrected; a test-only query interception stalled callback-style pool reuse, its owned child was identified/stopped and query restored on release before successful rerun",
+    "limits": [
+      "Providers and CLI are controlled fixtures, not paid/external model execution",
+      "Process signals simulated against actual entry control flow; real OS signal/cold-start cross-platform behavior not proven",
+      "Relevant native tests only; full native repository suite and Linux native implementation CI not run",
+      "Prior frozen payload belongs to d493ae8 and is not proof of the new worker artifact; new closed release is required before activation"
+    ]
+  },
+  "preservation": {
+    "originalSourceInputsUnchanged": 692,
+    "originalArtifactsUnchanged": 2,
+    "originalDatabaseAllRowsDdlSequencesSecurityCatalogUnchanged": true,
+    "protectedFilesUnchanged": 8,
+    "nativeApiPid": 15940,
+    "nativeApiWebGateContainerIdentitiesUnchanged": true,
+    "nativeTables": 45,
+    "nativeRuns": 19,
+    "nativeEvents": 810,
+    "operatingWorkerStarted": false,
+    "originalTaskRunModelCallsCreated": 0,
+    "syntheticQaDatabaseRowsCreated": true,
+    "trackTrailDeploymentChanged": false,
+    "verifiedAt": "2026-11-12T16:17:52.576Z",
+    "originalDbAccess": "Read-only fingerprint comparison only; no native DDL/DML"
+  },
+  "cleanup": {
+    "completedAt": "2026-11-12T16:16:32.630Z",
+    "ownedQaContainerRemoved": true,
+    "tmpfsDataDisposed": true,
+    "ephemeralCredentialFileRemoved": true,
+    "emptyQaHomeRemoved": true
+  },
+  "remainingBeforeActivation": [
+    "Trusted QA mode configuration and approved runtime path/hash without mutable runtime override",
+    "Atomic explicit QA registration with existing child/peer/delegated admission, current authority, Run and receipt/binding",
+    "New closed source/dependency/worker/core release and revision-specific readiness",
+    "Current native/Assistant DDL data-preservation/backup/rollback, credential and source mapping guard",
+    "Actual managed-child/peer and Assistant-to-Demian task, grouped flow evidence, native Web context/authentication, desktop/second device"
+  ],
+  "goal": {
+    "status": "active",
+    "fulfilled": 14,
+    "total": 21,
+    "weighting": "equal acceptance criteria",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

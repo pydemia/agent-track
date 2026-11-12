@@ -83,10 +83,11 @@ payload에 속해야 한다. 모드 누락·빈 값·미지원·아직 구현 �
 넘어가지 않고 거부한다. 이 branch의 일반 실행은 명시적인 `general`에서만 가능하다.
 원본 worker service 설정은 변경하지 않았다.
 
-실제 기동 전 남은 계약은 정확한 org→workspace→session→run tuple의 만료 있는
-QA scope, candidate lease와 만료 복구·workspace lease 삭제의 동일 범위 제한,
-진행 중 prepare/claim·미dispatch claim·실행/event/heartbeat/status를 모두 기다리는
-drain이다. child/peer/delegated의 QA 등록은 기존 admission transaction에서
+후속 격리 구현 `1c691aa`는 정확한 org→workspace→session→run tuple의 만료 있는
+QA scope를 candidate lease와 만료 복구·workspace lease 삭제에 함께 적용한다.
+진행 중 prepare/claim·미dispatch claim·실행/event/heartbeat/status/login을 모두
+기다리는 drain과 명시적 cancel 전환도 구현했다. 늦은 claim의 정리 실패를 성공으로
+숨기지 않는다. child/peer/delegated의 QA 등록은 여전히 기존 admission transaction에서
 권한·Run·receipt와 원자적으로 처리해야 한다. ancestry/tag에서 권한을 상속하지 않는다.
 QA intake 제한과 전역 admission freeze는 다른 기능이다.
 
@@ -101,3 +102,15 @@ native Work/runtime DDL 전환에는 기존 schemaUnchanged guard를 재사용�
 모두0이고 dispatch는 false였다. 원본692입력/산출물2개, DB 전체 행·DDL·sequence·
 보안 catalog, 보호 파일8개와 API/Web/gate/container를 보존했다.
 검사 범위·pin·잔여 조건은 `demian-worker-readiness-verification.json`에 기록한다.
+
+범위 제한·종료 후속은 별도 label-owned tmpfs PostgreSQL과 fake provider/CLI에서
+관련154개 전부 통과·skip0, worker/db typecheck와 worker build를 확인했다.
+기존 취소·완료 fence도 함께 검사했다. 실제 OS 신호의 교차 플랫폼 검증은 아니며,
+검사에는 운영 DB·provider credential을 사용하지 않았다. 운영 DB는 별도의 읽기 전용
+보존 대조만 수행했다. QA 컨테이너·임시 credential은
+정리했고 원본692입력/산출물2개·전체 native DB/보안 catalog·보호 파일8개·서비스를
+보존했다. `demian-worker-intake-verification.json`에 범위와 초기 fixture 오류도 기록했다.
+
+이 변경도 로컬 commit이며 운영 worker·QA CLI를 활성화하지 않았다. 다음은 현재
+권한에 따른 atomic QA 등록과 pinned runtime/설정 전달이다. 이전 d493ae8의 frozen
+payload를 새 worker의 준비 증거로 재사용하지 않고 활성화 직전 새 closure를 만든다.

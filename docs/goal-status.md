@@ -1,5 +1,12 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 intake/drain 후속: 격리 native `1c691aa`에 정확한 QA tuple의
+임대·복구·workspace lease 삭제 제한과 전체 종료 drain/cancel을 구현했다.
+관련154검사를 실제 분리 PostgreSQL·fake provider/CLI에서 전부 통과했고,
+원본 데이터·보안 catalog·설정·서비스를 보존했다. 원격/운영 적용과 실제 QA
+업무 수행은 하지 않았으며, atomic QA 등록·pinned runtime·새 closed release와
+교차 앱 실기는 남아 전체14/21을 유지한다. `demian-worker-intake-verification.json` 참고.
+
 2026-11-13 worker 준비 후속: 원본692입력과 기존 산출물2개를 보존한 별도
 source snapshot 위에 frozen readiness를 구현했다. 실제 소스·설치 dependency·
 worker/core의19,589파일/5link payload를 검증했으며 실행·DB/provider/network
