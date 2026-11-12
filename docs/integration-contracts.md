@@ -176,7 +176,7 @@ Assistant runtimeTask/thread/turn IDs, without a parent-child graph. Its executi
 ID and the `runtime.runId` published to Projects are Assistant WorkExecution IDs;
 they must not be joined to Demian Runs by ID or similar timestamps.
 
-Next implementation boundary: a separate optional owner-bound, metadata-only
+Producer implementation boundary: a separate optional owner-bound, metadata-only
 Assistant read principal/API, wired through native `main.ts`/`api.ts`. It must
 provide bounded stable execution paging and strict allowlisted events, reject
 mutations and wrong owner/audience/scope/expiry, and reload revocation state on
@@ -199,10 +199,22 @@ cancel, reconcile, publish a result, migrate a database or start background work
 Operational audit found the public Assistant in its separate rootless Docker
 engine, not the rootful OAuth enrollment helper. Current image is
 `sha256:ccdb8c9b7337cd46005472a0bd23c1620b7a87d68e49ea7eba642e7efbbddcf0`;
-its base revision label is `b6070571e480bd7e342ca3a1f50dc79b0f190449` with
-separate reporting/gateway overlays. Actual installed `main.js`, `api.js` and
-`workbench/executions.js` hashes match the audited local compiled files. A
+its base revision label is `b6070571e480bd7e342ca3a1f50dc79b0f190449`.
+The deployment owner confirmed a full tracked-source build with no `/app` code
+bind overlay. Reporting/gateway behavior and private state must be preserved.
+Actual installed `main.js`, `api.js` and `workbench/executions.js` hashes match
+a fresh clean build of `ce066eb`, which differs from the deployed source by docs. A
 container name or base label alone is not treated as proof of the whole source.
+
+Native source wiring is implemented in private [Persona PR21](https://github.com/pydemia/persona/pull/21),
+head `5196c8bc9233da493c4146fec17b98e1c835dadc`. Dedicated HTTP auth and
+owner-before-limit SQLite reads are tested. Strict runtime observation uses
+`observe()` without lifecycle revalidation; the ordinary getter can terminate
+an unrelated expired or revoked live Task and is not used for this reader.
+Real Tasks/query-only database checks cover that side effect, current proof and
+document snapshots. Full native suite:885passed/899total,0failed,14environment
+skips. Source implementation is not deployment, native credential provisioning,
+Track adapter/Projects-grant intersection or actual cross-app completion.
 
 ## Native artifact metadata implementation
 

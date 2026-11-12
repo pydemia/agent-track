@@ -90,6 +90,6 @@ Node group의 계획·구현은 `mission-ui-plan.md`의 AT-12 보완에 연결�
 projection 검사이며 실제 대규모 브라우저 성능이나 child/peer 조직화 실기를 대신하지 않는다.
 다음 그룹 단계는 현재 원본 권한을 재검사하는 계정별 저장 보기·재접속 복원이다.
 
-전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 기존 Docker DB 장애로 원본 적용이 보류 중이다. Assistant 신규 읽기 계약과 desktop 의미·위치·다른 장치 연결도 남았다. 다음
+전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 기존 Docker DB 장애로 원본 적용이 보류 중이다. Assistant native reader 후보의 운영 적용·전용 credential·Track adapter, desktop 의미·위치·다른 장치 연결도 남았다. 다음
 재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부
 대기를 분리해 기록한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.

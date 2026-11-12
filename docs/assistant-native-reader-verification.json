@@ -1,0 +1,209 @@
+{
+  "verifiedAt": "2026-11-12T00:43:35.473Z",
+  "requirement": "AT-14 optional Assistant native producer; actual end-to-end task remains unverified",
+  "nativeSource": {
+    "privateRepository": "https://github.com/pydemia/persona",
+    "baseRevision": "ce066ebc87d69ff514e63df102767969967eab49",
+    "revision": "5196c8bc9233da493c4146fec17b98e1c835dadc",
+    "branch": "codex/agent-track-assistant-reader",
+    "pullRequest": "https://github.com/pydemia/persona/pull/21",
+    "baseBranch": "codex/assistant-reports-storage",
+    "author": "pydemia",
+    "merged": false
+  },
+  "nativeImplementation": {
+    "prefix": "/api/integrations/track/v1",
+    "optional": true,
+    "methods": [
+      "GET"
+    ],
+    "metadataOnly": true,
+    "ownerBound": true,
+    "expiringDedicatedCredential": true,
+    "uiProxySessionOriginCsrfPreserved": true,
+    "ownerSqlBeforeLimit": true,
+    "listLimit": 50,
+    "eventLimit": 100,
+    "cursorNamespaces": [
+      "SQLite int64 row-id high water",
+      "Assistant safe-integer event sequence"
+    ],
+    "withdrawnExecution": "omitted or404; no synthesized native failure state",
+    "runtime": "strict observe, no lifecycle revalidation fallback; unavailable observation503",
+    "databaseSchemaChange": false,
+    "demianReferencesSupported": false
+  },
+  "localVerification": {
+    "platform": "Windows Node24.21.0",
+    "fullBuild": "passed",
+    "fullWorkspaceTypecheck": "passed",
+    "formatCheck": "passed",
+    "fullSuite": {
+      "command": "node --import tsx --test --test-concurrency=4 tests/persona/*.test.ts tests/workbench/*.test.ts",
+      "tests": 899,
+      "passed": 885,
+      "failed": 0,
+      "skipped": 14,
+      "skips": "Existing environment-dependent native/private provision/media checks"
+    },
+    "newTests": {
+      "coordinatorSqliteAndService": 7,
+      "realTasksObservationalRegression": 1,
+      "dedicatedFastifyHttp": 10
+    },
+    "nativeExecutionAndRuntimeSubset": {
+      "passed": 41,
+      "failed": 0
+    },
+    "initialAttempt": {
+      "tests": 898,
+      "passed": 881,
+      "failed": 3,
+      "skipped": 14,
+      "failures": [
+        "Runtime UI404 x2 before full web build",
+        "code-resume wait timeout under default local concurrency"
+      ],
+      "resolution": "Built all workspaces and reran the complete suite at concurrency4 without changing assertions, timeouts or skips; CI default command verified separately"
+    },
+    "knownPrivateCredentialScan": {
+      "valuesCompared": 6,
+      "matches": 0,
+      "suspiciousTokenPatternFound": false
+    }
+  },
+  "sourceReview": {
+    "firstFinding": "Lifecycle runtime getter can finish an unrelated expired or revoked live Task",
+    "resolution": "Explicit observe path; no fallback; current context/proof still checked",
+    "regressionEvidence": [
+      "Real Tasks under query_only SQLite",
+      "Database total_changes and interrupt count unchanged",
+      "Unrelated live Task remains running",
+      "Ordinary getter still performs lifecycle revalidation",
+      "Document snapshot reads under query_only",
+      "Unsupported observation503"
+    ],
+    "independentRecheck": "No actionable blocker in source and caller chains; source-only review, parent ran checks"
+  },
+  "ci": {
+    "runId": 43126958892,
+    "url": "https://github.com/pydemia/persona/actions/runs/43126958892",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "app",
+        "conclusion": "success"
+      },
+      {
+        "name": "collection",
+        "conclusion": "success"
+      },
+      {
+        "name": "code-worker",
+        "conclusion": "success"
+      },
+      {
+        "name": "container",
+        "conclusion": "success"
+      }
+    ],
+    "appTests": {
+      "tests": 899,
+      "passed": 891,
+      "failed": 0,
+      "skipped": 8
+    },
+    "browser": {
+      "appPassed": 60,
+      "workbenchPassed": 37
+    },
+    "appLogSha256": "ed4930e577beadc957faa03dfd82e9d070ec38465a0bd7d38d44420a4b4623f7"
+  },
+  "cleanBaseline": {
+    "revision": "ce066ebc87d69ff514e63df102767969967eab49",
+    "coreFiles": {
+      "main.js": "3e706f6cd5f1a5dd2a6f8ceefdcad2ed20869aa87c9009a94b7ed201c5ae507c",
+      "api.js": "c1062afb7607a8a3ce355c445ec54971a1b534575d76d8c3c50d87b716522970",
+      "workbench/executions.js": "fa07773ae47c70c24ac86613d355baba69d89de7d5d640b719cc1d83fc3aeff8"
+    },
+    "matchedInstalledCoreExactly": true,
+    "sourceDifferenceFromDeployed": "Documentation only, confirmed by deployment owner"
+  },
+  "candidateImage": {
+    "revision": "5196c8bc9233da493c4146fec17b98e1c835dadc",
+    "sourceTree": "94d50150c9cac3d7b57cb8fec4d033f0d7959c03",
+    "archiveSha256": "96d053b27f38bf59986f22e696f8e3bc554c823b37a6ab119bb4815d50e04a3b",
+    "image": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712",
+    "fullCommittedDockerfileBuildInputs": true,
+    "repositoryPrivateDataExcluded": true,
+    "coreHashes": {
+      "main.js": "46fa7d1ffb97771ed9fd484917de862d43910ed9d1a9b736119396e7a6ad8632",
+      "api.js": "c201889e8e1a2376fb42c798865a15af126772b5e023161b3a487d5671322b42",
+      "workbench/executions.js": "cd57edac3f5ff4507b233baaab66a460b05f51ea7b66ecb268fa2ccd54c4af29",
+      "workbench/runtime-gateway.js": "bc92b1ee26f49e3bec1b5f18bca7858425bb8139aa9af97145ad74e0563e8dbe",
+      "track-read/service.js": "934e9991426f89da05cb88768936cd789e241a8e42a3f7130da9b0e1738aac16",
+      "track-read/routes.js": "c737a4446161274aa752e654ab0559a872de9092aa1c58b5c87acda9d565e95d",
+      "track-read/metadata.js": "95297ef94ecd13d91528cfa993c574030f197c67275011da4423c6ae49a7b93e"
+    },
+    "allSevenCoreHashesMatchLocalBuild": true,
+    "standardSourceLabelsVerified": true,
+    "assistantPythonFree": true,
+    "hashProbeHadNoNetworkMountOrPublishedPort": true,
+    "deployed": false
+  },
+  "production": {
+    "originalAssistantContainerUnchanged": true,
+    "originalAssistantImage": "sha256:ccdb8c9b7337cd46005472a0bd23c1620b7a87d68e49ea7eba642e7efbbddcf0",
+    "codeBindOverlay": false,
+    "readOnlyRootfs": true,
+    "readerCredentialProvisioned": false,
+    "trackAdapterEnabled": false,
+    "originalNativeWorktreePreserved": true,
+    "businessOrCredentialStateMutations": 0,
+    "windowsDockerRestartedOrRepaired": false
+  },
+  "currentTrackSources": [
+    {
+      "id": "demian-local",
+      "kind": "demian",
+      "state": "forbidden"
+    },
+    {
+      "id": "codex-local",
+      "kind": "codex",
+      "state": "connected"
+    },
+    {
+      "id": "projects-native",
+      "kind": "projects",
+      "state": "connected"
+    },
+    {
+      "id": "assistant",
+      "kind": "assistant",
+      "state": "unsupported"
+    },
+    {
+      "id": "desktop",
+      "kind": "desktop",
+      "state": "unsupported"
+    }
+  ],
+  "remaining": [
+    "Fresh current-state backup and code-only rollback plan",
+    "New source/image/container guard pins and native deployment",
+    "Dedicated owner reader provisioning and private hop",
+    "Track adapter plus fresh current Projects grant intersection",
+    "Distinct Assistant execution/role projection and UI; do not count as Demian Run",
+    "Actual Assistant to Demian to desktop to Track task, second device and managed-child/peer evidence"
+  ],
+  "goal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "equalWeight": true,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}
