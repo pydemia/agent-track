@@ -1,5 +1,22 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 계정별 Flow 저장 보기(AT-12-G06): SQLite의 계정 소유·revision 비교
+저장/갱신/삭제와 현재 Task/Run/Assistant 인가 API, 저장 이름·묶음·접힘·깊이·
+내부 초점의 명시 복원을 구현했다. 로컬 전체857개 중848통과·환경skip9·실패0,
+최종 관련26검사·타입 검사·별도 경로 build와 독립 검토를 통과했다. 합성 UI에서
+프로세스 재시작·새로고침 복원, 이름 갱신·접힘,390px 컨트롤 범위·Tab 이동과
+Enter 복원을 확인했다. 권한 철회 뒤 남은 이름을 재현·수정했고, 새 Run 추가로
+2node/1edge→4node/3edge가 된 뒤에도 철회한 저장 이름·복원 그룹을 제거했다.
+
+기본 Vite build가 이 checkout의 운영 정적 경로를 갱신한 것을 발견해 기존
+동결 프런트엔드로 복원하고 실제 HTTP18파일 byte/hash·Track/Demian 프로세스를
+대조했다. 새 후보는 별도 staging에 보관하며 `build:check`와 저장소 지침에
+로컬 build 경계를 추가했다. 운영 Saved View 테이블 생성·API 재시작·새 기능
+게시와 실제 owner/Entra 검증은 아직 수행하지 않았다. 다음 운영 단계는 Track
+DB/설정 backup·현재 미종료 receipt와 프로세스 확인, 운영 정적 root 분리 후
+API/프런트엔드 동시 전환이다. `saved-flow-views.md`·`saved-flow-views-verification.json`
+참고. 현재 전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+
 2026-11-13 공개 Web 운영 반영: `f5b41df`의 Windows·Ubuntu CI 통과 후 원본 public
 Web3001만 동결 build `CDH-N8gACrby4eI25LO5q`로 교체했다. 현재 PID55184의 정확한
 CIM·listener·고유 operation ready 기록을 확인했다. 기존 gate를 통과한 홈200·

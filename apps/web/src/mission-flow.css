@@ -30,6 +30,13 @@
 .flow-bundle-form fieldset label { display: flex; align-items: start; gap: 8px; overflow-wrap: anywhere; }
 .flow-bundle-form fieldset input { flex: none; width: auto; }
 .flow-bundle-form p { margin: 0; line-height: 1.6; color: var(--muted); }
+.flow-saved-views { margin: 12px 0; }
+.flow-saved-views summary { cursor: pointer; padding: 7px 0; }
+.flow-saved-views p { color: var(--muted); line-height: 1.7; }
+.flow-saved-views label { display: grid; gap: 6px; margin: 12px 0 8px; max-width: 440px; }
+.flow-saved-views input, .flow-saved-views select { min-width: 0; width: 100%; padding: 8px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); }
+.flow-saved-views button { margin: 3px 6px 3px 0; }
+.flow-saved-views button:disabled { opacity: .5; cursor: default; }
 .flow-bundle-list, .flow-bundle-list > div, .flow-group-inspector-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .flow-group-list { margin-top: 12px; }
 .flow-group-list summary { cursor: pointer; }

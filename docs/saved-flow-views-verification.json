@@ -1,0 +1,152 @@
+{
+  "dateKst": "2026-11-13",
+  "baseRevision": "a6833c9d7cfde4ada8333ff2baccafb2c033cd73",
+  "scope": "Account-owned saved Flow presentation; implementation and isolated verification; not deployed",
+  "codeAndTestSha256": {
+    "apps/api/server.ts": "11721a9216a0ce48abbc7dd10b3009778180e539598e47bbfbc63592789f960f",
+    "apps/web/src/App.tsx": "67fa50534a9c58ff16ebfb739c6215a1bea38e8aa9d5e2a53ffe44cb13975d21",
+    "apps/web/src/FlowGrouping.tsx": "da9f9480e6cf91c6e886753b890d84e0c4d55ccf5b4d9b6f33839a15df1ba45c",
+    "apps/web/src/group-workspace-context.ts": "b43327dc8bb92c9c2b44a63ff100a2f017ffaabde89c0ce24ede04ddcac83933",
+    "apps/web/src/mission-flow.css": "765950cf9a72c7831fbb823b5bb909d946ec5a92b8b5a75f62e22dfbaf37a2e5",
+    "apps/api/flow-view-authority.ts": "ea391e0b8ece13188d56cf82577735a57df53d62bfd338c8d2053b926d1ff5c9",
+    "apps/api/flow-views.ts": "1d297dc3275817faecd3f24d4d40d61140cd327b0a817014fb08d5168eb5cf73",
+    "apps/web/src/flow-views-client.ts": "dfc61f6e9c686511be65840f3476abef95b9c6ffbe88b7799a306057fad543a8",
+    "apps/web/src/use-flow-views.ts": "67f333be211506650dddf4ca07860e8e8d665e5ecca066e2563bed59d88f2abe",
+    "packages/contracts/flow-views.ts": "ab3978b3dc5aa465ed6d7f738968ca807ff15e669ff13c9c490e719be845a862",
+    "packages/projection/saved-flow-view-state.ts": "ced03659c652d6241236edb7a923ef4f6923140864dc3843b61802c179fefedb",
+    "packages/storage/flow-views.ts": "6dc2518da6ff99021803f486d5ec57a860ff737e0909ef0e20a0f9a69c592871",
+    "tests/flow-view-authority.test.ts": "d6c74622dc98c0deb54c13a750e8c45ab1ce2ea2da440da3dca156c0ddd15478",
+    "tests/flow-view-storage.test.ts": "68b725187a7c55f41c35104f41303ee6c4a641c1f48197dcec47dd1f05c7e126",
+    "tests/flow-views-client.test.ts": "525b70416060057e37d06c2aa38833769d063b13408030e2839abdf3fb008115",
+    "tests/flow-views-http.test.ts": "d30988aad9fcfdb3052407526605bc03673ae69398bdc46db1fc7bc621689207",
+    "tests/saved-flow-view-state.test.ts": "0de9b17902aa335fdd4dfb8290f4daca29efd8debf85ce2ae4d185a906ab0c98"
+  },
+  "implementation": {
+    "storage": "Additive saved_flow_views table; Store schema_version2 retained; owner/id composite primary key; transactional CAS and per-owner quota",
+    "stored": [
+      "user-authored name",
+      "source-qualified Task/Run/Assistant anchors",
+      "task bundles",
+      "grouping mode",
+      "depth",
+      "collapsed overrides",
+      "focused group"
+    ],
+    "restore": "Explicit user selection in the same flow after fresh server authorization and current-model reconciliation",
+    "automaticLastSelectionRestore": false,
+    "commonFourViewScopePersisted": false,
+    "originalSourceWrites": false,
+    "limits": {
+      "viewsPerActor": 20,
+      "anchorsPerView": 32,
+      "contentBytes": 12288,
+      "httpBodyBytes": 16384,
+      "serverDeadlineMs": 10000,
+      "clientDeadlineMs": 12000
+    }
+  },
+  "localVerification": {
+    "retainedFullSuite": {
+      "total": 857,
+      "passed": 848,
+      "failed": 0,
+      "skipped": 9,
+      "skipReason": "POSIX-only cases",
+      "reuseBasis": "Final changes after this run are frontend provenance/context behavior and documentation/build-check script. API/contracts/storage/projection remained unchanged; final frontend is built/typechecked and browser-checked separately."
+    },
+    "finalFocused": {
+      "total": 26,
+      "passed": 26,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "stagingBuild": "passed",
+    "safeBuildCheck": "passed",
+    "buildWarning": "Existing @xyflow/react use-client directive warning"
+  },
+  "browser": {
+    "fixtureOnly": true,
+    "realWorkOrModelExecution": false,
+    "syntheticObservedRuns": 1,
+    "syntheticRunBindings": 1,
+    "nativeCommands": 0,
+    "sqliteProcessRestartAndPageReload": true,
+    "explicitRestore": true,
+    "bundleAndCollapsedStateRestored": true,
+    "renameUpdateRevision": 2,
+    "mobile": {
+      "width": 390,
+      "pageOverflow": false,
+      "allSavedControlsInsideViewport": true,
+      "tabFromSelectToRestore": true
+    },
+    "keyboardEnterRestore": true,
+    "revocation": {
+      "preFixReproduced": "Fresh list excluded record, but prior input and bundle label remained",
+      "postFix": {
+        "savedNameCleared": true,
+        "restoredBundleRemoved": true,
+        "placeholderOnly": true
+      },
+      "anchorAddition": {
+        "before": {
+          "nodes": 2,
+          "edges": 1
+        },
+        "after": {
+          "nodes": 4,
+          "edges": 3
+        },
+        "sameFlow": true,
+        "taskReadDeniedWhileGraphRetained": true,
+        "restoredBundleRemoved": true
+      }
+    },
+    "screenshotVerified": false,
+    "actualOwnerEntraSavedViewsVerified": false,
+    "deleteButtonBrowserVerified": false
+  },
+  "review": {
+    "independentStaticReview": true,
+    "findingsFixed": [
+      "Draft/restored label retention after revocation",
+      "POST response republished despite denied follow-up GET",
+      "Superseded polling failure erased newer manual work",
+      "Untimed pre-route grant/body waits",
+      "Anchor changes detached restored provenance",
+      "Delete notice contradicted reset behavior"
+    ],
+    "finalTargetedSourceReview": "No remaining actionable issue in targeted fixes",
+    "stalePollBrowserRaceVerified": false
+  },
+  "operating": {
+    "verifiedAt": "2026-11-12T23:39:10.300Z",
+    "operatingIndexSha256": "ecc4744c0fc881123ad11bcc0db9c6556175788b476f9c789d2a925d31705dcb",
+    "operatingAllFilesBytesMatched": 18,
+    "trackApiAndNativeProcessesUnchanged": true,
+    "trackApiRestarted": false,
+    "savedViewsDeployed": false,
+    "savedViewTableExists": false,
+    "storeSchemaVersion": "2",
+    "savedViewApiAndUiDeployed": false,
+    "accidentalLocalBuildRestored": true,
+    "prevention": [
+      "npm run build:check targets private staging",
+      "Repository AGENTS.md forbids default local build into active dist/web"
+    ],
+    "remaining": "Backup Track DB/config, inspect current receipts/process identity, isolate operating web root, then API/frontend rollout and actual owner verification"
+  },
+  "ci": {
+    "status": "pending"
+  },
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "Equal acceptance criteria",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "Operating saved-view rollout plus SSO/cross-app/additional-device work remain"
+  },
+  "sourceHashBasis": "Git index bytes (repository LF normalization); SHA-256, not Git object IDs"
+}

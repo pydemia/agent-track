@@ -4,6 +4,7 @@ import { missionUnitKind, type MissionNode, type MissionEdge } from "../../../pa
 import { nativeFlowGroupDefinitions, withTaskBundles, groupsForNodes, type FlowGroupBy, type TaskBundle } from "../../../packages/projection/flow-group-definitions.ts";
 import { projectFlowGroups, type FlowGroupSummary } from "../../../packages/projection/flow-groups.ts";
 import { flowGroupContext } from "../../../packages/projection/flow-group-context.ts";
+import { useFlowViews } from "./use-flow-views.ts";
 import type { FlowNode, FlowCanvasProps, FlowCanvasView, FlowViewRequest } from "./ui/flow-canvas.tsx";
 import { flowNavigationGraph, reconcileFlowHistory, pushFlowHistory, popFlowHistory, validFlowNavigationView,
   type FlowNavigationHistory, type FlowNavigationFrame, type FlowNavigationSelection } from "./flow-navigation-state.ts";
@@ -22,10 +23,12 @@ export const groupStatusLabel = (kind: string, status: string): string => {
 const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter(([kind]) => group.counts[kind])
   .map(([kind, label]) => `${label} ${group.counts[kind]}`).join(" · ") || `${group.leafKeys.length}개 항목`;
 
-export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdge[]; incomplete?: boolean }, options: {
+export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdge[]; incomplete?: boolean }, input: {
   scopeKey: string; defaultBy: FlowGroupBy; defaultDepth?: Depth; chooseNode: (key: string) => void; chooseEdge: (key: string) => void;
   selection?: FlowNavigationSelection | null; clearSelection?: () => void;
 }) {
+  const workspace = useContext(GroupWorkspaceContext);
+  const options = { ...input, scopeKey: JSON.stringify([input.scopeKey, workspace?.actor ?? null]) };
   const [by, setBy] = useState(options.defaultBy);
   const [depth, setDepth] = useState<Depth>(options.defaultDepth ?? "structure");
   const [overrides, setOverrides] = useState<Map<string, boolean>>(new Map());
@@ -189,6 +192,15 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     options.chooseNode(key); setFocus(key); setFocusTargets([]); requestView([key]);
   };
   const removeBundle = (key: string) => { setBundles(previous => previous.filter(bundle => bundle.key !== key)); fitAll(); };
+  const saved = useFlowViews(sameScope ? workspace?.actor ?? null : null, input.scopeKey, model,
+    { by, depth, bundles: validBundles, overrides: [...overrides].filter(([key]) => groupByKey.has(key)), focus: activeFocus }, restored => {
+      clearHistory(); view.current = null; options.clearSelection?.();
+      setBy(restored.by); setDepth(restored.depth); setBundles(restored.bundles); setOverrides(new Map(restored.overrides));
+      setFocus(restored.focus); setFocusTargets([]); requestView(restored.focus ? [restored.focus] : []);
+    }, () => {
+      setBundles([]); setOverrides(new Map()); setBy(options.defaultBy); setDepth(options.defaultDepth ?? "structure");
+      setLabel(""); setTaskKeys(new Set()); setFormOpen(false); options.clearSelection?.(); fitAll();
+    }, workspace?.onUnauthorized);
   const canvasProps: Pick<FlowCanvasProps, "fitView" | "minZoom" | "defaultViewport" | "viewRequest" | "onViewChange" | "onViewApplied"> = {
     fitView: !currentView && !pendingCamera, minZoom: 0.001, onViewChange, onViewApplied,
     ...(currentView ? { defaultViewport: { x: currentView.x, y: currentView.y, zoom: currentView.zoom } } : {}),
@@ -198,7 +210,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     projection, collapsed, groupByKey, decorate, inspectNodes, inspectEdges, topology, focusNodeIds, fitVersion,
     enter, toggle, resetFocus, fitAll, back: () => restoreSaved(), canGoBack: sameScope && safeHistory.frames.length > 0,
     canvasProps, revealNode, revealEdge, breadcrumb, activeFocus, formOpen, setFormOpen, label, setLabel, taskKeys, setTaskKeys,
-    availableTasks, validBundles, occupied, createBundle, removeBundle, partial: Boolean(model.incomplete), chooseNode: options.chooseNode, chooseEdge: options.chooseEdge };
+    availableTasks, validBundles, occupied, createBundle, removeBundle, saved, partial: Boolean(model.incomplete), chooseNode: options.chooseNode, chooseEdge: options.chooseEdge };
 }
 type Grouping = ReturnType<typeof useFlowGrouping>;
 
@@ -207,7 +219,19 @@ export function FlowGroupControls({ state }: { state: Grouping }) {
     <div className="flow-group-toolbar"><label>묶음 기준 <select value={state.by} onChange={event => state.setBy(event.target.value as FlowGroupBy)}>{Object.entries(byNames).map(([key, name]) => <option key={key} value={key}>{name}</option>)}</select></label>
       <div role="group" aria-label="흐름 탐색 깊이">{([["overview", "묶음 개요"], ["structure", "실행 구조"], ["detail", "상세 근거"]] as const).map(([key, name]) => <button key={key} type="button" aria-pressed={state.depth === key} onClick={() => state.selectDepth(key)}>{name}</button>)}</div>
       {state.availableTasks.length >= 2 && <button type="button" aria-expanded={state.formOpen} onClick={() => state.setFormOpen(!state.formOpen)}>업무 묶음 만들기</button>}
-      <span>{state.projection.groups.length}개 그룹 · 현재 화면 묶음은 재접속 시 저장되지 않습니다.</span></div>
+      <span>{state.projection.groups.length}개 그룹 · 다음 접속에서 다시 보려면 저장 보기를 만드세요.</span></div>
+    <details className="flow-saved-views"><summary>계정별 저장 보기 · {state.saved.views.length}개</summary>
+      <p>묶음 이름·구성·접힘과 탐색 깊이를 계정에 저장합니다. 불러올 때 현재 원본 접근을 다시 확인합니다.</p>
+      <label>저장 보기 이름<input maxLength={80} value={state.saved.name} onChange={event => state.saved.setName(event.target.value)} /></label>
+      <button type="button" disabled={!state.saved.ready || state.saved.busy || !state.saved.name.trim()} onClick={() => state.saved.save(true)}>새 보기 저장</button>
+      <label>이 흐름의 저장 보기<select value={state.saved.selection?.id ?? ""} disabled={state.saved.busy} onChange={event => state.saved.choose(event.target.value)}><option value="">저장 보기 선택</option>{state.saved.views.map(view => <option key={view.id} value={view.id}>{view.content.name}</option>)}</select></label>
+      <button type="button" disabled={!state.saved.selection || state.saved.busy} onClick={state.saved.load}>선택 보기 불러오기</button>
+      <button type="button" disabled={!state.saved.selection || state.saved.busy || !state.saved.name.trim()} onClick={() => state.saved.save(false)}>현재 구성으로 덮어쓰기</button>
+      <button type="button" disabled={!state.saved.selection || state.saved.busy} onClick={state.saved.remove}>선택 보기 삭제</button>
+      <button type="button" disabled={!state.saved.ready || state.saved.busy} onClick={state.saved.refresh}>목록 다시 확인</button>
+      {!state.saved.ready && <p>저장할 현재 구성을 확인할 수 없습니다. 접근 가능한 더 작은 묶음 범위에서 다시 확인하세요.</p>}
+      {state.saved.busy && <p role="status">현재 원본 접근과 저장 보기를 확인하는 중…</p>}{state.saved.notice && <p role="status">{state.saved.notice}</p>}
+    </details>
     <nav className="flow-group-breadcrumb" aria-label="그룹 탐색 경로">{state.canGoBack && <button type="button" onClick={state.back}>이전 탐색 복원</button>}<button type="button" onClick={state.resetFocus}>전체 흐름</button>{state.breadcrumb.map(group => <span key={group.key}> / <button type="button" onClick={() => state.enter(group.key)} aria-current={state.activeFocus === group.key ? "location" : undefined}>{group.label}</button></span>)}
       {state.activeFocus && <button type="button" onClick={() => { const parent = state.groupByKey.get(state.activeFocus!)?.parentKey; if (parent) state.enter(parent); else state.resetFocus(); }}>상위 묶음</button>}</nav>
     {state.formOpen && <form className="flow-bundle-form" onSubmit={event => { event.preventDefault(); state.createBundle(); }}><label>화면 묶음 이름<input maxLength={80} value={state.label} onChange={event => state.setLabel(event.target.value)} required /></label>

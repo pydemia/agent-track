@@ -26,6 +26,9 @@ import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
 import type { Store } from "../../packages/storage/store.ts";
+import { FlowViewRepository } from "../../packages/storage/flow-views.ts";
+import { FlowViews } from "./flow-views.ts";
+import { flowViewAuthorization } from "./flow-view-authority.ts";
 
 const contentTypes: Record<string, string> = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
@@ -47,7 +50,16 @@ async function jsonBody(request: IncomingMessage): Promise<unknown> {
   try { return JSON.parse(Buffer.concat(parts).toString("utf8")); }
   catch { throw new CommandError(400, "invalid_json", "Invalid JSON body."); }
 }
-export function createTrackServer(store: Store, config: () => Config, webRoot: string, sources = new Sources(store, config)) {
+async function flowBody(request: IncomingMessage, deadline: number): Promise<unknown> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([jsonBody(request), new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new CommandError(408, "flow_view_request_timeout", "저장 보기 요청 시간이 초과됐습니다.")), Math.max(0, deadline - performance.now()));
+    })]);
+  } finally { clearTimeout(timer); }
+}
+export function createTrackServer(store: Store, config: () => Config, webRoot: string, sources = new Sources(store, config), flowViewRequestTimeoutMs = 10_000) {
+  if (!Number.isSafeInteger(flowViewRequestTimeoutMs) || flowViewRequestTimeoutMs < 1 || flowViewRequestTimeoutMs > 10_000) throw new Error("Invalid saved-view request deadline");
   const root = resolve(webRoot);
   const taskAssignments = new TaskAssignments(store, config, sources);
   const snapshot = (user: string) => taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user)));
@@ -57,7 +69,9 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const approvals = new ApprovalService(store);
   const taskCreation = new ProjectTaskCreation(store, config, sources);
   const sessionRelations = new SessionRelations(config, snapshot, user => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+  const flowViews = new FlowViews(new FlowViewRepository(store.db), flowViewAuthorization(config, sources, snapshot));
   const server = createServer(async (request, response) => {
+    const flowDeadline = performance.now() + flowViewRequestTimeoutMs;
     let activeActor: string | null = null;
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
@@ -85,10 +99,39 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
-      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") &&
+      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+      }
+      if (url.pathname === "/api/flow-views" || url.pathname.startsWith("/api/flow-views/")) {
+        const confirmActor = () => authenticate(request, config()) === user;
+        try {
+        const id = /^\/api\/flow-views\/([0-9a-f-]{36})$/.exec(url.pathname)?.[1];
+        if (request.method === "GET" && url.pathname === "/api/flow-views") {
+          if ([...url.searchParams.keys()].join() !== "contextId" || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+            json(response, 400, { error: "invalid_flow_view_query" }); return;
+          }
+          const views = await flowViews.list(user, url.searchParams.get("contextId") ?? "", flowDeadline);
+          if (!confirmActor()) { json(response, 401, { error: "authentication_required" }); return; }
+          json(response, 200, { actor: user, views }); return;
+        }
+        if ((request.method === "POST" && !id && url.pathname === "/api/flow-views") || (request.method === "DELETE" && id)) {
+          if (url.search) { json(response, 400, { error: "invalid_flow_view_query" }); return; }
+          if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+          const body = await flowBody(request, flowDeadline);
+          if (!confirmActor()) { json(response, 401, { error: "authentication_required" }); return; }
+          if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+          if (request.method === "DELETE") { flowViews.remove(user, id!, body, flowDeadline); json(response, 200, { actor: user, deleted: true }); return; }
+          const view = await flowViews.save(user, body, () => confirmActor() && !response.destroyed && !request.aborted && validMutationOrigin(request, config()), flowDeadline);
+          if (!confirmActor()) { json(response, 401, { error: "authentication_required" }); return; }
+          json(response, 200, { actor: user, view }); return;
+        }
+        json(response, 405, { error: "unsupported_method" }); return;
+        } catch (error) {
+          if (!confirmActor()) { json(response, 401, { error: "authentication_required" }); return; }
+          throw error;
+        }
       }
       if (request.method === "POST" && url.pathname === "/api/commands/approval") {
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }

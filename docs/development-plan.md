@@ -107,7 +107,7 @@ AT-12-G01~G05는 `mission-ui-plan.md`의 작업 묶음 중심 탐색에 연결�
 | 1. 묶음 요약 | 현재 허용된 구성/상태·대기·산출물 근거를 연결. 원본 목적/입력/수용 조건 미제공과 부분 관측 구분 | `packages/projection/flow-group-context.ts`, `apps/web/src/FlowGrouping.tsx`. AT-12-G03, 혼합 단위·실패/미확인 검사 | 현재 metadata 구현. 원본 의미 필드 추가는 producer 계약에 의존 |
 | 2. 내부/외부 문맥 | 그룹별 펼침·내부 초점·breadcrumb, 외부 선행/후속과 원본 끝점 이동·상위 복귀 | `FlowGrouping.tsx`, `flow-group-layout.ts`, `flow-navigation-state.ts`. AT-12-G01/G02, 경계 대표선·선택/viewport 검사 | 현재 화면 구현. 실제 복합 분기·합류 업무의 전체 왕복 검증은 남음 |
 | 3. 공통 범위 | 현재 허용된 멤버를 네 화면에 전달. Trail은 Run별 lane, Trace는 실행별 흐름, Track은 업무별 요약 유지 | `packages/projection/group-workspace-scope.ts`, `apps/web/src/group-workspace-client.ts`와 네 소비 화면. AT-12-G04/G05, 전환·철회·동일 ID 구별 | 구현·합성 UI/HTTP 검사·게시 확인. 현재 운영 Entra GUI와 전체 실제 조직화 검증은 남음 |
-| 4. 저장 보기 | 계정별 멤버 ID·묶음 이름·접힘 상태 저장과 재접속 시 원본 권한 재검사. 서버 저장 계약 필요 | 현재 화면 묶음의 임시 상태와 분리. 재접속 복원·권한 제거·계정 전환 검사 후 완료 판정 | 미구현. 원본 데이터·실행 명령을 변경하지 않는 저장 계약부터 정의 |
+| 4. 저장 보기 | 계정별 멤버 ID·묶음 이름·접힘 상태 저장과 재접속 시 원본 권한 재검사 | `saved-flow-views.md`, AT-12-G06. 계정 분리·CAS·재접속 복원·권한 철회와 새 관측 후 철회 검사 | 구현·격리 HTTP/SQLite·합성 UI 검사. 운영 DB/설정 backup·API/정적 경로 분리와 실제 owner 게시 검증은 남음 |
 
 1단계 중 현재 제공되는 metadata의 단위별 상태·명시된 대기/실패/검토·선행/후속
 업무·산출물 관계 요약과 원본 상세 이동을 구현했다. 고유 Run/산출물 중복과

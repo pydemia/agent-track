@@ -506,7 +506,7 @@ export function App() {
       : "전체 프로젝트";
   const sidebarExpanded = isMobile ? sidebarOpen : !sidebarCollapsed;
 
-  return <GroupWorkspaceContext.Provider value={{ open: openGroup }}><div className="app" style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
+  return <GroupWorkspaceContext.Provider value={{ open: openGroup, actor: snapshot?.user ?? null, onUnauthorized: clearPrivateData }}><div className="app" style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
     <header className="topbar">
       <button className="sidebar-toggle" ref={sidebarToggle} aria-controls="context-sidebar" aria-label={sidebarExpanded ? "문맥 사이드바 닫기" : "문맥 사이드바 열기"} aria-expanded={sidebarExpanded} title={sidebarExpanded ? "사이드바 접기" : "사이드바 펼치기"} onClick={toggleSidebar}>{sidebarExpanded ? "‹" : "☰"}</button>
       <a className="brand" href="/" aria-label="Agent Track 홈"><span className="brand-mark">A</span><span>Agent <b>Track</b></span></a>

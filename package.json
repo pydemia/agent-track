@@ -10,6 +10,7 @@
     "dev": "tsx apps/api/main.ts",
     "dev:web": "vite --config apps/web/vite.config.ts",
     "build": "vite build --config apps/web/vite.config.ts",
+    "build:check": "vite build --config apps/web/vite.config.ts --outDir ../../.runtime/build/web",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "start": "tsx apps/api/main.ts",
