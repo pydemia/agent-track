@@ -7,7 +7,7 @@
     "branch": "codex/agent-track-demian-observer",
     "baseRevision": "5196c8bc9233da493c4146fec17b98e1c835dadc",
     "implementationRevision": "c7181a1c0cf7f3e86f226ba35f8ce71a0f26be78",
-    "headRevision": "9646e704eb825d610bb188e200a0d3ac4feacd4c",
+    "headRevision": "b449f5fea9a58dab99cf4c635d851ad355fa742a",
     "remoteHeadMatched": true,
     "draftPr": "https://github.com/pydemia/persona/pull/22",
     "stackedOn": "https://github.com/pydemia/persona/pull/21",
@@ -36,7 +36,15 @@
     },
     "independentSourceReview": "No concrete findings in the bounded strict observer/v2 paths; original gateway and future consumer excluded",
     "knownCredentialScan": { "privateValues": 8, "changedFiles": 85, "matches": 0 },
-    "remoteCi": "pending; no CI pass claimed for head revision"
+    "testFixtureFollowup": "POSIX absolute path via node:path resolve; production loader unchanged; 3 related tests and formatting passed",
+    "remoteCi": "passed all app/container/collection/code-worker jobs in both runs at head revision",
+    "remoteRuns": [43202075219, 43202083811],
+    "rootReview": {
+      "finding": "No concrete findings in bounded strict observer/v2 paths; not full 85-file or operational approval",
+      "deployedReaderProtocol": 1,
+      "currentProducerTupleAvailable": false,
+      "newSchemaBackupRollbackAndGuardRequired": true
+    }
   },
   "coveredBehavior": [
     "Observation uses current exact owner/reference/context/binding and never lifecycle get, dispatch, reconciliation or writes",
@@ -48,7 +56,7 @@
     "Dedicated HTTP reader authentication, no-store responses, method and encoded-path denial, final grant recheck and cross-version cursor rejection"
   ],
   "productionReadback": {
-    "verifiedAt": "2026-11-12T10:19:04.213Z",
+    "verifiedAt": "2026-11-12T11:18:03.042Z",
     "scope": "Existing owner BFF and browser decoders; no new CUA browser verification",
     "nativeSourceConnected": true,
     "nativeRuns": 19,
@@ -68,11 +76,36 @@
     "nativeServicesOrCredentialsChanged": false,
     "deployedTrackProtocol": 1
   },
+  "trackConsumer": {
+    "scope": "Local consumer patch over aa7f0f9; not native source activation or actual cross-app execution",
+    "protocol": "Explicit v1 default or v2; no automatic downgrade",
+    "mapping": "Exact server-registered HTTPS producer origin/organization/workspace to configured native source; never fetch DTO origin",
+    "authorization": "Current actor/Assistant/Projects/native intersection, known nonstale Run and exact Session/workspace/operation receipt, late policy and credential checks",
+    "browser": "Producer tuple and external thread/turn removed; current source-qualified snapshot rechecked; typed role-to-Run relation and exact native Trace navigation",
+    "typecheck": "passed",
+    "isolatedWebBuild": "passed",
+    "fullTests": { "total": 661, "passed": 652, "failed": 0, "skipped": 9, "skipReason": "POSIX-only permission semantics on Windows" },
+    "independentReview": "No concrete findings in current authority/config/native join/frontend decoding/cache/graph patch; static source and tests only, no independent execution",
+    "syntheticUi": {
+      "fixtureOnly": true,
+      "modelCalls": 0,
+      "actualNativeTaskOrRunCreated": 0,
+      "verified": [
+        "Project/Task/WorkExecution/work-package groups and typed role-to-native Run edges",
+        "Collapsed representative edge retains original evidence and reveals actual endpoints",
+        "Readable edge inspector and exact source-qualified native Trace navigation",
+        "390px and keyboard; settled document has no horizontal overflow",
+        "Native grant withdrawal removes old relation, Run ID and selected detail after refresh"
+      ],
+      "fixtureProcessAndFourSyntheticCredentialFilesRemoved": true
+    },
+    "productionSourceProtocol": 1,
+    "nativeServicesOrCredentialsChanged": false
+  },
   "remaining": [
-    "Current head remote CI",
-    "Track v2 client, explicit producer-to-native source mapping and current Assistant/Projects/native authority intersection",
-    "Typed cross-app graph relation and permission/source removal cleanup",
-    "Root-owned native rollout and execution credentials/worker readiness",
+    "Track consumer commit/remote CI and production v1 regression after consumer rollout",
+    "Root-owned native rollout with new Work/runtime DDL preservation, latest-data backup/rollback and guard",
+    "Actual producer mapping, execution credentials and worker readiness",
     "Actual cross-app QA task, managed child/peer organization and second device/desktop scope"
   ],
   "goal": { "completed": 14, "total": 21, "percent": 66.7, "weighting": "equal acceptance criteria", "eta": "not estimable", "confidence": "low" }

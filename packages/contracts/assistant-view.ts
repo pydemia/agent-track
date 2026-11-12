@@ -1,12 +1,35 @@
-import type { ProjectMetadata, ProjectTaskMetadata } from "./index.ts";
-import type { AssistantExecutionMetadata, AssistantExecutionEventsPage } from "./assistant.ts";
+import type { ProjectMetadata, ProjectTaskMetadata, RunStatus } from "./index.ts";
+import type { AssistantObservedExecution, AssistantObservedEventsPage } from "./assistant.ts";
+
+export interface AssistantDemianLink {
+  roleId: string;
+  sourceId: string;
+  runKey: string;
+  runId: string;
+  sessionId: string;
+  workspaceId: string;
+  operationId: string;
+  status: RunStatus;
+  observedAt: string;
+}
+export interface AssistantDemianLinksView {
+  state: "connected" | "unconfigured" | "not_observed" | "forbidden" | "disconnected";
+  links: AssistantDemianLink[];
+  omitted: number;
+  complete: false;
+  detail: string;
+}
 
 /** An observed Assistant WorkExecution, separate from a Demian Run. */
 export interface AssistantExecutionView {
   sourceId: string;
   sourceLabel: string;
   device: string;
-  native: AssistantExecutionMetadata;
+  // Wire variants are validated before this rendering view. A common role list
+  // lets view consumers work with both protocols without array-union mutation.
+  native: Omit<AssistantObservedExecution, "roles"> & { roles: Array<AssistantObservedExecution["roles"][number]> };
+  /** Only freshly authorized native links. Producer tuples never enter the browser. */
+  demianLinks?: AssistantDemianLinksView;
   currentTask: {
     projectsSourceId: string;
     projectKey: string;
@@ -27,5 +50,5 @@ export interface AssistantExecutionListView {
 }
 export interface AssistantExecutionEventsView {
   execution: AssistantExecutionView;
-  page: AssistantExecutionEventsPage;
+  page: AssistantObservedEventsPage;
 }

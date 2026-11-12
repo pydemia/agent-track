@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { SourceView } from "../../../packages/contracts/index.ts";
+import type { SourceView, RunView } from "../../../packages/contracts/index.ts";
 import type { AssistantExecutionView, AssistantExecutionListView } from "../../../packages/contracts/assistant-view.ts";
 import { AssistantWebError, fetchAssistantExecutions } from "./assistant-client.ts";
 
@@ -15,11 +15,15 @@ export function assistantMatches(view: AssistantExecutionView, filters: { source
       `${view.native.id} ${view.native.instructionId} ${view.currentTask?.task.title ?? ""} ${view.sourceLabel} ${view.native.roles.map(role => `${role.label} ${role.teamLabel} ${role.agentLabel}`).join(" ")}`.toLocaleLowerCase().includes(filters.q.toLocaleLowerCase()));
 }
 export function useAssistantExecutions(user: string | null, sources: SourceView[],
-  onUnauthorized: (reason: string) => void, onObserved: () => void) {
+  onUnauthorized: (reason: string) => void, onObserved: () => void, runs: RunView[] = []) {
   const eligible = sources.filter(source => source.kind === "assistant" && source.state !== "unsupported");
   const scope = JSON.stringify([user, eligible.map(source => [source.id, source.state]).sort(),
     sources.filter(source => source.kind === "projects").map(source => [source.id, source.state,
-      [...(source.authorizedProjectIds ?? [])].sort()]).sort()]);
+      [...(source.authorizedProjectIds ?? [])].sort()]).sort(),
+    sources.filter(source => source.kind === "demian").map(source => [source.id, source.state]).sort(),
+    runs.filter(run => sources.some(source => source.id === run.sourceId && source.kind === "demian"))
+      .map(run => [run.key, run.sourceState, run.stale, run.sessionId, run.workspaceId,
+        run.binding?.projectSourceId, run.binding?.projectId]).sort()]);
   const [state, setState] = useState<{ scope: string; windows: AssistantWindow[] }>({ scope: "", windows: [] });
   const [limits, setLimits] = useState<{ scope: string; pages: Record<string, number> }>({ scope: "", pages: {} });
   const [refreshVersion, setRefreshVersion] = useState(0);

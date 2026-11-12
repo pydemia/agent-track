@@ -8,6 +8,8 @@ import type { Config, SourceConfig } from "./config.ts";
 import { ProjectsAuthority } from "./projects-authority.ts";
 import { projectsReady, sourceIdentity } from "./source-identity.ts";
 import { AssistantAuthority } from "./assistant-authority.ts";
+import { AssistantDemianLinks } from "./assistant-demian-links.ts";
+import { filterAssignmentSnapshot } from "./task-assignment.ts";
 
 export class Sources {
   private states = new Map<string, SourceView>();
@@ -26,7 +28,9 @@ export class Sources {
   constructor(private store: Store, private config: () => Config) {
     this.codex = new CodexCollector(store);
     this.projects = new ProjectsAuthority(store, config);
-    this.assistant = new AssistantAuthority(store, config, this.projects);
+    this.assistant = new AssistantAuthority(store, config, this.projects, undefined, 10_000,
+      new AssistantDemianLinks(config, user => filterAssignmentSnapshot(store, store.snapshot(user, this.views(user))),
+        user => this.refreshProjectGrants(user)));
   }
 
   async refreshProjectGrants(user: string): Promise<void> { await this.projects.refresh(user); }

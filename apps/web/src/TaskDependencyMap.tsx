@@ -65,7 +65,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
     const base = snapshot.page ? projectDependenciesFlow(snapshot.page, runs, sources, focusTaskId)
       : { nodes: [], edges: [], hiddenNodes: 0, incomplete: false, cycles: new Set<string>(), focusPresent: false };
     if (!snapshot.page) return base;
-    return withAssistantExecutions(base, assistantExecutions, sources, { sourceId, projectId, ...(focusTaskId ? { focusTaskId } : {}) });
+    return withAssistantExecutions(base, assistantExecutions, sources, { sourceId, projectId, ...(focusTaskId ? { focusTaskId } : {}) }, runs);
   }, [snapshot.page, runs, sources, focusTaskId, assistantExecutions, sourceId, projectId]);
   const chooseNode = (key: string) => setChoice({ kind: "node", key });
   const chooseEdge = (key: string) => setChoice({ kind: "edge", key });

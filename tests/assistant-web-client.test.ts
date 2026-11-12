@@ -5,6 +5,7 @@ import { setImmediate } from "node:timers/promises";
 import { AssistantWebError, fetchAssistantExecution, fetchAssistantExecutions,
   fetchAssistantEvents } from "../apps/web/src/assistant-client.ts";
 import type { AssistantExecutionView } from "../packages/contracts/assistant-view.ts";
+import { externalKey } from "../packages/contracts/index.ts";
 
 const source = "assistant-main";
 const id = (n: number) => `${String(n).padStart(8, "0")}-1234-4234-8234-123456789abc`;
@@ -42,6 +43,49 @@ function events() {
       state: "running", errorCode: null, occurredAt: instant }],
     cursor: "2", hasMore: false, complete: false } };
 }
+function v2Execution(): AssistantExecutionView {
+  const value = execution();
+  value.native = { ...value.native, roles: value.native.roles.map(role => ({ ...role,
+    runtime: { ...role.runtime, threadId: null, turnId: null, demian: null },
+    observation: { ...role.observation, seconds: null, timingComplete: false, basis: "external_run_wall_timestamps_unverified" as const } })) };
+  value.demianLinks = { state: "connected", omitted: 0, complete: false, detail: "Current native receipt",
+    links: [{ roleId: id(5), sourceId: "demian-main", runKey: externalKey("demian-main", id(6)), runId: id(6),
+      sessionId: id(7), workspaceId: id(8), operationId: id(5), status: "succeeded", observedAt: instant }] };
+  return value;
+}
+
+test("browser accepts sanitized v2 native links and external timing without wire downgrade", async () => {
+  const value = v2Execution();
+  const result = await detail(value);
+  assert.equal(result.demianLinks?.links[0]?.runId, id(6));
+  assert.equal(result.native.roles[0]!.observation.seconds, null);
+  const page = await fetchAssistantExecutions(source, null, signal(), transport({ ...list(), executions: [value] }));
+  assert.equal(page.version, 1);
+  assert.equal(page.executions[0]!.demianLinks?.links.length, 1);
+  const eventPage = await fetchAssistantEvents(source, id(1), "0", signal(), transport({ execution: value,
+    page: { ...events().page, version: 2 } }));
+  assert.equal(eventPage.page.version, 2);
+});
+
+test("browser refuses producer tuples and external native thread IDs in the BFF", async () => {
+  const value = v2Execution();
+  for (const runtime of [
+    { ...value.native.roles[0]!.runtime, demian: { origin: "https://private-native.example", organizationId: id(9),
+      workspaceId: id(8), sessionId: id(7), runId: id(6), operationId: id(5) } },
+    { ...value.native.roles[0]!.runtime, threadId: "PRIVATE_NATIVE_THREAD" },
+  ]) await assert.rejects(detail({ ...value, native: { ...value.native,
+    roles: value.native.roles.map(role => ({ ...role, runtime })) } }), safeError());
+});
+
+test("browser native links require exact known role, source-qualified key and closed state", async () => {
+  const value = v2Execution(), link = value.demianLinks!.links[0]!;
+  for (const links of [[{ ...link, roleId: id(90) }], [{ ...link, runKey: externalKey("other", link.runId) }],
+    [{ ...link, sourceId: source }], [{ ...link, origin: "https://private-native.example" }], [link, link], []]) {
+    await assert.rejects(detail({ ...value, demianLinks: { ...value.demianLinks!, links } }), safeError());
+  }
+  await assert.rejects(detail({ ...value, demianLinks: { ...value.demianLinks!, state: "forbidden" } }), safeError());
+  await assert.rejects(detail({ ...execution(), demianLinks: value.demianLinks }), safeError());
+});
 const transport = (value: unknown): typeof fetch => async () => Response.json(value);
 const detail = (value: unknown) => fetchAssistantExecution(source, id(1), signal(), transport(value));
 function safeError(kind: AssistantWebError["kind"] = "failure") {

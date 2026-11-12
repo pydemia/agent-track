@@ -140,7 +140,7 @@ test("capability-only refresh, exact factory binding, distinct historical and cu
   assert.deepEqual(f.counts, { refreshCalls: 0, taskCalls: 0, capsCalls: 1 });
   assert.equal(f.authority.view(f.source, user).state, "connected");
   assert.deepEqual(f.options[0], { sourceId: "assistant", baseUrl: f.source.baseUrl,
-    credentialFile: f.source.assistantCredentialFile, user, ownerId, principalId: "reader" });
+    credentialFile: f.source.assistantCredentialFile, user, ownerId, principalId: "reader", protocol: 1 });
   const result = await f.authority.detail(user, "assistant", id);
   assert.equal(result.native.state, "completed");
   assert.equal(result.native.task?.state, "todo");

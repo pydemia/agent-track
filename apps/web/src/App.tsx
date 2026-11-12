@@ -390,7 +390,14 @@ export function App() {
   };
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
-  const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); });
+  const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); }, accessibleRuns);
+  const selectAssistantNativeRun = (key: string) => {
+    const target = accessibleRuns.find(run => run.key === key && run.sourceState === "connected" && !run.stale);
+    if (!target) return;
+    setAssistantSelection(null);
+    setLocation({ tab: "trace", selected: key, taskMap: null,
+      filters: { source: target.sourceId, project: "", status: "", q: "" } });
+  };
   const visibleAssistantCount = assistant.executions.filter(view => assistantMatches(view, filters)).length;
   const assistantSourceSelected = snapshot?.sources.some(source => source.id === filters.source && source.kind === "assistant" && source.state !== "unsupported");
   const unavailableSource = snapshot?.sources.find((source) => source.id === filters.source && source.state !== "connected");
@@ -524,7 +531,7 @@ export function App() {
 
         {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onMapTask={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
         {snapshot && !(tab === "map" && taskMap) && snapshot.sources.some(source => source.kind === "assistant" && source.state !== "unsupported") && <Suspense fallback={<p role="status">Assistant 원본 실행 화면을 불러오는 중…</p>}>
-          <LazyAssistantWorkspace key={snapshot.user} mode={tab} sources={snapshot.sources} collection={assistant} selection={assistantSelection} onSelect={setAssistantSelection} filters={filters}
+          <LazyAssistantWorkspace key={snapshot.user} mode={tab} sources={snapshot.sources} runs={accessibleRuns} onSelectRun={selectAssistantNativeRun} collection={assistant} selection={assistantSelection} onSelect={setAssistantSelection} filters={filters}
             onTaskMap={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onUnauthorized={clearPrivateData} />
         </Suspense>}
         {tab === "map" && snapshot && taskMap && <section className="primary-content" aria-label="Projects 업무 의존 관계 Map"><button className="text-button" onClick={() => setLocation({ taskMap: null })}>실행 중심 Map으로 돌아가기</button><Suspense fallback={<p role="status">업무 의존 관계 지도를 불러오는 중…</p>}><LazyTaskDependencyMap key={`${snapshot.user}:${taskMap.sourceId}:${taskMap.projectId}`} sourceId={taskMap.sourceId} projectId={taskMap.projectId} {...(taskMap.taskId ? { focusTaskId: taskMap.taskId } : {})} sources={snapshot.sources} runs={accessibleRuns} assistantExecutions={assistant.executions} onSelectAssistant={(selection) => { setAssistantSelection(selection); setLocation({ tab: "trace", selected: "", taskMap: null, filters: { ...filters, source: selection.sourceId } }); }} onSelectRun={(key) => setLocation({ selected: key, taskMap: null })} onUnauthorized={clearPrivateData} onScopeUnavailable={clearTaskMapScope} /></Suspense></section>}

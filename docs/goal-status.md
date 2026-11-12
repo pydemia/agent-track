@@ -138,3 +138,13 @@ Assistant 운영 후속: 통합 Root의 native-ready 후 전용 원본 읽기와
 실행을 확인했다. WorkExecution은 Run 원장에 저장하지 않는다. 새 AI 실행0이며
 기존 완료 업무만 조회했다. 전체 Assistant→Demian→desktop 업무 수행·두 번째
 기기와 child/peer 검증을 대신하지 않아 AT-14와 전체14/21은 그대로다.
+
+2026-11-12 v2 소비자 후속: 명시된 producer→native 출처 설정, 현재
+Assistant/Projects/native 접근·실제 operation receipt 대조, server-only 참조
+제거와 typed 역할→Run 관계를 구현했다. 중첩 그룹의 원본 관계·상세와 동일
+Run의 Trace 이동, 390px/키보드·철회 후 ID/edge 제거를 합성 UI에서 확인했다.
+Private native PR22 head `b449f5fe`의 두 원격 CI는 통과했다. Root의 source
+리뷰에는 구체적인 결함이 없었으나 전체85파일/운영 승인은 아니며, 새 Work/runtime
+DDL에 맞춘 보존·backup/rollback·guard가 필요하다. 운영 source는 v1이고 실제
+producer tuple은 아직 구성되지 않았다. 전체14/21(66.7%)·ETA 산정 불가·신뢰도
+낮음을 유지한다. `assistant-demian-observer.md`에 구현/활성화 경계를 기록했다.

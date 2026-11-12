@@ -1,5 +1,5 @@
-import type { AssistantExecutionView } from "../contracts/assistant-view.ts";
-import type { SourceView } from "../contracts/index.ts";
+import type { AssistantExecutionView, AssistantDemianLink } from "../contracts/assistant-view.ts";
+import type { SourceView, RunView } from "../contracts/index.ts";
 import type { MissionEdge, MissionNode } from "./mission-flow.ts";
 import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { dependencyEntityKey } from "./project-dependencies-flow.ts";
@@ -36,9 +36,31 @@ function unambiguous<T>(items: T[], key: (item: T) => string): Map<string, T> {
   return result;
 }
 
+/** Cached link metadata never overrides the current native/Projects snapshot. */
+export function authorizedAssistantLinks(view: AssistantExecutionView, sources: SourceView[], runs: RunView[]): AssistantDemianLink[] {
+  if (view.demianLinks?.state !== "connected" || !view.currentTask) return [];
+  const task = view.native.task;
+  if (!task || task.projectId !== view.currentTask.project.id || task.projectId !== view.currentTask.task.projectId ||
+      task.taskId !== view.currentTask.task.id) return [];
+  const sourceById = unambiguous(sources, source => source.id);
+  const assistant = sourceById.get(view.sourceId), project = sourceById.get(view.currentTask.projectsSourceId);
+  if (assistant?.kind !== "assistant" || assistant.state !== "connected" || project?.kind !== "projects" ||
+      project.state !== "connected" || !project.authorizedProjectIds?.includes(view.currentTask.project.id)) return [];
+  const known = unambiguous(runs, run => run.key);
+  return [...unambiguous(view.demianLinks.links, link => link.roleId).values()].filter(link => {
+    const source = sourceById.get(link.sourceId), run = known.get(link.runKey);
+    const binding = run?.binding;
+    return view.native.roles.some(role => role.id === link.roleId) && source?.kind === "demian" && source.state === "connected" &&
+      run?.sourceState === "connected" && !run.stale && run.sourceId === link.sourceId && run.runId === link.runId &&
+      run.sessionId === link.sessionId && run.workspaceId === link.workspaceId && (!binding ||
+        binding.sourceId === run.sourceId && binding.runId === run.runId && sourceById.get(binding.projectSourceId)?.kind === "projects" &&
+        sourceById.get(binding.projectSourceId)?.state === "connected" && sourceById.get(binding.projectSourceId)?.authorizedProjectIds?.includes(binding.projectId));
+  }).sort((a, b) => compare(a.roleId, b.roleId));
+}
+
 /** Pure metadata projection of the live native window, never a Demian Run conversion. */
 export function assistantFlow(executions: AssistantExecutionView[], sources: SourceView[], options: {
-  projectsSourceId?: string; projectId?: string; taskId?: string; maxNodes?: number;
+  projectsSourceId?: string; projectId?: string; taskId?: string; maxNodes?: number; runs?: RunView[];
 } = {}): { nodes: MissionNode[]; edges: MissionEdge[]; hiddenNodes: number; incomplete: boolean } {
   const sourceById = unambiguous(sources, source => source.id);
   const candidates = unambiguous(executions, view => assistantEntityKey(view.sourceId, "assistant-execution", view.native.id));
@@ -67,8 +89,8 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
     const node = nodes.get(key) ?? { key, sourceId, kind, id, label, status, description, details: metadata, sequences: [] };
     nodes.set(key, node); return node;
   };
-  const edge = (from: MissionNode, to: MissionNode, kind: string, label: string, provenance: string) => {
-    const key = JSON.stringify([to.sourceId, kind, from.key, to.key]);
+  const edge = (from: MissionNode, to: MissionNode, kind: string, label: string, provenance: string, identity?: string) => {
+    const key = identity ?? JSON.stringify([to.sourceId, kind, from.key, to.key]);
     edges.set(key, { key, sourceId: to.sourceId, from: from.key, to: to.key, kind, label, sequences: [],
       detail: `Source ID: ${to.sourceId}; from: ${from.key}; to: ${to.key}; provenance: ${provenance}` });
   };
@@ -130,6 +152,31 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
         edge(roleNode, ref, "assistant-runtime-reference", "원본 런타임 참조",
           `WorkExecution.roles.runtime.${field}; Execution ID: ${native.id}; Role ID: ${role.id}; Runtime ID: ${id}; ID 참조이며 역할 상태로 런타임 상태·Demian 연결을 추론하지 않음`);
       }
+    }
+    for (const link of authorizedAssistantLinks(view, sources, options.runs ?? [])) {
+      const role = nodes.get(assistantRoleKey(view.sourceId, native.id, link.roleId));
+      if (!role) continue;
+      const known = options.runs?.find(run => run.key === link.runKey);
+      const runNode = add(link.sourceId, "run", link.runId, `${known?.title || "Demian Run"} · ${link.runId.slice(0, 8)}`, link.status,
+        "현재 native 접근과 원본 operation 영수증을 대조한 실제 Run · Assistant 실행/업무 완료와 별도",
+        details({ "Source ID": link.sourceId, "Run ID": link.runId, "Session ID": link.sessionId, "Workspace ID": link.workspaceId,
+          "원본 Run 상태": link.status, "현재 native 관측 시각": link.observedAt }), dependencyEntityKey(link.sourceId, "run", link.runId));
+      runNode.runKey = link.runKey;
+      const session = add(link.sourceId, "session", link.sessionId, `Session · ${link.sessionId.slice(0, 8)}`, "observed",
+        "현재 native Run의 실제 Session 소속", details({ "Source ID": link.sourceId, "Session ID": link.sessionId }),
+        dependencyEntityKey(link.sourceId, "session", link.sessionId));
+      edge(session, runNode, "ownership", "Session 소속", "현재 native Run/Session/workspace 대조. 실행 의존 관계 아님",
+        JSON.stringify(["ownership", session.key, runNode.key]));
+      edge(role, runNode, "assistant-demian-runtime", "Demian 원본 실행",
+        "원본 역할과 실제 Demian 실행의 명시된 연결");
+      const connection = edges.get(JSON.stringify([runNode.sourceId, "assistant-demian-runtime", role.key, runNode.key]))!;
+      connection.detail = [
+        `「${role.label}」의 원본 Demian 실행입니다. 현재 업무·Assistant·Demian 접근과 원본 operation 영수증을 대조했습니다.`,
+        `Assistant 출처: ${view.sourceLabel} (${view.sourceId})`, `Assistant 실행: ${native.id}`, `역할 ID: ${link.roleId}`,
+        `Demian 출처: ${sourceById.get(link.sourceId)?.label ?? link.sourceId} (${link.sourceId})`,
+        `Run ID: ${link.runId}`, `Session ID: ${link.sessionId}`, `Operation ID: ${link.operationId}`,
+        `관측 시각: ${link.observedAt}`, "Run 성공·Assistant 실행 완료·업무 수용은 별개입니다. 이 연결을 업무 선행 관계로 해석하지 않습니다.",
+      ].join("\n");
     }
   }
   const priority = (node: MissionNode) => node.kind === "task" ? 0 : node.kind === "assistant-execution" ? 1 : node.kind === "assistant-role" ? 2 : 3;
@@ -193,11 +240,11 @@ export function assistantFlowGroups(model: { nodes: MissionNode[]; edges: Missio
 /** Join both native execution types on the same authorized Projects Task key. */
 export function withAssistantExecutions<T extends { nodes: MissionNode[]; edges: MissionEdge[]; hiddenNodes: number; incomplete: boolean; focusPresent: boolean }>(
   base: T, executions: AssistantExecutionView[], sources: SourceView[],
-  scope: { sourceId: string; projectId: string; focusTaskId?: string },
+  scope: { sourceId: string; projectId: string; focusTaskId?: string }, runs: RunView[] = [],
 ): T {
   const known = new Set(base.nodes.filter(node => node.kind === "task").map(node => node.id));
   const relevant = executions.filter(view => !scope.focusTaskId || known.has(view.currentTask?.task.id ?? "") || view.currentTask?.task.id === scope.focusTaskId);
-  const extra = assistantFlow(relevant, sources, { projectsSourceId: scope.sourceId, projectId: scope.projectId, maxNodes: 240 });
+  const extra = assistantFlow(relevant, sources, { projectsSourceId: scope.sourceId, projectId: scope.projectId, maxNodes: 240, runs });
   const nodes = new Map(base.nodes.map(node => [node.key, node]));
   for (const node of extra.nodes) {
     const previous = nodes.get(node.key);

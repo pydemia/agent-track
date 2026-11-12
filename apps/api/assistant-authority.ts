@@ -3,19 +3,21 @@ import { createHash } from "node:crypto";
 import { AssistantClient, AssistantSourceError, type AssistantClientOptions } from "../../packages/adapters/assistant/index.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { assistantCapabilitiesSchema, assistantExecutionMetadataSchema, assistantExecutionPageSchema,
-  assistantExecutionEventsPageSchema, type AssistantExecutionMetadata } from "../../packages/contracts/assistant.ts";
+  assistantExecutionEventsPageSchema, assistantCapabilitiesV2Schema, assistantExecutionMetadataV2Schema,
+  assistantExecutionPageV2Schema, assistantExecutionEventsPageV2Schema, type AssistantObservedExecution } from "../../packages/contracts/assistant.ts";
 import type { AssistantExecutionView, AssistantExecutionListView, AssistantExecutionEventsView } from "../../packages/contracts/assistant-view.ts";
 import { externalKey, type SourceView } from "../../packages/contracts/index.ts";
 import type { Store } from "../../packages/storage/store.ts";
 import type { Config, SourceConfig } from "./config.ts";
 import type { ProjectsAuthority } from "./projects-authority.ts";
 import { assistantReady, projectsReady, sourceIdentity } from "./source-identity.ts";
+import { AssistantDemianLinks } from "./assistant-demian-links.ts";
 
 export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events">;
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
 type CurrentTask = AssistantExecutionView["currentTask"];
 interface Grant { stamp: string; state: SourceView["state"]; observedAt: string }
-interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number }
+interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number; nativeChecks: Array<() => void> }
 
 export class AssistantAuthorityError extends Error {
   constructor(readonly status: number) { super("assistant_authority_unavailable"); }
@@ -39,7 +41,8 @@ export class AssistantAuthority {
   constructor(private store: Store, private config: () => Config,
     private projects: ProjectsAuthority,
     private clientFactory: AssistantClientFactory = options => new AssistantClient(options),
-    private requestTimeoutMs = 10_000) {
+    private requestTimeoutMs = 10_000,
+    private demianLinks = new AssistantDemianLinks(config, user => store.snapshot(user, []), async () => {})) {
     if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 10_000) throw new Error("Invalid Assistant read deadline");
   }
 
@@ -54,6 +57,11 @@ export class AssistantAuthority {
     const peer = config.sources.find(item => item.id === source.assistantProjectsSourceId);
     // Credential paths and peer policy are deliberately broader than the durable pin.
     return JSON.stringify([sourceIdentity(source), source.assistantCredentialFile,
+      source.assistantProtocol ?? 1, source.assistantDemianMappings ?? [],
+      (source.assistantDemianMappings ?? []).map(mapping => {
+        const target = config.sources.find(item => item.id === mapping.sourceId);
+        return target ? [sourceIdentity(target), target.tokenFile, target.credentialFormat, target.users] : null;
+      }),
       source.users, config.auth, peer ? [sourceIdentity(peer), peer.projectsCredentialFile,
         peer.users, peer.id] : null]);
   }
@@ -64,7 +72,7 @@ export class AssistantAuthority {
     if (!this.allowed(source, user) || !this.store.pinSourceIdentity(source.id, sourceIdentity(source))) {
       throw new AssistantAuthorityError(403);
     }
-    return { source: structuredClone(source), user, stamp: this.stamp(source), deadline: performance.now() + this.requestTimeoutMs };
+    return { source: structuredClone(source), user, stamp: this.stamp(source), deadline: performance.now() + this.requestTimeoutMs, nativeChecks: [] };
   }
 
   private confirm(scope: RequestScope): void {
@@ -123,13 +131,14 @@ export class AssistantAuthority {
     const source = scope.source;
     return this.clientFactory({ sourceId: source.id, baseUrl: source.baseUrl!,
       credentialFile: source.assistantCredentialFile!, user: scope.user,
-      ownerId: source.assistantOwnerId!, principalId: source.assistantPrincipalId! });
+      ownerId: source.assistantOwnerId!, principalId: source.assistantPrincipalId!, protocol: source.assistantProtocol ?? 1 });
   }
 
   private async capabilities(scope: RequestScope, client: AssistantReader): Promise<void> {
     const key = externalKey(scope.source.id, scope.user);
     try {
-      const caps = assistantCapabilitiesSchema.parse(await this.guarded(scope, () => client.capabilities()));
+      const schema = scope.source.assistantProtocol === 2 ? assistantCapabilitiesV2Schema : assistantCapabilitiesSchema;
+      const caps = schema.parse(await this.guarded(scope, () => client.capabilities()));
       if (caps.ownerId !== scope.source.assistantOwnerId || caps.principalId !== scope.source.assistantPrincipalId) {
         throw new AssistantAuthorityError(403);
       }
@@ -193,7 +202,7 @@ export class AssistantAuthority {
     return { peer, project };
   }
 
-  private async projectExecution(scope: RequestScope, native: AssistantExecutionMetadata,
+  private async projectExecution(scope: RequestScope, native: AssistantObservedExecution,
     tasks: Map<string, Promise<CurrentTask>>): Promise<AssistantExecutionView> {
     let currentTask: CurrentTask = null;
     if (native.task) {
@@ -219,14 +228,29 @@ export class AssistantAuthority {
       currentTask = await pending;
       this.confirm(scope);
     }
-    return { sourceId: scope.source.id, sourceLabel: scope.source.label,
-      device: scope.source.device, native, currentTask };
+    const projected = await this.guarded(scope, () => this.demianLinks.project(scope.user, scope.source,
+      { sourceId: scope.source.id, sourceLabel: scope.source.label, device: scope.source.device, native, currentTask }, scope.deadline));
+    if (currentTask && projected.view.demianLinks?.state === "connected") {
+      const { peer } = this.project(scope, currentTask.project.id);
+      try {
+        const task = await this.guarded(scope, () => this.projects.client(peer.id, scope.user).task(currentTask!.task.id, currentTask!.project.id));
+        if (task.id !== currentTask.task.id || task.projectId !== currentTask.project.id) throw new AssistantAuthorityError(503);
+        currentTask.task = task;
+        currentTask.observedAt = new Date().toISOString();
+      } catch (error) {
+        if (error instanceof ProjectsSourceError && [401, 403, 404].includes(error.status)) throw new AssistantAuthorityError(404);
+        throw error;
+      }
+    }
+    scope.nativeChecks.push(projected.confirm);
+    return projected.view;
   }
 
   private async finish(scope: RequestScope, client: AssistantReader): Promise<void> {
     await this.capabilities(scope, client);
     await this.refreshProjects(scope);
     this.confirm(scope);
+    for (const confirm of scope.nativeChecks) confirm();
   }
 
   private confirmProject(scope: RequestScope, execution: AssistantExecutionView): void {
@@ -241,7 +265,8 @@ export class AssistantAuthority {
         throw new AssistantAuthorityError(400);
       }
       await this.refreshProjects(scope);
-      const page = assistantExecutionPageSchema.parse(await this.guarded(scope, () => client.executions(cursor)));
+      const pageSchema = scope.source.assistantProtocol === 2 ? assistantExecutionPageV2Schema : assistantExecutionPageSchema;
+      const page = pageSchema.parse(await this.guarded(scope, () => client.executions(cursor)));
       if (new Set(page.executions.map(item => item.id)).size !== page.executions.length ||
           (page.hasMore && page.cursor === cursor)) throw new AssistantAuthorityError(503);
       const tasks = new Map<string, Promise<CurrentTask>>();
@@ -282,7 +307,8 @@ export class AssistantAuthority {
 
   private async latest(scope: RequestScope, client: AssistantReader, id: string): Promise<AssistantExecutionView> {
     if (!z.uuid().safeParse(id).success) throw new AssistantAuthorityError(400);
-    const native = assistantExecutionMetadataSchema.parse(await this.guarded(scope, () => client.execution(id)));
+    const schema = scope.source.assistantProtocol === 2 ? assistantExecutionMetadataV2Schema : assistantExecutionMetadataSchema;
+    const native = schema.parse(await this.guarded(scope, () => client.execution(id)));
     if (native.id !== id) throw new AssistantAuthorityError(503);
     return this.projectExecution(scope, native, new Map());
   }
@@ -303,7 +329,8 @@ export class AssistantAuthority {
       await this.refreshProjects(scope);
       // Authorize against latest native linkage, never a prior list/detail response.
       const execution = await this.latest(scope, client, executionId);
-      const page = assistantExecutionEventsPageSchema.parse(await this.guarded(scope, () => client.events(executionId, after)));
+      const schema = scope.source.assistantProtocol === 2 ? assistantExecutionEventsPageV2Schema : assistantExecutionEventsPageSchema;
+      const page = schema.parse(await this.guarded(scope, () => client.events(executionId, after)));
       if (page.executionId !== executionId || (page.events.length === 0 ? page.cursor !== after :
         page.events.some(event => BigInt(event.sequence) <= BigInt(after)))) throw new AssistantAuthorityError(503);
       await this.finish(scope, client);

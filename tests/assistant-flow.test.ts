@@ -4,6 +4,7 @@ import type { AssistantExecutionView } from "../packages/contracts/assistant-vie
 import type { SourceView } from "../packages/contracts/index.ts";
 import { assistantEntityKey, assistantFlow, assistantFlowGroups, assistantRoleKey, withAssistantExecutions } from "../packages/projection/assistant-flow.ts";
 import { dependencyEntityKey } from "../packages/projection/project-dependencies-flow.ts";
+import { externalKey, type RunView } from "../packages/contracts/index.ts";
 import { projectFlowGroups } from "../packages/projection/flow-groups.ts";
 import { flowGroupKey, nativeFlowGroupDefinitions } from "../packages/projection/flow-group-definitions.ts";
 
@@ -30,6 +31,76 @@ function execution(n = 1): AssistantExecutionView {
 }
 const value = (node: { details: Array<{ label: string; value: string }> }, label: string) =>
   node.details.find(item => item.label === label)?.value;
+
+function linkedExecution() {
+  const input = execution();
+  input.native = { ...input.native, roles: input.native.roles.map(role => ({ ...role,
+    runtime: { ...role.runtime, threadId: null, turnId: null, demian: null },
+    observation: { ...role.observation, seconds: null, timingComplete: false, basis: "external_run_wall_timestamps_unverified" as const } })) };
+  const run: RunView = { sourceId: "demian", runId: uuid(200), sessionId: uuid(201), workspaceId: uuid(202),
+    key: externalKey("demian", uuid(200)), status: "succeeded", title: "Native result", createdAt: at, startedAt: at, completedAt: at,
+    observedAt: at, cursor: "17", highWater: "17", incomplete: false, stale: false, binding: null,
+    sourceLabel: "Demian", device: "test", sourceState: "connected", sourceUrl: null, workspaceKey: null, projectKey: null, capabilities: [] };
+  input.demianLinks = { state: "connected", links: [{ roleId: input.native.roles[0]!.id, sourceId: run.sourceId,
+    runKey: run.key, runId: run.runId, sessionId: run.sessionId, workspaceId: run.workspaceId!,
+    operationId: input.native.roles[0]!.id, status: run.status, observedAt: at }], omitted: 0, complete: false, detail: "Native receipt" };
+  const grants: SourceView[] = [...sources(), { id: "demian", kind: "demian", label: "Demian", device: "test",
+    state: "connected", lastObservedAt: at, detail: "", capabilities: [] }];
+  return { input, run, grants };
+}
+
+test("v2 typed role-to-native edge keeps real Run identity and nested groups without synthetic Task binding", () => {
+  const { input, run, grants } = linkedExecution();
+  const before = structuredClone(input);
+  const model = assistantFlow([input], grants, { runs: [run] });
+  const native = model.nodes.find(node => node.kind === "run")!;
+  assert.equal(native.key, dependencyEntityKey(run.sourceId, "run", run.runId));
+  assert.equal(native.runKey, run.key);
+  assert.equal(model.nodes.filter(node => node.kind === "run").length, 1);
+  const relation = model.edges.find(edge => edge.kind === "assistant-demian-runtime")!;
+  assert.equal(relation.from, assistantRoleKey(input.sourceId, input.native.id, input.native.roles[0]!.id));
+  assert.equal(relation.to, native.key);
+  assert.ok(relation.detail.includes(`Operation ID: ${input.native.roles[0]!.id}`));
+  assert.ok(relation.detail.includes(`Run ID: ${run.runId}`));
+  assert.match(relation.detail, /원본 operation 영수증/);
+  assert.equal(model.edges.some(edge => edge.kind === "task-binding" && edge.to === native.key), false);
+  const groups = nativeFlowGroupDefinitions(model, "session");
+  const collapsed = projectFlowGroups(model, groups, new Set(groups.map(group => group.key)));
+  assert.deepEqual(collapsed.invalidGroups, []);
+  const boundary = collapsed.edges.find(edge => edge.kind === "assistant-demian-runtime")!;
+  assert.ok(boundary);
+  assert.deepEqual(collapsed.edgeEvidence.get(boundary.key), [relation]);
+  assert.deepEqual(input, before);
+});
+
+test("native denial, stale/missing Run and mismatched IDs remove cached cross-app edges and details", () => {
+  for (const change of ["source", "stale", "missing", "session", "workspace", "project", "relation"] as const) {
+    const { input, run, grants } = linkedExecution();
+    if (change === "source") grants[2]!.state = "forbidden";
+    if (change === "stale") run.stale = true;
+    if (change === "session") run.sessionId = uuid(300);
+    if (change === "workspace") run.workspaceId = uuid(300);
+    if (change === "project") grants[1]!.authorizedProjectIds = [];
+    if (change === "relation") input.demianLinks!.state = "forbidden";
+    const model = assistantFlow([input], grants, { runs: change === "missing" ? [] : [run] });
+    assert.equal(model.edges.some(edge => edge.kind === "assistant-demian-runtime"), false, change);
+    assert.equal(model.nodes.some(node => node.kind === "run"), false, change);
+    assert.doesNotMatch(JSON.stringify(model), new RegExp(run.runId));
+  }
+});
+
+test("Task Map merges the native Run and Session once and preserves operation edge evidence", () => {
+  const { input, run, grants } = linkedExecution();
+  const native = assistantFlow([input], grants, { runs: [run] });
+  const nodes = native.nodes.filter(node => ["task", "session", "run"].includes(node.kind));
+  const edges = native.edges.filter(edge => edge.kind === "ownership");
+  const base = { nodes, edges, hiddenNodes: 0, incomplete: false, focusPresent: true };
+  const model = withAssistantExecutions(base, [input], grants, { sourceId: "projects", projectId: "project" }, [run]);
+  assert.equal(model.nodes.filter(node => node.kind === "run").length, 1);
+  assert.equal(model.nodes.filter(node => node.kind === "session").length, 1);
+  assert.equal(model.edges.filter(edge => edge.kind === "ownership").length, 1);
+  assert.equal(model.edges.filter(edge => edge.kind === "assistant-demian-runtime").length, 1);
+});
 
 test("typed source-qualified identities preserve native roles and never create Demian Runs", () => {
   const a = execution(); const b = execution(2); const c = execution(); c.sourceId = "other";

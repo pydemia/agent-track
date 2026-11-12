@@ -15,6 +15,13 @@ const safeUrl = z.url().refine((value) => {
   const url = new URL(value);
   return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash;
 }, "Credential-free HTTP origin required");
+const producerOrigin = z.url().max(2000).refine(value => {
+  const url = new URL(value);
+  return url.protocol === "https:" && !url.username && !url.password && value === url.origin;
+}, "Exact canonical HTTPS producer origin required");
+export const assistantDemianMappingSchema = z.object({
+  origin: producerOrigin, organizationId: z.guid(), workspaceId: z.guid(), sourceId,
+}).strict();
 export const sourceConfigSchema = z.object({
   id: z.string().regex(/^[a-z0-9_-]{1,80}$/),
   kind: z.enum(["demian", "projects", "assistant", "desktop", "codex", "claude"]),
@@ -41,6 +48,8 @@ export const sourceConfigSchema = z.object({
   assistantOwnerId: z.string().regex(/^sso-sub:[a-f0-9]{64}$/).optional(),
   assistantPrincipalId: sourceId.optional(),
   assistantProjectsSourceId: sourceId.optional(),
+  assistantProtocol: z.union([z.literal(1), z.literal(2)]).optional(),
+  assistantDemianMappings: z.array(assistantDemianMappingSchema).max(20).optional(),
   taskCreateUsers: z.array(email).optional(),
   organizationId: z.string().max(512).optional(),
   runIds: z.array(z.string().min(1).max(512)).default([]),
@@ -81,7 +90,7 @@ export const configSchema = z.object({
     }
     for (const source of config.sources) {
       const fields = [source.assistantCredentialFile, source.assistantUser, source.assistantOwnerId, source.assistantPrincipalId];
-      if (!fields.some(Boolean) && !source.assistantProjectsSourceId) continue;
+      if (!fields.some(Boolean) && !source.assistantProjectsSourceId && !source.assistantProtocol && !source.assistantDemianMappings) continue;
       const rootUsers = config.auth.mode === "proxy" ? config.auth.users : [config.auth.user];
       const peer = source.assistantProjectsSourceId && config.sources.find(item => item.id === source.assistantProjectsSourceId);
       if (source.kind !== "assistant" || !source.baseUrl || !fields.every(Boolean) ||
@@ -89,6 +98,13 @@ export const configSchema = z.object({
           (source.assistantProjectsSourceId && (!peer || peer.kind !== "projects" || peer.projectsUser !== source.assistantUser ||
             !peer.users.includes(source.assistantUser!) || !peer.baseUrl || !peer.projectsCredentialFile || !peer.projectsAccountId || !peer.projectsPrincipalId))) {
         context.addIssue({ code: "custom", message: "Assistant reader must pin one configured actor, owner, principal and optional same-actor Projects source" });
+      }
+      const mappings = source.assistantDemianMappings ?? [];
+      if (mappings.length && ((source.assistantProtocol ?? 1) !== 2 || !source.assistantProjectsSourceId ||
+          new Set(mappings.map(item => JSON.stringify([item.origin, item.organizationId, item.workspaceId]))).size !== mappings.length ||
+          mappings.some(mapping => !config.sources.some(target => target.id === mapping.sourceId && target.kind === "demian" &&
+            !!target.baseUrl && target.organizationId === mapping.organizationId && target.users.includes(source.assistantUser!))))) {
+        context.addIssue({ code: "custom", message: "Assistant v2 links require unique explicit producer mappings and same-actor native/Projects scopes" });
       }
     }
   });

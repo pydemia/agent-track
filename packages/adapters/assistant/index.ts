@@ -5,11 +5,13 @@ import { z } from "zod";
 import {
   assistantCapabilitiesSchema, assistantExecutionMetadataSchema,
   assistantExecutionPageSchema, assistantExecutionEventsPageSchema,
-  type AssistantCapabilities, type AssistantExecutionMetadata,
-  type AssistantExecutionPage, type AssistantExecutionEventsPage,
+  assistantCapabilitiesV2Schema, assistantExecutionMetadataV2Schema,
+  assistantExecutionPageV2Schema, assistantExecutionEventsPageV2Schema,
+  type AssistantObservedCapabilities, type AssistantObservedExecution,
+  type AssistantObservedPage, type AssistantObservedEventsPage,
 } from "../../contracts/assistant.ts";
 
-const prefix = "/api/integrations/track/v1";
+
 const bodyLimit = 1_048_576;
 const timeoutMs = 10_000;
 const identity = z.string().min(1).max(512).regex(/^[^\u0000-\u001f\u007f]+$/);
@@ -30,6 +32,7 @@ export class AssistantSourceError extends Error {
 }
 
 export interface AssistantClientOptions {
+  protocol?: 1 | 2;
   sourceId: string;
   baseUrl: string;
   credentialFile: string;
@@ -85,9 +88,14 @@ function cancel(body: ReadableStream<Uint8Array> | null): void {
 export class AssistantClient {
   private readonly options: Readonly<AssistantClientOptions>;
   private readonly origin: string;
+  private readonly protocol: 1 | 2;
+  private readonly prefix: string;
 
   constructor(options: AssistantClientOptions) {
     this.options = Object.freeze({ ...options });
+    this.protocol = options.protocol ?? 1;
+    if (this.protocol !== 1 && this.protocol !== 2) throw new AssistantSourceError(400);
+    this.prefix = `/api/integrations/track/v${this.protocol}`;
     this.origin = canonicalOrigin(options.baseUrl);
     if (!isAbsolute(options.credentialFile)) throw new AssistantSourceError(400);
   }
@@ -129,7 +137,7 @@ export class AssistantClient {
       }, timeoutMs);
     });
     try {
-      const pending = (this.options.fetch ?? fetch)(this.origin + prefix + path, {
+      const pending = (this.options.fetch ?? fetch)(this.origin + this.prefix + path, {
         method: "GET", redirect: "manual", credentials: "omit", signal: controller.signal,
         headers: { Authorization: `Bearer ${credential.secret}`,
           "X-Agent-Track-Principal": credential.config.principalId, Accept: "application/json" },
@@ -139,7 +147,7 @@ export class AssistantClient {
       const response = await Promise.race([pending, deadline]);
       try { this.confirm(credential); } catch (error) { cancel(response.body); throw error; }
       if (response.status !== 200 || response.redirected ||
-          (response.url && response.url !== this.origin + prefix + path)) {
+          (response.url && response.url !== this.origin + this.prefix + path)) {
         cancel(response.body);
         const status = [400, 401, 403, 404, 409, 429, 503].includes(response.status) ? response.status : 502;
         throw new AssistantSourceError(status);
@@ -181,14 +189,14 @@ export class AssistantClient {
     }
   }
 
-  private async handshake(credential: Credential): Promise<AssistantCapabilities> {
-    const value = await this.request("/capabilities", assistantCapabilitiesSchema, credential);
+  private async handshake(credential: Credential): Promise<AssistantObservedCapabilities> {
+    const value = await this.request<AssistantObservedCapabilities>("/capabilities", this.protocol === 2 ? assistantCapabilitiesV2Schema : assistantCapabilitiesSchema, credential);
     if (value.ownerId !== credential.config.ownerId || value.principalId !== credential.config.principalId ||
         value.revision !== String(credential.config.revision)) throw new AssistantSourceError(401);
     return value;
   }
 
-  async capabilities(): Promise<AssistantCapabilities> {
+  async capabilities(): Promise<AssistantObservedCapabilities> {
     const credential = this.credential();
     const value = await this.handshake(credential);
     this.confirm(credential);
@@ -204,20 +212,24 @@ export class AssistantClient {
     return value;
   }
 
-  async executions(cursor: string | null = null): Promise<AssistantExecutionPage> {
+  async executions(cursor: string | null = null): Promise<AssistantObservedPage> {
     if (!listCursor.safeParse(cursor).success) throw new AssistantSourceError(400);
     const query = cursor === null ? "" : "?" + new URLSearchParams({ cursor });
-    return this.data("/executions" + query, assistantExecutionPageSchema);
+    return this.data<AssistantObservedPage>("/executions" + query, this.protocol === 2 ? assistantExecutionPageV2Schema : assistantExecutionPageSchema);
   }
 
-  async execution(id: string): Promise<AssistantExecutionMetadata> {
+  async execution(id: string): Promise<AssistantObservedExecution> {
     if (!z.uuid().safeParse(id).success) throw new AssistantSourceError(400);
-    return this.data(`/executions/${id}`, assistantExecutionMetadataSchema.refine(value => value.id === id));
+    const schema: z.ZodType<AssistantObservedExecution> = this.protocol === 2
+      ? assistantExecutionMetadataV2Schema : assistantExecutionMetadataSchema;
+    return this.data(`/executions/${id}`, schema.refine(value => value.id === id));
   }
 
-  async events(id: string, after = "0"): Promise<AssistantExecutionEventsPage> {
+  async events(id: string, after = "0"): Promise<AssistantObservedEventsPage> {
     if (!z.uuid().safeParse(id).success || !eventCursor.safeParse(after).success) throw new AssistantSourceError(400);
-    return this.data(`/executions/${id}/events?after=${after}`, assistantExecutionEventsPageSchema.refine(page =>
+    const schema: z.ZodType<AssistantObservedEventsPage> = this.protocol === 2
+      ? assistantExecutionEventsPageV2Schema : assistantExecutionEventsPageSchema;
+    return this.data(`/executions/${id}/events?after=${after}`, schema.refine(page =>
       page.executionId === id && (page.events.length === 0 ? page.cursor === after :
         page.events.every(event => BigInt(event.sequence) > BigInt(after)))));
   }

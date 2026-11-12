@@ -1,7 +1,9 @@
 # Assistant metadata reader client
 
 `packages/adapters/assistant/index.ts` consumes the optional native reader at
-`/api/integrations/track/v1`. The native implementation is in private Persona PR21.
+`/api/integrations/track/v1` by default, or the explicitly configured v2 namespace.
+The deployed native implementation is in private Persona PR21; the v2 source
+candidate is in private Persona PR22.
 Track now includes optional source configuration, live authority/API wiring and a
 distinct WorkExecution UI. Code availability does not activate the source: the
 production reader/configuration and cross-app verification are separate steps.
@@ -50,7 +52,8 @@ static error and bounded status code.
 
 WorkExecution, role assignment and runtime Task/thread/turn references retain
 their native identities. They are not projected into Demian Runs. The native
-contract reports `demianReferencesSupported: false` and `controls: false`.
+v1 contract reports `demianReferencesSupported: false`; v2 permits metadata-only
+Demian references. Both report `controls: false`.
 Execution completion is not Projects Task acceptance. Cross-app task projection
 must intersect these references with a fresh current Projects grant before
 exposing the task or its grouping in Track.
@@ -80,11 +83,22 @@ organization. The actual Assistant/Projects/Track metadata path is connected. Re
 `assistant-native-reader-verification.json` and `goal-status.md`. AT-14 remains
 partial; this client does not change the overall 14/21 acceptance count.
 
-The existing Assistant→Demian gateway is now being integrated into an isolated
-native reader source branch. A strict observer and v2 producer-reference endpoint
-are implemented there; this deployed Track client still uses v1. The producer
-contract, v1 omission behavior, native authority checks required of the consumer
-and outstanding activation are recorded in [the observer contract](assistant-demian-observer.md).
+The existing Assistant→Demian gateway is integrated into an isolated native
+reader source branch with a strict observer and v2 producer-reference endpoint.
+The Track consumer selects `assistantProtocol: 2` explicitly; the current
+production source remains v1. The producer contract, v1 omission behavior,
+native authority checks and outstanding activation are recorded in
+[the observer contract](assistant-demian-observer.md).
+
+`assistantDemianMappings` maps an exact canonical HTTPS `origin`,
+`organizationId` and `workspaceId` to a configured native `sourceId`. It requires
+v2 and same-actor Projects/native configuration. The DTO origin is never a fetch
+destination. Only known nonstale Runs with current native identity, exact
+Run/Session/workspace and matching operation receipt are joined. Permissions,
+credential/policy stamps and the linked current Projects Task are checked again
+after native observation. Browser DTOs remove producer tuples and external
+thread/turn IDs; failed native checks hide links while retaining safe Assistant
+metadata. No new Run, journal entry or execution command is created.
 
 ## Live Track API and UI
 

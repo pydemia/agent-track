@@ -136,6 +136,15 @@ export class DemianClient {
     if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
   }
 
+  /** Current authenticated native principal; personal profile fields are discarded. */
+  async identity(): Promise<{ userId: string; organizationId: string }> {
+    const signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request("/api/v1/me", signal);
+    const value = z.object({ object: z.literal("demian.user"), id: relationUuidSchema,
+      organization_id: relationUuidSchema }).parse(await readBoundedNativeJson(response, signal));
+    return { userId: value.id, organizationId: value.organization_id };
+  }
+
   async sessionRelations(sessionId: string, kind: SessionRelationKind, after: string | null = null, limit = 250): Promise<NativeSessionRelationPage> {
     const session = relationUuidSchema.parse(sessionId);
     if (!["managed-children", "peer-processing"].includes(kind) || !Number.isInteger(limit) || limit < 1 || limit > 250) throw new Error("Invalid session relation query");
@@ -148,20 +157,32 @@ export class DemianClient {
   }
 
   async observe(runId: string): Promise<RunObservation> {
+    return (await this.readObservation(runId, false)).run;
+  }
+
+  async observeRuntime(runId: string): Promise<{ run: RunObservation; operationId: string | null }> {
+    return this.readObservation(runId, true);
+  }
+
+  private async readObservation(runId: string, runtime: boolean): Promise<{ run: RunObservation; operationId: string | null }> {
     const signal = this.options.signal ?? AbortSignal.timeout(15_000);
     const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}`, signal);
     const raw = z.object({
       id: idSchema, session_id: idSchema, status: statusSchema,
       created_at: z.string(), started_at: z.string().nullable(), completed_at: z.string().nullable(),
+      work_runtime: z.unknown().optional(),
     }).parse(await readBoundedNativeJson(response, signal));
     if (raw.id !== runId) throw new Error("Source Run identity mismatch");
     const sessionResponse = await this.request(`/api/v1/sessions/${encodeURIComponent(raw.session_id)}`, signal);
     const session = z.object({ id: idSchema, workspace_id: idSchema, title: z.string() }).parse(await readBoundedNativeJson(sessionResponse, signal));
     if (session.id !== raw.session_id) throw new Error("Source Session identity mismatch");
-    return runSchema.parse({ sourceId: this.options.sourceId, runId: raw.id, sessionId: raw.session_id,
+    const run = runSchema.parse({ sourceId: this.options.sourceId, runId: raw.id, sessionId: raw.session_id,
       workspaceId: session.workspace_id, title: session.title.slice(0, 240), status: raw.status,
       createdAt: raw.created_at, startedAt: raw.started_at, completedAt: raw.completed_at,
       observedAt: new Date().toISOString() });
+    const receipt = runtime && raw.work_runtime !== undefined
+      ? z.object({ correlation_id: idSchema }).parse(raw.work_runtime) : null;
+    return { run, operationId: receipt?.correlation_id ?? null };
   }
 
   async cancel(runId: string): Promise<{ runId: string; status: RunObservation["status"] }> {

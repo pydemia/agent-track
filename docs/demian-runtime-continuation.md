@@ -47,9 +47,12 @@ Projects의 Assistant 실행 링크는 WorkExecution ID이므로 Demian Run ID�
 
 기존 gateway의 owner-scoped intent·서명 요청·POST-once·native receipt와
 GET-only 유실 응답 조정을 재사용한다. strict 관측 및 v2 producer 참조 계약은
-`assistant-demian-observer.md`를 따른다. 현재 운영 Track은 v1이며 v2 소비자의
+`assistant-demian-observer.md`를 따른다. 현재 운영 source는 v1이며 v2 소비자의
 정확한 native source mapping·현재 Assistant/Projects/Demian 권한 교집합과
-Root 소유 native 전환이 남았다. Track 읽기 key·Entra proxy·브라우저 cookie는
+operation receipt 대조는 Track에 구현했다. Root 소유 native 전환과 실제
+producer/credential 설정은 남았다. 전환은 Work/runtime DDL을 추가하므로 이전
+schemaUnchanged guard 대신 최신 데이터 보존·backup/rollback 계약을 새로
+정의해야 한다. Track 읽기 key·Entra proxy·브라우저 cookie는
 실행 권한으로 사용하지 않는다. 기존 model input에 제어 정보를 넣지 않는다.
 
 현재 source 구현·proposal은 운영 activation과 다르다. 실행 준비가 갖춰진 뒤

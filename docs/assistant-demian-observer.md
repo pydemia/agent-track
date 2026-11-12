@@ -6,10 +6,12 @@
 전체 목표는 14/21(66.7%, 동일 가중치), 완료 예상 산정 불가·신뢰도 낮음이다.
 
 Private [draft PR22](https://github.com/pydemia/persona/pull/22)의 구현 revision은
-`c7181a1c`, 서식 보정 후 원격 head는 `9646e704`다. 격리 전체 검사1177개 중
+`c7181a1c`, 서식과 POSIX 경로 fixture 보정 후 원격 head는 `b449f5fe`다. 격리 전체 검사1177개 중
 1163통과·실패0·환경skip14, 관련172개 전부 통과와 build/typecheck를 확인했다.
 후속 서식2파일은 정규화한 JavaScript가 동일하며 변경85파일의 Prettier 검사를
-통과했다. head의 원격 CI는 진행 중이다. 검사 revision·한계·운영 보존 대조는
+통과했다. head의 두 원격 CI에서 app/container/collection/code-worker가 모두
+통과했다. 경로 보정은 테스트 fixture만 변경하며 운영 loader를 바꾸지 않는다.
+검사 revision·한계·운영 보존 대조는
 `assistant-demian-observer-verification.json`에 기록한다.
 
 ## 기존 구현의 재사용
@@ -62,19 +64,41 @@ grant를 재검사한다. 원문 응답·prompt·서명 claim·key·artifact byt
 
 ## Track 소비자와 활성화의 남은 조건
 
-현재 운영 Track client는 v1을 사용한다. 위 v2 source 후보가 구현되어 있다는
-이유로 운영 reader나 Track의 지원 상태를 변경하지 않는다. 다음 순서로 연결한다.
+현재 운영 source 설정은 v1이다. Track의 v2 소비자 구현은 원본 namespace를
+명시적으로 선택하며 v1으로 자동 후퇴하지 않는다. 구현과 source 활성화를
+구분한다. 다음 조건을 모두 만족한 참조만 연결한다.
 
 1. 현재 Assistant owner/reader grant, 연결된 Projects Task의 현재 권한을 확인한다.
 2. v2 producer origin·조직·workspace와 정확히 대응하는 Demian source를 운영
    설정에 명시한다. `service=demian`이나 같은 UUID만으로 source를 선택하지 않는다.
-3. 그 source의 현재 native principal·Run/Session/workspace 접근을 다시 확인한
-   기존 Run만 typed 관계로 연결한다. 새 Run 탐색이나 실행 생성으로 대체하지 않는다.
+3. 그 source의 현재 native principal·Run/Session/workspace 접근과 기존
+   operation receipt를 다시 확인한 기존 Run만 typed 관계로 연결한다. DTO의
+   origin을 요청 주소로 사용하지 않는다. 새 Run 탐색이나 실행 생성으로 대체하지 않는다.
 4. native 권한·source mapping·Projects 권한이 사라지거나 원본 확인에 실패하면
    이전 관계·ID·상세를 제거한다. Assistant 상태와 native Run 상태를 합치지 않는다.
-5. 격리 source의 전체 검사·독립 리뷰 후 Assistant 통합 Root에 고정 revision을
-   전달한다. Root가 소유한 native container/guard 전환과 credential 준비를 거쳐
-   실제 QA 업무의 Assistant 역할 → native Run → Track 그룹/edge를 대조한다.
+5. Root가 소유한 native container/guard 전환과 credential 준비를 거쳐 실제 QA
+   업무의 Assistant 역할 → native Run → Track 그룹/edge를 대조한다. 원본 전환은
+   Work/runtime schema를 추가하므로 이전 schemaUnchanged·29/62개 테이블
+   guard를 재사용할 수 없다. 새 source/image·DDL 보존·최신 데이터 backup과
+   rollback 계약이 필요하다. Track 소비자 구현은 원본 전환을 수행하지 않는다.
+
+### 그룹·관계·상세 탐색
+
+Project → Task → WorkExecution → 작업 묶음 → 역할의 기존 그룹을 유지한다.
+실제 Demian Session/Run은 원본 소속을 따르며, 역할에서 Run으로
+`assistant-demian-runtime` 관계를 연결한다. 접힌 대표선은 원본 관계를 보존하고
+선택 시 실제 끝점과 Operation/Session/Run 근거를 표시한다. Run을 선택하면
+같은 source-qualified ID로 Demian Trace의 호출·도구·산출물 상세에 이동한다.
+외부 wall timestamp를 역할 소요 시간이나 전체 완료율로 합산하지 않는다.
+
+브라우저에는 producer tuple을 보내지 않고, 외부 thread/turn 참조도 제거한다.
+현재 native·Projects snapshot과 다시 교차 확인하여 단절·철회·Run 누락 시 이전
+관계·실행 상세를 제거한다. 현재 Assistant Task는 native 조회 후에도 재확인한다.
+
+격리된 합성 UI에서 중첩/접힘 관계 선택·원본 edge 상세·동일 Run의 Trace 이동,
+390px·키보드 탐색과 native 권한 철회 후 ID/edge 제거를 확인했다. 실제 원본
+업무 수행의 증거로 계산하지 않는다. independent 검토는 현재 소비자 patch의
+권한·참조·투영 범위에서 구체적인 결함을 찾지 못했으며 운영 승인과 구분한다.
 
 v2 producer는 참조를 제공할 뿐 native 접근 권한을 부여하지 않는다. 전체 교차 앱
 업무와 desktop·두 번째 장치·실제 child/peer 조직화는 기존 AT-12/14/15/18/20의

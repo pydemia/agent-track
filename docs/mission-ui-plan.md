@@ -288,6 +288,14 @@ breadcrumb·상위 복귀와 목록 탐색을 공통 사용한다. Task 여러 �
 Projects 또는 원본 읽기 권한이 사라지면 이전 그룹 이름·멤버·상세도 제거한다.
 화면 묶음의 서버 저장·다음 접속 복원은 여전히 후속 범위다.
 
+v2 참조가 현재 Assistant·Projects·native 권한과 기존 operation receipt를
+만족하면 역할 → 실제 Demian Run 관계를 추가한다. 접힌 그룹의 대표선을
+선택하면 실제 끝점과 Operation/Session/Run 근거를 읽고, Run에서 동일 실행의
+Trace로 이동한다. native Run을 Assistant 실행 그룹의 복제 멤버로 만들지 않는다.
+원본 참조 미제공·미설정·단절·철회는 구분하며 현재 권한이 사라진 관계·ID는
+제거한다. 중첩 그룹·상세 이동·390px·철회는 합성 UI에서 확인했고, 운영 실제
+업무 수행 검증은 별도다. `assistant-demian-observer-verification.json` 참고.
+
 로컬 synthetic 환경에서 두 Task/실행 두 개/역할 네 개/공유 thread와 실제
 canonical producer·HTTP·SQLite Store 경계를 사용해 네 보기·중첩 탐색·
 키보드 선택·390px·철회 후 제거를 확인했다. 운영 Assistant 교차 앱 검증과

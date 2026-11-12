@@ -53,7 +53,7 @@ const roleInputSchema = z.object({
   turnId: z.string().nullable(),
   attempts: safeNonnegativeSchema,
   observation: z.object({
-    basis: z.literal("server_dispatch_to_terminal_including_sdk_preparation"),
+    basis: z.enum(["server_dispatch_to_terminal_including_sdk_preparation", "external_run_wall_timestamps_unverified"]),
     queuedAt: timestampSchema.nullable(),
     startedAt: timestampSchema.nullable(),
     endedAt: timestampSchema.nullable(),
@@ -208,53 +208,189 @@ export const assistantCapabilitiesSchema = z.strictObject({
 });
 export type AssistantCapabilities = z.infer<typeof assistantCapabilitiesSchema>;
 
-export function projectAssistantExecution(raw: unknown): AssistantExecutionMetadata {
-  const value = executionInputSchema.parse(raw);
+function executionMetadata(value: z.infer<typeof executionInputSchema>) {
   const task = value.taskRef;
-  return assistantExecutionMetadataSchema.parse({
-      id: value.id,
-      instructionId: value.instructionId,
-      instructionRevision: String(value.instructionRevision),
-      revision: String(value.revision),
-      state: value.state,
-      errorCode: value.errorCode,
-      task: task === null ? null : {
-        projectId: task.projectId,
-        taskId: task.sourceId,
-        revision: String(task.revision),
-        state: task.state,
-        observedAt: task.asOf,
+  return {
+    id: value.id,
+    instructionId: value.instructionId,
+    instructionRevision: String(value.instructionRevision),
+    revision: String(value.revision),
+    state: value.state,
+    errorCode: value.errorCode,
+    task:
+      task === null
+        ? null
+        : {
+            projectId: task.projectId,
+            taskId: task.sourceId,
+            revision: String(task.revision),
+            state: task.state,
+            observedAt: task.asOf,
+          },
+    roles: value.roles.map((role) => ({
+      id: role.id,
+      assignmentId: role.assignmentId,
+      workPackageId: role.workPackageId,
+      teamId: role.teamId,
+      membershipId: role.membershipId,
+      membershipRevision: String(role.membershipRevision),
+      label: plainLabel(role.role),
+      teamLabel: plainLabel(role.teamName),
+      agentLabel: plainLabel(role.personaName),
+      responsibility: role.responsibility,
+      state: role.state,
+      attempts: role.attempts,
+      runtime: {
+        taskId: role.runtimeTaskId,
+        threadId: role.threadId,
+        turnId: role.turnId,
       },
-      roles: value.roles.map((role) => ({
-        id: role.id,
-        assignmentId: role.assignmentId,
-        workPackageId: role.workPackageId,
-        teamId: role.teamId,
-        membershipId: role.membershipId,
-        membershipRevision: String(role.membershipRevision),
-        label: plainLabel(role.role),
-        teamLabel: plainLabel(role.teamName),
-        agentLabel: plainLabel(role.personaName),
-        responsibility: role.responsibility,
-        state: role.state,
-        attempts: role.attempts,
-        runtime: {
-          taskId: role.runtimeTaskId,
-          threadId: role.threadId,
-          turnId: role.turnId,
+      observation: {
+        queuedAt: role.observation.queuedAt,
+        startedAt: role.observation.startedAt,
+        endedAt: role.observation.endedAt,
+        seconds: role.observation.executionSeconds,
+        timingComplete: role.observation.timingComplete,
+        basis: role.observation.basis,
+      },
+    })),
+    createdAt: value.createdAt,
+    updatedAt: value.updatedAt,
+  };
+}
+
+export function projectAssistantExecution(
+  raw: unknown,
+): AssistantExecutionMetadata {
+  return assistantExecutionMetadataSchema.parse(
+    executionMetadata(executionInputSchema.parse(raw)),
+  );
+}
+
+/** Producer identity is metadata only. Consumers must independently authorize
+ * the exact native instance, organization, workspace, Session and Run. */
+export const assistantDemianReferenceSchema = z.strictObject({
+  origin: z
+    .url()
+    .max(2000)
+    .refine((value) => {
+      const url = new URL(value);
+      return (
+        url.protocol === "https:" &&
+        !url.username &&
+        !url.password &&
+        value === url.origin
+      );
+    }),
+  organizationId: z.guid(),
+  workspaceId: z.guid(),
+  sessionId: z.guid(),
+  runId: z.guid(),
+  operationId: opaqueIdSchema,
+});
+const observedReferenceSchema = assistantDemianReferenceSchema.extend({
+  roleId: z.uuid(),
+});
+const v2InputSchema = executionInputSchema
+  .extend({
+    trackDemianReferences: z
+      .array(observedReferenceSchema)
+      .max(100)
+      .default([]),
+  })
+  .refine(
+    (value) => {
+      const ids = value.trackDemianReferences.map((ref) => ref.roleId);
+      return (
+        new Set(ids).size === ids.length &&
+        ids.every((id) => value.roles.some((role) => role.id === id))
+      );
+    },
+    { message: "Observed runtime references must name unique current roles" },
+  );
+const v2RoleSchema =
+  assistantExecutionMetadataSchema.shape.roles.element.extend({
+    runtime:
+      assistantExecutionMetadataSchema.shape.roles.element.shape.runtime.extend(
+        {
+          demian: assistantDemianReferenceSchema.nullable(),
         },
-        observation: {
-          queuedAt: role.observation.queuedAt,
-          startedAt: role.observation.startedAt,
-          endedAt: role.observation.endedAt,
-          seconds: role.observation.executionSeconds,
-          timingComplete: role.observation.timingComplete,
-          basis: role.observation.basis,
-        },
-      })),
-      createdAt: value.createdAt,
-      updatedAt: value.updatedAt,
+      ),
+    observation:
+      assistantExecutionMetadataSchema.shape.roles.element.shape.observation
+        .extend({
+          basis: z.enum([
+            "server_dispatch_to_terminal_including_sdk_preparation",
+            "external_run_wall_timestamps_unverified",
+          ]),
+        })
+        .refine(
+          (value) =>
+            value.basis !== "external_run_wall_timestamps_unverified" ||
+            (value.seconds === null && !value.timingComplete),
+          { message: "External timing is unverified" },
+        ),
   });
+export const assistantExecutionMetadataV2Schema = z
+  .strictObject({
+    ...assistantExecutionMetadataSchema.shape,
+    roles: z.array(v2RoleSchema).min(1).max(100),
+  })
+  .refine(
+    (value) =>
+      new Set(value.roles.map((role) => role.id)).size === value.roles.length,
+  );
+export const assistantExecutionPageV2Schema = z
+  .strictObject({
+    ...assistantExecutionPageSchema.shape,
+    version: z.literal(2),
+    executions: z.array(assistantExecutionMetadataV2Schema).max(50),
+  })
+  .refine((page) => page.hasMore === (page.cursor !== null));
+export const assistantExecutionEventsPageV2Schema = z
+  .strictObject({
+    ...assistantExecutionEventsPageSchema.shape,
+    version: z.literal(2),
+  })
+  .refine(
+    (page) =>
+      assistantExecutionEventsPageSchema.safeParse({ ...page, version: 1 })
+        .success,
+  );
+export const assistantCapabilitiesV2Schema =
+  assistantCapabilitiesSchema.extend({
+    version: z.literal(2),
+    demianReferencesSupported: z.literal(true),
+  });
+export function projectAssistantExecutionV2(raw: unknown) {
+  const value = v2InputSchema.parse(raw);
+  const metadata = executionMetadata(value);
+  return assistantExecutionMetadataV2Schema.parse({
+    ...metadata,
+    roles: metadata.roles.map((role) => {
+      const observed = value.trackDemianReferences.find(
+        (ref) => ref.roleId === role.id,
+      );
+      const reference =
+        observed && (({ roleId: _roleId, ...ref }) => ref)(observed);
+      return {
+        ...role,
+        runtime: { ...role.runtime, demian: reference ?? null },
+      };
+    }),
+  });
+}
+
+/** v1 explicitly lacks external timing/references; keep other valid rows readable. */
+export function isAssistantV1Unsupported(raw: unknown): boolean {
+  const parsed = executionInputSchema.safeParse(raw);
+  return (
+    parsed.success &&
+    parsed.data.roles.some(
+      (role) =>
+        role.observation.basis === "external_run_wall_timestamps_unverified",
+    )
+  );
 }
 
 export function projectAssistantEvent(raw: unknown): AssistantExecutionEvent {
@@ -268,3 +404,12 @@ export function projectAssistantEvent(raw: unknown): AssistantExecutionEvent {
     occurredAt: value.occurredAt,
   });
 }
+
+export type AssistantExecutionMetadataV2 = z.infer<typeof assistantExecutionMetadataV2Schema>;
+export type AssistantCapabilitiesV2 = z.infer<typeof assistantCapabilitiesV2Schema>;
+export type AssistantExecutionPageV2 = z.infer<typeof assistantExecutionPageV2Schema>;
+export type AssistantExecutionEventsPageV2 = z.infer<typeof assistantExecutionEventsPageV2Schema>;
+export type AssistantObservedExecution = AssistantExecutionMetadata | AssistantExecutionMetadataV2;
+export type AssistantObservedCapabilities = AssistantCapabilities | AssistantCapabilitiesV2;
+export type AssistantObservedPage = AssistantExecutionPage | AssistantExecutionPageV2;
+export type AssistantObservedEventsPage = AssistantExecutionEventsPage | AssistantExecutionEventsPageV2;
