@@ -36,6 +36,11 @@ export const sourceConfigSchema = z.object({
   projectsPrincipalId: z.string().min(1).max(200).optional(),
   projectsTaskCreatorCredentialFile: z.string().refine(isAbsolute).optional(),
   projectsTaskCreatorPrincipalId: z.string().min(1).max(200).optional(),
+  assistantCredentialFile: z.string().refine(isAbsolute).optional(),
+  assistantUser: email.optional(),
+  assistantOwnerId: z.string().regex(/^sso-sub:[a-f0-9]{64}$/).optional(),
+  assistantPrincipalId: sourceId.optional(),
+  assistantProjectsSourceId: sourceId.optional(),
   taskCreateUsers: z.array(email).optional(),
   organizationId: z.string().max(512).optional(),
   runIds: z.array(z.string().min(1).max(512)).default([]),
@@ -72,6 +77,18 @@ export const configSchema = z.object({
         reader.nativeSourceIds.some((id) => !native(id)) || reader.sessionScopes.some((scope) => !reader.nativeSourceIds.includes(scope.sourceId) || !native(scope.sourceId)) ||
         reader.projectScopes.some((scope) => !config.sources.some((source) => source.id === scope.sourceId && source.kind === "projects" && source.users.includes(reader.user) && source.projectsUser === reader.user))) {
         context.addIssue({ code: "custom", message: "Context reader must use its own credential and an explicitly configured owner/source scope" });
+      }
+    }
+    for (const source of config.sources) {
+      const fields = [source.assistantCredentialFile, source.assistantUser, source.assistantOwnerId, source.assistantPrincipalId];
+      if (!fields.some(Boolean) && !source.assistantProjectsSourceId) continue;
+      const rootUsers = config.auth.mode === "proxy" ? config.auth.users : [config.auth.user];
+      const peer = source.assistantProjectsSourceId && config.sources.find(item => item.id === source.assistantProjectsSourceId);
+      if (source.kind !== "assistant" || !source.baseUrl || !fields.every(Boolean) ||
+          !source.users.includes(source.assistantUser!) || !rootUsers.includes(source.assistantUser!) ||
+          (source.assistantProjectsSourceId && (!peer || peer.kind !== "projects" || peer.projectsUser !== source.assistantUser ||
+            !peer.users.includes(source.assistantUser!) || !peer.baseUrl || !peer.projectsCredentialFile || !peer.projectsAccountId || !peer.projectsPrincipalId))) {
+        context.addIssue({ code: "custom", message: "Assistant reader must pin one configured actor, owner, principal and optional same-actor Projects source" });
       }
     }
   });

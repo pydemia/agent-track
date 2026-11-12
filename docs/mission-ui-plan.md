@@ -147,6 +147,31 @@ Pydemia의 기존 `pyd-flow-group` renderer와 parent-relative node 배치를 �
 Reference: [Pydemia FlowCanvas registry](https://ui.pydemia.ai/r/pyd-flow-canvas.json),
 [React Flow Sub Flows](https://reactflow.dev/learn/layouting/sub-flows).
 
+### Assistant 업무 실행의 중첩 그룹
+
+Assistant 연결에서는 현재 Projects Task → 원본 WorkExecution → 실행 내
+Work package → 역할로 탐색한다. 같은 Task의 Demian Run과 Assistant 실행은
+Task 그룹에 함께 놓되, 고유 Run 수와 Assistant 실행 수를 별도로 센다.
+Work package는 원본 소속이 같은 역할 두 개 이상인 경우에만 만든다. 여러
+실행이 공유하는 thread·turn·runtime Task 참조는 바깥에 두고 참조선으로
+연결한다. 이 참조를 Demian Session이나 실행 선후 관계로 바꾸지 않는다.
+
+Track는 현재 업무 상태와 실행별 역할 요약, Trail은 원본 상태의 경과,
+Trace는 역할·시간·sequence·오류와 연결 근거, Map은 Task 의존 관계와
+실행 조직을 표시한다. 현재 Assistant 계약에는 도구 호출·산출물 본문이
+없으므로 비어 있는 근거를 생성하지 않고 제공 범위를 명시한다.
+
+묶음 개요 → 실행 구조 → 상세 근거의 세 깊이, 개별 접기/펼치기, 내부 초점,
+breadcrumb·상위 복귀와 목록 탐색을 공통 사용한다. Task 여러 개의 화면
+묶음은 내부 실행 그룹을 함께 포함한다. 대표선에서 각 원본 관계를 열며,
+Projects 또는 원본 읽기 권한이 사라지면 이전 그룹 이름·멤버·상세도 제거한다.
+화면 묶음의 서버 저장·다음 접속 복원은 여전히 후속 범위다.
+
+로컬 synthetic 환경에서 두 Task/실행 두 개/역할 네 개/공유 thread와 실제
+canonical producer·HTTP·SQLite Store 경계를 사용해 네 보기·중첩 탐색·
+키보드 선택·390px·철회 후 제거를 확인했다. 운영 Assistant 교차 앱 검증과
+구분하며 `assistant-workspace-verification.json`에 결과를 기록한다.
+
 연결 상태 후속 검증: 각 보기의 `출처별 연결·수집 범위`에서 현재 인가·단절·
 미지원 이유, 실제 수집 한도와 마지막 관측을 확인한다. 선택한 출처가 unavailable이면
 빈 Trace를 필터 불일치로만 설명하지 않고 원본 미확인 이유를 표시한다. 실제 Demian

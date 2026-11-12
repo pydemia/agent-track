@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { RunView, SourceView } from "../../../packages/contracts/index.ts";
+import type { AssistantExecutionView } from "../../../packages/contracts/assistant-view.ts";
+import type { AssistantSelection } from "./AssistantWorkspace.tsx";
+import { withAssistantExecutions } from "../../../packages/projection/assistant-flow.ts";
 import { dependencyGrants, projectDependenciesFlow } from "../../../packages/projection/project-dependencies-flow.ts";
 import { pollTaskDependencies, type DependencySnapshot } from "./task-dependencies-client.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
@@ -10,13 +13,14 @@ import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
 import "./mission-flow.css";
 
-const kindLabels: Record<string, string> = { task: "업무", run: "Run", session: "Session" };
+const kindLabels: Record<string, string> = { task: "업무", run: "Run", session: "Session", "assistant-execution": "Assistant 실행", "assistant-role": "원본 역할",
+  "assistant-runtime-task": "Runtime Task 참조", "assistant-thread": "Thread 참조", "assistant-turn": "Turn 참조" };
 const stateLabels: Record<string, string> = { todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료", cancelled: "취소",
   queued: "대기", leasing: "할당 중", running: "실행 중", waiting_for_permission: "승인 대기", cancelling: "취소 중",
-  succeeded: "성공 종료", failed: "실패 종료", expired: "만료", interrupted: "중단", observed: "관측됨", unknown: "미확인" };
+  succeeded: "성공 종료", completed: "완료 관측", failed: "실패 종료", expired: "만료", interrupted: "중단", observed: "관측됨", unknown: "미확인" };
 function cardState(value: string): "idle" | "running" | "complete" | "error" {
   if (["queued", "leasing", "running", "in_progress", "waiting_for_permission"].includes(value)) return "running";
-  if (["done", "succeeded"].includes(value)) return "complete";
+  if (["done", "succeeded", "completed"].includes(value)) return "complete";
   return value === "failed" ? "error" : "idle";
 }
 
@@ -26,6 +30,8 @@ export interface TaskDependencyMapProps {
   focusTaskId?: string;
   sources: SourceView[];
   runs: RunView[];
+  assistantExecutions?: AssistantExecutionView[];
+  onSelectAssistant?: (selection: AssistantSelection) => void;
   onSelectRun: (key: string) => void;
   onUnauthorized: (reason: string) => void;
   onScopeUnavailable: (sourceId: string, projectId: string) => void;
@@ -42,7 +48,7 @@ export function TaskDependencyMap(props: TaskDependencyMapProps) {
   return <DependencyMapScope key={JSON.stringify([props.sourceId, props.projectId, stamp])} {...props} />;
 }
 
-function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
+function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, assistantExecutions = [], onSelectAssistant,
   onSelectRun, onUnauthorized, onScopeUnavailable }: TaskDependencyMapProps) {
   const [snapshot, setSnapshot] = useState<DependencySnapshot>({ status: "loading", page: null });
   const [retry, setRetry] = useState(0);
@@ -55,10 +61,12 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
     setSnapshot(previous => next.status === "loading" && previous.page ? { ...next, page: previous.page } : next);
     if (next.status !== "loading" && !next.page) { setChoice(null); setFilter(""); }
   }, onUnauthorized, undefined, () => onScopeUnavailable(sourceId, projectId)), [sourceId, projectId, retry, onUnauthorized, onScopeUnavailable]);
-  const model = useMemo(() => snapshot.page
-    ? projectDependenciesFlow(snapshot.page, runs, sources, focusTaskId)
-    : { nodes: [], edges: [], hiddenNodes: 0, incomplete: false, cycles: new Set<string>(), focusPresent: false },
-  [snapshot.page, runs, sources, focusTaskId]);
+  const model = useMemo(() => {
+    const base = snapshot.page ? projectDependenciesFlow(snapshot.page, runs, sources, focusTaskId)
+      : { nodes: [], edges: [], hiddenNodes: 0, incomplete: false, cycles: new Set<string>(), focusPresent: false };
+    if (!snapshot.page) return base;
+    return withAssistantExecutions(base, assistantExecutions, sources, { sourceId, projectId, ...(focusTaskId ? { focusTaskId } : {}) });
+  }, [snapshot.page, runs, sources, focusTaskId, assistantExecutions, sourceId, projectId]);
   const chooseNode = (key: string) => setChoice({ kind: "node", key });
   const chooseEdge = (key: string) => setChoice({ kind: "edge", key });
   const grouping = useFlowGrouping(model, { scopeKey: `${sourceId}:${projectId}`, defaultBy: "project", chooseNode, chooseEdge });
@@ -104,7 +112,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
     <p className={snapshot.status === "failure" ? "inline-error" : "graph-legend"} role="status">{message}</p>
     {snapshot.page && <p className="graph-legend">관측 {snapshot.page.observedAt ?? "지원되지 않음"} · {model.nodes.length} nodes · {model.edges.length} edges
       {snapshot.page.hasMore ? " · 원본에 추가 관계 있음 (최대 200건 조회)" : ""}
-      {model.hiddenNodes > 0 ? ` · 160 node 표시 한도로 ${model.hiddenNodes}개 생략` : ""}</p>}
+      {model.hiddenNodes > 0 ? ` · 표시 한도로 ${model.hiddenNodes}개 생략` : ""}</p>}
     {focusTaskId && snapshot.page?.supported && !model.focusPresent && <p className="inline-warning">선택한 업무의 의존 관계를 현재 조회 범위에서 확인하지 못했습니다.</p>}
     {model.cycles.size > 0 && <p className="inline-warning">의존 관계 순환 · 관련 node {model.cycles.size}개. 실행 순서로 해석하지 마세요.</p>}
     {model.nodes.length > 0 && <>
@@ -118,6 +126,8 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs,
           {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>
             <dl>{node.details.map((d) => <div key={d.label}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}</dl>
             {node.runKey && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Run 실행 근거 보기</button>}
+            {onSelectAssistant && (node.kind === "assistant-execution" || node.kind === "assistant-role") && <button className="button-secondary" onClick={() => onSelectAssistant({ sourceId: node.sourceId,
+              executionId: node.kind === "assistant-execution" ? node.id : node.details.find(detail => detail.label === "Execution ID")!.value })}>Assistant 실행 Trace 보기</button>}
             <h4>연결 관계</h4>{model.edges.filter((e) => e.from === node.key || e.to === node.key).map((e) =>
               <button key={e.key} className="flow-list-choice" onClick={() => grouping.revealEdge(e.key)}><strong>{e.label}</strong><span>{name(e.from)} → {name(e.to)}</span></button>)}
           </> : edge ? <><small>관계 상세 · {edge.kind}</small><h3>{edge.label}</h3>

@@ -7,6 +7,7 @@ import type { Store } from "../../packages/storage/store.ts";
 import type { Config, SourceConfig } from "./config.ts";
 import { ProjectsAuthority } from "./projects-authority.ts";
 import { projectsReady, sourceIdentity } from "./source-identity.ts";
+import { AssistantAuthority } from "./assistant-authority.ts";
 
 export class Sources {
   private states = new Map<string, SourceView>();
@@ -20,8 +21,13 @@ export class Sources {
   private shutdown = new AbortController();
   private identities = new Map<string, string>();
   readonly projects: ProjectsAuthority;
+  readonly assistant: AssistantAuthority;
 
-  constructor(private store: Store, private config: () => Config) { this.codex = new CodexCollector(store); this.projects = new ProjectsAuthority(store, config); }
+  constructor(private store: Store, private config: () => Config) {
+    this.codex = new CodexCollector(store);
+    this.projects = new ProjectsAuthority(store, config);
+    this.assistant = new AssistantAuthority(store, config, this.projects);
+  }
 
   async refreshProjectGrants(user: string): Promise<void> { await this.projects.refresh(user); }
 
@@ -31,7 +37,8 @@ export class Sources {
     const canBind = singleOwner && config.sources.some((source) => projectsReady(source) &&
       source.users.includes(user) && this.projects.view(source, user).state === "connected");
     return config.sources.filter((source) => source.users.includes(user)).map((source) => {
-      const view = projectsReady(source) ? this.projects.view(source, user) : this.state(source);
+      const view = source.kind === "assistant" ? this.assistant.view(source, user)
+        : projectsReady(source) ? this.projects.view(source, user) : this.state(source);
       return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
         capabilities: [...view.capabilities,
           ...(canBind && source.kind === "demian" && view.state === "connected" ? ["binding.write"] : []),

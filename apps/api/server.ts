@@ -18,6 +18,7 @@ import { authenticateContextReader, contextReaderStamp } from "./context-auth.ts
 import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { toolEvidence } from "./tools.ts";
 import { projectDependencies } from "./project-dependencies.ts";
+import { AssistantAuthorityError } from "./assistant-authority.ts";
 import { sequenceSchema } from "../../packages/contracts/index.ts";
 import type { Config } from "./config.ts";
 import { Sources } from "./runner.ts";
@@ -53,6 +54,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const approvals = new ApprovalService(store);
   const taskCreation = new ProjectTaskCreation(store, config, sources);
   const server = createServer(async (request, response) => {
+    let activeActor: string | null = null;
     response.setHeader("Cache-Control", "private, no-store");
     response.setHeader("X-Content-Type-Options", "nosniff");
     response.setHeader("Referrer-Policy", "same-origin");
@@ -77,8 +79,9 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       }
       const user = authenticate(request, current);
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
+      activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
-      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health") {
+      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/")) {
         await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
@@ -135,6 +138,22 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         json(response, 200, { receipt }); return;
       }
       if (request.method !== "GET") { json(response, 405, { error: "unsupported_method" }); return; }
+      const assistantRead = /^\/api\/assistant\/([a-z0-9_-]{1,80})\/executions(?:\/([0-9a-f-]{36})(\/events)?)?$/.exec(url.pathname);
+      if (assistantRead) {
+        const [, sourceId, executionId, events] = assistantRead;
+        const keys = [...url.searchParams.keys()];
+        const allowed = executionId ? events ? ["after"] : [] : ["cursor"];
+        if (keys.some((key, index) => !allowed.includes(key) || keys.indexOf(key) !== index) ||
+            request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_assistant_query" }); return;
+        }
+        const result = executionId ? events
+          ? await sources.assistant.events(user, sourceId!, executionId, url.searchParams.get("after") ?? "0")
+          : await sources.assistant.detail(user, sourceId!, executionId)
+          : await sources.assistant.list(user, sourceId!, url.searchParams.get("cursor"));
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, result); return;
+      }
       if (url.pathname === "/api/commands") {
         const key = url.searchParams.get("run") ?? "";
         if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
@@ -292,6 +311,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
     } catch (error) {
       if (response.headersSent) response.end();
       else if (error instanceof CommandError) json(response, error.status, { error: error.code, detail: error.message });
+      else if (error instanceof AssistantAuthorityError) {
+        if (activeActor && authenticate(request, config()) !== activeActor) {
+          json(response, 401, { error: "authentication_required" }); return;
+        }
+        const status = [400, 403, 404].includes(error.status) ? error.status : 503;
+        json(response, status, { error: status === 403 || status === 404 ? "assistant_scope_unavailable"
+          : status === 400 ? "invalid_assistant_query" : "assistant_source_unavailable" });
+      }
       else if (error instanceof ProjectsSourceError) {
         const status = [401, 403, 404].includes(error.status) ? 404 : [400, 409].includes(error.status) ? error.status : 503;
         json(response, status, { error: status === 404 ? "project_not_found" : status === 409 ? "project_snapshot_changed" : "project_source_unavailable" });

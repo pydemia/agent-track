@@ -1,10 +1,10 @@
 # Assistant metadata reader client
 
 `packages/adapters/assistant/index.ts` consumes the optional native reader at
-`/api/integrations/track/v1`. It is a client library; adding it does not enable an
-Assistant source in Track. The native implementation is in private Persona PR21.
-The candidate image has been built, but the native route and credential have not
-been deployed. Current production source status remains `unsupported`.
+`/api/integrations/track/v1`. The native implementation is in private Persona PR21.
+Track now includes optional source configuration, live authority/API wiring and a
+distinct WorkExecution UI. Code availability does not activate the source: the
+production reader/configuration and cross-app verification are separate steps.
 
 ## Identity and authentication
 
@@ -67,9 +67,47 @@ owner verification are recorded separately in
 `assistant-native-recovery-verification.json`; they are not an atomic cross-DB
 snapshot or frozen cutover baseline.
 
-Remaining: fresh pre-cutover comparison, bounded code-only deployment and guard
-replacement, dedicated native reader provisioning/private transport,
-Track source/config/API wiring, current Projects authorization intersection,
-distinct execution/role UI and the actual cross-app task. Refer to
+The Assistant integration Root owns native container/guard changes and has
+provisioned the dedicated credential. Track owns its client configuration and
+private loopback transport. No key or native owner credential is sent to the
+browser. Production source activation awaits the Root's native-ready evidence.
+
+Remaining: native cutover/guard verification, Track production source activation,
+actual current Projects intersection and the actual cross-app task. Refer to
 `assistant-native-reader-verification.json` and `goal-status.md`. AT-14 remains
 partial; this client does not change the overall 14/21 acceptance count.
+
+## Live Track API and UI
+
+Optional Assistant source fields are `assistantCredentialFile`, `assistantUser`,
+`assistantOwnerId`, `assistantPrincipalId` and `assistantProjectsSourceId`. The
+first four are an all-or-none identity binding; a Projects peer must be fully
+configured for the same actor. Existing unconfigured sources remain unsupported.
+Durable source pins include actor/owner/principal/peer identity, while request
+checks additionally detect credential-path or policy changes.
+
+The Entra-authenticated BFF exposes GET-only routes:
+
+- `/api/assistant/:sourceId/executions?cursor=...`
+- `/api/assistant/:sourceId/executions/:executionId`
+- `/api/assistant/:sourceId/executions/:executionId/events?after=...`
+
+Every response checks native capabilities and current Projects authorization
+before and after reading metadata. Linked Task UUID and Project UUID must match
+the current native Task response. A denied Task is omitted from list windows;
+detail/events fail closed. Transport failure returns unavailable, without stale
+execution metadata. Executions/events are not persisted in the Run journal.
+One active read plus one waiting read is allowed per actor/source, with an
+overall ten-second budget including queue time. Lists read up to eight distinct
+Tasks concurrently within this budget; late responses cannot reopen a grant.
+
+The browser polls every fifteen seconds, reads at most four 50-execution pages per
+source, and clears the source window on denial or failed refresh. Trail and Trace
+keep at most 500 state events with the cursor of the retained event. Native Task
+revision/state at execution time and current Projects state remain separate.
+
+Map joins current Task keys to explicit native WorkExecution/role references.
+Project/Task/execution/work-package groups reuse the existing Pydemia FlowCanvas;
+shared thread/turn/runtime references remain outside exclusive execution groups.
+Collapsing a group preserves typed boundary edges and individual evidence. No
+chronological edge, Demian Run conversion or runtime status is inferred.

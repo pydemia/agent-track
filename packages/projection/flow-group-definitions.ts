@@ -1,9 +1,10 @@
 import type { MissionNode, MissionEdge } from "./mission-flow.ts";
-import type { FlowGroupDefinition } from "./flow-groups.ts";
+import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
+import { assistantFlowGroups } from "./assistant-flow.ts";
+export { flowGroupKey } from "./flow-groups.ts";
 
 export type FlowGroupBy = "project" | "task" | "session" | "run" | "none";
 export interface TaskBundle { key: string; label: string; taskKeys: string[] }
-export const flowGroupKey = (kind: string, key: string) => JSON.stringify(["flow-container", kind, key]);
 
 /** Reveal membership ancestors, including a collapsed direct owner of a selected leaf. */
 export function groupsForNodes(groups: FlowGroupDefinition[], keys: string[]): Set<string> {
@@ -82,6 +83,10 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
     }
   }
 
+  for (const group of assistantFlowGroups(model)) {
+    groups.set(group.key, group);
+    for (const key of group.memberKeys) groupFor.set(key, group.key);
+  }
   if (by === "session") {
     for (const session of model.nodes.filter(node => node.kind === "session")) {
       const members = model.edges.filter(edge => edge.from === session.key && edge.kind === "ownership")
@@ -96,12 +101,13 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
     }
   } else if (by === "task" || by === "project") {
     for (const task of model.nodes.filter(node => node.kind === "task")) {
-      const runs = model.edges.filter(edge => edge.from === task.key && edge.kind === "task-binding")
-        .map(edge => nodes.get(edge.to)).filter((run): run is MissionNode => !!run && run.kind === "run" && !!run.runKey);
+      const runs = model.edges.filter(edge => edge.from === task.key && ["task-binding", "assistant-task-binding"].includes(edge.kind))
+        .map(edge => nodes.get(edge.to)).filter((run): run is MissionNode => !!run &&
+          (run.kind === "run" && !!run.runKey || run.kind === "assistant-execution"));
       if (!runs.length) continue;
-      const group = insert(task, "task", "binding", "원본 Task와 명시적으로 연결된 고유 Run입니다. Run 종료와 업무 수용을 구분합니다.");
+      const group = insert(task, "task", "binding", "같은 Task에 명시적으로 연결된 Run과 Assistant 실행입니다. 서로 다른 실행 단위이며 업무 완료·수용과 구분합니다.");
       for (const run of runs) {
-        const owners = model.edges.filter(edge => edge.to === run.key && edge.kind === "task-binding");
+        const owners = model.edges.filter(edge => edge.to === run.key && ["task-binding", "assistant-task-binding"].includes(edge.kind));
         if (new Set(owners.map(edge => edge.from)).size === 1) attachEntity(run, group);
       }
       for (const session of model.nodes.filter(node => node.kind === "session")) {

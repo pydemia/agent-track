@@ -5,10 +5,16 @@ export function projectsReady(source: SourceConfig): boolean {
   return source.kind === "projects" && !!source.baseUrl && !!source.projectsCredentialFile &&
     !!source.projectsUser && !!source.projectsAccountId && !!source.projectsPrincipalId;
 }
+export function assistantReady(source: SourceConfig): boolean {
+  return source.kind === "assistant" && !!source.baseUrl && !!source.assistantCredentialFile &&
+    !!source.assistantUser && !!source.assistantOwnerId && !!source.assistantPrincipalId;
+}
 export function sourceIdentity(source: SourceConfig): string {
   // Preserve the original identity encoding for existing native/log sources.
   const parts: unknown[] = [source.kind, source.baseUrl ?? null, source.organizationId ?? null,
     source.logRoot ?? null, [...source.repositoryRoots].sort()];
   if (projectsReady(source)) parts.push(source.projectsUser, source.projectsAccountId, source.projectsPrincipalId);
+  if (assistantReady(source)) parts.push(source.assistantUser, source.assistantOwnerId,
+    source.assistantPrincipalId, source.assistantProjectsSourceId ?? null);
   return createHash("sha256").update(JSON.stringify(parts)).digest("hex");
 }

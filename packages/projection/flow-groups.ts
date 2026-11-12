@@ -1,5 +1,7 @@
 import type { MissionEdge, MissionNode } from "./mission-flow.ts";
 
+export const flowGroupKey = (kind: string, key: string) => JSON.stringify(["flow-container", kind, key]);
+
 export interface FlowGroupDefinition {
   key: string;
   label: string;

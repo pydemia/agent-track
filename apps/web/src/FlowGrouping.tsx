@@ -5,10 +5,10 @@ import { projectFlowGroups, type FlowGroupSummary } from "../../../packages/proj
 import type { FlowNode } from "./ui/flow-canvas.tsx";
 
 type Depth = "overview" | "structure" | "detail";
-const byNames: Record<FlowGroupBy, string> = { project: "Project·업무", task: "Task 실행", session: "Session", run: "Run", none: "개별 node" };
-const kindNames: Record<string, string> = { project: "Project 범위", task: "Task 실행", session: "Session 범위", run: "Run 범위", invocation: "호출 범위", cowork: "원본 협업", "task-bundle": "업무 묶음" };
+const byNames: Record<FlowGroupBy, string> = { project: "Project·업무", task: "Task 실행", session: "Session", run: "실행 단위", none: "개별 node" };
+const kindNames: Record<string, string> = { project: "Project 범위", task: "Task 실행", session: "Session 범위", run: "Run 범위", invocation: "호출 범위", cowork: "원본 협업", "task-bundle": "업무 묶음", "assistant-execution": "Assistant 실행", "assistant-work-package": "실행 내 Work package" };
 const basisNames = { native: "원본 소속", binding: "명시적 업무 연결", view: "사용자가 고른 화면 묶음" };
-const countNames: Record<string, string> = { task: "업무", session: "Session", uniqueRun: "관측 Run", invocation: "호출", tool: "도구", permission: "승인", group: "원본 협업 그룹", member: "협업 멤버", artifact: "산출물" };
+const countNames: Record<string, string> = { task: "업무", session: "Session", uniqueRun: "관측 Run", "assistant-execution": "Assistant 실행", "assistant-role": "역할", "assistant-runtime-task": "Runtime Task 참조", "assistant-thread": "Thread 참조", "assistant-turn": "Turn 참조", invocation: "호출", tool: "도구", permission: "승인", group: "원본 협업 그룹", member: "협업 멤버", artifact: "산출물" };
 const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter(([kind]) => group.counts[kind])
   .map(([kind, label]) => `${label} ${group.counts[kind]}`).join(" · ") || `${group.leafKeys.length}개 항목`;
 
@@ -43,7 +43,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
   const collapsed = useMemo(() => new Set(definitions.filter(group => {
     if (sameScope && overrides.has(group.key)) return overrides.get(group.key);
     const current = sameScope ? depth : options.defaultDepth ?? "structure";
-    return current === "overview" || current === "structure" && ["run", "invocation", "cowork"].includes(group.kind);
+    return current === "overview" || current === "structure" && ["run", "invocation", "cowork", "assistant-execution", "assistant-work-package"].includes(group.kind);
   }).map(group => group.key)), [definitions, overrides, depth, sameScope, options.defaultDepth]);
   const projection = useMemo(() => projectFlowGroups(model, definitions, collapsed), [model, definitions, collapsed]);
   const groupByKey = useMemo(() => new Map(projection.groups.map(group => [group.key, group])), [projection]);

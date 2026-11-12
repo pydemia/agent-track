@@ -1,0 +1,113 @@
+{
+  "verifiedAt": "2026-11-12T05:31:23.400Z",
+  "baselineRevision": "4380330892943e5bb59a37592b00270266753f4d",
+  "scope": "Uncommitted Assistant source/API/UI and grouping implementation; source hashes bind this evidence.",
+  "productionActivated": false,
+  "fixtureOnly": true,
+  "modelCalls": 0,
+  "checks": {
+    "windows": {
+      "command": "npm test",
+      "tests": 521,
+      "pass": 512,
+      "fail": 0,
+      "skip": 9,
+      "skipReason": "Existing POSIX-only cases on Windows"
+    },
+    "typecheck": "passed",
+    "build": "passed; existing @xyflow use-client directive warning",
+    "diffCheck": "passed",
+    "publishScan": {
+      "privateValues": 7,
+      "matches": 0
+    },
+    "independentReview": {
+      "readOnly": true,
+      "findings": 2,
+      "resolved": [
+        "Bounded actor/source admission and overall deadline; slow/late Task response tests",
+        "500 retained events with retained cursor"
+      ]
+    },
+    "browser": {
+      "origin": "http://127.0.0.1:14364",
+      "nativeFixtureOrigin": "http://127.0.0.1:14365",
+      "nativeBoundary": "Real canonical AssistantReadService + AssistantClient HTTP + Track auth/Store; synthetic business/Projects port",
+      "views": [
+        "Track",
+        "Trail",
+        "Trace",
+        "Map"
+      ],
+      "tasks": 2,
+      "executions": 2,
+      "roles": 4,
+      "dependencyEdges": 1,
+      "mergedMap": {
+        "nodes": 19,
+        "edges": 19
+      },
+      "groups": [
+        "Project",
+        "Task",
+        "Assistant execution",
+        "Work package",
+        "User screen Task bundle"
+      ],
+      "behaviors": [
+        "Nested expand/collapse and breadcrumb/parent navigation",
+        "Keyboard Enter selects role and reveals ancestors",
+        "Collapsed user Task bundle preserves shared thread boundary with two original references",
+        "Current Task r2/r3 remains distinct from native historical r1",
+        "Zero seconds remains zero; unavailable timing remains unknown",
+        "Projects grant removal clears Task/execution/group name and private Task URL",
+        "Native reader denial clears execution list/selected Trace/roles",
+        "Trail/Trace ordered native state sequence metadata",
+        "390px detail layout, no page horizontal overflow; temporary viewport reset"
+      ],
+      "screenshots": [
+        "track-assistant-groups-desktop.jpg",
+        "track-assistant-role-mobile.jpg"
+      ],
+      "fixtureServersStopped": true
+    }
+  },
+  "sourceHashes": {
+    "apps/api/assistant-authority.ts": "c64636b42ad5484bb99b91e620ad01c493ab9b2ff0f00d7a5559d2e613ae78c3",
+    "apps/api/config.ts": "fc27e65e4ff566d86412e599d1ddce6fe65a1590b78f8f1203597af8a2933765",
+    "apps/api/runner.ts": "2d85a85acc07a6b2d9a115f738a71a7277c3695239621cee7e61723c87cb77d4",
+    "apps/api/server.ts": "c2eb4c58e25a9a6b695e43f8b753be3defb9de8afc05cd1a780ea16865818a5f",
+    "apps/api/source-identity.ts": "f31a87cae36699824f5038dde9c69695df24554dbc3c98523fbc40611758466a",
+    "apps/web/src/App.tsx": "2583a5c1a072b0bc0c505ec6fa9600cf4ee156fe10b5e63bebb656f674ef55da",
+    "apps/web/src/AssistantWorkspace.tsx": "18bbb344d7be922f6d0279201ef658bdba8e7eaff4835ebdeb850254c5d50b5a",
+    "apps/web/src/FlowGrouping.tsx": "80891415bf80d1df9c14fba620da0ca7127af3e2baa38a036c71a736fc706251",
+    "apps/web/src/TaskDependencyMap.tsx": "506dbb227ba3ed516056ca93d37aad5fd0e2dcee7e1b17bddf6f37896233dfb1",
+    "apps/web/src/assistant-client.ts": "b324c90a03cf74b5c8d03b6fc8c8057900f980c183c578df4aa9684113f52149",
+    "apps/web/src/assistant-workspace.css": "d9fc4f7300fb487d184e3493b4259f39d0c1c527b31c7ba4ca337c222abd11d1",
+    "apps/web/src/useAssistantExecutions.ts": "724ca37a6c1d19ee6ebce6a9a4abc7dad3109f3f22c6118507ef2757d6a32288",
+    "packages/contracts/assistant-view.ts": "0c6b4bd47c029212020c6b51c63af48e655568396d4e6c808c3d6f15377d3995",
+    "packages/projection/assistant-flow.ts": "19df4d923a2a08043f098c6ddfe76bef9a93993bf606c28fb47f9becbe6a27ac",
+    "packages/projection/flow-group-definitions.ts": "bb9b73d9c7287a942180ab1ff0ad3db5ef16a6cd5f9ef86b8fea717d44422ca9",
+    "packages/projection/flow-groups.ts": "a4f6c319e3cec8466ab50cd900a629afe931fe86cdc036e368e4920677610fdd",
+    "scripts/Start-Assistant-Bridge.ps1": "da641cdf809e85cbc978fc9d693c5a984a9e00ebc69156f36dd548f57c55454c",
+    "scripts/Start-Track.ps1": "39ea922f4eb629a2777edab7c8d00f5889646f60e8dbbea3597790cae99c15fe",
+    "tests/assistant-api.test.ts": "dbc6384efce7413321d462b9e5ab9bff29cf3665e772f081e863242b4ab54f7e",
+    "tests/assistant-authority.test.ts": "1c14882b57a9b5ff669605ca349053fe7791ff18ccb21d32e63a3e0f7c448840",
+    "tests/assistant-flow.test.ts": "c0f68f6b8f1e2c8eac6c7f79fd90e6e094c677ecf7d9c872a80f55740c46c3ea",
+    "tests/assistant-web-client.test.ts": "0e27dc8537c8c0bac26b168d466957947d9b057e73e7e71f23931706a2ba4489"
+  },
+  "buildIndexSha256": "cefd4eca176a5dca7236df4f9a5be01e7fc3e1043b527f7aef239581707f5ad8",
+  "remaining": [
+    "Root-owned native Assistant cutover/new guard and native-ready evidence",
+    "Track production source activation and actual current Projects intersection",
+    "Actual cross-app Task and Demian/desktop/second-device/child-peer requirements"
+  ],
+  "goal": {
+    "satisfied": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "equal",
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

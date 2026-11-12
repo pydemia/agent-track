@@ -13,9 +13,12 @@ import { ActivityTrail } from "./ActivityTrail.tsx";
 import { RunControls } from "./RunControls.tsx";
 import { removeDeniedTaskContext, removeDeniedTaskQuery, type TaskMapContext } from "./task-map-context.ts";
 import type { EventView, RelationView, RunView, Snapshot, SourceView } from "../../../packages/contracts/index.ts";
+import { useAssistantExecutions, assistantMatches } from "./useAssistantExecutions.ts";
+import type { AssistantSelection } from "./AssistantWorkspace.tsx";
 
 const LazyMissionFlow = lazy(() => import("./MissionFlow.tsx").then((module) => ({ default: module.MissionFlow })));
 const LazyTaskDependencyMap = lazy(() => import("./TaskDependencyMap.tsx").then((module) => ({ default: module.TaskDependencyMap })));
+const LazyAssistantWorkspace = lazy(() => import("./AssistantWorkspace.tsx").then(module => ({ default: module.AssistantWorkspace })));
 
 type Tab = "track" | "trail" | "trace" | "map";
 type Health = "checking" | "ok" | "unavailable";
@@ -39,6 +42,7 @@ const statusNames: Record<string, string> = {
   queued: "대기", leasing: "할당 중", running: "실행 중", waiting_for_permission: "권한 대기",
   cancelling: "취소 중", succeeded: "성공 종료", failed: "실패 종료", cancelled: "취소 종료",
   expired: "만료", interrupted: "중단", unknown: "상태 미확인",
+  registering: "Assistant 등록 중", completed: "Assistant 완료 관측", publishing: "게시 처리 중", linking: "연결 처리 중", reconciliation_required: "확인 필요",
 };
 const metadataKeys = ["invocationId", "parentInvocationId", "groupId", "memberId", "childRunId", "peerSessionId", "callId", "tool", "path", "artifactId", "permissionId", "expiresAt", "durationMs", "redacted"] as const;
 
@@ -109,6 +113,7 @@ export function App() {
   const [health, setHealth] = useState<Health>("checking");
   const [tab, setTab] = useState<Tab>(initial.current.tab);
   const [selectedKey, setSelectedKey] = useState(initial.current.selected);
+  const [assistantSelection, setAssistantSelection] = useState<AssistantSelection | null>(null);
   const [taskMap, setTaskMap] = useState<TaskMapContext | null>(initial.current.taskMap);
   const [filters, setFilters] = useState<Filters>(initial.current.filters);
   const [events, setEvents] = useState<EventView[]>([]);
@@ -166,6 +171,7 @@ export function App() {
     setHasMore(false);
     setLoadingEvents(false);
     setSelectedKey("");
+    setAssistantSelection(null);
     setTaskMap(null);
     setPageError(reason);
     setStreamState("disconnected");
@@ -384,6 +390,9 @@ export function App() {
   };
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
+  const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); });
+  const visibleAssistantCount = assistant.executions.filter(view => assistantMatches(view, filters)).length;
+  const assistantSourceSelected = snapshot?.sources.some(source => source.id === filters.source && source.kind === "assistant" && source.state !== "unsupported");
   const unavailableSource = snapshot?.sources.find((source) => source.id === filters.source && source.state !== "connected");
   const projectOptions = useMemo(() => {
     const bindingMap = new Map<string, string>();
@@ -392,10 +401,11 @@ export function App() {
       if (run.binding && run.projectKey) bindingMap.set(run.projectKey, run.binding.projectTitle);
       if (!run.binding && run.workspaceKey) workspaceMap.set(run.workspaceKey, workspaceName(run.workspaceId));
     }
+    for (const view of assistant.executions) if (view.currentTask) bindingMap.set(view.currentTask.projectKey, view.currentTask.project.title);
     const bindings = [...bindingMap].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
     const workspaces = [...workspaceMap].map(([key, label]) => ({ key, label })).sort((a, b) => a.label.localeCompare(b.label));
     return { bindings, workspaces };
-  }, [accessibleRuns]);
+  }, [accessibleRuns, assistant.executions]);
   const visibleRuns = useMemo(() => accessibleRuns.filter((item) => {
     const text = `${item.title} ${item.runId} ${item.sessionId} ${item.sourceLabel} ${item.binding?.projectTitle ?? ""} ${item.binding?.taskTitle ?? ""} ${workspaceName(item.workspaceId)}`.toLocaleLowerCase();
     const projectMatch = !filters.project
@@ -483,7 +493,7 @@ export function App() {
       <aside id="context-sidebar" ref={sidebarRef} tabIndex={-1} className="sidebar" aria-label="연결 문맥" aria-labelledby="sidebar-title" role={sidebarOpen ? "dialog" : undefined} aria-modal={sidebarOpen || undefined}>
         <div className="sidebar-head"><div><span className="overline">WORKSPACE</span><strong id="sidebar-title">실행 문맥</strong></div><button className="close-sidebar" ref={sidebarClose} onClick={closeMobileSidebar} aria-label="사이드바 닫기">×</button></div>
         <div className="context-block"><span className="context-label">사용자</span><strong className="user-name">{snapshot?.user ?? (pageError ? "연결 확인 필요" : "확인 중")}</strong></div>
-        <div className="context-block"><span className="context-label">프로젝트 / 저장소</span><strong>{selectedProjectLabel}</strong><small>{visibleRuns.length}개 실행이 현재 조건과 일치</small></div>
+        <div className="context-block"><span className="context-label">프로젝트 / 저장소</span><strong>{selectedProjectLabel}</strong><small>Run {visibleRuns.length}개 · Assistant 실행 {visibleAssistantCount}개</small></div>
         <div className="context-block source-context"><span className="context-label">관측 출처</span>
           {snapshot?.sources.length ? snapshot.sources.map((item) => <div className="source-row" key={item.id}><span>{item.label}</span><SourceState state={item.state} /></div>) : <p className="muted">아직 연결된 출처가 없습니다.</p>}
         </div>
@@ -502,7 +512,7 @@ export function App() {
 
         <div className="toolbar">
           <nav className="tabs" aria-label="실행 관측 화면">{tabs.map((item) => <button key={item.id} className={tab === item.id ? "active" : ""} aria-current={tab === item.id ? "page" : undefined} onClick={() => setLocation({ tab: item.id })}>{item.label}</button>)}</nav>
-          <div className="toolbar-state"><span>{visibleRuns.length}개 실행</span><span className={`live-indicator ${streamState}`}>{streamState === "connected" ? "LIVE" : "PAUSED"}</span></div>
+          <div className="toolbar-state"><span>Run {visibleRuns.length}개 · Assistant {visibleAssistantCount}개</span><span className={`live-indicator ${streamState}`}>{streamState === "connected" ? "LIVE" : "PAUSED"}</span></div>
         </div>
 
         <form className="filters" aria-label="실행 필터" onSubmit={(event) => event.preventDefault()}>
@@ -513,12 +523,17 @@ export function App() {
         </form>
 
         {tab === "track" && snapshot && <ProjectsCatalog key={snapshot.user} sources={snapshot.sources} runs={accessibleRuns} onSelect={(key) => setLocation({ selected: key })} onMapTask={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onAssigned={(key) => { void loadSnapshot().then(() => setLocation({ selected: key, tab: "map" })); }} onUnauthorized={clearPrivateData} />}
-        {tab === "map" && snapshot && taskMap && <section className="primary-content" aria-label="Projects 업무 의존 관계 Map"><button className="text-button" onClick={() => setLocation({ taskMap: null })}>실행 중심 Map으로 돌아가기</button><Suspense fallback={<p role="status">업무 의존 관계 지도를 불러오는 중…</p>}><LazyTaskDependencyMap key={`${snapshot.user}:${taskMap.sourceId}:${taskMap.projectId}`} sourceId={taskMap.sourceId} projectId={taskMap.projectId} {...(taskMap.taskId ? { focusTaskId: taskMap.taskId } : {})} sources={snapshot.sources} runs={accessibleRuns} onSelectRun={(key) => setLocation({ selected: key, taskMap: null })} onUnauthorized={clearPrivateData} onScopeUnavailable={clearTaskMapScope} /></Suspense></section>}
+        {snapshot && !(tab === "map" && taskMap) && snapshot.sources.some(source => source.kind === "assistant" && source.state !== "unsupported") && <Suspense fallback={<p role="status">Assistant 원본 실행 화면을 불러오는 중…</p>}>
+          <LazyAssistantWorkspace key={snapshot.user} mode={tab} sources={snapshot.sources} collection={assistant} selection={assistantSelection} onSelect={setAssistantSelection} filters={filters}
+            onTaskMap={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} onUnauthorized={clearPrivateData} />
+        </Suspense>}
+        {tab === "map" && snapshot && taskMap && <section className="primary-content" aria-label="Projects 업무 의존 관계 Map"><button className="text-button" onClick={() => setLocation({ taskMap: null })}>실행 중심 Map으로 돌아가기</button><Suspense fallback={<p role="status">업무 의존 관계 지도를 불러오는 중…</p>}><LazyTaskDependencyMap key={`${snapshot.user}:${taskMap.sourceId}:${taskMap.projectId}`} sourceId={taskMap.sourceId} projectId={taskMap.projectId} {...(taskMap.taskId ? { focusTaskId: taskMap.taskId } : {})} sources={snapshot.sources} runs={accessibleRuns} assistantExecutions={assistant.executions} onSelectAssistant={(selection) => { setAssistantSelection(selection); setLocation({ tab: "trace", selected: "", taskMap: null, filters: { ...filters, source: selection.sourceId } }); }} onSelectRun={(key) => setLocation({ selected: key, taskMap: null })} onUnauthorized={clearPrivateData} onScopeUnavailable={clearTaskMapScope} /></Suspense></section>}
         {unavailable ? <section className="empty-state"><span className="empty-mark">!</span><h2>실행 데이터를 불러올 수 없습니다</h2><p>API 연결과 로그인 상태를 확인한 뒤 다시 시도해 주세요.</p><button className="button-primary" onClick={() => void loadSnapshot()}>다시 불러오기</button></section>
           : !snapshot ? <section className="loading-state" role="status">실제 실행 스냅샷을 불러오는 중…</section>
           : tab === "map" && taskMap ? null
-          : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 실행이 없습니다</h2><p>관측된 실행이 없거나 출처 접근을 확인하지 못해 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
-          : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>{unavailableSource ? "선택한 출처의 실행을 표시할 수 없습니다" : "조건에 맞는 실행이 없습니다"}</h2><p>{unavailableSource?.detail ?? "프로젝트·출처·상태 필터나 검색어를 조정해 보세요."}</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
+          : assistantSourceSelected ? null
+          : accessibleRuns.length === 0 ? <section className="empty-state"><span className="empty-mark">∅</span><h2>표시할 수 있는 Demian·로그 Run이 없습니다</h2><p>관측된 실행이 없거나 출처 접근을 확인하지 못해 실행 내용을 숨겼습니다. 지원 범위가 제한될 수 있습니다.</p><div className="empty-sources">{snapshot.sources.length ? snapshot.sources.map((item) => <div key={item.id}><strong>{item.label}</strong><SourceState state={item.state} /><small>{item.detail}</small></div>) : <span>연결된 출처가 없습니다.</span>}</div></section>
+          : visibleRuns.length === 0 ? <section className="empty-state compact"><h2>{unavailableSource ? "선택한 출처의 실행을 표시할 수 없습니다" : "조건에 맞는 Run이 없습니다"}</h2><p>{unavailableSource?.detail ?? "프로젝트·출처·상태 필터나 검색어를 조정해 보세요."}</p><button className="text-button" onClick={() => setLocation({ filters: { project: "", source: "", status: "", q: "" } }, true)}>필터 초기화</button></section>
           : <div className={`content-grid ${tab === "map" || tab === "trace" ? "map-content-grid" : ""}`}><section className="primary-content" aria-label={tabs.find((item) => item.id === tab)?.title}>
               {tab === "track" && <><MissionOverview runs={visibleRuns} relations={accessibleRelations} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} onMap={(key) => setLocation({ tab: "map", selected: key })} onTaskMap={(sourceId, projectId, taskId) => setLocation({ tab: "map", taskMap: { sourceId, projectId, taskId } })} /><details className="flow-raw-evidence"><summary>전체 실행 목록 · {visibleRuns.length}개 Run</summary><TrackView runs={visibleRuns} selected={selectedKey} onSelect={(key) => setLocation({ selected: key })} /></details></>}
               {tab !== "track" && run && <><p className="graph-legend">정규 실행 근거 {events.length}건{loadingEvents ? " · 조회 중…" : ""}{hasMore ? " · 추가 근거 있음" : ""}</p>{eventsError && <p className="inline-error" role="alert">{eventsError}<button className="text-button" onClick={() => setEventsRefresh((value) => value + 1)}>실행 근거 다시 조회</button></p>}{hasMore && <button className="button-secondary" disabled={loadingEvents} onClick={loadMoreEvents}>흐름의 실행 근거 더 불러오기</button>}</>}

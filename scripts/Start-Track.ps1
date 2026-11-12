@@ -43,6 +43,9 @@ $privateConfig = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
 if (@($privateConfig.sources | Where-Object { $_.kind -eq 'projects' -and $_.baseUrl -eq 'http://127.0.0.1:14349' -and $_.projectsCredentialFile }).Count -gt 0) {
     & (Join-Path $PSScriptRoot 'Start-Projects-Bridge.ps1')
 }
+if (@($privateConfig.sources | Where-Object { $_.kind -eq 'assistant' -and $_.baseUrl -eq 'http://127.0.0.1:14418' -and $_.assistantCredentialFile }).Count -gt 0) {
+    & (Join-Path $PSScriptRoot 'Start-Assistant-Bridge.ps1')
+}
 if (Test-Path -LiteralPath (Join-Path $stateDir 'projects-context-bridge.json')) {
     & (Join-Path $PSScriptRoot 'Start-Projects-Context-Bridge.ps1')
 }
