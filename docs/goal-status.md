@@ -1,5 +1,17 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 원본 웹 runtime 후속: 동결 rollback을 실제3002에서 기동해 홈200·정적
+파일 byte/hash와 종료/포트 해제를 확인했다. 별도 작업 ID·exclusive 시작/ready 기록·
+정확한 CIM/listener와 native handle 종료 adapter를 구현하고 rollback/candidate 양쪽의
+실제 launcher를 검사했다. candidate는 현재 native Session의3Run/1Session 요약과
+Track 링크, 헤더/Origin/actor403을 대조했다. 원본45테이블 전체 행·스키마·sequence·
+보안 catalog·설정11개·서비스4개를 보존했다. 새 암호화 DB/role backup과 같은 image의
+network-none/tmpfs 격리 복원·변조 거부·소유 컨테이너 정리를 완료했다. idle API pool을
+허용하는 별도 온라인 검사에서 통계 cache 초기화 누락을 독립 검토로 찾아 수정하고
+실제 READ ONLY 재현으로 검증했다. 전체774검사 중765통과·환경skip9·실패0 및 타입
+검사·독립 정적 리뷰 통과다. 공개 운영 웹/Entra는 아직 전환하지 않아14/21을 유지한다.
+현재 실제 증거는 `demian-public-web-runtime-verification.json`이다.
+
 2026-11-13 공개 웹·인증 후속: Demian 전용 SSO renderer/검증을 추가하고 서버의
 설치된 OAuth2 Proxy·Caddy·systemd 설정 검사를 합성 credential·격리 디렉터리로
 통과했다. 기존 Track/Trail 파일·유닛9개와 서비스3개는 보존했다. 공개 웹 전용
@@ -7,8 +19,8 @@
 listener·활성화/metadata 충돌을 검사했다. 실제 원본 startup 패치는 생성만 했고,
 동결 candidate1538파일·원본 보호파일6개/프로세스3개/listener3개를 대조했다.
 전체768검사 중759통과·환경skip9·실패0 및 타입 검사·독립 정적 리뷰 통과다.
-현재 원본 build의 독립 rollback1527파일도 동결·전후 hash/알려진 private 값
-비포함을 확인했다. 아직 기동하지 않았으며 runtime 검증과 최신 암호화 backup은 남았다.
+선행 준비에서 원본 build의 독립 rollback1527파일을 동결·전후 hash/알려진 private 값
+비포함을 확인했다. 이후 실제 기동과 새 암호화 backup 검증은 위 runtime 후속에 기록했다.
 실제 Demian 공개 웹은 여전히 Basic401이며 관리자 로그인·전용 client/secret·
 transport·라우팅·원본 웹 전환은 남았다. AT-06/20 및 전체14/21(66.7%)을 유지한다.
 자세한 경계와 실행 조건은 [공개 웹·Entra 전환 준비](demian-public-web-preparation.md),

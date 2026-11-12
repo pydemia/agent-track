@@ -1,11 +1,21 @@
 # Demian 실행 연결 후속 순서
 
+2026-11-13 최신 runtime: 원본 rollback과 candidate를 각각 작업별 새 launcher로
+3002에서 실제 기동·종료했다. 중복 작업은 기록/프로세스를 보존해 거부하며 ready의
+정확한 identity·작업 명령·listener와 native handle 종료를 검증했다. candidate의
+기존2Session scope 중 실제1Session3Run 요약·Track 링크와403 경계를 확인했다.
+원본45테이블/보안 catalog·설정11개·서비스4개 보존, 새 암호화 backup의 실제 격리
+복원·검사 컨테이너 정리도 완료했다. 결과는 `demian-public-web-runtime-verification.json`.
+이 검증을 반복하는 대신 다음에는 current pins/backup 일치 확인과 public-only
+전환 operator의 journal·조건부 파일 쓰기·시작 결과 유실 복구를 연결한다. 실제
+공개 웹 교체와 Microsoft 로그인은 여전히 남았다. 기존 API/worker를 재시작하지 않는다.
+
 2026-11-13 원본 웹 후속: [공개 웹·Entra 전환 준비](demian-public-web-preparation.md)의
 별도 public 활성화·포트/복구 경계와 Demian SSO renderer를 구현·검사했다. 운영
 웹/인증은 아직 교체하지 않았다. 기존 dual-profile `promote-web.mjs`를 그대로
 실행하지 않는다. 다음 실제 전환에는 public-only adapter·현재 보존 기준·최신
-암호화 backup이 필요하다. 원본 build의 rollback1527파일은 동결했지만 기동 검증은
-남았다. Microsoft 관리자 탭은 비밀번호 입력 대기이며 이번 작업에서 Demian의
+암호화 backup의 현재 일치 확인이 필요하다. 원본 build의 rollback1527파일은 동결·
+기동 검증했다. Microsoft 관리자 탭은 비밀번호 입력 대기이며 이번 작업에서 Demian의
 새 등록/secret을 생성하지 않았다. 기존 Track/Trail 설정을 재생성하지 않는다.
 
 기준: 2026-11-12 KST. Track의 산출물 그룹 연결은 기존 native metadata를

@@ -1,22 +1,29 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, open, readFile, realpath, writeFile } from "node:fs/promises";
 import net from "node:net";
 import { homedir } from "node:os";
-import { dirname, isAbsolute, join, relative, sep } from "node:path";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import { isAbsolute, join, relative, sep } from "node:path";
 import { verifyFrozenRelease, webProfilePort } from "./web-release-policy.mjs";
 import { launchRecordedWeb } from "./owned-child.mjs";
+import { inspectApiProcess } from "./windows-api-process.mjs";
+import { inspectOwnedWeb } from "./windows-web-process.mjs";
+import { matchesWebLaunch, webLaunchArguments, webLaunchRecordPath } from "./web-launch-policy.mjs";
 
-const execute = promisify(execFile);
 const sha = data => createHash("sha256").update(data).digest("hex");
 const state = join(homedir(), ".demian/service");
 const root = join(state, "track-context");
 const args = process.argv.slice(2);
 const profile = args[args.indexOf("--profile") + 1];
 assert(["qa", "local", "public"].includes(profile));
+const operationId = args.includes("--operation-id") ? args[args.indexOf("--operation-id") + 1] : undefined;
+assert(!args.includes("--operation-id") || operationId !== undefined, "Missing web operation ID");
+const startingReceipt = webLaunchRecordPath(root, profile, operationId, "starting");
+const readyReceipt = webLaunchRecordPath(root, profile, operationId, "ready");
+if (operationId) for (const file of [startingReceipt, readyReceipt]) {
+  try { await readFile(file); throw new Error("Existing operation receipt preserved"); }
+  catch (error) { if (error.code !== "ENOENT") throw error; }
+}
 const release = await realpath(args[args.indexOf("--release") + 1]);
 const releases = await realpath(join(root, "releases"));
 const rel = relative(releases, release);
@@ -41,6 +48,7 @@ const env = Object.fromEntries(["SystemRoot", "WINDIR", "PATH", "PATHEXT", "TEMP
 Object.assign(env, {
   HOME: join(state, "runtime-home"), USERPROFILE: join(state, "runtime-home"), APPDATA: join(state, "runtime-home/AppData/Roaming"), LOCALAPPDATA: join(state, "runtime-home/AppData/Local"),
   NODE_ENV: "production", HOSTNAME: "127.0.0.1", PORT: String(port), DEMIAN_AUTH_MODE: "trusted", DEMIAN_API_TOKEN: secret.apiToken,
+  NEXT_TELEMETRY_DISABLED: "1",
   DEMIAN_API_INTERNAL_URL: service.apiUrl, DEMIAN_WEB_PUBLIC_URL: profile === "qa" ? "http://127.0.0.1:3002" : profile === "local" ? service.webUrl : domain.publicUrl,
   DEMIAN_TRACK_CONTEXT_FILE: join(homedir(), ".local/share/agent-track/demian-context-native.json"),
 });
@@ -50,14 +58,18 @@ const stdout = await open(join(root, "logs", profile + ".log"), "a");
 const stderr = await open(join(root, "logs", profile + ".error.log"), "a");
 let ready;
 try {
-  ready = await launchRecordedWeb({ executable: process.execPath, args: [entry], cwd: join(release, "apps/web"), env, stdoutFd: stdout.fd, stderrFd: stderr.fd,
-    record: { profile, port, entry, releaseDir: release, buildId: manifest.webBuildId, manifestSha256: sha(manifestBytes) },
-    persist: record => writeFile(join(root, "processes", profile + ".json"), JSON.stringify(record, null, 2) + "\n"),
+  ready = await launchRecordedWeb({ executable: process.execPath, args: webLaunchArguments(entry, operationId), cwd: join(release, "apps/web"), env, stdoutFd: stdout.fd, stderrFd: stderr.fd,
+    record: { profile, port, entry, releaseDir: release, buildId: manifest.webBuildId, manifestSha256: sha(manifestBytes), ...(operationId ? { operationId } : {}) },
+    persist: record => writeFile(record.state === "ready" ? readyReceipt : startingReceipt, JSON.stringify(record, null, 2) + "\n", { flag: operationId ? "wx" : "w" }),
     verify: async (record, child) => {
       for (let attempt = 0; attempt < 15; attempt++) {
         try {
-          const result = await execute("powershell.exe", ["-NoProfile", "-File", join(dirname(fileURLToPath(import.meta.url)), "inspect-web.ps1"), "-TargetProcessId", String(child.pid), "-Port", String(port), "-Entry", entry, "-StartedAt", record.startedAt], { windowsHide: true });
-          if (JSON.parse(result.stdout).matched) return true;
+          const identity = await inspectApiProcess(child.pid);
+          if (matchesWebLaunch(identity, child.pid, process.execPath, entry, operationId) &&
+              (await inspectOwnedWeb(identity, port)).state === "owned-live" && child.exitCode === null && child.signalCode === null) {
+            record.identity = identity;
+            return true;
+          }
         } catch { /* The owned child may still be binding its listener. */ }
         if (child.exitCode !== null) return false;
         await new Promise(resolve => setTimeout(resolve, 200));

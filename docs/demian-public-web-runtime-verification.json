@@ -1,0 +1,239 @@
+{
+  "dateKst": "2026-11-13",
+  "baseRevision": "6f88a884ad2d52f3990231a10e66581a472c5427",
+  "scope": "Actual loopback rollback/candidate runtime, current encrypted native DB backup and process-ownership adapter; no production cutover",
+  "codeAndTestSha256": {
+    "deploy/demian/run-web.mjs": "fc88bc7063106d0009bf25feb3e9039883b5aa5a134e2a62270f187a0bef092e",
+    "deploy/demian/web-launch-policy.mjs": "0dca765b8bf7d6a419e65ed89dcab94471865a8a7fb5c2bbeaf77bd76b9ba914",
+    "deploy/demian/web-launch-policy.d.mts": "0a2bc3303881d1319102d107985302752c29fcc30ac42e348c163973bd396299",
+    "deploy/demian/windows-web-process.mjs": "f6dfec980207ade282c72d6dfe5a6426cac3e483aa77703f453dc7063bb4a467",
+    "deploy/demian/windows-web-process.d.mts": "01868716b818bda29592c7de8f001610449c4403751bbd567652248dfe39da77",
+    "tests/demian-web-launch-policy.test.ts": "c1a5657b6676e7cfa3a3462aefc92a372c1e53ee4e282c8969b9d228604d377c",
+    "tests/windows-web-process.test.ts": "4d8111bd111198a8b49a7fe92d1521b4a6f2459a60333cf307dcbd40d87f3d73"
+  },
+  "implementation": {
+    "recording": "Optional operation UUID, distinct exclusive starting/ready files, exact operation command and CIM identity; legacy process files preserved",
+    "termination": "Explicit retained native handle passed to Win32 TerminateProcess after identity/listener revalidation; post-exit listener check; no PID-only termination",
+    "entry": "run-web.mjs remains an explicit launch command; public port restricted3001, QA3002",
+    "productionTransactionImplemented": false
+  },
+  "rollbackColdStart": {
+    "startedAt": "2026-11-12T21:28:44.326Z",
+    "webBuildId": "gULRpDkjzmL9RnPCwAF-4",
+    "manifestSha256": "ab956881454f210d64cfe44bd0d6c5e3850f4fafb8d8188eb74d7008b3724b6b",
+    "port": 3002,
+    "publicWebReplaced": false,
+    "workerStarted": false,
+    "qaPid": 38600,
+    "rootStatus": 200,
+    "staticAsset": {
+      "status": 200,
+      "sha256": "a8855eed27c9e18ea83a724353005030e8fcab282a1bfb1d1ab516d106cf3dd3",
+      "byteMatched": true,
+      "contentType": "application/javascript; charset=UTF-8"
+    },
+    "exit": {
+      "code": null,
+      "signal": "SIGTERM"
+    },
+    "ownedChildExited": true,
+    "qaPortFree": true,
+    "preservation": {
+      "tables": 45,
+      "allRowsAndSchemaEqual": true,
+      "sequencesEqual": true,
+      "securityCatalogEqual": true,
+      "files": 10,
+      "processes": 4,
+      "exactProcessIdentitiesEqual": true,
+      "containerImageMountsAndStartTimeEqual": true,
+      "frozenReleaseUnchanged": true,
+      "runs": 19,
+      "events": 810,
+      "newTaskRunOrModelCalls": 0
+    },
+    "passed": true,
+    "finishedAt": "2026-11-12T21:29:07.673Z"
+  },
+  "rollbackOperationLaunch": {
+    "startedAt": "2026-11-12T21:46:43.396Z",
+    "operationId": "085bcb5d-c74c-4a26-8d7b-592cc8a8b883",
+    "port": 3002,
+    "buildId": "gULRpDkjzmL9RnPCwAF-4",
+    "publicWebReplaced": false,
+    "ownedChildStopped": true,
+    "passed": true,
+    "qaPid": 69752,
+    "rootStatus": 200,
+    "distinctExclusiveStartingAndReadyReceipts": true,
+    "readyExactIdentityVerified": true,
+    "operationCommandVerified": true,
+    "duplicateOperationRejectedWithoutOverwrite": true,
+    "legacyProcessRecordsUnchanged": true,
+    "originalDatabaseAllRowsSchemaSequencesSecurityEqual": true,
+    "originalServiceProcessesAndContainerEqual": true,
+    "protectedFiles": 11,
+    "protectedProcesses": 4,
+    "tables": 45,
+    "runs": 19,
+    "events": 810,
+    "newModelCalls": 0,
+    "rollbackReleaseUnchanged": true,
+    "qaPortFree": true,
+    "finishedAt": "2026-11-12T21:47:19.244Z"
+  },
+  "candidateOperationLaunch": {
+    "startedAt": "2026-11-12T21:49:37.961Z",
+    "operationId": "13af5bd2-2e5c-4231-bab1-57ffae2bd7de",
+    "port": 3002,
+    "buildId": "CDH-N8gACrby4eI25LO5q",
+    "publicWebReplaced": false,
+    "context": {
+      "status": 200,
+      "state": "connected",
+      "summaryPresent": true,
+      "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "runs": 3,
+      "sessions": 1,
+      "sourceId": "demian-local",
+      "trackLinkPresent": true,
+      "headerOriginAndActorDenials": [
+        403,
+        403,
+        403
+      ]
+    },
+    "ownedChildStopped": true,
+    "passed": true,
+    "qaPid": 16012,
+    "rootStatus": 200,
+    "distinctExclusiveStartingAndReadyReceipts": true,
+    "readyExactIdentityVerified": true,
+    "operationCommandVerified": true,
+    "duplicateOperationRejectedWithoutOverwrite": true,
+    "legacyProcessRecordsUnchanged": true,
+    "originalDatabaseAllRowsSchemaSequencesSecurityEqual": true,
+    "originalServiceProcessesAndContainerEqual": true,
+    "protectedFiles": 11,
+    "protectedProcesses": 4,
+    "tables": 45,
+    "runs": 19,
+    "events": 810,
+    "newModelCalls": 0,
+    "rollbackReleaseUnchanged": true,
+    "qaPortFree": true,
+    "finishedAt": "2026-11-12T21:50:14.180Z"
+  },
+  "nativeBackup": {
+    "verifiedAt": "2026-11-12T21:34:32.314Z",
+    "ok": true,
+    "source": {
+      "containerId": "4eec0111935bb83c1148a99cd96a84bc3907b97116060a30ce046e9d60d054f3",
+      "imageId": "sha256:c469d92cbb89e123ba7c2c7c1a8815572943584085c37b007bacb43150a8c9e4",
+      "volume": "demian-local-postgres-data",
+      "port": 11931
+    },
+    "format": "ATPG1: roles-only SQL plus pg_dump custom",
+    "algorithm": "AES-256-GCM",
+    "keyProtection": "Windows DPAPI CurrentUser",
+    "encryptedExportComplete": true,
+    "plainBytes": 242068,
+    "plainSha256": "ba0bfe7bd693e5ab9b4f7a3c28f3adc8c3940a1cc031b75ab4fc3ae270de8752",
+    "cipherSha256": "82857603c6f6c6fe8f668ca7c7fa78d68da10276325586632658eb71de6e0a76",
+    "authenticatedReadback": true,
+    "tamperRejected": true,
+    "plaintextWrittenToDisk": false,
+    "transactionSnapshot": true,
+    "streamed": true,
+    "restore": {
+      "isolationVerified": true,
+      "network": "none",
+      "rootFilesystem": "read-only",
+      "postgresData": "new tmpfs only",
+      "originalVolumeMounted": false,
+      "tableCount": 45,
+      "dataAndSchemaEqual": true,
+      "ownedContainerDisposed": true,
+      "sourceRoles": 1,
+      "rolesAndPasswordHashEqual": true,
+      "sequenceCount": 1,
+      "sequenceStateEqual": true,
+      "rawSchemaDumpEqual": false,
+      "fullSchemaSemanticsEqual": true,
+      "isolatedBootstrapRole": "agent_track_restore_admin"
+    },
+    "preservation": {
+      "tables": 45,
+      "dataSha256": "c683b386c86ccd444e7affac252ad01cb0391cccee8d0140482970b9f0b28905",
+      "schemaSha256": "f61d08853ad70be312480298f0365f9bbb97f875148c51de0a87ae7bdff9ad8c",
+      "sequenceSha256": "ee02ba55474f13f7e53f572d2dcb0a9f61356dd4bab3cb87aabeb1c7d710180f",
+      "originalDataAndSettingsUnchanged": true
+    },
+    "originalDatabaseRestored": false,
+    "originalContainerRestarted": false,
+    "apiOrWorkerStarted": false,
+    "cleanupFailed": false,
+    "limits": [
+      "Database logical backup; not a whole-disk integrity audit.",
+      "Backup key is tied to the current Windows account and machine; independent off-machine key escrow is not proven.",
+      "Artifact bytes in PostgreSQL are included; external workspace files and provider runtime directories are not part of this DB dump."
+    ]
+  },
+  "activityCacheProbe": {
+    "verifiedAt": "2026-11-12T21:34:03.222Z",
+    "cachedIdleThenRefreshedActive": true,
+    "cachedActiveThenRefreshedIdle": true,
+    "repeatableReadDataSnapshotUnchanged": true,
+    "original45TableRowsSchemaSequencesUnchanged": true,
+    "writes": 0
+  },
+  "review": {
+    "processAdapter": "Independent static review found no actionable blocker; explicit native-handle path reviewed after parent correction",
+    "launchPolicyAndReceipts": "Independent static review found no actionable blocker; actual launcher checks are recorded separately",
+    "backup": "Independent review identified stale pg_stat_activity transaction cache. Both activity gates clear statistics cache; source recheck passed and actual read-only probe reproduced idle/active cache boundaries without changing data snapshot",
+    "parentCorrections": [
+      "Physically accurate known replacement occupancy in controller integration",
+      "Reject newline after seven-digit CIM creation timestamp",
+      "Explicit Win32 handle termination removes dependency on undocumented .NET Kill internals",
+      "Missing operation flag value rejects before native I/O"
+    ]
+  },
+  "verification": {
+    "fullTests": {
+      "command": "npm test",
+      "platform": "Windows",
+      "total": 774,
+      "passed": 765,
+      "failed": 0,
+      "skipped": 9,
+      "skipReason": "Existing POSIX-only tests"
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "result": "passed"
+    },
+    "diffWhitespace": "passed",
+    "frontendChanged": false,
+    "modelCalls": 0,
+    "anonymous": {
+      "demian": 401,
+      "track": 302,
+      "trail": 302
+    }
+  },
+  "remaining": [
+    "Public-only transaction operator wiring: current preservation/backup pins, journal, guarded helper/startup/activation/metadata writes, startup output-loss reconciliation and independently reported rollback",
+    "Microsoft administrator login and existing/new Demian registration/credential checks",
+    "Actual Entra/transport/route activation, original public Web UI/context/deep-link and outage evidence",
+    "Actual cross-app and additional-device organized work"
+  ],
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "Equal acceptance criteria",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "Operating web/auth cutover and actual cross-app/device verification remain"
+  }
+}
