@@ -1,5 +1,70 @@
 # 진행률 판정 감사
 
+## 2026-11-14 후속 실제 운영 진전
+
+01:51 감사에서 찾은 preview 실패를 같은 복원본에서 해결했다. 기존 시작 문맥
+재검사의 Task3revision/UI6event를 정확히 역산한 persona_tasks/ui_events/
+sqlite_sequence hash가 백업과 일치했다. 기존 실패 결과는 유지하고, 소유권을
+검사한 중지 preview 앱을 제거한 뒤 성공한 Docker 전체 목록으로 부재를 확인했다.
+앱 기동·백업부터 반복하지 않았다.
+
+현재 baseline과 보고서가 백업과 같고 다른13개 component를 보존한 사전 검사
+후 새 Assistant0691e1a로 전환했다. 실제 운영 DB의 schema·행·보고서·파일68개,
+다른12개 서비스·renderer와 현재 역할의 native 서명 조회3개200을 확인했다.
+같은 새 프로세스136177을 guard가 adopt했으며 이전f79 이미지는 중지 보존했다.
+현재 Track 전용 reader credential로 새 Assistantv2 capability/목록도200이다.
+새9639375 CI43468025771은 Windows·Ubuntu 성공이다.
+
+새 Track release는2031file/27package를 별도 동결했지만 아직 운영 교체·새 보호
+source 활성화 전이다. 수용15/21·71.4%(동일 가중치·부분0)는 유지하며 이 단계
+진전을 전체 업무 성공으로 세지 않는다. 전체 ETA 산정 불가·신뢰도 낮음이며
+첫 실제 전체 업무·원본 재개/재시도 범위 확인 후 재산정한다.
+[최신 운영 증거](assistant-native-observation-operating.json)를 따른다.
+
+## 2026-11-14 01:51 KST 진척 정체 판정
+
+판정: **15/21·71.4%의 산술은 맞으나, 전체 개발 진척을 대표하는 보고로는 부족하다.**
+요구별 수용 판정과 구현·운영 반영 단계를 구분해야 한다. 완료된 작은 요구와
+전체 앱 통합 AT-14를 같은1점으로 계산하며, 부분은0점이다. 마지막14→15 증가는
+11월13일18:10의 AT-18 판정 정정이었다. 약7시간40분 동안 새 상위 수용 완료가
+없었고 전체 업무 성공도 나오지 않았다. 실제 작업이 없었던 것은 아니지만,
+운영 준비·검증과 사용자 수용 사이의 차이가 보고에 충분히 드러나지 않았다.
+
+이번 읽기 점검 기준은 main `de83d93e923fec303f6dde54531cebcef52755ac`와 미커밋
+`tests/windows-web-process.test.ts`다. 원래21개 요구와 기존 완료15/부분6은 유지한다.
+기존 완료는 기록된 owner/QA 환경의 누적 판정이며 이번에15개 운영 기능을 모두
+재실행하거나 현재 배포의 전체 회귀 통과를 선언한 것이 아니다.
+
+| 직접 재조회한 근거 | 결과와 한계 |
+| --- | --- |
+| 운영 pointer·설정·listener | Track release a3bb446/PID34464. 설정source5개 중 assistantNativeSourceId를 가진 보호 source0개. 새 코드 존재와 실제 운영 연결은 다름 |
+| native/gate listener 및 기존 전환 증거 | API8081=16328/gate3100=22040. 원본API8080=15940/Web3001=55184 유지. 서명200/거부403 근거는 있으나 실제 보호 Run 본문 성공은 아직 없음 |
+| 새 backup 작업의 terminal 결과 | encrypted-backup-restored-and-verified, helperRemoved=true. 두 DB별 일관성·격리 복원이며 운영 원본 복원이나 전체 업무 성공이 아님 |
+| 같은 preview 작업 terminal 결과 | 실패. 후보 앱은health200. Work/runtime quick_check=ok·FK오류0·schema 동일. work lease2개 외 runtime persona_tasks/runtime_leases/sqlite_sequence/ui_events의 digest 변경. 정확한 업무 행 변경 원인은 아직 미확정. 기존 시작 delta 허용을 검토 없이 재사용하지 않음 |
+| preview 정리 | cleanupFailed=true/helperRemoved=false. app에 operation label을 추가하지 않은 채 label 일치를 요구하는 cleanup 코드 불일치를 확인. 후속 소유권 확인·정리가 필요하며 검증을 통과로 바꾸지 않음 |
+| 현재 main CI43463616697 | GitHub API 재조회: Ubuntu success, Windows failure의 실패 단계Run npm test. 현재 main 전체 CI 성공이 아님 |
+| 미커밋 Windows fixture 관련 검사 | 보존 로그3pass/0fail/0skip, 실행은 종료. 로컬 관련 검사 통과이며 동일 변경의 CI 성공·과거 실패 원인 확정은 아님 |
+
+읽기 점검은 원본 업무 데이터나 credential을 출력하지 않았고 새 운영 Task·Note·Run·
+모델 요청, 배포·재시작·원본 DB 복원을 수행하지 않았다. 이미 끝난 backup과 preview를
+관찰 실패만으로 다시 시작하지 않았다. preview 실패는 schema/DB 무결성 실패로
+뭉뚱그리지 않고 행 보존 assertion과 cleanup의 별도 문제로 추적한다.
+
+개선된 보고 기준은 [현재 상태](goal-status.md)다.
+상위21개 분모·동일 가중치를 유지하며 임의로 부분50%/90%를 주지 않는다. 하위
+단계는 구현/격리 검증/운영 반영/사용자 수용으로 기록하고 별도 개발 완료율을
+만들지 않는다. 같은 검사·기동·backup 반복은 새 진척에서 제외한다.
+
+남은 전체 범위는 AT-06/09/12/14/15/20이다. 다음 임계 작업은 같은 후보 복원본의
+실패 원인 해결 → 새 Assistant/Track 보호 수집 운영 연결 → 실제 전체 업무의
+결과·참조·Trace 대조다. AT-09 원본 재개/재시도는 기능 자체가 미지원이며,
+그룹 탐색·다중 장치 기본 대시보드·동일 선택 이동·문맥 장애 격리 실기도 남는다.
+전체 ETA는 산정 불가·신뢰도 낮음. 첫 전체 업무와 재개/재시도 구현 범위 확인이
+재산정 지점이다. 별도 desktop 앱 계약이나 screenshot export를 추가 조건으로
+만들지 않는다. goal은 원래 전체 범위로 active를 유지한다.
+
+아래는 이전 시점의 감사 기록이다.
+
 ## 2026-11-14 보호 Run 수집 구현 후속
 
 아래 감사에서 확인한 수집 경로 미연결을 실제로 수정했다. 새 Assistant metadata

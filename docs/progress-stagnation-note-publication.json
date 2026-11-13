@@ -1,0 +1,18 @@
+{
+  "phase": "published-and-readback-verified",
+  "title": "Agent Track 진척 정체 원인과 개선 조치 — 2026-11-14",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/20f30102-e3ea-4290-86a4-c8268c1827ca",
+  "operationId": "3291984c-bbb9-4769-a602-d6b101af25b7",
+  "pageId": "20f30102-e3ea-4290-86a4-c8268c1827ca",
+  "revision": "a43f05f4c20c51417e83b70e187c4fb96d90e5ca669dd624aabfc519cf7e382a",
+  "sourceSha256": "35bd49a5a2b52173c429f40349afe280cab328defc0576e09897268a5c707d66",
+  "markdownSha256": "a69f0db5faf0116b797b5e41ee6e5671ee6e75ed4fccecdfc469d3e68373f278",
+  "markdownFile": "docs/progress-stagnation-note-2026-11-14.md",
+  "verifiedAt": "2026-11-13T17:10:21.643Z",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "wholeWorkflowAcceptance": false,
+  "scope": "Explicit user-requested Note report only. Separate durable publication journal; does not establish WorkCoordinator or AT-14 acceptance."
+}

@@ -1,9 +1,9 @@
 {
-  "verifiedAt": "2026-11-13T16:26:44.026Z",
+  "verifiedAt": "2026-11-13T17:03:13.264Z",
   "requirements": [
     "AT-14"
   ],
-  "phase": "native-api-and-public-gate-operating-assistant-candidate-inactive",
+  "phase": "native-api-gate-and-assistant-metadata-reader-operating-track-collector-not-activated",
   "native": {
     "revision": "db861e85d72dd59368704dddb089f0615113532d",
     "manifestSha256": "2c9589f2fbf3520fc30caeec2fba7d9068008e4b0c44259b9f794d217874508f",
@@ -71,10 +71,9 @@
     "candidateId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
     "candidateImage": "sha256:272bcdcc040cd069c3395795108e7ae85342d9a7ccd3bf969237897dbfe31541",
     "cloneModuleSha256": "47038a132b5f90d0aa975b252776135d11a0da47e7d51c2e5a24899a6303989b",
-    "stage": "strict-inactive-candidate-verified",
-    "originalContainerUnchanged": true,
-    "operatingContainerId": "b94103c44ffea0c32de2ddb1a61f76c3ae90726b53bdf081521f0a3f0e2b9da3",
-    "operatingSource": "f79a5b13c53b5c12765aa59b6a2b5302c4fa3913",
+    "stage": "operating-and-preservation-verified",
+    "operatingContainerId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
+    "operatingSource": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
     "imageOnly": true,
     "envPreserved": true,
     "mountCount": 13,
@@ -83,11 +82,90 @@
     "networksPreserved": true,
     "newCredentials": 0,
     "newMounts": 0,
-    "candidateStarted": false,
-    "freshBackupRestorePreviewAndCutover": false,
+    "candidateStarted": true,
+    "freshBackupRestorePreviewAndCutover": true,
     "wholeWorkCoordinatorWorkflow": false,
     "revalidatedCloneModuleSha256": "68a9d8515de90b662022cc800d33e4f0792a7b40e5ce6e73e531b7355a099645",
-    "currentModuleReverifiedExistingInactiveCandidate": true
+    "currentModuleReverifiedExistingInactiveCandidate": true,
+    "operatingProcess": {
+      "id": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:272bcdcc040cd069c3395795108e7ae85342d9a7ccd3bf969237897dbfe31541",
+      "running": true,
+      "pid": 136177,
+      "startedAt": "2026-11-13T17:00:49.549092918Z"
+    },
+    "retainedOriginalId": "b94103c44ffea0c32de2ddb1a61f76c3ae90726b53bdf081521f0a3f0e2b9da3",
+    "retainedOriginalStopped": true,
+    "guardPlanSha256": "89da9224ea4f88c04d55df8791d1ec69b0ea5dc6f8f190171c95e2c221c8f725",
+    "remoteRelease": "/home/pydemia/.local/share/agent-track/assistant-candidates/native-metadata-0691e1a/rollout-0ffdaa3e43d54a3b83eaf06d1e66a1fc/native-lifecycle-v1",
+    "backupBaselineCapturedAt": "2026-11-13T16:58:25.537Z",
+    "previewExactHistoricalTaskRevisions": 3,
+    "previewExactHistoricalUiEvents": 6,
+    "previewReusedSameCopies": true,
+    "previewRebootRepeated": false,
+    "previewHelpersRemoved": true,
+    "operatingDatabase": {
+      "phase": "operating-native-database-readback-verified",
+      "differences": {
+        "work": {
+          "oldTables": 31,
+          "newTables": [],
+          "newSchemaObjects": 0,
+          "exactSourceDdl": true,
+          "newTablesEmpty": true,
+          "nonLeaseRowChanges": [],
+          "operationalLeaseExceptions": [
+            "work_execution_lease",
+            "work_report_lease"
+          ],
+          "totalChanges": 0
+        },
+        "runtime": {
+          "oldTables": 64,
+          "newTables": [],
+          "newSchemaObjects": 0,
+          "exactSourceDdl": true,
+          "newTablesEmpty": true,
+          "nonLeaseRowChanges": [
+            "persona_tasks",
+            "sqlite_sequence",
+            "ui_events"
+          ],
+          "operationalLeaseExceptions": [
+            "runtime_leases",
+            "import_leases"
+          ],
+          "totalChanges": 0
+        }
+      },
+      "reportPinsPreserved": true,
+      "selectedFileFingerprintsPreserved": 68,
+      "otherProtectedComponentsPreserved": 12,
+      "rendererPreserved": true,
+      "helperRemoved": true
+    },
+    "bootAdoption": {
+      "sameProcess": true,
+      "alreadyRunning": true,
+      "physicalBootPerformed": false,
+      "effectiveGuardsVerified": true,
+      "enabledUnits": {
+        "persona-apps.service": "enabled",
+        "persona-report-renderer-aed3229-20261108.service": "enabled"
+      }
+    },
+    "currentOwnerRoleMatched": true,
+    "nativeSignedReadStatuses": [
+      200,
+      200,
+      200
+    ],
+    "nativeAuthNonceMayAdvance": true,
+    "newRuntimeRuns": 0,
+    "newModelRequests": 0,
+    "originalContainerUnchangedBeforeCutover": true,
+    "originalContainerPreservedStopped": true
   },
   "checks": {
     "pythonNativeSuites": {
@@ -124,19 +202,34 @@
       "fail": 0,
       "skip": 0,
       "scope": "Current module plus same real inactive Docker candidate; no new create/start"
+    },
+    "currentMainCI": {
+      "revision": "9639375f00dae0686a217ec44963df0072dabb06",
+      "run": 43468025771,
+      "windows": "success",
+      "ubuntu": "success"
+    },
+    "windowsOwnershipFixture": {
+      "typecheck": true,
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skip": 0,
+      "scope": "Retained native fixture handles and independent cleanup; production guard unchanged; prior PID reuse remains a hypothesis"
     }
   },
   "corrections": {
     "firstPreflight": "Read-only preservation query used a nonexistent receipt session column; joined runs instead; no canary/operating action before failure",
     "firstGateCanary": "Expected application/json instead of native RFC problem+json; direct and proxy responses matched; corrected assertion",
-    "firstGateActivation": "Expected entry used forward slash while Windows command used canonical backslash; identity refused before stop; canonical path matched existing process"
+    "firstGateActivation": "Expected entry used forward slash while Windows command used canonical backslash; identity refused before stop; canonical path matched existing process",
+    "previewStartupDelta": "New copy preview incorrectly assumed existing Task context refresh could not repeat; exact three historical Task revisions and six UI events/inverse hashes matched existing source contract. Same copies reverified, original failed result preserved.",
+    "previewCleanup": "Preview app lacked helper operation label. Removed only exact owned stopped app after image/config/network/port/mount validation; final successful Docker inventory proves absence. First post-delete diagnostic matched an overly specific stderr string; no second delete/start."
   },
   "limitations": [
-    "Protected metadata public route has only been probed with an unknown Run; actual protected Run body observation remains unverified",
-    "Assistant candidate remains stopped; operating Assistant source is f79a5b1",
+    "Actual protected Run body observation remains unverified",
     "Track operating source remains a3bb446; new collector/source is not activated",
-    "Fresh current-state backup/restore/preview and Assistant cutover remain",
-    "Actual WorkCoordinator/Projects/Note/Track/same Windows PC workflow remains"
+    "Actual WorkCoordinator/Projects/Note/Track/same Windows PC workflow remains",
+    "Physical reboot/crash recovery and remaining authenticated GUI user paths were not exercised"
   ],
   "progress": {
     "complete": 15,
@@ -148,5 +241,13 @@
     "confidence": "low",
     "premises": "First full operating workflow and remaining resume/retry implementation"
   },
-  "originalAgentTrailPreserved": true
+  "originalAgentTrailPreserved": true,
+  "privateOperatingEvidenceSha256": {
+    "activation": "77e7c4fa154e4d22d6e84048a6caca1ce6e8642ea3a1993b02537b599dc593f2",
+    "readback": "386237df0c200cc085e458d0ac00af47d3c17dde02c8fc6bc90ed9b9b376d7b9",
+    "readiness": "76a8e50bf36a4a1800b9d147e485542c1b5349dfa1a074f1c70d6870be854ab4",
+    "baseline": "70402bab92f5186af56c5891948e3700ec8aabe9650dc826640b44e8dc3e9e2e",
+    "preview": "8e9bf85a4c3c2641ab2a5c12f51ddaf29221d562f8b49d2e8c9ece1355a438d1",
+    "guardPreflight": "5b061839cdbeeaf5c5e70a965f5212087df99a485e2cdaf47c7cba3326ea8166"
+  }
 }

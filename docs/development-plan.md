@@ -1,5 +1,27 @@
 # Agent Track 개발계획
 
+현재 후속: 새 Assistant0691e1a 운영 전환·동일 프로세스 guard adoption·운영 DB,
+보고서/파일68개·다른12서비스 보존을 확인했다. 같은 복원본에서 preview 실패의
+정확한 Task3revision/UI6event 역산을 대조했고 시험 앱도 제거했다. 현재 역할의
+native 서명 GET3개와 Track의 기존 reader credential을 쓰는v2 capability/목록은200이다.
+9639375 CI43468025771은 Windows·Ubuntu 모두 성공. 새 Track release2031file/
+27package를 별도 동결했으나 운영은a3bb446, 새 보호 source는 미활성이다. 다음은
+Track 운영 연결→실제 전체 업무다. 수용15/21·71.4%·전체 ETA 산정 불가/신뢰도
+낮음은 유지한다. [운영 근거](assistant-native-observation-operating.json)를 우선한다.
+
+아래01:51의 preview 실패는 후속 검증 전의 기록이다.
+
+2026-11-14 01:51 KST 진척 점검: 수용15/21·71.4%(상위 동일 가중치·부분0)는
+전체 개발 완료율이 아니다. 새 API/gate는 운영 중이나 Assistant reader는 정지
+후보, Track 새 보호 source는 운영 설정0개다. 새 backup/격리 복원은 성공했고,
+후속 후보 preview는health200 이후 행 보존 assertion·cleanup 실패로 종료했다.
+같은 복원본에서 실패 경계를 확인하고 새 reader/collector를 운영 연결한 뒤
+전체 실제 업무를 대조한다. 운영 준비·검사 반복을 사용자 수용 완료로 세지 않는다.
+전체 ETA 산정 불가·신뢰도 낮음이며 첫 전체 업무와 원본 재개/재시도 범위 확인
+후 재산정한다. [현재 상태](goal-status.md)와
+[감사](progress-audit-2026-11-13.md#2026-11-14-0151-kst-진척-정체-판정)를 우선한다.
+아래는 이전 시점의 계획·기록이다.
+
 2026-11-14 운영 후속: native API와 공개 gate 반영을 완료했다. 기존 worker와
 원본 API는 유지했고, Assistant 새0691e1a 이미지의 env·13개 mount·네트워크를
 보존한 정지 후보를 대조했다. 다음은 현재 DB 복구/preview → 새 Assistant guard와
