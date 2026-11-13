@@ -37,6 +37,12 @@ provider/model·시각·seq 상세, Run→모델 edge 의미를 확인했다. �
 새 live source 실행이나 운영 SDK/worker 전환 증거가 아니다.
 
 독립 리뷰의 중간 이벤트 오류 누락과 참조 호출 소속 문제를 보완했다. 관련
-회귀 검사·기존 도구/인가/그룹 검사를 수행한다. 현재 구현의 원격 CI·동결 배포와
-운영 Entra GUI는 각각 실제 결과가 확보될 때 기록한다. 전체 goal은14/21
+회귀 검사·기존 도구/인가/그룹 검사를 수행했다. `a3bb446`의 Windows CI는975개 중
+966통과·9skip, Ubuntu는951통과·24skip이며 양쪽 실패0·타입 검사·build를 확인했다.
+API·웹을 같은 동결 release로 운영 반영하고18자산의 bytes/hash/MIME를 대조했다.
+실제 운영 API에서도 구 응답 모양과 명시 opt-in,17event·모델1근거·3node/2edge·
+1그룹과 접기 내부2edge를 확인했다. 실제 Task 두 개의 저장 보기 생성/조회·
+revision409·삭제 및 Assistant 목록/상세/이벤트도 확인했다. 원래 설정·기존12테이블
+이력·원본45테이블/보안/container·다른17프로세스를 보존했다. 운영 Entra GUI는
+Microsoft 로그인 입력 대기 상태이며, 로컬 상호작용·운영 API와 별도로 미검증이다. 전체 goal은14/21
 (동일 가중치66.7%)이며 운영 executor·교차 앱 업무 수용·SSO 검증이 남는다.

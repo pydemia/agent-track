@@ -1,5 +1,18 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 운영 후속: 모델 요청 근거 `a3bb446`의 API·웹을 같은 동결 release로
+전환했다. Windows CI966통과/9skip·Ubuntu951통과/24skip(각975개·실패0), 양쪽
+타입 검사·build를 확인했다. 운영18자산 bytes/hash/MIME, 구 도구 응답 호환과
+명시 opt-in, 실제17event·모델1근거·3node/2edge·1그룹 및 접기 내부2edge를
+대조했다. 실제 Task 두 개의 저장 보기 생성/조회·revision409·삭제와 Assistant
+목록/상세/이벤트200을 확인했다. 원래 설정·기존12테이블 이력·원본45테이블의
+행/schema/sequence/보안/container·다른17프로세스를 보존했다. 운영 worker를
+시작하거나 새 모델 요청을 보내지 않았다. Entra GUI는 Microsoft 로그인 입력
+대기이며 실행 authority·전체 교차 앱 수용도 남는다. 전체14/21(동일 가중치
+66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다. 다음 재산정은 현재 identity/source
+계약과 운영 실행 연동·실제 업무 수용 검증 후다.
+[모델 요청 운영 기록](model-request-trace-verification.json) 참고. 아래는 각 시점의 이력이다.
+
 2026-11-13 Trace 모델 요청 후속: 기존 도구 근거의 제한된 SSE 읽기를 재사용해
 모델 요청 시작·종료·보고 소요 시간과 원본 sequence를 별도 node/edge로 투영했다.
 명시 opt-in에서만 확장해 구버전 도구 응답과 정규 이벤트 digest를 유지한다.

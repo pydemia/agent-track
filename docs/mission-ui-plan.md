@@ -164,6 +164,14 @@ Map·Trace의 조직화 지원 펼침에서는 현재 worker 전역 선언과 �
 
 ## Node group과 탐색 깊이
 
+2026-11-13 모델 요청 보완: Run/실제 호출 그룹의 구성에 모델 요청 근거를
+포함했다. Task·Run·호출·도구와 단위를 나누어 집계하고, 요청 모델·시각·원본
+sequence를 node 상세에서 확인한다. Run 성공이어도 요청 종료가 없으면 미확인으로
+남긴다. 접힌 그룹에서도 이 구별과 내부 관계 수를 유지한다. `a3bb446`의 동결
+API·웹과 실제 운영 원본 읽기로 대조했다. 화면 선택·내부 경로는 별도 로컬
+브라우저에서 검증했으며 현재 운영 Entra GUI는 로그인 입력 대기로 미검증이다.
+[모델 요청 근거](model-request-trace.md)와 [운영 기록](model-request-trace-verification.json)을 따른다.
+
 2026-11-13 후속: 계정별 저장·선택 복원은 AT-12-G06으로 구현했다.
 [계정별 Flow 저장 보기](saved-flow-views.md)에 현재 HTTP/SQLite·합성 브라우저
 검사와 실제 owner API·운영 반영, 미검증 Entra GUI를 구분한다. 아래의 임시

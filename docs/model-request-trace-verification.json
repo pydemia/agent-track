@@ -114,8 +114,151 @@
       "Main chunk exceeds500kB",
       "React Flow use client directive warning"
     ],
-    "ci": "pending publication",
-    "deployment": "not applied; operating API/web remains1f224c7"
+    "ci": {
+      "revision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003",
+      "runId": 43384378056,
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43384378056",
+      "conclusion": "success",
+      "windows": {
+        "jobId": 131749312145,
+        "tests": 975,
+        "passed": 966,
+        "failed": 0,
+        "skipped": 9
+      },
+      "ubuntu": {
+        "jobId": 131749311667,
+        "tests": 975,
+        "passed": 951,
+        "failed": 0,
+        "skipped": 24
+      },
+      "typecheckAndBuildBothPassed": true
+    },
+    "deployment": {
+      "applied": true,
+      "apiRevision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003",
+      "webRevision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003",
+      "operationId": "52f4969b-7edb-40aa-8d00-56a426cccb65",
+      "inputSha256": "97521f636a78c086742493f6a6365f00d00533afc5e20f893f21c5aa429c3e9c",
+      "pid": 34464,
+      "created": "2026-11-13T07:26:36.4833090Z",
+      "listener": "127.0.0.1:14345",
+      "manifestSha256": "3761f4e11af1f0ec9ff1e012300d53a464c1453496c3daa6d3c95a36706aeee5",
+      "previousApiAndWebRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+      "rollbackManifestSha256": "8284eec38eb28cff4cd58c682ea0645ded72d1648c31557cb456a6a58d80bea3",
+      "bridgesRestarted": false,
+      "originalConfigBytesRestored": true,
+      "webFilesBytesShaAndMimeMatched": 18,
+      "backup": {
+        "bytes": 22732800,
+        "tables": 12,
+        "sha256": "26d65d22943c1051d2a707ee89602d61055d418e8b23d42291610b1f919cb697",
+        "sourceRestored": false
+      },
+      "coldQa": {
+        "fixtureOnly": true,
+        "sourceOrModelRequests": 0,
+        "candidate": {
+          "verified": true,
+          "manifestSha256": "3761f4e11af1f0ec9ff1e012300d53a464c1453496c3daa6d3c95a36706aeee5",
+          "files": 2029,
+          "packages": 27,
+          "rootStatus": 200,
+          "webFilesBytesAndMimeMatched": 18,
+          "emptySourceSnapshot": true,
+          "savedViewStatus": 200,
+          "pid": 69808,
+          "childStopped": true,
+          "portReleased": true,
+          "allLegacyTablesAndSchemaPreserved": true,
+          "addedSchemaObjects": []
+        },
+        "rollback": {
+          "verified": true,
+          "manifestSha256": "8284eec38eb28cff4cd58c682ea0645ded72d1648c31557cb456a6a58d80bea3",
+          "files": 2026,
+          "packages": 27,
+          "rootStatus": 200,
+          "webFilesBytesAndMimeMatched": 18,
+          "emptySourceSnapshot": true,
+          "savedViewStatus": 200,
+          "pid": 65784,
+          "childStopped": true,
+          "portReleased": true,
+          "allLegacyTablesAndSchemaPreserved": true,
+          "addedSchemaObjects": []
+        }
+      },
+      "actualOwnerProbe": {
+        "actualPermittedTasks": 2,
+        "createdAndRead": true,
+        "staleRevisionDenied": true,
+        "ownedProbeRemoved": true,
+        "nativeWorkCreated": false
+      },
+      "historyPreserved": true,
+      "sqliteIntegrity": "ok",
+      "otherProtectedFiles": 38,
+      "otherProcessGenerations": 17,
+      "nativeAllRowsSchemaSequencesSecurityAndContainerPreserved": true,
+      "sources": [
+        {
+          "id": "demian-local",
+          "kind": "demian",
+          "state": "connected",
+          "runs": 19
+        },
+        {
+          "id": "codex-local",
+          "kind": "codex",
+          "state": "connected",
+          "runs": 747
+        },
+        {
+          "id": "projects-native",
+          "kind": "projects",
+          "state": "connected",
+          "runs": 0
+        },
+        {
+          "id": "assistant-native",
+          "kind": "assistant",
+          "state": "connected",
+          "runs": 0
+        },
+        {
+          "id": "desktop",
+          "kind": "desktop",
+          "state": "unsupported",
+          "runs": 0
+        }
+      ],
+      "auth": [
+        {
+          "name": "anonymous",
+          "status": 401
+        },
+        {
+          "name": "forged",
+          "status": 401
+        }
+      ],
+      "publicProbes": [
+        {
+          "url": "https://track.pydemia.ai/",
+          "status": 302
+        },
+        {
+          "url": "https://track.pydemia.ai/api/snapshot",
+          "status": 401
+        },
+        {
+          "url": "https://trail.pydemia.ai/",
+          "status": 302
+        }
+      ]
+    }
   },
   "review": {
     "readOnlyIndependent": true,
@@ -139,7 +282,6 @@
     "newExecutionAuthorityCreated": false
   },
   "remaining": [
-    "Paired frozen API/web rollout and operating readback",
     "Operating Entra GUI requires existing Microsoft sign-in",
     "New owner-bound executor contract/current identity-source tuple and fresh Work/runtime backup/guard for full cross-app Task",
     "Operating SDK/worker with native orchestration contract; current defaults own external tool orchestration"
@@ -151,5 +293,40 @@
     "percent": 66.7,
     "eta": "not estimable",
     "confidence": "low"
+  },
+  "implementationRevision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003",
+  "operatingModelReadback": {
+    "at": "2026-11-13T07:27:49.536Z",
+    "actualRunId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "sourceLiveNativeRead": true,
+    "legacyReplyPreserved": true,
+    "optInApiVerified": true,
+    "provider": "codex-native",
+    "model": "gpt-6.1-sol",
+    "sourceSequence": "4",
+    "missingEndNotInferredFromSuccessfulRun": true,
+    "nodes": 3,
+    "edges": 2,
+    "groups": 1,
+    "groupModelCounter": 1,
+    "collapsedNodes": 1,
+    "collapsedEdges": 0,
+    "internalEdgesRetained": 2,
+    "newModelRequests": 0,
+    "sourceMutation": false,
+    "publicEntraGuiVerified": false,
+    "legacyIndexSha256": "ecc4744c0fc881123ad11bcc0db9c6556175788b476f9c789d2a925d31705dcb"
+  },
+  "operatingAssistantReadback": {
+    "observedAt": "2026-11-13T07:27:48.744Z",
+    "list": 200,
+    "detail": 200,
+    "events": 200,
+    "executionCount": 1,
+    "roles": 1,
+    "eventCount": 37,
+    "projectTaskReferenceMatched": true,
+    "sourceState": "connected",
+    "dispatchPerformed": false
   }
 }
