@@ -1,0 +1,346 @@
+diff --git a/apps/worker/src/worker.ts b/apps/worker/src/worker.ts
+index d0c5c23..4c14476 100644
+--- a/apps/worker/src/worker.ts
++++ b/apps/worker/src/worker.ts
+@@ -52,6 +52,7 @@ export class DemianWorker {
+   readonly db: DatabasePool
+   #stopping = false
+   #publishingGeneralStatus = false
++  #deploymentOnly: boolean
+   #managedChildChecked = 0
+   #managedChildReady = false
+   #activeAbort?: AbortController
+@@ -70,6 +71,7 @@ export class DemianWorker {
+ 
+   constructor(readonly config: WorkerConfig, db?: DatabasePool) {
+     // Validate before allocating a pool; subsequent checks use only this snapshot.
++    this.#deploymentOnly = Boolean(config.deploymentServicesFile && !config.configPath)
+     this.#qaScope = config.qaScope === undefined ? undefined : config.qaScope.version===2 ? snapshotWorkerQaSelection(config.qaScope) : snapshotWorkerQaScope(config.qaScope)
+     if (this.#qaScope?.version===2 && this.#qaScope.workerId!==config.workerId) throw new Error("worker_qa_worker_mismatch")
+     this.#qaRuntimePin = config.qaRuntime === undefined && this.#qaScope===undefined ? undefined : snapshotRuntimeModulePin(config.qaRuntime)
+@@ -102,18 +104,17 @@ export class DemianWorker {
+     if (!this.intakeOpen()) return
+     // QA execution may use its approved existing profile but must not admit
+     // unrelated interactive login jobs from the global authentication queue.
+-    if (this.config.providerAuthRoot && !this.#qaScope) {
++    if (this.config.providerAuthRoot && !this.#qaScope && !this.#deploymentOnly) {
+       this.#loginWorker = new ProviderLoginWorker(this.db, this.config.workerId, { root: this.config.providerAuthRoot, googleClientFile: this.config.googleOAuthClientFile })
+       void this.#loginWorker.start().catch(() => process.stderr.write('Provider authentication worker stopped.\n'))
+     }
+-    const deploymentOnly = Boolean(this.config.deploymentServicesFile && !this.config.configPath)
+     const publishStatus = (): Promise<void> => {
+       if (!this.intakeOpen()) return Promise.resolve()
+       if (this.#status) return this.#status
+       const task = Promise.resolve().then(async () => {
+         if (!this.intakeOpen()) return
+         if (this.#qaScope) { await this.publishQaCapabilities(); return }
+-        if (deploymentOnly) { await this.refreshDeploymentRegistry(); return }
++        if (this.#deploymentOnly) { await this.refreshDeploymentRegistry(); return }
+         await this.publishProviderStatuses()
+         this.#publishingGeneralStatus = true
+       })
+@@ -130,7 +131,8 @@ export class DemianWorker {
+           this.#qaScope ? "QA capability refresh failed\n" : `provider status refresh failed: ${errorMessage(error)}\n`,
+         ))
+       }, 30_000)
+-      const recovered = await recoverExpiredRuns(this.db, this.#qaScope)
++      const recovered = await recoverExpiredRuns(this.db, this.#qaScope,
++        this.#deploymentOnly ? { deploymentWorkerId: this.config.workerId } : undefined)
+       if (recovered) process.stdout.write(`recovered ${recovered} expired runs\n`)
+       let claims=0,lastClaim=Date.now()
+       while (this.intakeOpen()) {
+@@ -180,7 +182,7 @@ export class DemianWorker {
+       this.#managedChildChecked=Date.now()
+     }
+     if (!this.intakeOpen()) return false
+-    const leased = await leaseNextRun(this.db, { workerId: this.config.workerId, leaseSeconds: this.config.leaseSeconds, deploymentSessionExecution,peerDeploymentProcessing,preparedCodex,managedChild:this.#managedChildReady,qaScope:this.#qaScope })
++    const leased = await leaseNextRun(this.db, { workerId: this.config.workerId, leaseSeconds: this.config.leaseSeconds, deploymentSessionExecution,peerDeploymentProcessing,preparedCodex,managedChild:this.#managedChildReady,qaScope:this.#qaScope,deploymentOnly:this.#deploymentOnly })
+     if (!leased) return false
+     let open: boolean
+     try { open = this.intakeOpen() }
+diff --git a/apps/worker/test/worker-lifecycle.test.ts b/apps/worker/test/worker-lifecycle.test.ts
+index 992b783..be275e3 100644
+--- a/apps/worker/test/worker-lifecycle.test.ts
++++ b/apps/worker/test/worker-lifecycle.test.ts
+@@ -78,6 +78,56 @@ function harness(overrides: Record<string, any> = {}, config: Record<string, any
+ }
+ const finish = (h: ReturnType<typeof harness>) => h.turn.resolve({ endReason: 'completed', finalAnswer: '', messages: [], usage: {} })
+ 
++test('deployment-only startup scopes recovery and intake without entering the global login queue', { timeout: 2000 }, async () => {
++  const entered = deferred<void>()
++  let recovery: any[] | undefined, claim: any
++  const h = harness({
++    publishDeploymentRegistry: async () => true,
++    ProviderLoginWorker: class { constructor() { throw Error('Unexpected global login queue') } },
++    recoverExpiredRuns: async (...args: any[]) => { recovery = args; return 0 },
++    leaseNextRun: async (_db: any, input: any) => { claim = input; entered.resolve(); return undefined },
++  }, { deploymentServicesFile: '/approved/services.json', providerAuthRoot: '/private/login' })
++  const started = h.worker.start()
++  // Surface an early startup failure without leaving an unhandled promise or waiting for intake.
++  await Promise.race([entered.promise, started])
++  await h.worker.stop({ mode: 'drain' }); await started
++  assert.deepEqual(recovery?.slice(1), [undefined, { deploymentWorkerId: 'worker' }])
++  assert.equal(claim.deploymentOnly, true)
++  assert.equal(h.calls.includes('statuses'), false)
++  assert.equal(h.calls.includes('dispatch'), false)
++})
++
++test('direct deployment-only runOnce also restricts the database claim', async () => {
++  let claim: any
++  const h = harness({
++    publishDeploymentRegistry: async () => true,
++    leaseNextRun: async (_db: any, input: any) => { claim = input; return undefined },
++  }, { deploymentServicesFile: '/approved/services.json' })
++  assert.equal(await h.worker.runOnce(), false)
++  await h.worker.stop()
++  assert.equal(claim.deploymentOnly, true)
++})
++
++test('a general configured worker retains general intake and recovery', { timeout: 2000 }, async () => {
++  const entered = deferred<void>()
++  let recovery: any[] | undefined, claim: any
++  const h = harness({
++    publishDeploymentRegistry: async () => true,
++    recoverExpiredRuns: async (...args: any[]) => { recovery = args; return 0 },
++    leaseNextRun: async (_db: any, input: any) => { claim = input; entered.resolve(); return undefined },
++  }, { deploymentServicesFile: '/approved/services.json', configPath: '/approved/general.json' })
++  h.worker.db.query = async (sql: string) => {
++    assert.match(sql, /^UPDATE worker_runtime_capabilities SET features=/)
++    return { rowCount: 1, rows: [] }
++  }
++  const started = h.worker.start()
++  await Promise.race([entered.promise, started])
++  await h.worker.stop({ mode: 'drain' }); await started
++  assert.equal(recovery?.[2], undefined)
++  assert.equal(claim.deploymentOnly === true, false)
++  assert.equal(h.calls.includes('statuses'), true)
++})
++
+ test('bounded QA start executes one claim without provider probes or the global login queue', { timeout: 2000 }, async () => {
+   let verifications = 0
+   const h = harness({
+diff --git a/packages/db/src/index.ts b/packages/db/src/index.ts
+index 83c3ac7..0be056b 100644
+--- a/packages/db/src/index.ts
++++ b/packages/db/src/index.ts
+@@ -528,8 +528,9 @@ export async function hasSessionPermissionGrant(db: DatabasePool, sessionId: str
+ 
+ export async function leaseNextRun(
+   db: DatabasePool,
+-  input: { workerId: string; leaseSeconds: number; deploymentSessionExecution?:boolean; peerDeploymentProcessing?:boolean; preparedCodex?:boolean; managedChild?:boolean; qaScope?:WorkerQaSelection },
++  input: { workerId: string; leaseSeconds: number; deploymentSessionExecution?:boolean; deploymentOnly?:boolean; peerDeploymentProcessing?:boolean; preparedCodex?:boolean; managedChild?:boolean; qaScope?:WorkerQaSelection },
+ ): Promise<LeasedRun | undefined> {
++  if (input.deploymentOnly) assertDeploymentWorkerId(input.workerId)
+   const qaScope = input.qaScope === undefined ? undefined : snapshotWorkerQaSelection(input.qaScope)
+   if (qaScope?.version===2 && input.workerId!==qaScope.workerId) throw new Error("worker_qa_worker_mismatch")
+   const scopeValues = qaScope ? workerQaSelectionValues(qaScope) : []
+@@ -538,6 +539,10 @@ export async function leaseNextRun(
+     await client.query("BEGIN")
+     if (qaScope?.version===2) await lockWorkerQaRegistryScope(client,qaScope)
+     const bindings=(await client.query("SELECT to_regclass('deployment_session_bindings') IS NOT NULL AS supported")).rows[0].supported
++    if (input.deploymentOnly && (!bindings || !(await client.query("SELECT to_regclass('deployment_run_authorities') IS NOT NULL AS supported")).rows[0].supported)) {
++      await client.query("ROLLBACK"); return undefined
++    }
++    const deploymentBoundary = input.deploymentOnly ? `AND ${deploymentWorkerRunPredicate(1)}` : ""
+     const deploymentFence=bindings ? `AND (NOT EXISTS(SELECT 1 FROM deployment_session_bindings b WHERE b.session_id=s.id) OR EXISTS(
+       SELECT 1 FROM deployment_run_authorities p JOIN deployment_session_bindings b USING(binding_id)
+       JOIN worker_runtime_capabilities c ON c.worker_id=b.worker_id AND c.worker_id=$1
+@@ -553,7 +558,7 @@ export async function leaseNextRun(
+       `SELECT r.*, s.workspace_id
+        FROM runs r JOIN sessions s ON s.id = r.session_id
+        ${qaScope ? "JOIN workspaces w ON w.id=s.workspace_id" : ""}
+-       WHERE r.status = 'queued' ${deploymentFence} ${childFence}
++       WHERE r.status = 'queued' ${deploymentBoundary} ${deploymentFence} ${childFence}
+          ${qaScope ? `AND ${workerQaSelectionPredicate(qaScope,2)}` : ""}
+          AND (NOT EXISTS (SELECT 1 FROM jsonb_array_elements(r.input) i WHERE i->>'type'='input_artifact')
+            OR EXISTS (SELECT 1 FROM worker_runtime_capabilities c WHERE c.worker_id=$1
+@@ -890,9 +895,33 @@ export async function finishWorkerRunWithError(
+   }
+ }
+ 
+-export async function recoverExpiredRuns(db: DatabasePool, scope?: WorkerQaSelection): Promise<number> {
++function assertDeploymentWorkerId(workerId: string): void {
++  if (typeof workerId !== "string" || !workerId.trim() || workerId !== workerId.trim()) {
++    throw new TypeError("Invalid deployment worker ID")
++  }
++}
++
++// Require the current session binding and the exact Run pin for this worker.
++function deploymentWorkerRunPredicate(workerParameter: number): string {
++  return `EXISTS(SELECT 1 FROM deployment_session_bindings b
++    JOIN deployment_run_authorities p ON p.binding_id=b.binding_id AND p.run_id=r.id
++    WHERE b.session_id=r.session_id AND b.organization_id=r.organization_id
++      AND b.worker_id=$${workerParameter})`
++}
++
++export async function recoverExpiredRuns(
++  db: DatabasePool, scope?: WorkerQaSelection, options?: { deploymentWorkerId: string },
++): Promise<number> {
++  const deploymentWorkerId = options?.deploymentWorkerId
++  if (options !== undefined) assertDeploymentWorkerId(deploymentWorkerId!)
+   const qaScope = scope === undefined ? undefined : snapshotWorkerQaSelection(scope)
+   const scopeValues = qaScope ? workerQaSelectionValues(qaScope) : []
++  if (deploymentWorkerId !== undefined && qaScope?.version===2 && deploymentWorkerId!==qaScope.workerId) {
++    throw new Error("worker_qa_worker_mismatch")
++  }
++  const recoveryValues = [...scopeValues, ...(deploymentWorkerId === undefined ? [] : [deploymentWorkerId])]
++  const boundary = (parameter: number) => deploymentWorkerId === undefined ? "" :
++    `AND r.worker_id=$${parameter} AND ${deploymentWorkerRunPredicate(parameter)}`
+   const client = await db.connect()
+   try {
+     await client.query("BEGIN")
+@@ -903,17 +932,20 @@ export async function recoverExpiredRuns(db: DatabasePool, scope?: WorkerQaSelec
+        WHERE status IN ('leasing','running','waiting_for_permission','cancelling') AND lease_expires_at < now()
+          ${qaScope ? `AND EXISTS(SELECT 1 FROM sessions s JOIN workspaces w ON w.id=s.workspace_id
+            WHERE s.id=r.session_id AND ${workerQaSelectionPredicate(qaScope,1)})` : ""}
+-       RETURNING id`, scopeValues,
++       ${boundary(scopeValues.length + 1)}
++       RETURNING id`, recoveryValues,
+     )
+-    if (qaScope) {
++    if (qaScope || deploymentWorkerId !== undefined) {
+       // Both cleanup paths must stay inside the exact tuple intersection. An
+       // unrelated expired lease is intentionally left for its own operator.
+       await client.query(`DELETE FROM workspace_leases lease USING runs r,sessions s,workspaces w
+-        WHERE lease.run_id=r.id AND lease.workspace_id=w.id AND s.id=r.session_id
++        WHERE lease.run_id=r.id AND lease.workspace_id=w.id AND s.id=r.session_id AND s.workspace_id=w.id
+           AND (lease.run_id=ANY($1::uuid[]) OR lease.expires_at<now())
+-          AND ${workerQaSelectionPredicate(qaScope,2)}`,
+-        [result.rows.map(row => row.id), ...scopeValues])
+-      const current = (await client.query<{current:boolean}>("SELECT clock_timestamp() < $1::timestamptz AS current", [qaScope.expiresAt])).rows[0]?.current
++          ${qaScope ? `AND ${workerQaSelectionPredicate(qaScope,2)}` : ""}
++          ${boundary(scopeValues.length + 2)}
++          ${deploymentWorkerId !== undefined ? `AND lease.worker_id=$${scopeValues.length + 2}` : ""}`,
++        [result.rows.map(row => row.id), ...recoveryValues])
++      const current = !qaScope || (await client.query<{current:boolean}>("SELECT clock_timestamp() < $1::timestamptz AS current", [qaScope.expiresAt])).rows[0]?.current
+       if (!current) { await client.query("ROLLBACK"); return 0 }
+     } else {
+       if (result.rows.length) await client.query("DELETE FROM workspace_leases WHERE run_id = ANY($1::uuid[])", [result.rows.map((row) => row.id)])
+diff --git a/packages/db/test/deployment-worker-intake.integration.test.ts b/packages/db/test/deployment-worker-intake.integration.test.ts
+new file mode 100644
+index 0000000..f0e43fc
+--- /dev/null
++++ b/packages/db/test/deployment-worker-intake.integration.test.ts
+@@ -0,0 +1,122 @@
++import assert from "node:assert/strict"
++import { randomUUID } from "node:crypto"
++import { readFile, readdir } from "node:fs/promises"
++import test, { type TestContext } from "node:test"
++import pg from "pg"
++import { bindDeploymentSessionAuthority, createRun, inspectDeploymentSessionAuthority, leaseNextRun,
++  publishDeploymentServiceAuthority, recoverExpiredRuns, syncDeploymentServicePolicies, type WorkerQaTuple } from "../src/index.ts"
++
++const url = process.env.TEST_DATABASE_URL
++const workerId = "deployment-intake-owned"
++async function fixture(t: TestContext) {
++  const schema = "deployment_intake_" + randomUUID().replaceAll("-", "")
++  const scoped = new URL(url!); scoped.searchParams.set("options", "-csearch_path=" + schema)
++  const admin = new pg.Pool({ connectionString: url }), db = new pg.Pool({ connectionString: scoped.href })
++  await admin.query("CREATE SCHEMA " + schema)
++  t.after(async () => { await db.end(); await admin.query("DROP SCHEMA " + schema + " CASCADE"); await admin.end() })
++  assert.equal((await db.query("SELECT current_schema() AS name")).rows[0].name, schema)
++  const dir = new URL("../migrations/", import.meta.url)
++  for (const file of (await readdir(dir)).filter(f => f.endsWith(".sql")).sort()) await db.query(await readFile(new URL(file, dir), "utf8"))
++  const organizationId = "00000000-0000-0000-0000-000000000001", actorUserId = "00000000-0000-0000-0000-000000000010"
++  async function run(owner?: string) {
++    const workspaceId = randomUUID(), sessionId = randomUUID()
++    await db.query("INSERT INTO workspaces(id,organization_id,name,root_path,status) VALUES($1,$2,$3,'/synthetic','ready')", [workspaceId, organizationId, 'fixture-' + workspaceId])
++    await db.query("INSERT INTO sessions(id,organization_id,workspace_id,provider,mode) VALUES($1,$2,$3,'primary','multi-agent')", [sessionId, organizationId, workspaceId])
++    if (!owner) {
++      const runId = randomUUID()
++      await db.query("INSERT INTO runs(id,organization_id,session_id,input,status,created_at) VALUES($1,$2,$3,'[]','queued',now()-interval '1 day')", [runId, organizationId, sessionId])
++      return { organizationId, workspaceId, sessionId, runId }
++    }
++    const source = { configurationId: randomUUID(), revision: "1", sourceIdentity: randomUUID().replaceAll("-", "").repeat(2) }
++    const policy = { organizationId, workspaceId, workerId: owner, providerProfile: "primary", serviceId: randomUUID(), policyRevision: "v1", accountScope: "synthetic" }
++    await syncDeploymentServicePolicies(db, { ...source, policies: [policy] })
++    const pin = await publishDeploymentServiceAuthority(db, { ...policy, materialRevision: "1".repeat(64), providerType: "codex", defaultModel: null, capabilities: { nativeSession: true, multiAgent: true } }, source)
++    const scope = { organizationId, workspaceId, sessionId, actorUserId }
++    const expectedMetadataRevision = (await db.query("SELECT metadata_revision FROM sessions WHERE id=$1", [sessionId])).rows[0].metadata_revision
++    await bindDeploymentSessionAuthority(db, { ...scope, operationId: randomUUID(), expectedMetadataRevision, primary: { serviceId: policy.serviceId, ...pin }, secondary: [] })
++    const view = await inspectDeploymentSessionAuthority(db, scope)
++    assert.ok(view?.available)
++    const created = await createRun(db, { sessionId, organizationId, userId: actorUserId, expectedDeploymentAuthoritySha256: view.settingsHash, idempotencyKey: randomUUID(), items: [{ type: "input_text", text: "synthetic" }] })
++    return { organizationId, workspaceId, sessionId, runId: created.run.id }
++  }
++  async function capability(id = workerId) {
++    await db.query(`INSERT INTO worker_runtime_capabilities(worker_id,default_agent,default_provider,default_mode,features)
++      VALUES($1,'fixture','primary','multi-agent','{"deployment_session_execution_v1":true}')`, [id])
++  }
++  const claim = (id = workerId) => leaseNextRun(db, { workerId: id, leaseSeconds: 90, deploymentOnly: true, deploymentSessionExecution: true })
++  const snapshot = async (ids: string[]) => (await db.query("SELECT to_jsonb(r) AS row FROM runs r WHERE id=ANY($1::uuid[]) ORDER BY id", [ids])).rows
++  const leases = async () => (await db.query("SELECT to_jsonb(l) AS row FROM workspace_leases l ORDER BY workspace_id")).rows
++  const qa = (tuples: WorkerQaTuple[]) => ({ version: 1 as const, expiresAt: new Date(Date.now() + 60_000).toISOString(), tuples })
++  return { db, run, capability, claim, snapshot, leases, qa }
++}
++
++test("deployment-only claims skip older ordinary and foreign Runs and retain capability fences", { skip: !url }, async t => {
++  const f = await fixture(t), ordinary = await f.run(), foreign = await f.run("foreign"), owned = await f.run(workerId)
++  const outside = await f.snapshot([ordinary.runId, foreign.runId])
++  assert.equal(await f.claim(), undefined)
++  await f.capability()
++  assert.equal(await leaseNextRun(f.db, { workerId, leaseSeconds: 90, deploymentOnly: true, deploymentSessionExecution: false }), undefined)
++  await f.db.query("UPDATE worker_runtime_capabilities SET features='{}' WHERE worker_id=$1", [workerId])
++  assert.equal(await f.claim(), undefined)
++  await f.db.query(`UPDATE worker_runtime_capabilities SET features='{"deployment_session_execution_v1":true}',checked_at=now()-interval '2 minutes' WHERE worker_id=$1`, [workerId])
++  assert.equal(await f.claim(), undefined)
++  await f.db.query("UPDATE worker_runtime_capabilities SET checked_at=now() WHERE worker_id=$1", [workerId])
++  assert.equal(await leaseNextRun(f.db, { workerId, leaseSeconds: 90, deploymentOnly: true, qaScope: f.qa([ordinary, foreign]) }), undefined)
++  assert.equal((await f.claim())?.run.id, owned.runId)
++  assert.deepEqual(await f.snapshot([ordinary.runId, foreign.runId]), outside)
++  assert.equal(await f.claim(), undefined)
++})
++
++test("deployment-only missing schema explicitly denies without an ordinary claim", { skip: !url }, async t => {
++  const f = await fixture(t), ordinary = await f.run(), before = await f.snapshot([ordinary.runId])
++  // Rename only within this fresh synthetic schema; preserve all migrated tables.
++  await f.db.query("ALTER TABLE deployment_session_bindings RENAME TO unavailable_bindings")
++  assert.equal(await f.claim(), undefined)
++  await f.db.query("ALTER TABLE unavailable_bindings RENAME TO deployment_session_bindings")
++  await f.db.query("ALTER TABLE deployment_run_authorities RENAME TO unavailable_authorities")
++  assert.equal(await f.claim(), undefined)
++  assert.deepEqual(await f.snapshot([ordinary.runId]), before)
++  assert.deepEqual(await f.leases(), [])
++})
++
++test("deployment recovery intersects QA, Run owner, exact pin and workspace lease owner", { skip: !url }, async t => {
++  const f = await fixture(t), ordinary = await f.run(), foreign = await f.run("foreign"), owned = await f.run(workerId)
++  await f.capability(); await f.capability("foreign")
++  assert.equal((await f.claim())?.run.id, owned.runId)
++  assert.equal((await f.claim("foreign"))?.run.id, foreign.runId)
++  await f.db.query("UPDATE runs SET status='running',worker_id=$2,lease_expires_at=now()-interval '1 hour' WHERE id=$1", [ordinary.runId, workerId])
++  await f.db.query("INSERT INTO workspace_leases(workspace_id,run_id,worker_id,expires_at) VALUES($1,$2,$3,now()-interval '1 hour')", [ordinary.workspaceId, ordinary.runId, workerId])
++  await f.db.query("UPDATE runs SET lease_expires_at=now()-interval '1 hour' WHERE id=ANY($1::uuid[])", [[owned.runId, foreign.runId]])
++  await f.db.query("UPDATE workspace_leases SET expires_at=now()-interval '1 hour'")
++  const outside = await f.snapshot([ordinary.runId, foreign.runId])
++  const outsideLeases = (await f.leases()).filter(row => row.row.run_id !== owned.runId)
++  assert.equal(await recoverExpiredRuns(f.db, f.qa([ordinary, foreign]), { deploymentWorkerId: workerId }), 0)
++  assert.equal((await f.leases()).length, 3)
++  assert.equal(await recoverExpiredRuns(f.db, undefined, { deploymentWorkerId: "unknown-worker" }), 0)
++  await f.db.query("UPDATE workspace_leases SET worker_id='foreign' WHERE run_id=$1", [owned.runId])
++  assert.equal(await recoverExpiredRuns(f.db, f.qa([ordinary, foreign, owned]), { deploymentWorkerId: workerId }), 1)
++  assert.equal((await f.snapshot([owned.runId]))[0].row.status, "failed")
++  assert.equal((await f.leases()).length, 3, "mismatched lease worker must survive even a Run transition")
++  assert.equal(await recoverExpiredRuns(f.db, undefined, { deploymentWorkerId: workerId }), 0)
++  assert.equal((await f.leases()).length, 3)
++  await f.db.query("UPDATE workspace_leases SET worker_id=$2 WHERE run_id=$1", [owned.runId, workerId])
++  assert.equal(await recoverExpiredRuns(f.db, f.qa([owned]), { deploymentWorkerId: workerId }), 0)
++  assert.deepEqual(await f.snapshot([ordinary.runId, foreign.runId]), outside)
++  assert.deepEqual(await f.leases(), outsideLeases)
++  const next = await f.run(workerId)
++  await f.db.query("UPDATE worker_runtime_capabilities SET checked_at=now() WHERE worker_id=$1", [workerId])
++  assert.equal((await f.claim())?.run.id, next.runId)
++  await f.db.query("UPDATE runs SET lease_expires_at=now()-interval '1 hour' WHERE id=$1", [next.runId])
++  assert.equal(await recoverExpiredRuns(f.db, undefined, { deploymentWorkerId: workerId }), 1)
++  assert.equal((await f.snapshot([next.runId]))[0].row.status, "failed")
++  assert.deepEqual(await f.leases(), outsideLeases, "transition removes only the owned lease, even before its expiry")
++  assert.deepEqual(await f.snapshot([ordinary.runId, foreign.runId]), outside)
++})
++
++test("deployment worker options reject empty or padded IDs before connecting", async () => {
++  const db = { connect() { throw Error("must not connect") } } as unknown as pg.Pool
++  for (const deploymentWorkerId of ["", " ", " owned", "owned ", undefined]) {
++    await assert.rejects(recoverExpiredRuns(db, undefined, { deploymentWorkerId: deploymentWorkerId! }), /Invalid deployment worker ID/)
++  }
++  await assert.rejects(leaseNextRun(db, { workerId: " ", leaseSeconds: 90, deploymentOnly: true }), /Invalid deployment worker ID/)
++})

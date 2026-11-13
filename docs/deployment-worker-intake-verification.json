@@ -1,0 +1,146 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": [
+    "AT-14"
+  ],
+  "scope": "Deployment-only Demian worker intake/recovery isolation prerequisite; source and real isolated PostgreSQL verification, not operating promotion or whole cross-app acceptance.",
+  "source": {
+    "repository": "https://github.com/pydemia/demian",
+    "baseRevision": "8a7f7f2122e2ad02e170bbf87f059d841df891a5",
+    "implementationRevision": "c5284e3e813430b063cdb0fd1f1c3a7c1a9417ef",
+    "patchSha256": "7507408996d18cddeb6deb3f0ca373818b6fc8509bb207ea6295b23e8101bd24",
+    "deployed": false,
+    "upstreamSourcePublished": false,
+    "modules": [
+      {
+        "path": "apps/worker/src/worker.ts",
+        "baseSha256": "16adac0b948f903db9583926e2b1d58c37f8604415cd1820dc3457925cdf6928",
+        "sha256": "44dec9a905264b70d7dfb5c382e1ef8fa92da4a902d5043323fa6cc95c6fcb43"
+      },
+      {
+        "path": "apps/worker/test/worker-lifecycle.test.ts",
+        "baseSha256": "b3771151b76501796ebeb5b6f0305f4f1264fe46259a9fe12ec6261aff01b1cd",
+        "sha256": "f500a4af58abbfc874698143a19943d0bd48249abcd1182c43ff88fe0b96d9aa"
+      },
+      {
+        "path": "packages/db/src/index.ts",
+        "baseSha256": "a39df4108f56a4325a7c8686cfbd873080d8f587ce5113c41445cb40f3301ae2",
+        "sha256": "47ea12a98d6d33590a1cecce3c07367ea0186e998154218e16ffc6cc5804494c"
+      },
+      {
+        "path": "packages/db/test/deployment-worker-intake.integration.test.ts",
+        "baseSha256": null,
+        "sha256": "c3560eae22f19e3da80ed13092640b782c8df3fa60cf6f32c9e03562260fa924"
+      }
+    ]
+  },
+  "behavior": [
+    "Manifest without general config uses constructor-fixed deployment-only intake",
+    "Exact current same-worker Session binding and Run authority plus existing capability/QA fences",
+    "Recovery intersects Run worker, binding, authority and QA; lease cleanup also checks lease worker even with zero transitions",
+    "No global interactive login queue for deployment-only workers",
+    "Ordinary configured workers retain general behavior; no migration"
+  ],
+  "verification": {
+    "postgresql": {
+      "image": "sha256:c469d92cbb89e123ba7c2c7c1a8815572943584085c37b007bacb43150a8c9e4",
+      "freshTmpfsDatabase": true,
+      "actualMigrations": true,
+      "testFiles": [
+        "packages/db/test/deployment-worker-intake.integration.test.ts",
+        "packages/db/test/database.integration.test.ts",
+        "packages/db/test/deployment-session-execution.integration.test.ts",
+        "packages/db/test/worker-qa-scope.integration.test.ts",
+        "packages/db/test/worker-qa-admissions.integration.test.ts",
+        "packages/db/test/work-runtime-runs.integration.test.ts",
+        "apps/worker/test/deployment-execution.integration.test.ts",
+        "apps/worker/test/worker-lifecycle.test.ts"
+      ],
+      "tests": 69,
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 36822.3246,
+      "lifecycle25IncludedDoNotSum": true,
+      "modelRequests": 0
+    },
+    "typecheck": {
+      "worker": "passed",
+      "db": "passed"
+    },
+    "workerBuild": {
+      "passed": true,
+      "sha256": "5b790f0b55412d55c9657e1a82d071eb67058ecfe057c74f09407d6aa0ed18ec"
+    },
+    "patchReplay": {
+      "customIndexFromBaseline": true,
+      "cachedApplyCheck": true,
+      "resultTreeEqualsImplementationCommit": true,
+      "operatingCheckoutModified": false
+    },
+    "independentReview": {
+      "scope": "Four changed files and direct callers; source only",
+      "findings": 0,
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "actualExecutionModelIndependentlyObserved": false
+    }
+  },
+  "initialFailures": [
+    {
+      "stage": "worker boundary tests",
+      "actualRelevantRegressionFailures": 2,
+      "additionalFixtureFailure": "General-worker fake DB did not model capability UPDATE; corrected fixture",
+      "finalLifecyclePassed": 25
+    },
+    {
+      "stage": "PostgreSQL harness startup",
+      "firstFailureDetailRecorded": false,
+      "subsequentReproduction": "Docker Desktop internal network omitted the published port; used separate owned network with host-loopback publish",
+      "ownedContainersAndNetworksRemoved": true
+    },
+    {
+      "stage": "first actual PostgreSQL regression",
+      "tests": 69,
+      "passed": 66,
+      "failed": 3,
+      "skipped": 0,
+      "causes": [
+        "Two new fixtures reused the same per-organization workspace name; fixed to UUID-specific name",
+        "Existing general repository test requires public migrations; driver now applies actual migrations in fresh test database before the unchanged test"
+      ],
+      "finalSameFilesPassed": 69
+    }
+  ],
+  "operatingPreservation": {
+    "at": "2026-11-13T11:04:15.252Z",
+    "pid": 15940,
+    "created": "2026-11-12T07:44:46.0665280Z",
+    "profileAndBundlePinned": true,
+    "sameProcess": true,
+    "identityMatches": true,
+    "readyStatus": 200,
+    "capabilityStatus": 200,
+    "workRuntimeAdvertised": false,
+    "allOwnedTestContainersAbsent": true,
+    "productionWorkerActivated": false,
+    "resourceWrites": 0,
+    "modelRequests": 0
+  },
+  "limits": [
+    "Source commit remains local and the bounded patch is exported here; not an upstream full-source publication",
+    "No original worker activated, authority/binding created, model call or production Task/Note/Run created",
+    "No fresh original database row fingerprint comparison; SQL tests target a distinct owned container, and original API/process/profile/bundle identity and readiness were checked",
+    "Original API includes optional work-runtime code but selectors are off; simply assigning its current trusted local-admin identity as a delegated service would require signatures for existing ordinary readers",
+    "Operating dedicated execution identity/transport, current binding and protected metadata observation still need integration",
+    "Full WorkCoordinator/Projects/Note/desktop/Track scenario remains unverified"
+  ],
+  "overall": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "Equal original top-level acceptance items; not development effort percent",
+    "eta": "Not estimable",
+    "confidence": "Low"
+  }
+}

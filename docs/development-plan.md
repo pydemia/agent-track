@@ -8,12 +8,38 @@ AT-18 보류 판정을 정정했으며 전체 업무는 미검증이다. 현재 
 임계 경로다. 원본 웹 인증 이동·문맥 요약 GUI, 그룹 운영 GUI, 다중 장치 대시보드
 검사는 각각의 요구로 추적한다.
 
+진척 재점검: 71.4%는 상위 수용 항목의 누적 충족률이며 개발 완료율이나 운영
+준비도 추정치가 아니다. AT-09의 재개/재시도와 AT-14의 운영 실행/관측 인가 연결은
+실제 기능·연동 부족이다. AT-12의 배포된 사용자 동작, AT-15의 한 대시보드에 여러
+장치 세션 표시, AT-20의 원본 인증 GUI/장애 격리는 남은 실기 조건이다. AT-12의
+특정 Entra 재로그인·스크린샷 export와 AT-15의 여러 클라이언트 동시 접속은 추가
+게이트로 삼지 않는다. AT-06/20의 무인증 Basic401과 인증 HTTP200을 구별하며,
+원본의 새 인증 방식 구현 자체를 완료 조건에 덧붙이지 않는다. 기존 공개 Entra
+정책은 유지한다. Desktop은 독립 앱/bridge 위치와 API가
+미확정이며, Linux peer 실기를 그 연결로 대체하지 않는다. 최근 Projects 운영
+계약 전환은 AT-14의 전제 완료로 기록하고 전체 업무 성공으로 집계하지 않는다.
+다음 판정은 이들 원래 수용 조건 중 하나의 실제 폐쇄를 근거로 갱신한다.
+
 Projects 원본 계약의 운영 전환을 완료했다. 다섯 기존 설정 layer를 포함한
 private canonical replay에서 앱 이미지만 교체했고, 다른 역할·인증·DB 보존과
 기존 Assistant 서명 클라이언트의 실제 지원을 확인했다. Source 지원 flag를
 위장하거나 소비자의 assert를 해제하지 않았다.
 [배포와 복귀 계약](../integrations/projects-results/README.md),
 [현재 운영 증거](projects-results-verification.json)를 따른다.
+
+운영 worker 연결 전제 수정도 완료했다. 기존 배포 전용 모드는 상태 게시만
+구분하고 일반 대기열 접수·만료 복구·로그인 작업을 제한하지 않았다. 별도 source
+`c5284e3`에서 같은 worker의 명시 binding/Run authority와 기존 capability/QA의
+교집합으로 접수·복구·lease 정리를 제한했다. 일반 설정 worker는 기존 동작을
+유지한다. 별도 실제 PostgreSQL 회귀69개·타입 검사·worker build·독립 소스 검토를
+통과했고, [bounded patch](../integrations/demian-worker-intake/README.md)를 보존했다.
+운영 worker 전환이나 권한 구성은 아직 수행하지 않았다.
+
+현재 native API의 trusted 인증은 하나의 로컬 관리자 신원이다. 그 신원을
+위임용 service principal로 바로 지정하면 기존 Track 요청까지 위임 서명이
+필요해진다. 다음 실행 연결은 기존 일반 조회를 유지하는 별도 실행 신원/서명
+경계와 지속되는 runtime 경로를 먼저 마련한다. API에 선택 코드가 있다는 사실을
+운영 설정 완료로 계산하지 않는다.
 
 다음 임계 작업은 현재 Assistant/native 실행 authority·source tuple과 protected
 Run의 metadata 조회 계약을 연결한 뒤, 실제 QA 업무 한 건을 WorkCoordinator →

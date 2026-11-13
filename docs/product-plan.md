@@ -209,7 +209,12 @@ favicon은 필수입니다. 승인된 pydemia 심벌 재사용 가능 여부를 
 
 즉시 다음 구현은 P0와 그에 의존하지 않는 P1 기반 작업입니다. 기존 프로젝트/작업 원장의 소유권, 앱별 제어 capability, pydemia-desktop 코드 위치/bridge를 조사합니다. 운영 인증은 Entra ID로 구성했고 Track 전용 로그인·API/SSE·logout·재로그인을 검증했습니다. desktop 미확인을 이유로 공통 원장·첫 실데이터 화면까지 모두 대기하지 않습니다. 구현 일정은 계약 조사 후 추정합니다.
 
-## 10.1 현재 달성 상태
+## 10.1 달성 상태와 초기 구현 기록
+
+2026-11-13 현재 상태의 단일 원본은 [goal 기준표](goal-status.md)다. 수용 항목
+15/21·71.4%는 개발 완료율 추정치가 아니다. 아래 11월11일 문단은 초기 구현
+기록이며 이후 승인·Projects/Assistant 관측 등의 진전을 반영한 현재 잔여 목록으로
+사용하지 않는다. 전체 교차 앱 업무와 desktop 실기는 아직 미검증이다.
 
 2026-11-11 구현 goal을 시작했습니다. 제품 웹·API·SQLite 원장·Demian snapshot/SSE adapter·Codex metadata collector를 작성하고 검증 중입니다. 실제 native Run 관측과 단일 소유자 취소·receipt, 백업/별도 복원을 검증했습니다. 재개·승인·Projects/Assistant/desktop의 native 연결은 남아 있습니다. 현재 전체 수용 기준은 AT-01~21이며 [goal 기준표](goal-status.md)와 [개발계획](development-plan.md)에 상태·증거를 기록합니다. Entra 준비와 AgentTrail 검증을 제품 완료로 환산하지 않습니다.
 

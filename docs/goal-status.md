@@ -1,6 +1,6 @@
 # Agent Track 구현 goal 기준표
 
-현재 기준: 2026-11-13 진척 판정 감사. 대상 HEAD `19a8924`, 운영 코드 `a3bb446`.
+현재 기준: 2026-11-13 진척 재점검. 대조한 HEAD `17f6b4a`, 운영 코드 `a3bb446`.
 
 **수용 항목 충족률 15/21·71.4%** (상위 요구 동일 가중치, 부분 항목 점수0).
 직전 14/21·66.7%에서 1개 증가했으며 AT-18의 불필요한 보류를 정정한 결과다.
@@ -8,6 +8,18 @@
 아직 미검증이다. 완료 예상은 산정 불가, 일정 신뢰도 낮음이다. 운영 실행/인가
 연결·WorkCoordinator/Projects 결과·desktop/Track 전체 실기가 주요 전제다.
 [감사 근거와 한계](progress-audit-2026-11-13.md)를 따른다.
+
+**제품 전체의 개발 완료율은 이 수치로 추정할 수 없다.** 15개는 기존에 명시한
+owner/QA 범위의 수용 증거를 누적한 개수이며, 현재 운영 revision의 모든 기능을
+이번에 다시 실행한 결과가 아니다. 작은 기술 요구와 전체 교차 앱 업무가 각각
+1점이어서, 남은 6개가 작업량의 28.6%라는 뜻도 아니다. 현재 사용자 핵심 경로인
+`Assistant 지시 → Demian 실행 → desktop 접속 → Track 검토`의 전체 통과 기록은 없다.
+
+최근 운영 진전은 11월13일19:11 KST Projects 결과 계약의 배포와19:13~19:16
+기존 Assistant/Track 소비자 확인이다. AT-14의 전제 하나를 닫았으며 AT-14 자체를
+완료하지 않았다. 마지막 상위 항목 변동은 같은 날18:10의 AT-18 판정 정정이다.
+이후에는 수치와 함께 **새로 닫힌 조건 / 실제 기능·연동 부족 / 남은 실기 / 다음
+판정 조건**을 보고한다. 커밋·검사 증가를 제품 개발 완료율로 바꾸지 않는다.
 
 실행 연동 후속: Projects 운영 앱을 검증한 후보 이미지 `7d571b20`으로 전환했다.
 기존 다섯 설정 layer·인증 규칙·환경·마운트·네트워크·다른 세 역할을 보존했고,
@@ -18,16 +30,25 @@ QA 자원·작업 잠금은 정리했다. 이 전환에서 운영 Task/Note/Run�
 전체 WorkCoordinator/desktop 업무 수용으로 세지 않는다.
 [운영·실기·한계](projects-results-verification.json)를 따른다.
 
+실행 연동 추가: 배포 전용 Demian worker도 일반 Run 대기열/만료 복구와 로그인
+작업을 가져갈 수 있는 경계를 수정했다. 현재 worker의 Session binding·정확한 Run
+authority·기존 capability/QA 조건을 함께 확인하고 lease 정리도 같은 소유 범위로
+제한한다. 별도 PostgreSQL 회귀69개/skip0·타입 검사·bundle build·독립 소스 검토와
+baseline patch의 정확한 Git tree 재현을 확인했다. 원본 API/profile/bundle·같은
+PID/생성 시점과 readiness를 유지했다. 운영 worker나 새 실행 권한은 활성화하지
+않았다. AT-14의 전제 수정이며 상위 충족률은 유지한다.
+[수정과 검증 한계](deployment-worker-intake-verification.json)를 따른다.
+
 완료: AT-01/02/03/04/05/07/08/10/11/13/16/17/18/19/21.
 부분: AT-06/09/12/14/15/20. 분모와 가중치는 변경하지 않았다.
 
 | 남은 요구 | 직전 대비 확보한 단계 | 다음 수용 검사 |
 | --- | --- | --- |
-| AT-06 앱 간 이동 | 원본 웹 교체·Session URL/미지원 안내 | 허용 인증으로 동일 Session/Task 선택 이동 |
+| AT-06 앱 간 이동 | 원본 웹 교체·Session URL/미지원 안내·인증 HTTP200 | 허용 인증으로 동일 Session/Task 선택 이동. 무인증401만으로 새 인증 구현 필요를 단정하지 않음 |
 | AT-09 실행 제어 | 실제 취소·receipt/중복 방어 | 원본 재개/재시도 계약·실행 지원 |
-| AT-12 그룹 탐색 | 실제 child/병렬 합류/peer·네 보기 범위·저장/복원·운영 배포 | 최신 운영 인증 GUI의 공통 범위·저장 복원, peer 대표선 마우스/pixel |
-| AT-14 전체 업무 | 실제 gateway→native Run·응답/receipt, Projects 결과 선연결 계약의 운영 전환·서명 원본/Track 소비자 검증 | Assistant/native 실행·metadata 인가 연결 → 실제 WorkCoordinator/Projects/Note 업무 → desktop/Track 검토 |
-| AT-15 전체 대시보드 | 여러 프로젝트·실제 두 호스트 처리 | 같은 대시보드 다중 장치 동시 조회·필터 해제/선택 보존 |
+| AT-12 그룹 탐색 | 실제 child/병렬 합류/peer·네 보기 범위·저장/복원·운영 배포 | 배포된 공통 범위·저장 복원의 사용자 동작 대조, peer 대표선 포인터 선택. 특정 Entra 재로그인·스크린샷 확보 자체는 추가 게이트가 아님 |
+| AT-14 전체 업무 | 실제 gateway→native Run·응답/receipt, Projects 결과 계약 운영 전환, 배포 전용 worker의 접수/복구 범위 수정·검증(운영 미반영) | Assistant/native 실행·metadata 인가 연결 → 실제 WorkCoordinator/Projects/Note 업무 → desktop/Track 검토 |
+| AT-15 전체 대시보드 | 여러 프로젝트·실제 두 호스트 처리 | 한 기본 대시보드에 여러 장치 세션 함께 표시·필터 해제/선택 보존. 여러 클라이언트 동시 접속 요구가 아님 |
 | AT-20 문맥 요약 | Projects 운영, Demian 분리 실기·원본 웹 HTTP 반영 | 원본 인증 GUI·동일 선택·공개 웹 장애 격리 |
 
 아래 표가 현재 요구별 판정의 단일 원본이다. 단일 owner·명시 QA 등 증거의
@@ -41,13 +62,13 @@ QA 자원·작업 잠금은 정리했다. 이 전환에서 운영 Task/Note/Run�
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 검증 완료. 실제 answer.txt metadata·원본/공개 Trail 대조와 native 파일 편집4Run 조회. 성공3파일의30byte/hash·요청/완료seq, 거절/만료는 실패·파일 없음 구분. 공개 Trail·390px/Tab·Project 철회404/경로 제거→복구, 원문 비노출·이벤트 digest 불변·조회 한도 검사 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과. native212event·lineage9·도구3결과(실패1/성공2)와 Flow 대조·원장 불변, 요청≠실행 시작 구별 |
-| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. Demian Session href·Run link 미지원 안내. 실제 원본 웹이 Basic401로 브라우저 이동 차단. Track Entra/API 관측과 별개이며 원본 웹 인증 연결 필요 |
+| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. Demian Session href·Run link 미지원 안내. 원본 웹의 무인증 Basic401과 후속 인증 root/context200을 구별한다. 허용 인증으로 동일 Session/Task가 선택되는 브라우저 이동은 미검증이다. 무인증401만으로 새 인증 구현이 필수라고 단정하지 않으며 공개 Track Entra 정책은 유지 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기 accepted→cancelled·동일 receipt, unknown/철회/만료/재시작·서로 다른 UUID 중복 방지 fixture. 공개 UI 취소 클릭→native cancelled·receipt1건 대조. 재개/재시도는 원본 계약 미지원 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
-| AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 남은 조건은 최신 운영 revision의 네 보기 공통 범위/저장 복원 인증 GUI와 peer 사례의 대표선 마우스/pixel 검증. 전체 교차 앱/desktop/SDK 운영 전환을 이 요구의 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
+| AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 배포된 네 보기 공통 범위/저장 복원의 사용자 동작 대조와 peer 대표선 포인터 선택 성공 확인이 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 Assistant 실행/역할의 운영 관측과 별도 gateway→TLS/HMAC API→native worker/core→Codex Run1/attempt1/전송1/8event 및 원본 응답·receipt의 DB 대조. Persona PR22 b6504e5는 draft·CI 통과·운영 미배포. WorkCoordinator/Projects 결과 연결·desktop 접속·Track 검토의 전체 업무는 미검증. 현재 운영 실행 authority와 protected Run metadata 인가 연결도 남음 (`assistant-native-delegation-verification.json`, `assistant-live-verification.json`, `projects-results-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
