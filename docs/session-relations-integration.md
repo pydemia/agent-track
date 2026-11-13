@@ -4,6 +4,17 @@ AT-12·AT-18의 managed-child·peer 근거를 원본 세션별 읽기 API로 연
 호출·cowork 이벤트, 별도 child Run, peer 처리 영수증은 서로 다른 단위다.
 관계를 읽기 위해 모델·worker·peer discovery를 시작하지 않는다.
 
+2026-11-13 실제 backend 후속: 공식 Reason Network0.12.17의 격리 daemon을
+Windows와 SSH Linux에서 실행하고 frozen SDK adapter의 실제 요청·응답과
+양쪽 inbox ACK를 검증했다. 수신 DB의 body hash·read_at과 발신 receipt도 별도로
+대조했다. 이는 원격 backend의 전달 증거다. 아직 native API의 peer-processing
+receipt나 Run을 만들지 않았으므로 아래 관계 API/UI 실기로 계산하지 않는다.
+동일 inbound message/conversation → 실제 native Run/receipt → Track 관계·그룹을
+이어 검증해야 한다. native Session ID를 제공하지 않는 주소를 Session으로 바꾸거나
+ACK를 Agent 실행·업무 수용으로 표시하지 않는다.
+[peer backend 검증 기록](native-peer-transport-verification.json)에 운영 보존·초기
+검증 코드 실패·복구와 실제 결과의 범위를 구분했다.
+
 ## 원본 계약과 현재 상태
 
 2026-11-12 현재 다음 Demian GET 계약을 소비한다.

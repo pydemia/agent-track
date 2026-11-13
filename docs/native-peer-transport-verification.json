@@ -1,0 +1,152 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementIds": [
+    "AT-12",
+    "AT-14",
+    "AT-15",
+    "AT-18"
+  ],
+  "scope": "Actual official Reason Network daemons on Windows PC and SSH-connected Linux host, frozen Demian SDK adapter request/reply/inbox acknowledgment. This is transport validation, not native peer processing or model execution.",
+  "upstream": {
+    "repository": "https://github.com/reason-machines/reason-network",
+    "tag": "v0.12.17",
+    "revision": "5872711927788b0d43a8a940ea45f993bc2926bc",
+    "releaseId": 428572461,
+    "archives": [
+      {
+        "name": "reason-network-x86_64-pc-windows-msvc.zip",
+        "bytes": 9394594,
+        "sha256": "1789e0b441837ba9a9eac1073c3cf2ffa50b83b26a1abaa07703545124cf2d9c"
+      },
+      {
+        "name": "reason-network-x86_64-unknown-linux-musl.tar.gz",
+        "bytes": 9463167,
+        "sha256": "2234527ff9330c78bff8581cc060bf1396e15d8091c27fb5acdb989010f5018f"
+      }
+    ],
+    "windowsBinarySha256": "9e8adc1de80d9e4dbf528c71e49a14a322115f1e5803b3adaf6f9019b2950848",
+    "linuxBinarySha256": "b17efa53714f9991e77b592cb62bc09fdf7991e1f612a785ea22ed04ab653f0b",
+    "version": "0.12.17",
+    "sourceAndReleaseArchivesPinned": true,
+    "independentBinarySignatureOrReproducibleBuildVerified": false
+  },
+  "sdk": {
+    "sourceRevision": "8a7f7f2122e2ad02e170bbf87f059d841df891a5",
+    "nativeOriginalPromoted": false,
+    "compiledRuntimeSha256": "9b96d2c8e0c330d7cf53499da6a1a97bcc916d3807dc7d1d3c4386ef23c1e18d",
+    "relevantTransportSourcesMatchFrozenManifestAndOwnedCheckout": true,
+    "registeredAgentKind": "cli",
+    "nativeSessionIdentity": null,
+    "selection": "Exact freshly generated deterministic SDK session address, person, machine and team scope"
+  },
+  "actual": {
+    "operationId": "3d314cca-2827-49de-ac00-1be16499a260",
+    "startedAt": "2026-11-13T05:10:27.571Z",
+    "finishedAt": "2026-11-13T05:10:33.762Z",
+    "accepted": true,
+    "hosts": {
+      "windows": "win32",
+      "linux": "Linux",
+      "hostnamesDiffer": true,
+      "remoteSshAddressIsNotLocalWindowsInterface": true
+    },
+    "verifiedWindowsPipeServerPid": true,
+    "verifiedWindowsExecutableAndCreationTime": true,
+    "verifiedLinuxSocketPeerPidAndUid": true,
+    "verifiedLinuxProcessExecutableAndStartTicks": true,
+    "requestMessageId": "37GC5PHY81R264JZET8S1BC2SA",
+    "replyMessageId": "6K0SJFKDBZ517745F2S4S8X16E",
+    "replyTo": "37GC5PHY81R264JZET8S1BC2SA",
+    "requestBodySha256": "7aca37ba1737eb2823019d83ebb4acaf5c52c798b20d0c1bf44bc1ab0b4138c9",
+    "replyBodySha256": "d2d481e43f746c607bce10e69d3f39ce76ae861907997280146a78e1880d4a3d",
+    "requestAckRemovedFromReceivingInbox": true,
+    "replyAckRemovedFromReceivingInbox": true,
+    "receivingRowsHavePositiveReadAt": true,
+    "requestSenderStage": "replied",
+    "replySenderStage": "accepted",
+    "sqliteIntegrityBoth": "ok",
+    "independentReadonlyDatabaseReadback": true,
+    "actualModelExecution": false,
+    "modelRequests": 0,
+    "productionBindingsCreated": 0
+  },
+  "review": {
+    "readOnlyIndependentProtocolReview": true,
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "low",
+    "actualReviewerExecutionModelIndependentlyObserved": false,
+    "findingsFixed": [
+      "Unhandled proxy stdin error could bypass cleanup; proxy now becomes terminal and rejects pending/later calls",
+      "Acknowledgment result alone did not prove effect; both receiving inboxes are re-read and IDs must disappear; sender status also excludes queued/rejected/expired/unknown"
+    ],
+    "lifecycleChecks": {
+      "at": "2026-11-13T05:10:14.906Z",
+      "actualChildExit": true,
+      "injectedStreamError": "EPIPE",
+      "proxyTerminalAfterBothFailures": true,
+      "pendingRequestsRejectedAndCleared": true,
+      "laterCallsRejected": true,
+      "servicesOrModelsUsed": false,
+      "limit": "EPIPE event is fault injection; actual Windows OS EPIPE was not reproduced by closing the child stdin stream alone"
+    }
+  },
+  "initialFailures": {
+    "preserved": true,
+    "peerMessagesDispatchedBeforeAcceptedAttempt": 0,
+    "causes": [
+      "LinkInfo.team is a name, not team_id",
+      "operator.py shadowed Python stdlib operator; subsequent control uses python -I",
+      "SDK registers cli plus demian-digest session name, not agent=demian",
+      "Stale Unix socket let startup inspect old lock before recording new child; status checked the old receipt only"
+    ],
+    "orphanFoundAfterEarlierInsufficientStopFlag": true,
+    "orphanRecovery": "Exact private binary digest, PID, process startTicks and retained pidfd verified before stopping; separate recovery record preserved",
+    "correctedReadiness": "New child receipt precedes readiness, matching lock PID and real SO_PEERCRED are checked; owned child terminated on failure; status detects unrecorded generation; final /proc audit excludes live private binary"
+  },
+  "preservation": {
+    "windowsNative": {
+      "observedAt": "2026-11-13T05:11:43.070Z",
+      "originalAllRowsSchemaSequencesSecurityPreserved": true,
+      "files": 42,
+      "processes": 18,
+      "workerStarted": false,
+      "originalModelRequests": 0
+    },
+    "linuxServiceUnitMainPidStartStateAndConfigurationHashesPreserved": true,
+    "linuxRunningContainerIdsPreserved": 16,
+    "linuxFullWorkRuntimeDatabaseByteComparisonPerformed": false,
+    "agentSetupOrGlobalServiceInstallation": false,
+    "autoUpdateEnabled": false,
+    "originalProviderCredentialsCopied": false,
+    "operatingTrackChanged": false,
+    "operatingAgentTrailChanged": false
+  },
+  "cleanup": {
+    "windowsDaemonStopped": true,
+    "linuxDaemonStopped": true,
+    "linuxIndependentProcAuditNoPrivateBinaryProcesses": true,
+    "cleanupErrors": [],
+    "qaTeamStateRetainedOfflineForNextStage": true,
+    "originalDaemonOrServiceStopped": false
+  },
+  "privateOperatorSourceSha256": {
+    "native-peer-live-roundtrip-v4.mts": "37b8b851e4e64bd4e0ca5a8fabff2ac212399413e81bf70474f79e8c19b981d0",
+    "peer-live-linux-control.py": "99780188c2b94aaa24eb9e2f8cb790d3a823cabdc8fa3c8ed224140510ff8b1a",
+    "verify-peer-live-databases.mjs": "bddabb0d39d3b1a455502f429e5512d864410e2c969d4abe7a13e630895ed68a",
+    "test-peer-proxy-lifecycle.mjs": "eef875a1a34f6aaacd4c73d686d9c222216905696b06d3d43635832548499286"
+  },
+  "remaining": [
+    "Run actual inbound peer-processing through a bounded native Demian worker and link the resulting Run/receipt to source conversation/message IDs",
+    "Verify Track relation/group UI against those actual native records",
+    "Provision owner-bound Assistant executor tuple/signing/bearer/Track source mapping and verify a full Task across apps",
+    "Operating SDK/worker transition, Entra GUI and desktop/source acceptance remain"
+  ],
+  "limits": [
+    "Daemon transport success does not establish actual Agent/model execution, Task acceptance, or full additional-device source integration.",
+    "Separate OS hosts and a remote SSH address outside local Windows interfaces were verified; physical hardware separation was not audited.",
+    "Linux service-unit/configuration and running-container IDs were compared; this is not a new full Assistant Work/runtime DB backup or restore proof.",
+    "QA network uses isolated generated offline identities with no Reason sign-in proof. Application Entra authentication was not changed.",
+    "No contact with human teammates or existing agent sessions; only two newly registered QA SDK session addresses received synthetic messages.",
+    "Private generated team state remains offline for the next authorized stage; no global hooks, service or automatic updates were installed."
+  ]
+}

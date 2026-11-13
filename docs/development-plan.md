@@ -3,6 +3,17 @@
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
+2026-11-13 교차 OS 기반 후속: 공식0.12.17 daemon과 SDK `8a7f7f2`로 Windows↔
+SSH Linux 서버의 실제 요청/응답·양쪽 inbox ACK·독립 DB readback을 검증했다.
+서비스·기존 Agent 설정·원본 credential은 변경하지 않았고 daemon은 종료했다.
+격리 팀 상태는 다음 단계용으로 offline 보관한다. Linux 호스트에는 Docker와
+Python이 있고 host Node는 없다. 다음 단계는 이 실제 backend 위에 소유 범위의
+native API/worker를 구성해 inbound message·conversation과 Run/receipt를 연결하고
+Track의 실제 관계·중첩 그룹을 대조하는 것이다. 실제 model/Task 수행은 이 전송
+검증에 포함하지 않는다. 운영 SDK/worker·Assistant executor binding·전체 교차 앱
+업무와 Entra GUI는 별도 잔여 조건이다. 초기 실패와 cleanup 보정도
+[실제 peer 전송 기록](native-peer-transport-verification.json)에 보존한다.
+
 2026-11-13 후속: 실제 cowork의 멤버 간 결과 전달과 4회 모델 요청을 격리 QA에서
 확인했다. native SDK의 하위 호출에 cowork 도구·callback·상위 guard를 전달하고,
 실패한 병렬 멤버의 취소/정리까지 소유된 별도 worktree에서 보완했다. 원본 SDK와

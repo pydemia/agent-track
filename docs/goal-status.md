@@ -1,5 +1,22 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 실제 교차 OS 전송 후속: 공식 Reason Network0.12.17 daemon을 기존
+설정·서비스와 분리한 Windows PC와 SSH Linux 서버에서 실행했다. 원본 SDK
+`8a7f7f2`의 세 transport source와 frozen payload를 대조하고 실제 요청/응답의
+ID·내용 hash·replyTo 및 양쪽 ACK 후 inbox 부재를 확인했다. 별도 읽기 전용
+SQLite 검사에서도 수신 행의 정확한 body hash·read_at과 발신 receipt를 대조했다.
+Windows pipe 서버 PID/exe/생성 시점, Linux SO_PEERCRED/PID/startTicks와
+로컬 Windows interface 밖의 원격 SSH 주소를 확인했다. 실제 모델 요청은0이다.
+초기 검증 코드의 이름/ID·세션 종류 오판과 Python import 충돌, stale socket의
+기동 race·미기록 daemon을 확인·복구했다. 이전의 불충분한 종료 flag는 증거로
+쓰지 않으며 최종 독립/proc 조회에서도 소유 daemon 부재를 확인했다.
+원본45테이블·42파일·18프로세스와 Linux 서비스 설정/상태·실행 중16container ID를
+보존했다. transport ACK는 native peer 처리·모델 실행·Task 수용이 아니므로
+AT-12/14/15/18은 부분 상태다. 다음 검증은 실제 inbound message → native
+Run/receipt → Track 관계/group의 동일 ID 대조다. 전체14/21(동일 가중치66.7%)·
+ETA 산정 불가·신뢰도 낮음을 유지하며 운영 executor·SDK/worker·Entra GUI와
+교차 앱 업무의 실제 수용을 전제로 한다. `native-peer-transport-verification.json` 참고.
+
 최신 운영 상태(2026-11-13): 관계 레이블 클릭 수정 `1f224c7`의 API·웹을 새
 operation에서 함께 전환했다. PID59568의 실제 generation·loopback listener·
 manifest와18웹 파일 bytes/MIME를 확인했다. 기존12테이블 이력·원래 설정·
@@ -290,7 +307,7 @@ Native cold start·PC 재부팅을 수행한 결과는 아니다. `demian-api-st
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 실제 native 소속 지도·관계 목록·키보드·390px 실기, SCC 순환/고립·10,000노드 fixture. 실제 Pydemia FlowCanvas·node/edge 상세·source/Run ID 분리. 실제 same-Task·Session2·Run2 지도·행 정렬, child closure fixture. Projects 실제 dependency1건·업무2·Session2·기존 Run2의6node/5edge, 선행 방향·관계/현재 revision 상세·390px/키보드/URL 이동·범위7→6에서 API404·그래프/URL 제거→7복원 실기. 중첩 그룹·화면 Task 묶음 생성/해제·깊이 preset·접힘 내부 원본 선택·breadcrumb/전체 맞춤·재조회 유지·390px 실기. 현재 업무2/관계1 및 Codex Run1/도구4를 대조, 대표 경계선·순환/소속 충돌·10,000-depth는 fixture 증거. 원본 artifact result의 Run 그룹·상세·edge는 실제 answer.txt로 확인. 격리 실제 explicit managed-child receipt·17event·그룹/관계 상세를 추가 확인. 실제 nested coordinator3호출/63event·5그룹 대조, peer·운영 통합은 남음 (`projects-dependencies-verification.json`, `node-groups-verification.json`, `native-managed-child-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
 | AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분 준비. Track 전용 authority/API·현재 Projects 교집합·별도 WorkExecution/역할 UI·중첩 그룹을 구현하고 canonical HTTP/권한·투영·브라우저 fixture를 검증했다. 통합 Root 원본 cutover 후 Track 운영 활성화·정상 Entra UI·기존 실행1/역할1/18초/37event·현재 Projects 검토 상태·6node5edge/3그룹을 대조했다. 전체 교차 앱 업무는 아직 미검증. 전용 Assistant native 읽기 API·strict coordinator·runtime.observe를 별도 private PR21에 구현. 새18개 SQLite/실제 Tasks/HTTP 검사, 전체899개 중885통과·실패0·환경skip14. Track client98개와 실제 Work/Runtime DB별 암호화·복구를 검증했으나 전체 교차 앱 업무는 미검증 (`assistant-native-reader-verification.json`, `assistant-workspace-verification.json`, `assistant-live-verification.json`) |
-| AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |
+| AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 실제 Windows↔SSH Linux peer 전송/응답/ACK를 확인했으며 두 번째 호스트의 Agent 실행·Track source 수집은 남음 (`native-peer-transport-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
 | AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 부분. 별도 인가 native lineage9건·정확한 도구 item join3건·Run/호출 분리와 업무별 고유 Run 집계. 격리 실제 explicit managed-child Run1/17event·부모/child ID 분리와 원본 receipt·Track 상세 확인. 실제 coordinator→sorter→verifier→종합의3호출/5요청/63event 및 cowork3멤버·4호출·77event의 실제 병렬/합류와 명시 ID·선행 관계를 별도 QA에서 확인. peer·교차 장치와 native SDK/worker 운영 전환 남음 (`native-parallel-flow-verification.json`) |
