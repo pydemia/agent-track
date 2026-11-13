@@ -1,0 +1,302 @@
+{
+  "verifiedAt": "2026-11-13T12:49:25.241Z",
+  "requirements": [
+    "AT-06",
+    "AT-09",
+    "AT-14",
+    "AT-20"
+  ],
+  "phase": "operating-execution-prerequisite-verified",
+  "scope": "Dedicated native API/worker, current owner role binding and public service routing. Does not establish operating Assistant promotion, model execution or whole cross-app acceptance.",
+  "source": {
+    "nativeRevision": "c43934171b89b69da0909b8a93d96cc9b2bfc601",
+    "trackOperatorRevision": "ae65c075e49edac278c9277f60e64a10d2502d6e",
+    "trackProductOperatingRevision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003",
+    "boundedPatch": "integrations/demian-delegated-work/native.patch",
+    "boundedPatchProvenance": "integrations/demian-delegated-work/provenance.json",
+    "upstreamNativeMerge": false
+  },
+  "release": {
+    "manifestSha256": "3d73537815f0b8f12dbc77d6c525977e797af35f20143dd18151c67ef68a2da8",
+    "files": 19622,
+    "links": 5,
+    "apiSha256": "89d9e9c53bc5a2d20e14740960147f7f443b36aa7b445fbbbf67c4f5b033b1d1",
+    "workerSha256": "09dbcadf6425681d0ee320fe30504df5133a918b675d5a4f887e2914c7eb543c",
+    "operatingManifest": "demian-dedicated-work-release",
+    "workerMode": "general",
+    "originalQaManifestUnchanged": true
+  },
+  "database": {
+    "clone": {
+      "actualBackupRestored": true,
+      "tables": 45,
+      "missing026Rejected": true,
+      "fullSchemaAccepted": true,
+      "onlyMarkerAndFunctionTriggerAdded": true,
+      "originalDatabaseUnchangedDuringCloneVerification": true,
+      "ownedCloneAndNetworkRemoved": true
+    },
+    "operatingMigration": {
+      "file": "026_prepared_role_metadata.sql",
+      "sha256": "36e44466afd0dfcac9743ef8b2470314bfb37b2be86c1b95100c3c28635cf600",
+      "committed": true,
+      "exactCloneDefinitionsMatched": true,
+      "onlyExpectedMigrationChanges": true,
+      "originalApiPreserved": true
+    },
+    "originalRowsPreserved": true,
+    "originalSchemaSequencesAndRolesPreserved": true,
+    "originalRuns": 19,
+    "originalEvents": 810,
+    "newNativeWorkspace": 1,
+    "newNativeSession": 1,
+    "newSessionJournal": 1,
+    "newDeploymentPolicy": 1,
+    "newDeploymentSessionBinding": 1,
+    "newWorkRuntimeBinding": 1,
+    "additionalWorkerMetadata": {
+      "emptyManagedChildCatalogs": 1,
+      "newWorkerOnly": true,
+      "noCallableTargets": true
+    },
+    "modelRequests": 0,
+    "productionTaskNoteRunCreates": 0
+  },
+  "identityBoundary": {
+    "separateLoopbackApi": true,
+    "separateBearer": true,
+    "mandatoryHmacAndCurrentBinding": true,
+    "sameTrustedDatabasePrincipal": true,
+    "databaseIdentitySeparation": false,
+    "originalApiWorkRuntimeStillOff": true,
+    "actualRoleToolScopeDescriptionsPreserved": 2,
+    "skillRefsPreserved": 1,
+    "effectiveNativeTools": [],
+    "permissions": [],
+    "permissionPolicy": "deny",
+    "preparedRuntimeSandbox": "read-only",
+    "windowsGeneralWorkerRequireIsolation": false
+  },
+  "operatingProcesses": [
+    {
+      "role": "worker",
+      "pid": 42184,
+      "created": "2026-11-13T12:25:13.7458530Z"
+    },
+    {
+      "role": "api",
+      "pid": 12356,
+      "created": "2026-11-13T12:26:27.7950720Z"
+    },
+    {
+      "role": "gate",
+      "pid": 33564,
+      "created": "2026-11-13T12:31:36.7790550Z"
+    }
+  ],
+  "nativeHttp": {
+    "checks": [
+      {
+        "name": "signed-capabilities",
+        "status": 200,
+        "prepared": true,
+        "roleMetadata": true
+      },
+      {
+        "name": "same-nonce-replay",
+        "status": 409
+      },
+      {
+        "name": "exact-bound-session",
+        "status": 200
+      },
+      {
+        "name": "current-actor",
+        "status": 200
+      },
+      {
+        "name": "bearer-without-signature",
+        "status": 403
+      },
+      {
+        "name": "ordinary-api-bearer-on-dedicated-api",
+        "status": 401
+      },
+      {
+        "name": "out-of-scope-session",
+        "status": 403
+      },
+      {
+        "name": "ordinary-api-unchanged",
+        "status": 200,
+        "workRuntimeOff": true
+      },
+      {
+        "name": "ordinary-api-cannot-read-protected-session",
+        "status": 404
+      }
+    ],
+    "modelRequests": 0
+  },
+  "publicRouting": {
+    "origin": "https://demian.pydemia.ai",
+    "tlsVerification": true,
+    "anonymous": 401,
+    "existingBrowser": 200,
+    "signedCapabilities": 200,
+    "preparedCodex": true,
+    "roleMetadata": true,
+    "unsignedBearer": 403,
+    "existingBrowserLoginPreserved": true,
+    "domainConfigAndLoginFilePreserved": true,
+    "cloudflaredChanged": false,
+    "trackTrailEntraPolicyChanged": false
+  },
+  "startup": {
+    "independentFrozenOperator": true,
+    "operatorSha256": "911b71b11be828649495e52652280ca506914892f3e89dfd0dda5ba173103df2",
+    "inputFiles": 10,
+    "twoBuildsMatched": true,
+    "nodeSyntaxCheck": true,
+    "workerExistingProcessAdopted": 42184,
+    "apiExistingProcessAdopted": 12356,
+    "automaticStartupConfigured": false,
+    "restartAfterForcedFailureTested": false
+  },
+  "assistantCandidate": {
+    "revision": "f79a5b13c53b5c12765aa59b6a2b5302c4fa3913",
+    "image": "sha256:cb3df22a1f01a9c37e46dfa2111bb4c1bf56d196b16e8fae3b142565c6690478",
+    "archiveSha256": "48874cb0a838ee628b3d70ef89e3237f528876b2af61877995f9a2f6ee0b476f",
+    "fullTrackedDockerInputs": true,
+    "deployed": false,
+    "originalContainerUnchanged": true,
+    "compiledImageReadiness": {
+      "phase": "compiled-image-native-readiness-verified",
+      "capability": {
+        "configured": true,
+        "reachable": true,
+        "authorized": true,
+        "compatible": true,
+        "read": true,
+        "register": true
+      },
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/api/v1/capabilities",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/me",
+          "status": 200
+        },
+        {
+          "method": "GET",
+          "path": "/api/v1/sessions/9a70082b-3a90-4044-847f-35dce72f2414",
+          "status": 200
+        }
+      ],
+      "roleMetadataCount": 2,
+      "currentNativeAuthorityChecked": true,
+      "tlsVerification": true,
+      "productionDatabaseMounts": 0,
+      "workCoordinator": false,
+      "runtimeStarts": 0,
+      "modelRequests": 0,
+      "ownedProbeContainerRemoved": true
+    },
+    "ci": {
+      "latest": {
+        "id": 43422362406,
+        "url": "https://github.com/pydemia/persona/actions/runs/43422362406",
+        "conclusion": "success",
+        "jobs": [
+          "code-worker",
+          "collection",
+          "app",
+          "container"
+        ]
+      },
+      "earlier": {
+        "id": 43422353011,
+        "url": "https://github.com/pydemia/persona/actions/runs/43422353011",
+        "conclusion": "failure",
+        "failedStep": "Run npx playwright test",
+        "cause": "not established; same-revision later run succeeded"
+      }
+    },
+    "newOperatingPromotionPerformed": false
+  },
+  "verification": {
+    "isolatedNativeRegression": {
+      "passed": 123,
+      "failed": 0,
+      "skipped": 0,
+      "modelRequests": 0
+    },
+    "coreProviderFixtures": {
+      "passed": 29,
+      "modelRequests": 0
+    },
+    "newReleaseVerifier": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nativeBuildAndApiWorkerDbTypecheck": true,
+    "trackTypecheck": true,
+    "independentSourceReview": "No additional concrete rollout blocker found in migration026, dedicated API and registration configuration; static scope only"
+  },
+  "preservation": {
+    "at": "2026-11-13T12:46:46.951Z",
+    "loopbackOwnerSnapshotStatus": 200,
+    "demianSourceState": "connected",
+    "publicAnonymous": {
+      "track.pydemia.ai": 401,
+      "trail.pydemia.ai": 302
+    },
+    "freshBrowserEntraLogin": false,
+    "sourceOrModelCalls": 0
+  },
+  "initialFailures": [
+    {
+      "phase": "domain-handoff-preflight",
+      "cause": "Node fetch did not forward the requested Host to loopback; Windows command identity used a different slash spelling",
+      "originalGateStopped": false,
+      "resolution": "Native HTTP request for loopback and exact observed command spelling; original files unchanged before retry"
+    },
+    {
+      "phase": "startup-packaging",
+      "cause": "esbuild file URL resolution and redundant createRequire banner",
+      "runningServicesChanged": false,
+      "resolution": "Explicit file URL resolver, no redundant banner, generated Node syntax check and actual existing-process adoption"
+    },
+    {
+      "phase": "preservation-query",
+      "cause": "Initial expected delta omitted the new Session journal and a new-worker empty managed-child catalog",
+      "applicationBugEstablished": false,
+      "resolution": "Verified native trigger/catalog producer; exact old row hashes retained excluding only new Session/worker rows; catalog has no callable targets"
+    }
+  ],
+  "limits": [
+    "Operating Assistant remains on the prior image; candidate probes are not operating WorkCoordinator execution",
+    "No production Task/Note/Run or model request was created in this rollout",
+    "Protected delegated Run metadata still needs an authorized Track observation path; ordinary bearer remains denied",
+    "No whole WorkCoordinator/Projects result/Note/desktop/Track acceptance yet",
+    "No fresh Entra browser GUI or multiple-device dashboard acceptance in this step",
+    "Windows prepared read-only/no-tool policy is not a general operating-system sandbox claim",
+    "Startup helper adoption was tested; automatic startup and destructive crash recovery were not configured/tested"
+  ],
+  "progress": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal top-level; partial=0",
+    "meaning": "acceptance coverage, not work effort or operating readiness",
+    "wholeGoalComplete": false,
+    "eta": "not estimable",
+    "confidence": "low",
+    "next": "Operating Assistant promotion with current authority and durable state, protected metadata observation, full WorkCoordinator/Projects/Note/desktop/Track scenario"
+  }
+}

@@ -3,6 +3,10 @@
 AT-14 운영 실행 연결의 전제 수정이다. 검증한 source의 네 파일만 패치로
 보존하며 기존 Demian API·worker·계정 설정에는 아직 배포하지 않았다.
 
+위 문장은 최초 패치 검증 시점의 상태다. 2026-11-13 후속에서는 이 경계를 포함한
+새 소스 `c439341`의 전용 worker를 동결 패키지로 가동했다. 기존 일반 API/worker
+설정을 전환한 것은 아니다. [후속 실행 경계와 운영 기록](../demian-delegated-work/README.md)을 따른다.
+
 ## 수정한 문제
 
 `deploymentServicesFile`이 있고 일반 `configPath`가 없는 worker는 기존에도

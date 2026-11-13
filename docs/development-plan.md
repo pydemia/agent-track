@@ -8,12 +8,12 @@ AT-18 보류 판정을 정정했으며 전체 업무는 미검증이다. 현재 
 임계 경로다. 원본 웹 인증 이동·문맥 요약 GUI, 그룹 운영 GUI, 다중 장치 대시보드
 검사는 각각의 요구로 추적한다.
 
-최신 대조는21:11 KST, Track 소스 `6f187eb`/운영 `a3bb446`, Demian 후보
-`c439341`, Persona 후보 `f79a5b1`이다. 전용 API·서명 프록시·위임 취소의
-권한 원자 검사·실제 역할 문맥 보존은 소스/격리 검증 단계다. 운영 전용
-API8081은 아직 없으며, migration026·worker·Assistant 전환과 protected
-Run metadata 인가 연결이 남는다. 이는 AT-14의 전제 진전이며 새로운 상위
-요구 완료로 세지 않는다. [최신 단계별 감사](progress-audit-2026-11-13.md#최신-소스와-운영의-대조)를 따른다.
+최신21:46 KST 기준, Track 운영 코드는 `a3bb446`을 유지하며 Demian
+`c439341`의 migration026·실제 역할 binding·전용 API8081/worker·공개 서명
+경계를 가동했다. Persona `f79a5b1` 후보 이미지의 Linux→공개 HTTPS→현재 native
+인가 조회3개도200이었다. Assistant 운영 전환, protected Run metadata 인가
+연결과 전체 업무는 남는다. 이는 AT-14의 전제 진전이며 새 상위 요구 완료로
+세지 않는다. [운영 근거](demian-dedicated-service-verification.json)를 따른다.
 
 진척 재점검: 71.4%는 상위 수용 항목의 누적 충족률이며 개발 완료율이나 운영
 준비도 추정치가 아니다. AT-09의 재개/재시도와 AT-14의 운영 실행/관측 인가 연결은
@@ -40,14 +40,15 @@ private canonical replay에서 앱 이미지만 교체했고, 다른 역할·인
 교집합으로 접수·복구·lease 정리를 제한했다. 일반 설정 worker는 기존 동작을
 유지한다. 별도 실제 PostgreSQL 회귀69개·타입 검사·worker build·독립 소스 검토를
 통과했고, [bounded patch](../integrations/demian-worker-intake/README.md)를 보존했다.
-운영 worker 전환이나 권한 구성은 아직 수행하지 않았다.
+이후 위 최신 후속에서 새 전용 worker와 역할 binding을 가동했다. 원본 일반
+worker를 켜거나 기존 일반 조회 API의 인증 설정을 바꾸지는 않았다.
 
 현재 native API의 trusted 인증은 하나의 로컬 관리자 신원이다. 그 신원을
 위임용 service principal로 바로 지정하면 기존 Track 요청까지 위임 서명이
-필요해진다. 다음 실행 연결은 기존 일반 조회를 유지하는 별도 API·bearer·서명
-경계와 지속되는 runtime 경로를 먼저 마련한다. 현재 계획은 같은 trusted DB
-principal을 사용하므로 DB 신원 분리로 표현하지 않는다. API에 선택 코드가 있다는 사실을
-운영 설정 완료로 계산하지 않는다.
+필요해진다. 이를 피하려고 기존 일반 조회를 유지하는 별도 API·bearer·서명
+경계와 동결 runtime 경로를 구성했다. 같은 trusted DB principal을 사용하므로
+DB 신원 분리로 표현하지 않는다. 실제 운영 조회 검증과 아직 남은 Assistant의
+실행 경로 전환을 구별한다.
 
 다음 임계 작업은 현재 Assistant/native 실행 authority·source tuple과 protected
 Run의 metadata 조회 계약을 연결한 뒤, 실제 QA 업무 한 건을 WorkCoordinator →

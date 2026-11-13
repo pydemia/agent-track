@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "repository": "https://github.com/pydemia/demian",
+  "baselineCommit": "c5284e3e813430b063cdb0fd1f1c3a7c1a9417ef",
+  "targetCommit": "c43934171b89b69da0909b8a93d96cc9b2bfc601",
+  "baselineTree": "b472ba2a2f8a99eacdcf2f17b9625ff28c708bfc",
+  "targetTree": "e60391c0e59cb6d16cbdf9d44c85a5996f4e13fd",
+  "patchSha256": "fc4e4cebdb8f632c2f02b4ec8ca76f263ae0883dea91901cfe67e70df2bfcff8",
+  "files": [
+    {
+      "path": "apps/api/src/dedicated-work-main.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "3f3e6db40c2ea8c8f8728f51af9541f6efac9a4138f3a372e80cd0f29fe939e5",
+      "payloadBytes": 1555
+    },
+    {
+      "path": "apps/api/src/dedicated-work-profile.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "b2820671a3d38f287b54a28bb231fbb81ba43648e774140cf1873cb5be6c9022",
+      "payloadBytes": 4048
+    },
+    {
+      "path": "apps/api/src/server.ts",
+      "status": "M",
+      "baselineSha256": "7b8394a23ee38678ef93d9afc5e9b68a049f86a951261ab286b25b329a49a79a",
+      "payloadSha256": "5f99217c2a6f07804eff8a41ea47fc902a3e79a4487ef47a6c08e8385844047d",
+      "payloadBytes": 53907
+    },
+    {
+      "path": "apps/api/src/work-runtime-server.ts",
+      "status": "M",
+      "baselineSha256": "5c7ebed848dc808828eb5afbc4105b768ee5e09e3bc13300ca5fbd85704188c7",
+      "payloadSha256": "33792cc58a7e61f84e054e281e57e3b00546af535e055b6c9869466f581630ed",
+      "payloadBytes": 24890
+    },
+    {
+      "path": "apps/api/test/dedicated-work-entry.integration.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "daad4d2679bbefeda6a1977b3b6414d8efa55f4b0f36901c10d387ea6a049644",
+      "payloadBytes": 8623
+    },
+    {
+      "path": "apps/api/test/dedicated-work-profile.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "6aa8c2499df3c25cf31d9bb5cacc402817d21ab3bd062c58b55eba5c41014b99",
+      "payloadBytes": 3433
+    },
+    {
+      "path": "apps/api/test/dedicated-work-schema.integration.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "c77f074c75b22097b2cd104c818e818795c9f0c706dfb1d45b1cf48288a08282",
+      "payloadBytes": 2507
+    },
+    {
+      "path": "apps/api/test/work-runtime-package.test.ts",
+      "status": "M",
+      "baselineSha256": "b15b9f7c8649dafab9b52a2ec176d2f62402cee5f5b39b3495e8ff4fa2b37552",
+      "payloadSha256": "92b1c36b67cc7ab7f11964c783855ace87520f191ccef0378d1c5333b860e7f6",
+      "payloadBytes": 21941
+    },
+    {
+      "path": "apps/api/test/work-runtime-server.integration.test.ts",
+      "status": "M",
+      "baselineSha256": "7d561edb14c79b8b0eb783c91e62741bff022d081343ab3d4a24d4ef05d0b5cb",
+      "payloadSha256": "b3c28dd8cf79424dbe4716038dff62cd0faefc1d27b6c627834d1a163e9e2bd4",
+      "payloadBytes": 75321
+    },
+    {
+      "path": "apps/worker/src/prepared-delegation.ts",
+      "status": "M",
+      "baselineSha256": "ee0c03d260e8f5ab4c7b886b33c55b6243fc8cc989999f10fa30a12dae6f258a",
+      "payloadSha256": "4dbd5a5d046faacb91f652c4893133265d3f7330666f1d748a8268a6e2fbfaea",
+      "payloadBytes": 6605
+    },
+    {
+      "path": "apps/worker/src/worker.ts",
+      "status": "M",
+      "baselineSha256": "44dec9a905264b70d7dfb5c382e1ef8fa92da4a902d5043323fa6cc95c6fcb43",
+      "payloadSha256": "f463a22497a3199ba7d340cfa00ffb0ff41c80cc4594df62c49458c4aaa74acf",
+      "payloadBytes": 44619
+    },
+    {
+      "path": "apps/worker/test/delegated-work-runtime.integration.test.ts",
+      "status": "M",
+      "baselineSha256": "3928b50cc78cb8504f027d15a22be0d9f52b174f715d40d1d82f6917a7f60daa",
+      "payloadSha256": "3ad10a368fe5dc44ed15df7474782849ef524961077cebf70b0e9518dde0e7fc",
+      "payloadBytes": 24901
+    },
+    {
+      "path": "apps/worker/test/prepared-role-metadata.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "550f99c285402a665d5a69a597a4f92b25f89aa330806a2b35231030f0a062cf",
+      "payloadBytes": 6493
+    },
+    {
+      "path": "packages/db/migrations/026_prepared_role_metadata.sql",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "d5d410fa3c14135d7f3b0bfb440ee1b4ea191b6a03e6e349b80a621e8a53d946",
+      "payloadBytes": 1526
+    },
+    {
+      "path": "packages/db/src/index.ts",
+      "status": "M",
+      "baselineSha256": "47ea12a98d6d33590a1cecce3c07367ea0186e998154218e16ffc6cc5804494c",
+      "payloadSha256": "45da750ddb2c30ac4f8e01a96e5d44582621dca9db197a887156b115f7a006de",
+      "payloadBytes": 53014
+    },
+    {
+      "path": "packages/db/src/work-runtime-delegation.ts",
+      "status": "M",
+      "baselineSha256": "0bdbd60c56e82eb57dd760a6969ea9dd2a42dcb11b471205a576dabb985f9878",
+      "payloadSha256": "a1985b80cad4d57901dd42161e4d5a63c403ed0011c9561648c5c6f348026449",
+      "payloadBytes": 19410
+    },
+    {
+      "path": "packages/db/src/work-runtime-runs.ts",
+      "status": "M",
+      "baselineSha256": "f66466afa89667b70ff64445e11c9af366ee963c472c85571aaf652f0b7b30a6",
+      "payloadSha256": "8e52fa76e1c96c9cc0f0b6dc0ec4c67beee1bc4d4feeac6b88da8310b30fe871",
+      "payloadBytes": 32289
+    },
+    {
+      "path": "packages/db/test/work-runtime-delegation.test.ts",
+      "status": "M",
+      "baselineSha256": "484a55e1601a933619ad040e66ed91bf0bd1480ff1b817574070875c93216664",
+      "payloadSha256": "bebdad7f227d163317b511721407e6d35500f97624546c4ae43bcec32af20770",
+      "payloadBytes": 3157
+    }
+  ],
+  "verification": {
+    "freshIndexBaselineApplied": true,
+    "exactTargetTreeMatched": true,
+    "nativeWorkingTreeChanged": false
+  },
+  "scope": "Bounded source delta after demian-worker-intake; source commits local, not upstream merge; operating evidence separate"
+}

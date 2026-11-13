@@ -11,6 +11,28 @@ Track 운영 코드 기준은 `a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003`이다.
 이 비율은 개발 작업량, 사용자에게 유용한 정도, 운영 준비도나 남은 시간의
 추정치가 아니다. 전체 교차 앱 업무 수용(AT-14)은 여전히 미검증이다.
 
+## 감사 이후 실제 운영 진전
+
+2026-11-13 21:46 KST 후속에서는 원본 백업의 격리 복원본 검증을 거쳐
+migration026·현재 역할 binding·동결 전용 API/worker·공개 서명 경계를 운영
+연결했다. 기존 일반 API와 Track의 native 수집은 유지됐고, 보호 Session의
+일반 bearer 조회는404다. 기존19Run/810event와 기존 행을 보존했다. 생성된 새
+Session journal과 새 worker의 빈 catalog도 별도로 대조했다. 실제 모델/Run은0이다.
+
+Persona `f79a5b1` 후보 이미지를 서버에서 빌드하고, 그 compiled host loader와
+gateway가 Linux→공개 HTTPS→현재 native 인가 경계의 capability/actor/Session을
+모두200으로 확인했다. 실제 현재 binding을 사용한 읽기 검사이며, 운영 Assistant
+전환이나 WorkCoordinator 실행으로 세지 않는다. 해당 소스의 최신 CI 네 job은
+성공했고, 앞선 같은 소스의 Playwright 단계 실패는 원인 미확정으로 보존했다.
+
+이전의 “전용 API/worker가 운영 미가동”이던 하위 단계가 닫혔다. 상위 AT-14는
+Assistant 운영 전환·protected metadata 조회·전체 업무가 남아 부분 상태다.
+**수용15/21·71.4%는 유지**하며 전체 개발 완료율이나 남은 시간 비율로 환산하지
+않는다. 전체 일정은 여전히 산정 불가·신뢰도 낮음이며, 첫 실제 WorkCoordinator
+업무와 desktop 경로가 다음 재산정 근거다.
+[운영 증거](demian-dedicated-service-verification.json)와 [현재 기준표](goal-status.md)를
+우선하며 아래19:45/21:11의 미가동 표현은 당시 감사 기록이다.
+
 ## 사용자 재질문에 따른 후속 점검
 
 재대조 기준: 2026-11-13 19:45 KST, HEAD `17f6b4a`와 아래 원본 요구/구현/
