@@ -1,3 +1,4 @@
+param([switch]$ProductOnly)
 $ErrorActionPreference = 'Stop'
 $startMutex = New-Object System.Threading.Mutex($false, 'Local\Pydemia.AgentTrack.Start')
 if (-not $startMutex.WaitOne(10000)) { throw 'Track start is already in progress.' }
@@ -16,7 +17,14 @@ if ($running) {
 }
 if (-not $running) {
     $env:TRACK_CONFIG = $configPath
-    $process = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList @('--import', 'tsx', 'apps/api/main.ts') -WorkingDirectory $repoRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateDir 'track-product.stdout.log') -RedirectStandardError (Join-Path $stateDir 'track-product.stderr.log')
+    $node = (Get-Command node.exe).Source
+    $descriptor = & $node (Join-Path $repoRoot 'deploy/track/runtime-release.mjs')
+    if ($LASTEXITCODE -ne 0) { throw 'Track runtime verification failed; no process was started.' }
+    $runtime = $descriptor | ConvertFrom-Json
+    if (-not $runtime.cwd -or -not $runtime.entry -or $runtime.executable -ne $node) { throw 'Track runtime descriptor mismatch.' }
+    $process = Start-Process -FilePath $node -ArgumentList @('--import', 'tsx', ('"' + $runtime.entry + '"')) -WorkingDirectory $runtime.cwd -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $stateDir 'track-product.stdout.log') -RedirectStandardError (Join-Path $stateDir 'track-product.stderr.log')
+    $heldHandle = $process.Handle
+    try {
     $ready = $false
     for ($attempt = 0; $attempt -lt 10; $attempt++) {
         $process.Refresh()
@@ -26,8 +34,26 @@ if (-not $running) {
         Start-Sleep -Milliseconds 200
     }
     if (-not $ready) { throw 'Track did not acquire its expected listener; PID was not recorded.' }
+    $identity = Get-CimInstance Win32_Process -Filter "ProcessId = $($process.Id)" -ErrorAction Stop
+    if ($identity.Name -ne 'node.exe' -or $identity.ExecutablePath -ne $node) { throw 'Track startup identity mismatch.' }
+    $receipt = @{ pid = [int]$identity.ProcessId; name = [string]$identity.Name; executable = [string]$identity.ExecutablePath; created = $identity.CreationDate.ToUniversalTime().ToString('o'); command = [string]$identity.CommandLine; runtime = $runtime }
+    $recordPath = Join-Path $stateDir 'track-product-process.json'
+    $staging = Join-Path $stateDir ('track-product-process.' + [Guid]::NewGuid().ToString('N') + '.new')
+    [System.IO.File]::WriteAllText($staging, ($receipt | ConvertTo-Json -Depth 8), (New-Object System.Text.UTF8Encoding($false)))
+    if ([System.IO.File]::Exists($recordPath)) { [System.IO.File]::Replace($staging, $recordPath, $null) } else { [System.IO.File]::Move($staging, $recordPath) }
     $process.Id | Set-Content (Join-Path $stateDir 'track-product.pid')
+    } catch {
+        if (-not $process.HasExited) {
+            if (-not ('AgentTrack.StartupNative' -as [type])) {
+                Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; namespace AgentTrack { public static class StartupNative { [DllImport("kernel32.dll", SetLastError=true)] public static extern bool TerminateProcess(IntPtr handle, uint exitCode); } }'
+            }
+            if (-not [AgentTrack.StartupNative]::TerminateProcess($heldHandle, 1)) { throw 'Failed to stop the retained Track startup child.' }
+            if (-not $process.WaitForExit(5000)) { throw 'Retained Track startup child did not exit.' }
+        }
+        throw 'Track startup failed; its retained child was stopped.'
+    } finally { $process.Dispose() }
 }
+if ($ProductOnly) { Write-Output 'Track product is ready; bridge processes were preserved.'; return }
 $forwardPidPath = Join-Path $stateDir 'track-forward.pid'
 $forward = $null
 if (Test-Path -LiteralPath $forwardPidPath) {
