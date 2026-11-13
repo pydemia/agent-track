@@ -1,5 +1,8 @@
 import type { EventView, RelationKind, RelationView, RunView } from "../contracts/index.ts";
 import { projectTrace } from "./trace.ts";
+import { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
+import { withCoworkFlow } from "./cowork-flow.ts";
+export { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
 
 export interface MissionNode {
   key: string;
@@ -14,6 +17,7 @@ export interface MissionNode {
   assistantExecutionRef?: { sourceId: string; executionId: string };
   callId?: string;
   invocationId?: string;
+  coworkRef?: { groupId: string; memberId?: string };
   details: Array<{ label: string; value: string }>;
   sequences: string[];
 }
@@ -39,9 +43,6 @@ export const missionUnitKind = (node: Pick<MissionNode, "kind" | "status">): str
     ? "invocation-reference" : node.kind;
 
 const compareSequence = (a: string, b: string): number => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
-export const missionEntityKey = (sourceId: string, kind: string, id: string, runId?: string): string =>
-  JSON.stringify([sourceId, JSON.stringify(runId && ["invocation", "tool", "permission", "group", "member"].includes(kind) ? [kind, runId, id] : [kind, id])]);
-export const coworkMemberKey = (groupId: string, memberId: string): string => JSON.stringify([groupId, memberId]);
 const edgeKey = (sourceId: string, from: string, to: string, kind: string): string => JSON.stringify([sourceId, from, to, kind]);
 const phaseLabel: Record<string, string> = { started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "확인 불가", ambiguous: "기록 모호" };
 const relationLabels: Record<RelationKind, string> = {
@@ -293,6 +294,11 @@ export function missionFlow(
     }
   }
 
+  const cowork = withCoworkFlow({ nodes: [...nodes.values()], edges: [...edges.values()], eventCount, hiddenNodes: 0, incomplete }, eligibleRuns, events);
+  nodes.clear(); for (const node of cowork.nodes) nodes.set(node.key, node);
+  edges.clear(); for (const edge of cowork.edges) edges.set(edge.key, edge);
+  incomplete = cowork.incomplete;
+
   // Select a bounded connected component with BFS from the selected run. Edges are kept
   // whenever both endpoints survive, so useful relation endpoints are not discarded by edge slicing.
   const maxNodes = Number.isFinite(options.maxNodes) ? Math.max(1, Math.floor(options.maxNodes!)) : 200;
@@ -311,5 +317,5 @@ export function missionFlow(
   }
   const outputNodes = [...chosen].map((key) => nodes.get(key)!).sort((a, b) => a.key.localeCompare(b.key));
   const outputEdges = [...edges.values()].filter((edge) => chosen.has(edge.from) && chosen.has(edge.to)).sort((a, b) => a.key.localeCompare(b.key));
-  return { nodes: outputNodes, edges: outputEdges, hiddenNodes: nodes.size - chosen.size, eventCount, incomplete };
+  return { nodes: outputNodes, edges: outputEdges, hiddenNodes: nodes.size - chosen.size, eventCount, incomplete: incomplete || nodes.size > chosen.size };
 }

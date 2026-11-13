@@ -126,7 +126,7 @@ export function projectFlowGroups(
     for (const key of new Set([edge.from, edge.to])) {
       const links = incident.get(key) ?? []; links.push(index); incident.set(key, links);
     }
-    if (edge.kind === "dependency") {
+    if (["dependency", "cowork-dependency"].includes(edge.kind)) {
       const outgoing = forward.get(edge.from) ?? []; outgoing.push(edge.to); forward.set(edge.from, outgoing);
       const incoming = reverse.get(edge.to) ?? []; incoming.push(edge.from); reverse.set(edge.to, incoming);
     }

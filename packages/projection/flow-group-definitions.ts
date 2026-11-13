@@ -27,7 +27,7 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
   const groupFor = new Map<string, string>();
   const insert = (anchor: MissionNode, kind: string, basis: FlowGroupDefinition["basis"], description: string) => {
     const key = flowGroupKey(kind, anchor.key);
-    const group: FlowGroupDefinition = { key, kind, label: `${kind === "task" ? "업무 실행" : kind === "session" ? "Session" : kind === "run" ? "Run" : kind === "invocation" ? "호출 범위" : kind === "invocation-reference" ? "호출 참조 범위" : "협업 범위"} · ${anchor.label}`,
+    const group: FlowGroupDefinition = { key, kind, label: `${kind === "task" ? "업무 실행" : kind === "session" ? "Session" : kind === "run" ? "Run" : kind === "invocation" ? "호출 범위" : kind === "invocation-reference" ? "호출 참조 범위" : kind === "cowork-member" ? "멤버 범위" : "협업 범위"} · ${anchor.label}`,
       sourceId: anchor.sourceId, basis, memberKeys: [anchor.key], description };
     groups.set(key, group); groupFor.set(anchor.key, key); return group;
   };
@@ -88,6 +88,22 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
       const member = nodes.get(edge.to);
       const owners = model.edges.filter(candidate => candidate.to === edge.to && candidate.kind === "cowork");
       if (member?.kind === "member" && member.runKey === anchor.runKey && member.sourceId === anchor.sourceId && owners.length === 1) attachLeaf(member.key, group);
+    }
+  }
+
+  for (const member of model.nodes.filter(node => node.kind === "member" && node.runKey && node.coworkRef?.memberId)) {
+    const invocationKeys = model.edges.filter(edge => edge.from === member.key && edge.kind === "cowork-invocation").map(edge => edge.to);
+    const calls = invocations.filter(node => invocationKeys.includes(node.key) && node.runKey === member.runKey && node.sourceId === member.sourceId);
+    if (!calls.length) continue;
+    const owner = [...groups.values()].find(group => group.kind === "cowork" && group.memberKeys.includes(member.key));
+    if (!owner) continue;
+    const group = insert(member, "cowork-member", "native", "명시된 그룹·멤버·호출 ID로 연결된 멤버 실행 범위입니다. 재시도 호출은 독립 Run이 아닙니다.");
+    owner.memberKeys = owner.memberKeys.filter(key => key !== member.key); group.parentKey = owner.key;
+    for (const invocation of calls) {
+      const parents = model.edges.filter(edge => edge.to === invocation.key && edge.kind === "cowork-invocation");
+      if (new Set(parents.map(edge => edge.from)).size !== 1) continue;
+      const child = groups.get(flowGroupKey(missionUnitKind(invocation), invocation.key));
+      if (child) child.parentKey = group.key;
     }
   }
 

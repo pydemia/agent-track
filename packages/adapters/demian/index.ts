@@ -13,6 +13,7 @@ import { projectToolEvidence, type ToolEvidencePage } from "./tool-evidence.ts";
 import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from "./session-relations.ts";
 import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
 import { readBoundedNativeJson } from "./json.ts";
+import { coworkPlanSchema } from "../../contracts/cowork.ts";
 
 export type { NativeLineageObservation, NativeLineagePage } from "./lineage.ts";
 export type { ToolEvidenceCall, ToolEvidenceEventType, ToolEvidenceMark, ToolEvidenceOutcome, ToolEvidencePage } from "./tool-evidence.ts";
@@ -74,6 +75,14 @@ export function normalizeEvent(sourceId: string, raw: unknown): ObservationEvent
         (data as Record<string, unknown>)[target] = value;
       }
     }
+  }
+  // Only the new versioned producer field is admitted. Legacy members/executionPlan
+  // remain unchanged, preserving the digest of every previously normalized event.
+  if (event.type === "cowork.group.started" && data.groupId && Object.hasOwn(rawData, "flow")) {
+    const plan = coworkPlanSchema.safeParse(rawData.flow);
+    if (plan.success) data.coworkPlan = plan.data;
+    else data.coworkPlanIssue = rawData.flow && typeof rawData.flow === "object" &&
+      "version" in rawData.flow && rawData.flow.version !== 1 ? "unsupported" : "invalid";
   }
   const status = statusSchema.safeParse(rawData.status);
   if ((event.type.startsWith("run.") || event.type.startsWith("response.")) && status.success) data.status = status.data;

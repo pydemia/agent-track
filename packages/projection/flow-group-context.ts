@@ -18,6 +18,7 @@ const failureKinds = new Set(["run", "assistant-execution", "assistant-role", "i
 const nodeSignature = (node: MissionNode): string => JSON.stringify([
   node.kind, node.id, node.sourceId, node.status, node.runKey, node.callId, node.invocationId,
   node.label, node.description, node.details.map(item => [item.label, item.value]), node.sequences,
+  node.coworkRef,
 ]);
 const edgeSignature = (edge: MissionEdge): string => JSON.stringify([
   edge.from, edge.to, edge.kind, edge.sourceId, edge.label, edge.detail, edge.sequences,
@@ -101,7 +102,7 @@ export function flowGroupContext(
     const fromInside = memberKeys.has(edge.from);
     const toInside = memberKeys.has(edge.to);
     if (!fromInside && !toInside) continue;
-    if (!["dependency", "artifact-output", "artifact-association"].includes(edge.kind)) continue;
+    if (!["dependency", "cowork-dependency", "artifact-output", "artifact-association"].includes(edge.kind)) continue;
     const from = current.get(edge.from);
     const to = current.get(edge.to);
     // These native relations are source-local. Never resolve a bare ID in another source.
@@ -109,7 +110,9 @@ export function flowGroupContext(
       result.partial = true;
       continue;
     }
-    if (edge.kind === "dependency" && from.kind === "task" && to.kind === "task") {
+    if (edge.kind === "dependency" && from.kind === "task" && to.kind === "task" ||
+        edge.kind === "cowork-dependency" && from.kind === "member" && to.kind === "member" && from.runKey && from.runKey === to.runKey &&
+        from.coworkRef?.groupId && from.coworkRef.groupId === to.coworkRef?.groupId) {
       result.dependencies.push({ edgeKey: edge.key, fromKey: from.key, toKey: to.key,
         direction: fromInside ? toInside ? "internal" : "outgoing" : "incoming" });
     }

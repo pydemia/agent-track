@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { coworkPlanSchema } from "./cowork.ts";
 
 export const idSchema = z.string().min(1).max(512).regex(/^[^\u0000-\u001f\u007f]+$/);
 export const sequenceSchema = z.string().regex(/^(0|[1-9][0-9]{0,18})$/)
@@ -35,6 +36,8 @@ export const eventDataSchema = z.object({
   agentSessionId: idSchema.optional(),
   groupId: idSchema.optional(),
   memberId: idSchema.optional(),
+  coworkPlan: coworkPlanSchema.optional(),
+  coworkPlanIssue: z.enum(["invalid", "unsupported"]).optional(),
   childRunId: idSchema.optional(),
   peerSessionId: idSchema.optional(),
   callId: idSchema.optional(),

@@ -62,7 +62,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
     if (choice && !selectedNode && !selectedEdge && !selectedGroup) setChoice(null);
   }, [choice, selectedNode, selectedEdge, selectedGroup]);
   const dependencyCycles = useMemo(() => analyseGraph({ nodes: model.nodes,
-    edges: model.edges.filter((edge) => edge.kind === "dependency").map((edge) => ({ ...edge, kind: "dependency" as const })) }).cyclic, [model]);
+    edges: model.edges.filter((edge) => ["dependency", "cowork-dependency"].includes(edge.kind)).map((edge) => ({ ...edge, kind: "dependency" as const })) }).cyclic, [model]);
   // Refit when asynchronously loaded evidence changes topology, while preserving
   // pan/zoom across the recurring status-only snapshots and selection updates.
   const topology = JSON.stringify([model.nodes.map((node) => node.key).sort(),
