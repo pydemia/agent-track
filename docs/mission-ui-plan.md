@@ -13,14 +13,26 @@ cross-session으로 Task와 subagent를 조직하고 최종 목표를 수행하�
 서로 다른 종료 근거와 종료 뒤의 시작은 충돌로, 시작 또는 종료가 누락된
 생명주기는 부분 관측으로 남긴다. 기존 이벤트 payload·digest는 바꾸지 않는다.
 
-현재 실제 기록에는 멤버 → invocation 및 `dependsOn`의 명시 ID 연결이 부족하다.
-따라서 멤버 이름·agent 이름·기록 시각으로 하위 호출을 끼워 넣거나 의존선을
-만들지 않는다. 후속은 producer가 group/member/invocation과 선행 멤버 ID를
-명시하는 metadata 계약, 현재 원본 인가를 재확인하는 별도 조회 투영, 새로운
-실제 실행을 통한 분기·합류 대조 순서다. 과거 이벤트를 재작성하지 않는다.
+후속 native SDK `8a7f7f2`는 새 실행의 버전 1 flow metadata에 검증된 멤버 ID와
+명시 `dependsOn`을 제공하고, 멤버 호출 시작에 group/member ID를 추가한다.
+Track `fc87202`는 이를 현재 인가된 Run 이벤트로부터 읽어 **협업 그룹 → 멤버
+범위 → 호출 → 도구**로 중첩하고, 선행 멤버 → 후속 멤버를 별도 typed edge로
+표시한다. 기존 metadata가 없는 기록은 미확인으로 남긴다. 이름·agent·시각·
+순차 설정으로 소속이나 의존성을 추정하지 않으며 과거 payload·digest를 바꾸지
+않는다. 계획은 최대64멤버로 제한하고, 지원하지 않는 버전·형식·한도·계획 밖
+멤버·계획/호출 소속 충돌과 잘린 node는 부분 관측으로 표시한다.
+
+새 실제1Run/61event에서는 멤버2·호출3·그룹8·전체12node/21edge를 대조했다.
+상태 갱신 뒤 node만 남던 문제는 renderer가 dimensions를 버려 연결 포트가
+초기화되는 원인이었다. `0a6a900`은 같은 크기의 측정값을 보존하고, 변경된 그룹은
+재측정한다. 실제 갱신·선택 후21edge, sorter 그룹 접기 후20edge와 선행 대표선의
+원본 `sorter → verifier`, seq16을 확인했다. 내부 경로·단위별 상태·경계 관계와
+390px 폭도 대조했다. 화면 캡처에 근거한 시각 품질 판정은 하지 않았다.
 Trace·Trail은 Run 미선택 상태에서도 현재 필터의 실행 선택 안내를 제공한다.
-이 증분은 `a56f558` 구현과 로컬 QA이며 운영 반영 전이다. 실기 경계와 보존은
-[cowork 실행 기록](native-cowork-verification.json)에 구분했다.
+native SDK 변경은 별도 worktree의 로컬 commit이고 운영 전환하지 않았다.
+Track의 새 API·웹도 운영 반영 전이다. 실제 병렬 분기·합류, 교차 앱·추가 기기의
+전체 업무는 후속이다. 실기 경계와 원본 보존은
+[협업 연결 검증 기록](native-cowork-flow-verification.json)에 구분했다.
 
 ## 화면별 책임
 

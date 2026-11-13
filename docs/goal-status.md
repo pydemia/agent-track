@@ -1,5 +1,20 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 명시 협업 연결 후속: SDK `8a7f7f2`와 Track `fc87202`의 새 버전
+metadata에서 group/member/invocation ID와 `dependsOn`을 연결했다. 실제 새
+Run1/attempt1·호출3·멤버2·61event·모델 요청4에서 결과 전달과 정확한 ID를
+확인했다. Track의 실제 API/SQLite/UI 경로에서12node/21edge·8중첩그룹을
+대조했다. renderer `0a6a900`은 갱신 뒤 포트 측정값이 사라져 edge0개가 되는
+문제를 수정했고, 이후 갱신·선택21edge와 그룹 접기20edge·seq16의 원본 선행선을
+확인했다. 계획/실행 소속 충돌과 node 한도의 부분 관측 누락도 재현·수정했다.
+최종 `0a6a900`의 Windows·Ubuntu CI는 각각942개 중933/919통과·실패0·
+환경skip9/23이며 양쪽 타입 검사·build도 통과했다.
+원본45테이블·42파일·18프로세스·인증을 보존했으며 QA worker/API/UI를 중지하고
+DB archive 후 임시 credential/container를 제거했다. SDK는 로컬 소유 worktree,
+Track은 원격 구현이며 새 운영 rollout·Entra GUI·peer/교차 앱/추가 기기는 남았다.
+초기 경로 거부와 검증 비교 오류의 경계는 `native-cowork-flow-verification.json`에
+보존한다. 전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+
 2026-11-13 실제 cowork 증분: 별도 QA의1Run/1attempt에서 협업 그룹1·멤버2·
 invocation3·정규 이벤트61·모델 요청4의 성공과 실제 sorter→verifier→최종 결과
 전달을 확인했다. native SDK 변경 `dd985ea`는 소유된 별도 worktree의 로컬
@@ -8,8 +23,9 @@ commit이며 운영 SDK/worker에 반영하지 않았다. 첫 시도는 도구 �
 Track `a56f558`에서 실제 그룹1/멤버2 종료 요약·호출 범위 중첩·내부 경로와
 Run 미선택 Trace/Trail 안내를 로컬 UI에서 대조했다.
 최종 구현의 Windows·Ubuntu CI는 각각928개 중919/905통과·실패0·환경skip9/23과
-타입 검사·build를 통과했다. 멤버→호출·dependsOn의
-명시 연결, 운영 배포/Entra GUI와 peer·추가 기기/교차 앱의 전체 업무는 남았다.
+타입 검사·build를 통과했다. 당시 멤버→호출·dependsOn의 명시 연결이 미완이었으며
+위 후속에서 새 실제 실행으로 보완했다. 운영 배포/Entra GUI와 peer·추가 기기/
+교차 앱의 전체 업무는 남았다.
 원본45테이블·42개 보호 파일·18프로세스와 인증을 보존했고 QA 실행은 archive 후
 중지·임시 credential/container 제거했다. 상세는 `native-cowork-verification.json`.
 전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음이며, 새 실제 연동과
