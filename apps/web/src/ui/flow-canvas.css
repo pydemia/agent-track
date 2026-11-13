@@ -7,6 +7,10 @@
     corner-shape: squircle;
 }
 [data-ui="flow-canvas"] .react-flow { color: var(--foreground); }
+[data-ui="flow-canvas"] .react-flow__edgelabel-renderer {
+    /* Keep labels clickable above group headers and elevated selected nodes. */
+    z-index: 2000;
+}
 [data-ui="flow-alignment-guide"] {
     position: absolute;
     pointer-events: none;
