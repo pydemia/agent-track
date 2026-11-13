@@ -48,11 +48,35 @@ skip 및 타입 검사로 확인했다. Persona 관련238개·타입·format 검
 이전 strict client에 새 capability를 먼저 보내면 조회를 거절할 수 있다. 이미
 동결한17e5ff0/9f45e6c/f9f78ac 후보는 이번 시도 조회 source가 아니다.
 
-다음 UI 연결은 같은 `assistantSourceId/executionId/logicalRoleId` 아래에 시도들을
-묶고, 실제로 관측한 Run을 자식 node로 둔다. intent가 있을 때만 이전 시도와
-재시도/재개 요청 edge를 연결하고 접수·실행·업무 수용 상태를 구분한다. 오래된
-history에 관계가 없으면 시간순으로 의존성을 추정하지 않는다. 이 Flow·group·
-제어 broker/UI와 운영 검증은 아직 남아 있다.
+후속 Flow source는 Native 출처와 `assistantSourceId/executionId/logicalRoleId`를 함께
+고정한 역할 시도 그룹을 만든다. 같은 Projects Task와 workspace의 실제 관측 Run만
+포함하며 각각의 Run 안에는 기존 호출·도구·승인 그룹을 유지한다. Assistant 실행과
+작업 패키지가 있는 화면에서는 그 아래에 역할 시도 그룹을 배치한다. 그룹을 접거나
+펼치고 안으로 들어가도 각 Run의 전체 Trail/Trace를 탐색할 수 있다.
+
+Map·Assistant·선택 Run 흐름은 명시한 command의 predecessor가 실제 관측된 경우에만
+`재시도 요청`/`재개 요청` edge를 만든다. 점선과 상세의 coordinator-intent·명령 ID로
+요청 의도를 구분하고 Native 접수·Run 성공·업무 수용을 추정하지 않는다. 오래된 history에
+명령이 없으면 역할 그룹 소속만 표현한다. 선행 시도가 창 밖에 있으면 없는 Run을 만들지
+않고 관측되지 않았음을 상세와 부분 범위에 표시한다. 노드를 선택하면 시도 ID·순번·역할·
+명령과 원본 Run 정보를 확인할 수 있다. 본문·prompt·SDK ID·새 권한 값은 추가하지 않는다.
+
+시도 metadata는 Run의 조회 snapshot에만 추가하고 이벤트 원장에 가상 이벤트를 넣지
+않는다. 재투영은 기존 파생 관계·상세를 재검사해 중복을 제거하며 권한 철회·stale·모호한
+ID에는 그 관계를 유지하지 않는다. 화면의 표시 이름과 ID가 다르거나 workspace가
+unknown이어도 구조화된 scope로 그룹을 검증한다. 다른 역할/출처의 같은 UUID가 같은
+역할의 선행 시도를 덮어쓰지 않는다. 그룹의 저장·복원은 기존 Flow view 경로를 재사용한다.
+
+이 후속도 운영 반영·인증된 현재 PC의 화면 수용 검사를 마친 것은 아니다. 원본17e5ff0/
+9f45e6c/f9f78ac 후보를 이번 source로 바꿨다고 표시하지 않는다. owner 제어 broker/UI·
+복구와 실제 제공자 실행 검증은 별도 미완료다. reader 변경1aa421c의 CI43518004721은
+Windows·Ubuntu의 실제 모든 검사 단계를 통과했다. 이는 후속 Flow revision의 CI가 아니다.
+
+Flow 후속의 전체 회귀 검사는1,056개 중1,046개 통과·실패0·앞서 명시한 skip10이었다.
+그 뒤 독립 리뷰에서 서로 다른 Native 출처의 역할 그룹이 중첩되는 문제와 선택 Run의
+충돌 관측이 필터에서 사라지는 문제를 각각 실제 실패로 재현해 수정했다. 최종 관련64개·
+타입·별도 web build가 통과했다. 이전 전체 검사를 마지막 두 수정의 전체 회귀 통과로
+바꿔 기록하지 않는다. [최종 파일별 근거와 한계](assistant-attempt-flow-verification.json)를 따른다.
 
 전체 수용15/21·71.4%(상위 동일 가중치·부분0)를 유지한다. 전체 완료 ETA는
 산정 불가·신뢰도 낮음이다. 조회 소스 구현을 AT-09/12/14 전체 완료로 세지 않는다.

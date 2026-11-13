@@ -80,7 +80,8 @@ CI43511220100은 네 job 모두 step 시작 전에 실패했다. GitHub annotati
 후속 Persona2aefb07·Track에 [과거 시도 보호 reader](assistant-attempts.md)를 구현했다.
 실제 producer/client와 HTTP/SQLite 검사에서 원본 Run·이벤트 원장 보존을 확인했다.
 지원 capability가 없는 원본은 현재 역할만 조회하고 그 한계를 표시한다.
-AT-09의 남은 범위는 이 source의 운영 반영과 Flow 시도 node/edge/group,
+Flow 시도 node·intent edge·역할 시도 그룹도 후속 source에 연결했다.
+AT-09의 남은 범위는 이 source의 운영 반영과 인증된 사용자 화면,
 현재 권한·capability와 제어 broker/UI 연결,
 receipt 재시작 복구·Flow 이동·사용자 화면과 실제 제공자 실행이다. native Run만
 생성하는 방식의 구현을 수용 완료로 세지 않는다. 명령 접수, 실행

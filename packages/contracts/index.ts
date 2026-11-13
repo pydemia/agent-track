@@ -14,6 +14,16 @@ export const terminalStatuses = new Set<RunStatus>(["succeeded", "failed", "canc
 export const relationKinds = ["invocation", "cowork", "managed-child", "peer", "dependency", "artifact"] as const;
 export type RelationKind = typeof relationKinds[number];
 
+/** Read-side coordinator identity; never an executor receipt or event payload. */
+export const assistantRunAttemptSchema = z.object({
+  assistantSourceId: idSchema, executionId: z.uuid(), roleId: z.uuid(), attemptId: z.uuid(),
+  ordinal: z.number().int().min(1).max(33),
+  command: z.object({ id: z.uuid(), kind: z.enum(["retry", "resume"]), predecessorAttemptId: z.uuid(),
+    provenance: z.literal("coordinator-intent") }).strict().nullable(),
+}).strict().refine(value => !value.command || value.command.id === value.attemptId &&
+  value.command.predecessorAttemptId !== value.attemptId, "Attempt and intent identities differ");
+export type AssistantRunAttempt = z.infer<typeof assistantRunAttemptSchema>;
+
 export const runSchema = z.object({
   sourceId: idSchema,
   runId: idSchema,
@@ -25,6 +35,7 @@ export const runSchema = z.object({
   startedAt: timestampSchema.nullable(),
   completedAt: timestampSchema.nullable(),
   observedAt: timestampSchema,
+  assistantAttempt: assistantRunAttemptSchema.optional(),
 }).strict();
 export type RunObservation = z.infer<typeof runSchema>;
 

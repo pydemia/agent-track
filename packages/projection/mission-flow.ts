@@ -1,7 +1,9 @@
-import type { EventView, RelationKind, RelationView, RunView } from "../contracts/index.ts";
+import type { AssistantRunAttempt, EventView, RelationKind, RelationView, RunView } from "../contracts/index.ts";
 import { projectTrace } from "./trace.ts";
 import { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
 import { withCoworkFlow } from "./cowork-flow.ts";
+import { assistantRunAttemptSchema } from "../contracts/index.ts";
+import { withAssistantAttempts } from "./assistant-attempt-flow.ts";
 export { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
 
 export interface MissionNode {
@@ -15,6 +17,8 @@ export interface MissionNode {
   runKey?: string;
   taskRef?: { sourceId: string; projectId: string; taskId: string };
   assistantExecutionRef?: { sourceId: string; executionId: string };
+  assistantAttemptRef?: AssistantRunAttempt;
+  assistantAttemptScope?: { projectSourceId: string; projectId: string; taskId: string; workspaceId: string | null };
   callId?: string;
   invocationId?: string;
   coworkRef?: { groupId: string; memberId?: string };
@@ -36,6 +40,13 @@ export interface MissionEdge {
 
 export interface MissionFlowOptions { mode?: "mission" | "execution"; maxNodes?: number; hasMoreEvents?: boolean; includeExecution?: boolean }
 export interface MissionFlow { nodes: MissionNode[]; edges: MissionEdge[]; hiddenNodes: number; eventCount: number; incomplete: boolean }
+
+const attemptObservationStamp = (run: RunView): string => {
+  const parsed = assistantRunAttemptSchema.safeParse(run.assistantAttempt), binding = run.binding;
+  return JSON.stringify([run.key, run.sourceId, run.runId, run.sessionId, run.workspaceId, run.status, run.sourceState, run.stale,
+    parsed.success ? parsed.data : run.assistantAttempt ?? null,
+    binding ? [binding.sourceId, binding.runId, binding.projectSourceId, binding.projectId, binding.taskId] : null]);
+};
 
 /** A referenced invocation ID does not establish an observed invocation lifecycle. */
 export const missionUnitKind = (node: Pick<MissionNode, "kind" | "status">): string =>
@@ -104,6 +115,21 @@ export function missionFlow(
   };
   const root = actualRunNode(selected);
   const eligibleRuns: RunView[] = [selected];
+  // A shared coordinator role is explicit membership, not causal ordering. The
+  // intent projection below alone can connect predecessor/successor Run edges.
+  const selectedAttempt = assistantRunAttemptSchema.safeParse(selected.assistantAttempt);
+  const roleRuns = mode === "mission" && selectedAttempt.success && selected.sourceState === "connected" && !selected.stale && selected.binding?.taskId &&
+    selected.binding.sourceId === selected.sourceId && selected.binding.runId === selected.runId
+    ? runs.filter(run => {
+      const attempt = assistantRunAttemptSchema.safeParse(run.assistantAttempt);
+      return run.key !== selected.key && run.sourceState === "connected" && !run.stale && run.sourceId === selected.sourceId &&
+        run.workspaceId === selected.workspaceId && run.binding?.taskId === selected.binding?.taskId &&
+        run.binding?.projectId === selected.binding?.projectId && run.binding?.projectSourceId === selected.binding?.projectSourceId &&
+        run.binding?.sourceId === run.sourceId && run.binding?.runId === run.runId &&
+        attempt.success && attempt.data.assistantSourceId === selectedAttempt.data.assistantSourceId &&
+        attempt.data.executionId === selectedAttempt.data.executionId && attempt.data.roleId === selectedAttempt.data.roleId;
+    }) : [];
+  for (const run of roleRuns) { eligibleRuns.push(run); actualRunNode(run); }
   let taskNode: MissionNode | undefined;
   const binding = selected.binding;
   if (mode === "mission" && binding?.taskId && binding.provenance === "operator") {
@@ -115,7 +141,7 @@ export function missionFlow(
     addEdge(binding.projectSourceId, taskNode, root, "task-binding", "작업 연결", `${binding.projectTitle} · ${binding.provenance}`);
     const matches = runs.filter((run) => run.key !== selected.key && run.binding?.taskId === binding.taskId &&
       run.binding.projectId === binding.projectId && run.binding.projectSourceId === binding.projectSourceId);
-    eligibleRuns.push(...matches);
+    eligibleRuns.push(...matches.filter(run => !eligibleRuns.some(item => item.key === run.key)));
     for (const run of matches) addEdge(run.sourceId, taskNode, actualRunNode(run), "task-binding", "같은 작업", `${run.binding?.taskTitle || binding.taskTitle || binding.taskId} · ${run.binding?.provenance ?? "연결 기록"}`);
   }
   const eligibleKeys = new Set(eligibleRuns.map((run) => run.key));
@@ -294,7 +320,8 @@ export function missionFlow(
     }
   }
 
-  const cowork = withCoworkFlow({ nodes: [...nodes.values()], edges: [...edges.values()], eventCount, hiddenNodes: 0, incomplete }, eligibleRuns, events);
+  const attemptInputs = runs.some(run => attemptObservationStamp(run) === attemptObservationStamp(selected)) ? runs : [selected, ...runs];
+  const cowork = withAssistantAttempts(withCoworkFlow({ nodes: [...nodes.values()], edges: [...edges.values()], eventCount, hiddenNodes: 0, incomplete }, eligibleRuns, events), attemptInputs);
   nodes.clear(); for (const node of cowork.nodes) nodes.set(node.key, node);
   edges.clear(); for (const edge of cowork.edges) edges.set(edge.key, edge);
   incomplete = cowork.incomplete;
@@ -308,7 +335,7 @@ export function missionFlow(
     (adjacency.get(edge.to) ?? (adjacency.set(edge.to, []), adjacency.get(edge.to)!)).push(edge.from);
   }
   for (const links of adjacency.values()) links.sort();
-  const chosen = new Set<string>(); const queue = [root.key];
+  const chosen = new Set<string>(); const queue = [root.key, ...roleRuns.map(run => actualRunNode(run).key).sort()];
   for (let index = 0; index < queue.length && chosen.size < maxNodes; index++) {
     const key = queue[index]!;
     if (chosen.has(key) || !nodes.has(key)) continue;

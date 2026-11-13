@@ -13,13 +13,13 @@ import type { ProjectsAuthority } from "./projects-authority.ts";
 import { assistantReady, projectsReady, sourceIdentity } from "./source-identity.ts";
 import { AssistantDemianLinks } from "./assistant-demian-links.ts";
 import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type NativeMetadataPage } from "../../packages/contracts/native-metadata.ts";
-import type { RunBinding } from "../../packages/contracts/index.ts";
+import type { AssistantRunAttempt, RunBinding } from "../../packages/contracts/index.ts";
 import { assistantNativeRunEvidencePageSchema, type NativeRunEvidencePage } from "../../packages/contracts/native-run-evidence.ts";
-import { assistantRoleAttemptsPageSchema } from "../../packages/contracts/assistant-attempts.ts";
+import { assistantRoleAttemptsPageSchema, type AssistantRoleAttempt } from "../../packages/contracts/assistant-attempts.ts";
 
 export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts">>;
 export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string }
-export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding }
+export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding; assistantAttempt?: AssistantRunAttempt }
 export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean; attemptCoverage?: "coordinator-history" | "current-role-only" }
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
 type CurrentTask = AssistantExecutionView["currentTask"];
@@ -28,7 +28,10 @@ interface RequestScope { source: SourceConfig; user: string; stamp: string; dead
 type NativeExecution = z.infer<typeof assistantExecutionMetadataV2Schema>;
 type NativeRole = NativeExecution["roles"][number];
 type NativeReference = NonNullable<NativeRole["runtime"]["demian"]>;
-interface NativeTarget { role: NativeRole; ref: NativeReference; attemptId?: string }
+interface NativeTarget { role: NativeRole; ref: NativeReference; attemptId?: string; attempt?: AssistantRoleAttempt }
+const attemptIdentity = (target: NativeTarget) => target.attempt ? JSON.stringify([
+  target.attempt.id, target.attempt.ordinal, target.attempt.runtimeTaskId, target.ref, target.attempt.command,
+]) : null;
 
 export class AssistantAuthorityError extends Error {
   constructor(readonly status: number) { super("assistant_authority_unavailable"); }
@@ -277,12 +280,13 @@ export class AssistantAuthority {
       JSON.stringify(attempt.demian) === JSON.stringify(role.runtime.demian))) throw new AssistantAuthorityError(503);
     // Explicit attempt IDs survive current -> historical promotion. Each native
     // request below is pinned to that ID, never to the mutable current-role path.
-    return [...page.attempts].reverse().flatMap(attempt => attempt.demian ? [{ role, ref: attempt.demian, attemptId: attempt.id }] : []);
+    return [...page.attempts].reverse().flatMap(attempt => attempt.demian ? [{ role, ref: attempt.demian, attemptId: attempt.id, attempt }] : []);
   }
   private async hasNativeTarget(scope: RequestScope, client: AssistantReader, execution: NativeExecution, target: NativeTarget): Promise<boolean> {
     const role = execution.roles.find(row => row.id === target.role.id);
     return !!role && (await this.roleNativeTargets(scope, client, execution, role))
-      .some(row => row.attemptId === target.attemptId && JSON.stringify(row.ref) === JSON.stringify(target.ref));
+      .some(row => row.attemptId === target.attemptId && JSON.stringify(row.ref) === JSON.stringify(target.ref) &&
+        attemptIdentity(row) === attemptIdentity(target));
   }
 
   /** Internal collection port. Never publishes producer receipts or native authority keys. */
@@ -347,6 +351,9 @@ export class AssistantAuthority {
           observations.push({ page: first.page, throughSequence: BigInt(final.page.events.through_sequence) > BigInt(first.page.events.through_sequence)
             ? final.page.events.through_sequence : first.page.events.through_sequence, observedAt: final.observedAt,
             title: `Assistant · ${role.label}`.slice(0, 240),
+            ...(candidate.attempt ? { assistantAttempt: { assistantSourceId: sourceId,
+              executionId: execution.id, roleId: role.id, attemptId: candidate.attempt.id,
+              ordinal: candidate.attempt.ordinal, command: candidate.attempt.command } } : {}),
             binding: { sourceId: target.id, runId: ref.runId, projectSourceId: current.projectsSourceId,
               projectId: current.project.id, taskId: current.task.id, taskRevision: execution.task.revision,
               projectTitle: current.project.title, taskTitle: current.task.title, provenance: "source" } });

@@ -187,6 +187,13 @@ test("protected history keeps the original Run authorized after retry and preser
   f.attemptPage = attempts(true);
   const next = await f.snapshot();
   assert.deepEqual(next.runs.map(run => run.runId).sort(), [uuid(9), runId].sort());
+  assert.deepEqual(next.runs.find(run => run.key === originalKey)!.assistantAttempt, {
+    assistantSourceId: "assistant", executionId, roleId, attemptId: uuid(10), ordinal: 1, command: null,
+  });
+  assert.deepEqual(next.runs.find(run => run.key === key)!.assistantAttempt, {
+    assistantSourceId: "assistant", executionId, roleId, attemptId: uuid(11), ordinal: 2,
+    command: { id: uuid(11), kind: "retry", predecessorAttemptId: uuid(10), provenance: "coordinator-intent" },
+  });
   assert.match(next.sources.find(source => source.id === "protected")!.detail, /보존 시도 포함/);
   assert.deepEqual(f.store.events(originalKey).events, original);
   assert.equal(next.runs.find(run => run.runId === uuid(9))!.status, "failed");
@@ -199,6 +206,20 @@ test("protected history keeps the original Run authorized after retry and preser
   assert.equal(evidence.runKey, originalKey);
   assert.doesNotMatch(JSON.stringify(evidence), /context_sha|binding_sha|PRIVATE_ERROR/);
   assert.ok(f.methods.every(method => method === "GET"));
+});
+
+test("changed coordinator intent during await cannot publish the previous attempt projection", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(true);
+  let changed = false;
+  f.hook = async () => {
+    if (changed) return;
+    changed = true;
+    const page = attempts(true); page.attempts[1]!.command!.kind = "resume"; f.attemptPage = page;
+  };
+  const next = await f.snapshot();
+  assert.equal(changed, true);
+  assert.deepEqual(next.runs.map(run => run.runId), [uuid(9)]);
+  assert.equal(f.store.run(key), undefined);
 });
 
 test("historical Native evidence rechecks the exact attempt and cannot borrow the new current Run", async t => {

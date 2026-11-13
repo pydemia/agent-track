@@ -3,6 +3,8 @@ import type { SourceView, RunView } from "../contracts/index.ts";
 import type { MissionEdge, MissionNode } from "./mission-flow.ts";
 import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { dependencyEntityKey } from "./project-dependencies-flow.ts";
+import { assistantRunAttemptSchema } from "../contracts/index.ts";
+import { withAssistantAttempts } from "./assistant-attempt-flow.ts";
 
 export const assistantEntityKey = (sourceId: string, kind: string, id: string): string =>
   JSON.stringify([sourceId, kind, id]);
@@ -156,6 +158,24 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
           `WorkExecution.roles.runtime.${field}; Execution ID: ${native.id}; Role ID: ${role.id}; Runtime ID: ${id}; ID 참조이며 역할 상태로 런타임 상태·Demian 연결을 추론하지 않음`);
       }
     }
+    for (const run of unambiguous(options.runs ?? [], run => run.key).values()) {
+      const attempt = assistantRunAttemptSchema.safeParse(run.assistantAttempt), binding = run.binding;
+      if (!attempt.success || attempt.data.assistantSourceId !== view.sourceId || attempt.data.executionId !== native.id ||
+          !current || !binding?.taskId || binding.sourceId !== run.sourceId || binding.runId !== run.runId ||
+          binding.projectSourceId !== current.projectsSourceId || binding.projectId !== current.project.id || binding.taskId !== current.task.id ||
+          run.sourceState !== "connected" || run.stale || sourceById.get(run.sourceId)?.kind !== "demian" ||
+          sourceById.get(run.sourceId)?.state !== "connected") continue;
+      const role = nodes.get(assistantRoleKey(view.sourceId, native.id, attempt.data.roleId));
+      if (!role) continue;
+      const runNode = add(run.sourceId, "run", run.runId, run.title || run.runId, run.status,
+        "현재 보호 reader에서 관측한 역할의 실행 시도 · coordinator intent와 Native 접수는 별도",
+        details({ "Source ID": run.sourceId, "Run ID": run.runId, "Session ID": run.sessionId,
+          "Workspace ID": run.workspaceId, "원본 Run 상태": run.status, "관측 시각": run.observedAt }),
+        dependencyEntityKey(run.sourceId, "run", run.runId));
+      runNode.runKey = run.key;
+      edge(role, runNode, "assistant-attempt-membership", "역할의 실행 시도",
+        `현재 보호 reader의 coordinator-history; 시도 ID: ${attempt.data.attemptId}; 역할 소속이며 실행 순서·의존성 아님`);
+    }
     for (const link of authorizedAssistantLinks(view, sources, options.runs ?? [])) {
       const role = nodes.get(assistantRoleKey(view.sourceId, native.id, link.roleId));
       if (!role) continue;
@@ -187,8 +207,8 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
   const limit = Number.isFinite(options.maxNodes) ? Math.min(500, Math.max(0, Math.floor(options.maxNodes!))) : 240;
   const selected = [...nodes.values()].sort((a, b) => priority(a) - priority(b) || compare(a.key, b.key)).slice(0, limit);
   const keys = new Set(selected.map(node => node.key));
-  return { nodes: selected, edges: ordered(edges.values()).filter(item => keys.has(item.from) && keys.has(item.to)),
-    hiddenNodes: nodes.size - selected.length, incomplete: true };
+  return withAssistantAttempts({ nodes: selected, edges: ordered(edges.values()).filter(item => keys.has(item.from) && keys.has(item.to)),
+    hiddenNodes: nodes.size - selected.length, incomplete: true }, options.runs ?? []);
 }
 
 /** Containers are native execution scopes; the parent owns all Task attachment. */
@@ -261,7 +281,7 @@ export function withAssistantExecutions<T extends { nodes: MissionNode[]; edges:
   }
   const selected = [...nodes.values()].slice(0, 240), keys = new Set(selected.map(node => node.key));
   const edges = new Map([...base.edges, ...extra.edges].filter(edge => keys.has(edge.from) && keys.has(edge.to)).map(edge => [edge.key, edge]));
-  return { ...base, nodes: selected, edges: [...edges.values()], hiddenNodes: base.hiddenNodes + extra.hiddenNodes + nodes.size - selected.length,
+  return withAssistantAttempts({ ...base, nodes: selected, edges: [...edges.values()], hiddenNodes: base.hiddenNodes + extra.hiddenNodes + nodes.size - selected.length,
     focusPresent: base.focusPresent || selected.some(node => node.kind === "task" && node.id === scope.focusTaskId),
-    incomplete: base.incomplete || extra.nodes.length > 0 || nodes.size > 240 };
+    incomplete: base.incomplete || extra.nodes.length > 0 || nodes.size > 240 }, runs);
 }

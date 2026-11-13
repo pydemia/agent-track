@@ -64,7 +64,8 @@ export class AssistantNativeCollector {
         const { page, binding } = observation, run = page.run;
         const key = this.store.observeRun({ sourceId: source.id, runId: run.id, sessionId: run.session_id,
           workspaceId: run.workspace_id, title: observation.title, status: run.status,
-          createdAt: run.created_at, startedAt: run.started_at, completedAt: run.completed_at, observedAt: observation.observedAt });
+          createdAt: run.created_at, startedAt: run.started_at, completedAt: run.completed_at, observedAt: observation.observedAt,
+          ...(observation.assistantAttempt ? { assistantAttempt: observation.assistantAttempt } : {}) });
         const previous = this.store.run(key)?.binding;
         if (previous) {
           const old = JSON.parse(previous);

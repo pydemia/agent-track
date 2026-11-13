@@ -8,7 +8,7 @@ import { dependencyEntityKey, projectDependenciesFlow } from "./project-dependen
 
 export interface GroupTaskRecord { ref: GroupTaskRef; task: ProjectTaskMetadata }
 export const groupTaskKey = (ref: GroupTaskRef) => JSON.stringify([ref.sourceId, ref.projectId, ref.taskId]);
-export const isDetailedGroup = (kind: string) => !["project", "task", "task-bundle", "session", "run", "assistant-execution"].includes(kind);
+export const isDetailedGroup = (kind: string) => !["project", "task", "task-bundle", "session", "run", "assistant-execution", "assistant-role-attempts"].includes(kind);
 
 /** Match native roles by their explicit source-qualified role/runtime references. */
 export function groupAssistantRoles(view: AssistantExecutionView, nodeKeys?: readonly string[]) {

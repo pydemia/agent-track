@@ -39,8 +39,11 @@ paired 검사 source는2c113bb다. 후속 Persona2aefb07·Track의 보호 reader
 조회와 실제 correlation별 native 경로를 추가했다. 현재 ref가 바뀌어도 원본 Run의
 인가·이벤트 원장을 보존하고, 잘못된 history는 옛 경로로 되돌리지 않고 거절한다.
 [조회 계약](assistant-attempts.md)과 [단계 검증](assistant-attempt-verification.json)을 따른다.
-아직 운영 반영·Flow의 시도별 node/edge/group·제어/복구 broker와 UI·실제 제공자 검증이
-남아 AT-09 완료로 세지 않는다.
+후속 Flow source에는 실제 시도 node·요청 intent edge·역할 시도 그룹과 네 보기의
+탐색 연결도 추가했다. 서로 다른 Native 출처의 그룹 중첩과 선택 Run 충돌 누락을
+재현해 수정했고 관련64개·타입 검사가 통과했다. 아직 운영 반영·인증된 사용자 화면·
+제어/복구 broker와 UI·실제 제공자 검증이 남아 AT-09 완료로 세지 않는다.
+[Flow 검증 범위](assistant-attempt-flow-verification.json)를 따른다.
 [후속 근거](assistant-run-command-verification.json)를 따른다. Track4233d3b의
 CI43506947505는 Windows·Ubuntu의 실제 검사 단계 모두 성공했다. 이는 후속 source나
 배포 검증을 대신하지 않는다.
@@ -92,7 +95,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. Demian Session href·Run link 미지원 안내. 원본 웹의 무인증 Basic401과 후속 인증 root/context200을 구별한다. 허용 인증으로 동일 Session/Task가 선택되는 브라우저 이동은 미검증이다. 무인증401만으로 새 인증 구현이 필수라고 단정하지 않으며 공개 Track Entra 정책은 유지 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
-| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기·동일 receipt, unknown/철회/만료/재시작·중복 방어와 공개 UI 취소 대조. 후속 Native 명령·Assistant owner 시도/참조·같은 명령 복구의 source 및 격리 PostgreSQL 검사 완료. 과거 시도 reader source·실제 producer/client 대조 완료. 운영 반영·Flow 시도 관계·제어 broker/UI·실제 제공자 수용은 미완료 |
+| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기·동일 receipt, unknown/철회/만료/재시작·중복 방어와 공개 UI 취소 대조. 후속 Native 명령·Assistant owner 시도/참조·같은 명령 복구의 source 및 격리 PostgreSQL 검사 완료. 과거 시도 reader와 Flow node/intent edge/그룹 source·통합 검사 완료. 운영 반영·인증된 화면·제어 broker/UI·실제 제공자 수용은 미완료 |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 배포된 네 보기 공통 범위/저장 복원의 사용자 동작 대조와 peer 대표선 포인터 선택 성공 확인이 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |

@@ -1,6 +1,7 @@
 import { missionUnitKind, type MissionNode, type MissionEdge } from "./mission-flow.ts";
 import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { assistantFlowGroups } from "./assistant-flow.ts";
+import { assistantAttemptFlowGroups } from "./assistant-attempt-flow.ts";
 import { sessionRelationGroups } from "./session-relations-flow.ts";
 export { flowGroupKey } from "./flow-groups.ts";
 
@@ -154,6 +155,42 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
       }
       attachEntity(task, project);
     }
+  }
+  const attemptGroups = assistantAttemptFlowGroups(model);
+  const roleScope = (ref: NonNullable<MissionNode["assistantAttemptRef"]>) => JSON.stringify([ref.assistantSourceId, ref.executionId, ref.roleId]);
+  const counts = new Map<string, number>();
+  const stableRoleOwners = new Map(model.nodes.filter(node => node.kind === "assistant-role")
+    .map(node => [node.key, [...groups.values()].filter(group => group.memberKeys.includes(node.key))]));
+  for (const attempt of attemptGroups) {
+    const ref = nodes.get(attempt.memberKeys[0]!)?.assistantAttemptRef;
+    if (ref) counts.set(roleScope(ref), (counts.get(roleScope(ref)) ?? 0) + 1);
+  }
+  for (const attemptGroup of attemptGroups) {
+    const first = nodes.get(attemptGroup.memberKeys[0]!)?.assistantAttemptRef;
+    if (!first) continue;
+    const roles = model.nodes.filter(node => node.kind === "assistant-role" && node.sourceId === first.assistantSourceId &&
+      node.id === first.roleId && node.assistantExecutionRef?.sourceId === first.assistantSourceId &&
+      node.assistantExecutionRef.executionId === first.executionId);
+    const role = roles.length === 1 ? roles[0] : undefined;
+    const roleOwners = role ? stableRoleOwners.get(role.key) ?? [] : [];
+    const childRuns = attemptGroup.memberKeys.map(key => groups.get(flowGroupKey("run", key)));
+    const oldParents = new Set(childRuns.flatMap(group => group?.parentKey ? [group.parentKey] : []));
+    const parentKey = roleOwners.length === 1 ? roleOwners[0]!.key : oldParents.size === 1 ? [...oldParents][0] : undefined;
+    const group: FlowGroupDefinition = { ...attemptGroup, label: role ? `${role.label} · 실행 시도` : attemptGroup.label,
+      memberKeys: [], ...(parentKey ? { parentKey } : {}) };
+    if (role && roleOwners.length === 1 && counts.get(roleScope(first)) === 1) {
+      roleOwners[0]!.memberKeys = roleOwners[0]!.memberKeys.filter(key => key !== role.key);
+      group.memberKeys.push(role.key);
+    }
+    for (const [index, key] of attemptGroup.memberKeys.entries()) {
+      const child = childRuns[index];
+      if (child) child.parentKey = group.key;
+      else {
+        for (const owner of groups.values()) owner.memberKeys = owner.memberKeys.filter(member => member !== key);
+        group.memberKeys.push(key);
+      }
+    }
+    groups.set(group.key, group);
   }
   return [...groups.values()].map(group => ({ ...group, memberKeys: [...group.memberKeys].sort() })).sort((a, b) => a.key.localeCompare(b.key));
 }

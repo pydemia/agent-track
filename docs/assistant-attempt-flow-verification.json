@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "mainBaseline": "1aa421cb13851c849f63ed0c9bc1f51b1141b14e",
+  "personaProducerCommit": "2aefb0726bda0bf34e0bb4d1c09b7bb20bd1a194",
+  "nativeProducerCommit": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+  "finalFileSha256": {
+    "apps/api/assistant-authority.ts": "e4b161d6bf41dd809b64123b7705538b34a076b9158822e16d36d51a758a8ed1",
+    "apps/api/assistant-native-collector.ts": "1c65a2099d531f9c0fa620f39debf4b6f6c93bd7809fd4146918ca2a1e232046",
+    "apps/web/src/FlowGrouping.tsx": "6bb99cdf5c46eb244853aec11bf0da1659b29dbaf4c758932d79f4a26d0c773f",
+    "apps/web/src/mission-flow.css": "e9a53f49569183db38e0b5512b5d3247903d0801d2087fb73b00e479a98117ac",
+    "packages/contracts/index.ts": "0d91137281918d20385148a17da5bb9740ed616e663ed97e08a6c122256a32de",
+    "packages/projection/assistant-flow.ts": "b36fd2c8395b185182b4b7342beb90e9740ebdd036f7b1d26f8e980eee966e37",
+    "packages/projection/assistant-attempt-flow.ts": "2a99cce3945da5575ece37a551c0278988213ca5bc51fd7da1eb31842236e995",
+    "packages/projection/flow-group-definitions.ts": "631df1a4923b38d88a618cdb6bea5ff6b79cc029173f2150bc6ca2edac764e10",
+    "packages/projection/group-workspace-flow.ts": "47e8623a699c6b0d33b9b7cee80e96f5dc6b071afe7f24fa9b2f8e29494f8c52",
+    "packages/projection/mission-flow.ts": "6d637b5c6406f7da29af91e663e329f35ed08b3136d442749e1417217c893305",
+    "tests/assistant-attempt-flow.test.ts": "f178b08b93a4c1f1391058c9c6af3c52aedf28cd5fe5d601caecd6af0c8cb434",
+    "tests/assistant-attempt-integration.test.ts": "f5343ad145b4a0928eb44652fd84b7c77eb763beaa145a5e0869aba66d3edb02",
+    "tests/assistant-native-collector.test.ts": "2951ea16ba734e6acf0cc4a44ee9b668ed6f6577d619c56921a6b7e1b3315b09"
+  },
+  "acceptance": {
+    "actualRunIdentityPreserved": true,
+    "syntheticRunNodes": 0,
+    "syntheticEventJournalEntries": 0,
+    "edges": [
+      "assistant-retry-intent",
+      "assistant-resume-intent"
+    ],
+    "provenance": "coordinator-intent",
+    "nativeAcceptanceInferred": false,
+    "executionSuccessInferred": false,
+    "groupScope": [
+      "nativeSourceId",
+      "assistantSourceId",
+      "executionId",
+      "logicalRoleId",
+      "Projects Task",
+      "workspaceId"
+    ],
+    "readCoverage": "bounded coordinator history, not whole provider history",
+    "selectedGroupShowsWholeMemberRuns": true,
+    "views": [
+      "selected Run mission flow",
+      "Assistant execution flow",
+      "Task Map",
+      "group workspace"
+    ],
+    "readerWithoutHistoryMetadataUnchanged": true
+  },
+  "checks": {
+    "broadBeforeFinalReviewFixes": {
+      "total": 1056,
+      "passed": 1046,
+      "failed": 0,
+      "skipped": 10,
+      "skipReasons": [
+        "9 existing POSIX-only Windows cases",
+        "1 optional actual Persona source environment case"
+      ],
+      "coversFinalReviewFixes": false
+    },
+    "finalFocused": {
+      "total": 64,
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Attempt helper/integration, mission/Assistant flow, group definitions/context/workspace/projection"
+    },
+    "collector": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "scope": "Real local HTTP, actual Sources/Assistant client/SQLite/API; synthetic upstream metadata"
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "operatingBuildReplaced": false,
+    "review": {
+      "independent": true,
+      "worker": "Chandrasekhar",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "actualProviderExecutionObserved": false,
+      "findings": 2,
+      "bothReproducedBeforeFix": true,
+      "verifiedByParentAfterFix": true,
+      "reviewWorkerClosed": true,
+      "regressions": [
+        "Cross-Native-source groups are siblings without mixed leaves",
+        "Selected Run filtering preserves conflicting identity evidence"
+      ]
+    },
+    "additionalRegressions": [
+      "No duplicate intent edge after canonical workspace merge",
+      "Repeated projection idempotent; withdrawal removes derived metadata/edges",
+      "Same UUID in another source/role does not shadow a predecessor",
+      "Display label differing from source ID and unknown workspace retain structured scope",
+      "Coordinator intent changes during await cannot publish the prior projection",
+      "Original SQLite event journal remains identical"
+    ]
+  },
+  "priorReaderCi": {
+    "sourceCommit": "1aa421cb13851c849f63ed0c9bc1f51b1141b14e",
+    "runId": 43518004721,
+    "conclusion": "success",
+    "bothPlatformsAllSteps": true,
+    "coversThisFlowRevision": false
+  },
+  "limitations": {
+    "productionChanged": false,
+    "credentialsChanged": false,
+    "newScopesGranted": false,
+    "actualProviderOrProductionDatabaseUsed": false,
+    "currentPcAuthenticatedGuiVerified": false,
+    "personaCiBeforeStepsFailure": {
+      "sourceCommit": "2aefb0726bda0bf34e0bb4d1c09b7bb20bd1a194",
+      "runId": 43516772403,
+      "checkRunId": 132200599406,
+      "reason": "Recent account payments failed or spending limit needs increase"
+    },
+    "remaining": [
+      "Operating rollout",
+      "Authenticated current-PC UI acceptance",
+      "Track owner command broker and UI",
+      "Durable command recovery UI",
+      "Actual provider retry/resume acceptance"
+    ]
+  },
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null,
+    "eta": null,
+    "confidence": "low"
+  }
+}

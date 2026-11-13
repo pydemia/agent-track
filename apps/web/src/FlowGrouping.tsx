@@ -295,7 +295,8 @@ export function FlowGroupEdgeEvidence({ edgeKey, state, nodes }: { edgeKey: stri
   return <details className="flow-group-edge-evidence" open><summary>대표선의 원본 관계 · {originals.length}건</summary>
     <p>경계 사이의 표시를 묶었습니다. 관계 종류·방향·출처와 원본 근거는 각각 유지합니다.</p>
     {originals.map(edge => <div key={edge.key}><strong>{edge.label}</strong><p>{name(edge.from)} → {name(edge.to)}</p>
-      <small>{edge.kind} · {edge.sourceId} · {edge.sequences.length ? `seq ${edge.sequences.join(", ")}` : "명시된 소속·업무 연결"}</small>
+      <small>{edge.kind} · {edge.sourceId} · {edge.sequences.length ? `seq ${edge.sequences.join(", ")}`
+        : ["assistant-retry-intent", "assistant-resume-intent"].includes(edge.kind) ? "coordinator intent · Native 접수는 별도" : "명시된 소속·업무 연결"}</small>
       <button className="flow-list-choice" type="button" onClick={() => state.revealEdge(edge.key)}>원본 관계 상세 보기</button></div>)}
   </details>;
 }
