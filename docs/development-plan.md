@@ -3,6 +3,17 @@
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
+2026-11-13 후속: 실제 cowork의 멤버 간 결과 전달과 4회 모델 요청을 격리 QA에서
+확인했다. native SDK의 하위 호출에 cowork 도구·callback·상위 guard를 전달하고,
+실패한 병렬 멤버의 취소/정리까지 소유된 별도 worktree에서 보완했다. 원본 SDK와
+worker의 운영 교체는 하지 않았다. Track `a56f558`은 그룹 범위 멤버 식별·단위별
+시작/종료 요약·명시 부모 호출 아래 중첩, Trace/Trail Run 선택 안내를 추가했다.
+로컬 관련41검사·타입 검사·분리 build와 Windows·Ubuntu CI를 통과했으며 운영
+웹은 이전 동결 release다.
+다음 그룹 작업은 명시된 멤버→호출/dependsOn metadata의 호환 조회 계약과 새
+실제 실행 대조다. peer/다른 기기와 전체 업무 수용의 증거로 확대하지 않는다.
+[실행·보존 기록](native-cowork-verification.json)을 따른다.
+
 최신 증분: 세션별 managed-child/peer metadata consumer와 중첩 peer 문맥 그룹을
 구현했다. 부모 Run·원격 Session이 없는 계약을 그대로 표시하고 실제 Run은
 Session/Run 그룹에만 둔다. Windows552개 중543통과·실패0·9skip, typecheck·

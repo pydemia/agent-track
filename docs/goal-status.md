@@ -1,5 +1,20 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 실제 cowork 증분: 별도 QA의1Run/1attempt에서 협업 그룹1·멤버2·
+invocation3·정규 이벤트61·모델 요청4의 성공과 실제 sorter→verifier→최종 결과
+전달을 확인했다. native SDK 변경 `dd985ea`는 소유된 별도 worktree의 로컬
+commit이며 운영 SDK/worker에 반영하지 않았다. 첫 시도는 도구 정책/callback
+누락으로 upstream 요청0회에서 취소했고, 별도 새 실행으로 수정 결과를 확인했다.
+Track `a56f558`에서 실제 그룹1/멤버2 종료 요약·호출 범위 중첩·내부 경로와
+Run 미선택 Trace/Trail 안내를 로컬 UI에서 대조했다.
+최종 구현의 Windows·Ubuntu CI는 각각928개 중919/905통과·실패0·환경skip9/23과
+타입 검사·build를 통과했다. 멤버→호출·dependsOn의
+명시 연결, 운영 배포/Entra GUI와 peer·추가 기기/교차 앱의 전체 업무는 남았다.
+원본45테이블·42개 보호 파일·18프로세스와 인증을 보존했고 QA 실행은 archive 후
+중지·임시 credential/container 제거했다. 상세는 `native-cowork-verification.json`.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음이며, 새 실제 연동과
+운영·교차 앱/기기 검증을 전제로 한다.
+
 2026-11-13 저장 Flow 보기 운영 반영: 배포 도구 `4d7da28`의 Windows·Ubuntu CI를
 통과한 뒤 API·웹 `7e98793`을 같은 동결 release로 전환했다. 실제 PID21312의
 127.0.0.1:14345 listener·CIM·runtime receipt와 HTTP18자산 bytes/MIME를 확인했다.
