@@ -104,7 +104,12 @@ h1 { margin: 9px 0 3px; font-size: clamp(25px, 2.25vw, 33px); line-height: 1.22;
 .live-indicator.connected { color: var(--lime); }
 .filters { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--line); }
 .filters label { display: grid; gap: 4px; color: var(--muted); font-size: 10px; }
-.filters select, .filters input { min-width: 130px; max-width: min(230px, 52vw); height: 33px; padding: 4px 9px; border: 1px solid #41483b; border-radius: 0; background: #1a1d17; color: var(--ink); font-size: 11px; }
+.filters select, .filters input, .run-selection select { min-width: 130px; max-width: min(230px, 52vw); height: 33px; padding: 4px 9px; border: 1px solid #41483b; border-radius: 0; background: #1a1d17; color: var(--ink); font-size: 11px; }
+.run-selection { display: grid; gap: 12px; padding: 24px 0; }
+.run-selection h2, .run-selection p { margin: 0; }
+.run-selection p { color: var(--muted); }
+.run-selection label { display: grid; gap: 6px; color: var(--muted); font-size: 11px; }
+.run-selection select { width: 100%; min-width: 0; max-width: 640px; }
 .filters .search-label input { width: 210px; }
 
 .content-grid { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 26px; padding-top: 20px; }

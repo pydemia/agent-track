@@ -41,6 +41,7 @@ export const missionUnitKind = (node: Pick<MissionNode, "kind" | "status">): str
 const compareSequence = (a: string, b: string): number => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0);
 export const missionEntityKey = (sourceId: string, kind: string, id: string, runId?: string): string =>
   JSON.stringify([sourceId, JSON.stringify(runId && ["invocation", "tool", "permission", "group", "member"].includes(kind) ? [kind, runId, id] : [kind, id])]);
+export const coworkMemberKey = (groupId: string, memberId: string): string => JSON.stringify([groupId, memberId]);
 const edgeKey = (sourceId: string, from: string, to: string, kind: string): string => JSON.stringify([sourceId, from, to, kind]);
 const phaseLabel: Record<string, string> = { started: "시작 관측", completed: "완료 이벤트 관측", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "확인 불가", ambiguous: "기록 모호" };
 const relationLabels: Record<RelationKind, string> = {
@@ -152,17 +153,23 @@ export function missionFlow(
   for (const relation of scopedRelations) {
     const owner = relationRun(relation);
     if (!owner) continue;
-    const endpoint = (entity: string): MissionNode => {
+    const endpoint = (entity: string, coworkGroupId?: string): MissionNode => {
       const separator = entity.indexOf(":");
       const kind = separator < 0 ? "unknown" : entity.slice(0, separator);
       const id = separator < 0 ? entity : entity.slice(separator + 1);
+      if (kind === "member" && coworkGroupId) {
+        const member = getNode(owner.sourceId, kind, coworkMemberKey(coworkGroupId, id), id, "observed-reference", "이 협업 그룹 안에서 명시된 멤버 참조", owner);
+        addDetail(member, "협업 그룹 ID", coworkGroupId); addDetail(member, "멤버 ID", id);
+        return member;
+      }
       if (kind === "run") {
         const observed = [...runByKey.values()].find((run) => run.sourceId === owner.sourceId && run.runId === id);
         return observed ? actualRunNode(observed) : getNode(owner.sourceId, "run", id, id, "unobserved", "관계에 기록된 실행 ID; 실제 실행은 이 입력에서 관측되지 않음");
       }
       return getNode(owner.sourceId, kind, id, id, "observed-reference", "관계 증거의 출처·실행 범위 참조", ["invocation", "tool", "permission", "group", "member"].includes(kind) ? owner : undefined);
     };
-    const from = endpoint(relation.from); const to = endpoint(relation.to);
+    const from = endpoint(relation.from);
+    const to = endpoint(relation.to, relation.kind === "cowork" && relation.from.startsWith("group:") ? relation.from.slice(6) : undefined);
     if (from.key !== actualRunNode(owner).key) addEdge(owner.sourceId, actualRunNode(owner), from, "relation-evidence", "관계 출처", `이 실행에서 관측한 ${relationLabels[relation.kind]} 관계`, [relation.evidenceSequence]);
     addDetail(from, "관계 증거", relation.evidenceSequence); addDetail(to, "관계 증거", relation.evidenceSequence);
     addEdge(owner.sourceId, from, to, relation.kind, relationLabels[relation.kind], `${owner.title || owner.runId} · ${relation.evidenceSequence}`, [relation.evidenceSequence]);
@@ -172,6 +179,36 @@ export function missionFlow(
   let incomplete = Boolean(options.hasMoreEvents);
   for (const run of eligibleRuns) {
     incomplete ||= run.incomplete || run.stale || run.cursor !== run.highWater || hasSequenceGap(events, run);
+    // Event type establishes lifecycle only; it does not disclose outcome or Task acceptance.
+    const coworkUnits = new Map<string, { node: MissionNode; starts: string[]; ends: Set<string>; endSequences: string[] }>();
+    for (const event of events) {
+      if (event.sourceId !== run.sourceId || event.runId !== run.runId || !event.data.groupId) continue;
+      const match = /^cowork\.(group|member)\.(started|completed|failed|cancelled)$/.exec(event.type);
+      if (!match || match[1] === "member" && !event.data.memberId) continue;
+      const groupId = event.data.groupId;
+      const kind = match[1] === "group" ? "group" : "member";
+      const id = kind === "group" ? groupId : coworkMemberKey(groupId, event.data.memberId!);
+      const node = getNode(run.sourceId, kind, id, kind === "group" ? groupId : event.data.memberId!, "observed-reference", "원본 협업 생명주기", run);
+      const unit = coworkUnits.get(node.key) ?? { node, starts: [], ends: new Set<string>(), endSequences: [] };
+      if (match[2] === "started") unit.starts.push(event.sequence);
+      else { unit.ends.add(match[2]!); unit.endSequences.push(event.sequence); }
+      node.sequences = [...new Set([...node.sequences, event.sequence])].sort(compareSequence);
+      addDetail(node, "협업 그룹 ID", groupId);
+      if (kind === "member") addDetail(node, "멤버 ID", event.data.memberId);
+      coworkUnits.set(node.key, unit);
+    }
+    for (const { node, starts, ends, endSequences } of coworkUnits.values()) {
+      const terminal = [...ends][0];
+      const reversed = starts.some(start => endSequences.some(end => compareSequence(start, end) > 0));
+      node.status = ends.size > 1 || reversed ? "ambiguous" : terminal === "completed" ? "ended" : terminal ??
+        (["succeeded", "failed", "cancelled", "expired", "interrupted"].includes(run.status) ? "unfinished" : "started");
+      incomplete ||= !starts.length || node.status === "ambiguous" || node.status === "unfinished";
+      node.description = "원본 협업 이벤트의 시작·종료 관측입니다. 실행 결과·업무 수용과 구별합니다.";
+      addDetail(node, "협업 관측", node.status === "ended" ? "종료 이벤트 관측 · 결과 상태 미제공" :
+        node.status === "unfinished" ? "Run 종료 · 협업 종료 미확인" : node.status === "ambiguous" ? "서로 다른 종료 근거 충돌" : node.status);
+      if (!starts.length) addDetail(node, "관측 범위", "시작 이벤트 미조회");
+      addDetail(node, "시퀀스", range(node.sequences));
+    }
     if ((mode === "execution" || options.includeExecution) && run.key === selected.key) {
       const trace = projectTrace(run, events);
       eventCount = trace.eventCount;

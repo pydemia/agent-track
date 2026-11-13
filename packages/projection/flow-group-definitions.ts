@@ -80,6 +80,10 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
     const run = actualRuns.find(run => run.runKey === anchor.runKey && run.sourceId === anchor.sourceId);
     const runGroup = run ? groups.get(flowGroupKey("run", run.key)) : undefined;
     if (runGroup) { runGroup.memberKeys = runGroup.memberKeys.filter(key => key !== anchor.key); group.parentKey = runGroup.key; }
+    const parents = model.edges.filter(edge => edge.to === anchor.key && edge.kind === "cowork")
+      .map(edge => nodes.get(edge.from)).filter((node): node is MissionNode => !!node && node.kind === "invocation" &&
+        node.sourceId === anchor.sourceId && node.runKey === anchor.runKey);
+    if (new Set(parents.map(node => node.key)).size === 1) group.parentKey = flowGroupKey(missionUnitKind(parents[0]!), parents[0]!.key);
     for (const edge of model.edges.filter(edge => edge.from === anchor.key && edge.kind === "cowork")) {
       const member = nodes.get(edge.to);
       const owners = model.edges.filter(candidate => candidate.to === edge.to && candidate.kind === "cowork");

@@ -11,8 +11,8 @@ export interface FlowGroupContext {
 }
 
 const compare = (a: string, b: string): number => a < b ? -1 : a > b ? 1 : 0;
-const statusKinds = new Set(["task", "run", "assistant-execution", "assistant-role", "invocation", "tool"]);
-const failureKinds = new Set(["run", "assistant-execution", "assistant-role", "invocation", "tool"]);
+const statusKinds = new Set(["task", "run", "assistant-execution", "assistant-role", "invocation", "tool", "group", "member"]);
+const failureKinds = new Set(["run", "assistant-execution", "assistant-role", "invocation", "tool", "group", "member"]);
 
 // Compare only the existing metadata shape, without interpreting detail text.
 const nodeSignature = (node: MissionNode): string => JSON.stringify([
