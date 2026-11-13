@@ -1,0 +1,188 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementIds": [
+    "AT-12",
+    "AT-18"
+  ],
+  "scope": "Actual isolated Demian parallel cowork branches and dependency join through Track; no original native SDK/worker promotion",
+  "trackConsumerAndRendererRevision": "0a6a900d9201be34737d5b480b35e3bcc115aa37",
+  "labelPointerFixRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+  "nativeSdkSourceRevision": "8a7f7f2122e2ad02e170bbf87f059d841df891a5",
+  "nativeSdkPublication": "local owned worktree only, not operating",
+  "frozenNativeRelease": {
+    "manifestSha256": "5dfcd5e44a5e8d326f9cc35458cd4d7078a9fc50b31c0b541d9e2c5396293414",
+    "files": 19606,
+    "links": 5,
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "runtimeSha256": "9b96d2c8e0c330d7cf53499da6a1a97bcc916d3807dc7d1d3c4386ef23c1e18d"
+  },
+  "harnessSha256": {
+    "native-parallel-flow-real.mts": "0ff26264b09d9088a4bb2b91ee3344af08dab4cdc12d07ba68a4dc36ef0e860e",
+    "verify-parallel-flow-evidence.mts": "26595fdc83654e46905a1db6a0d6d5cec37893b945ed41a065d43f46553b782b"
+  },
+  "actualExecution": {
+    "runId": "f7e925c1-9e16-4d7c-828a-e04717afa9dd",
+    "status": "succeeded",
+    "attempts": 1,
+    "invocations": 4,
+    "canonicalEvents": 77,
+    "group": {
+      "groupId": "cw_mweh0bz9_jo5yzn",
+      "parentInvocationId": "inv_fb5107c8-31fa-440a-8edf-02afd90912a7",
+      "groupStarted": 1,
+      "groupCompleted": 1,
+      "membersStarted": 3,
+      "membersCompleted": 3,
+      "requestedExecution": "parallel",
+      "actualExecution": "staged",
+      "dependencySequenceOrder": true,
+      "independentStartsBeforeEitherCompletion": true,
+      "actualUpstreamOverlapMs": 2452.1250998973846,
+      "peakActive": 2,
+      "actualOutputPropagation": true,
+      "flow": {
+        "members": [
+          {
+            "memberId": "sorter",
+            "dependsOn": []
+          },
+          {
+            "memberId": "summer",
+            "dependsOn": []
+          },
+          {
+            "memberId": "verifier",
+            "dependsOn": [
+              "sorter",
+              "summer"
+            ]
+          }
+        ],
+        "version": 1
+      },
+      "explicitMemberInvocationJoin": true
+    },
+    "upstreamModelRequests": 5,
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "low",
+    "responseModelAndEffortMatched": true,
+    "allFiveTransportRequestsCompleted": true,
+    "usage": {
+      "input": 11236,
+      "output": 699,
+      "total": 11935
+    },
+    "outputProofsChosenByActualMembers": true,
+    "bothOutputsPassedToVerifierAndFinalCoordinator": true,
+    "noPrecomputedBranchAnswersOrProofs": true,
+    "sourceMemberSequenceOrder": {
+      "sorter": {
+        "start": "18",
+        "end": "40"
+      },
+      "summer": {
+        "start": "20",
+        "end": "48"
+      },
+      "verifier": {
+        "start": "50",
+        "end": "64"
+      }
+    }
+  },
+  "trackProjection": {
+    "minimalProjection": {
+      "nodes": 11,
+      "edges": 22,
+      "groups": 10
+    },
+    "actualUi": {
+      "nodes": 14,
+      "edges": 26,
+      "groups": 10,
+      "collapsedSorterEdges": 25
+    },
+    "typedDependencies": 2,
+    "explicitMemberInvocationJoins": 3,
+    "normalizedMetadataMatchesOriginal": true,
+    "originalDependencyEvidenceRetained": true,
+    "invalidGroups": 0
+  },
+  "browser": {
+    "observedAt": "2026-11-13T04:30:00Z",
+    "observationTimePrecision": "Approximate manual observation record; not an instrumented browser timestamp",
+    "scope": "Actual isolated native Run through Track API/UI; not operating Entra browser",
+    "actualRunId": "f7e925c1-9e16-4d7c-828a-e04717afa9dd",
+    "canonicalEvents": 77,
+    "visibleModelNodes": 14,
+    "visibleEdgesExpanded": 26,
+    "nestedGroups": 10,
+    "visibleEdgesSorterCollapsed": 25,
+    "explicitDependencies": [
+      "sorter -> verifier",
+      "summer -> verifier"
+    ],
+    "originalDependencySequence": "16",
+    "beforeFix": {
+      "normalDependencyMouseClickSelectedGroup": true,
+      "hitElement": "group invocation header P",
+      "labelRendererZIndex": "auto",
+      "keyboardAndListOpenedCorrectEdge": true
+    },
+    "afterFix": {
+      "labelRendererZIndex": "2000",
+      "bothNormalDependencyMouseClicksShowCorrectEndpointsAndSequence": true,
+      "visibleLabelHitIsLabelButton": true,
+      "collapsedRepresentativeMouseClickAfterGlobalFit": true,
+      "representativeOriginalEdgeReveal": true,
+      "keyboardMemberDrillAndBreadcrumb": true,
+      "mobile390NoHorizontalOverflow": true,
+      "viewportReset": true
+    },
+    "limits": [
+      "CDP screenshot capture timed out; no exported screenshot or visual quality claim",
+      "A clipped representative label outside the canvas hit the adjacent panel before global fit; this is not counted as a successful pointer interaction",
+      "Minimal independent projection excludes separately fetched tool/receipt/artifact metadata and therefore has 11 nodes/22 edges; actual UI has 14/26",
+      "Actual parent Run is unknown and remains an explicit reference; not cross-app or cross-device acceptance"
+    ],
+    "qaTabClosed": true,
+    "existingMicrosoftPasswordHandoffPreserved": true,
+    "additionalModelRequests": 0
+  },
+  "labelBug": {
+    "trigger": "In expanded nested group, clicking the dependency label selected an invocation group instead of the edge",
+    "cause": "EdgeLabelRenderer had auto z-index, and the DOM hit target was the group header beneath the label center",
+    "change": "Scope label-renderer layer above group/selected-node layers in FlowCanvas CSS",
+    "regression": "Both expanded dependency mouse clicks and the visible collapsed representative after global fit opened exact original endpoints and sequence16; keyboard drill/mobile preserved",
+    "productionPromotion": "See subsequent track-label-runtime verification; local QA alone is not operating publication"
+  },
+  "preservation": {
+    "observedAt": "2026-11-13T04:30:35.873Z",
+    "originalAllRowsSchemaSequencesSecurityPreserved": true,
+    "files": 42,
+    "processes": 18,
+    "workerStarted": false,
+    "originalModelRequests": 0
+  },
+  "cleanup": {
+    "at": "2026-11-13T04:30:18.106Z",
+    "ownedContainerRemoved": true,
+    "workerAndHarnessExited": true,
+    "uiExited": true,
+    "portsReleased": true,
+    "credentialFilesRemoved": true,
+    "successfulRunArchived": true,
+    "accepted": true,
+    "upstreamModelRequests": 5,
+    "archiveBytes": 214343,
+    "archiveSha256": "bd79a2eb655c37ba0b0a3f8b0714e3aeed9047b6561c05fe9f52216e75356caa"
+  },
+  "limits": [
+    "Original parent Run is unknown; explicit parent invocation reference is retained instead of inventing a Run join.",
+    "Requested parallel with dependencies is normalized by SDK to staged; actual member starts and 2452ms overlapping upstream intervals prove the independent branches, not the config name.",
+    "Track public Entra browser, genuine peer/additional-device and full cross-app business acceptance remain unverified.",
+    "Screenshot capture timed out; DOM/behavior checks do not establish exported screenshot quality.",
+    "The independent verifier initially addressed raw data.flow on normalized events. Correcting it to the documented data.coworkPlan enabled read-only comparison; actual Run was already accepted and no extra model requests were made.",
+    "Private archive is retained; temporary QA workers/API/UI/PG and access credential copy were removed."
+  ]
+}

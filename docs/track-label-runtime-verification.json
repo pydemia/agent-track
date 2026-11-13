@@ -1,0 +1,259 @@
+{
+  "dateKst": "2026-11-13",
+  "implementationRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+  "apiAndWebRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+  "scope": "Actual Track-only paired upgrade: dependency label pointer interaction above nested groups and selected nodes. Native SDK/worker not promoted.",
+  "codeAndTestSha256": {
+    "deploy/track/runtime-operation.mjs": "c93bd3e64ba66a1cd461a6839a00324eeb9a98472ee60a19012803446fe26070",
+    "deploy/track/runtime-operation.d.mts": "25944abedfedb34be724a162d97048da33daab01c674b5f02d19214f22ed5dc1",
+    "deploy/track/activate-runtime.ps1": "e8c1b6048521f8e8570d1c4faba3d9353e393bf015ae5e342724602eafce8321",
+    "scripts/Start-Track.ps1": "aaf115f102a8f641328afe8a3a8bbaa5871875e21f003d43ae9522a86ce58866",
+    "tests/track-runtime-upgrade.test.ts": "a79aa8e28c89b8ec2cd89a6779b94fc67f7b3fc5e7448268bf6191e23a915ec4",
+    "tests/track-runtime-recovery.test.ts": "18a754f2fbad2580b5ed0020d704e872200dcdb362e648d5ccbbb6fb5681c6ef",
+    "tests/fixtures/track-config-read-lock.ps1": "97008eba6523468dbfc2d92c79dad2292e527aae40cca49b3d2ef886c7885db1",
+    "apps/web/src/ui/flow-canvas.css": "7ac007abf34ac9a2aaa6896a346b20a3d2467169d7f0cf72342322a5c715ae99"
+  },
+  "hashConvention": "Git blob bytes at implementationRevision; private plan independently pins working-file bytes",
+  "ci": {
+    "runId": 43366014650,
+    "url": "https://github.com/pydemia/agent-track/actions/runs/43366014650",
+    "conclusion": "success",
+    "windows": {
+      "tests": 957,
+      "passed": 948,
+      "failed": 0,
+      "skipped": 9
+    },
+    "ubuntu": {
+      "tests": 957,
+      "passed": 933,
+      "failed": 0,
+      "skipped": 24
+    },
+    "typecheckAndBuildBothPassed": true
+  },
+  "operation": {
+    "version": 2,
+    "operationId": "8da043b3-fd48-4426-a8cf-2adafff92b9e",
+    "inputSha256": "4ee6a7512ce88af4a131838115e75de5eec1e06d9ab576c4e52cdfeb2c0ab80f",
+    "committed": true,
+    "previousApiAndWebRevision": "0a6a900d9201be34737d5b480b35e3bcc115aa37",
+    "previousPid": 46404,
+    "activePid": 59568,
+    "activeCreated": "2026-11-13T04:34:51.1050980Z",
+    "listener": "127.0.0.1:14345",
+    "candidateManifestSha256": "8284eec38eb28cff4cd58c682ea0645ded72d1648c31557cb456a6a58d80bea3",
+    "rollbackManifestSha256": "0f0662adbd9e7cb6096ad082ecfdb356998efebbebab6aeea7017fba8e7e3d15",
+    "bridgesRestarted": false,
+    "originalConfigBytesRestored": true,
+    "webFilesBytesAndMimeMatched": 18
+  },
+  "backup": {
+    "bytes": 21942272,
+    "tables": 12,
+    "sha256": "2ac5e8e5d099c5b3e88ff1270fbc4edb436ce381e59bb2dde285be25749fd88f",
+    "integrityAndTypedBytesVerified": true,
+    "sourceDatabaseRestored": false
+  },
+  "coldQa": {
+    "operationId": "8da043b3-fd48-4426-a8cf-2adafff92b9e",
+    "backupSha256": "2ac5e8e5d099c5b3e88ff1270fbc4edb436ce381e59bb2dde285be25749fd88f",
+    "at": "2026-11-13T04:32:39.611Z",
+    "fixtureOnly": true,
+    "sourceDatabaseRestored": false,
+    "originalApiRestarted": false,
+    "sourceOrModelRequests": 0,
+    "releases": {
+      "candidate": {
+        "verified": true,
+        "manifestSha256": "8284eec38eb28cff4cd58c682ea0645ded72d1648c31557cb456a6a58d80bea3",
+        "files": 2026,
+        "packages": 27,
+        "rootStatus": 200,
+        "webFilesBytesAndMimeMatched": 18,
+        "emptySourceSnapshot": true,
+        "savedViewStatus": 200,
+        "pid": 37500,
+        "childStopped": true,
+        "portReleased": true,
+        "allLegacyTablesAndSchemaPreserved": true,
+        "addedSchemaObjects": []
+      },
+      "rollback": {
+        "verified": true,
+        "manifestSha256": "0f0662adbd9e7cb6096ad082ecfdb356998efebbebab6aeea7017fba8e7e3d15",
+        "files": 2026,
+        "packages": 27,
+        "rootStatus": 200,
+        "webFilesBytesAndMimeMatched": 18,
+        "emptySourceSnapshot": true,
+        "savedViewStatus": 200,
+        "pid": 33568,
+        "childStopped": true,
+        "portReleased": true,
+        "allLegacyTablesAndSchemaPreserved": true,
+        "addedSchemaObjects": []
+      }
+    }
+  },
+  "operating": {
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "tableCounts": [
+      {
+        "name": "approval_receipts",
+        "count": 4
+      },
+      {
+        "name": "binding_receipts",
+        "count": 5
+      },
+      {
+        "name": "bindings",
+        "count": 5
+      },
+      {
+        "name": "event_digests",
+        "count": 0
+      },
+      {
+        "name": "events",
+        "count": 33101
+      },
+      {
+        "name": "metadata",
+        "count": 20
+      },
+      {
+        "name": "receipts",
+        "count": 2
+      },
+      {
+        "name": "runs",
+        "count": 718
+      },
+      {
+        "name": "saved_flow_views",
+        "count": 0
+      },
+      {
+        "name": "sqlite_sequence",
+        "count": 2
+      },
+      {
+        "name": "task_assignment_receipts",
+        "count": 2
+      },
+      {
+        "name": "task_creation_receipts",
+        "count": 1
+      }
+    ],
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0
+    },
+    "otherProtectedFilesUnchanged": 38,
+    "otherProcessGenerationsUnchanged": 17,
+    "nativeDatabase": {
+      "tables": 45,
+      "fullRowsSchemaSequencesSecurityAndContainerPreserved": true
+    },
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "sourcesAtInitialPostCheck": [
+      {
+        "id": "demian-local",
+        "kind": "demian",
+        "state": "connected",
+        "runs": 19
+      },
+      {
+        "id": "codex-local",
+        "kind": "codex",
+        "state": "connected",
+        "runs": 699
+      },
+      {
+        "id": "projects-native",
+        "kind": "projects",
+        "state": "connected",
+        "runs": 0
+      },
+      {
+        "id": "assistant-native",
+        "kind": "assistant",
+        "state": "connected",
+        "runs": 0
+      },
+      {
+        "id": "desktop",
+        "kind": "desktop",
+        "state": "unsupported",
+        "runs": 0
+      }
+    ],
+    "assistantFollowup": {
+      "observedAt": "2026-11-13T04:35:56.199Z",
+      "list": 200,
+      "detail": 200,
+      "events": 200,
+      "executionCount": 1,
+      "roles": 1,
+      "eventCount": 37,
+      "projectTaskReferenceMatched": true,
+      "sourceState": "connected",
+      "dispatchPerformed": false
+    },
+    "sourceOrModelDispatchPerformed": false
+  },
+  "review": {
+    "independentFindingsReproducedAndFixed": [
+      "Corrupt candidate payload blocked independent recovery/config restore",
+      "Healthy candidate could be stopped before foreign pointer/config refusal",
+      "Config changed between validation and product fork",
+      "Legacy rollback-start rejected the just-written rollback pointer"
+    ],
+    "windowsConfigReadLockAndReceiptAtomicReplaceVerified": true,
+    "forcedOsCrashTested": false
+  },
+  "limits": [
+    "Operating Entra GUI was not reverified: existing Microsoft administrator sign-in handoff remains pending. HTTP redirects/API policy are verified separately.",
+    "Operating native SDK and worker were not changed; new producer metadata was verified in a separate actual QA Run and is not present in the original 19 native Runs.",
+    "Separate actual parallel QA proved 14 nodes,26 edges,10 groups plus exact two dependency endpoints/sequence16, pointer regression fix,collapsed provenance,keyboard drill and390px. This rollout verifies serving those exact bytes, not a new operating browser interaction/screenshot.",
+    "Actual Assistant list/detail/events returned 200 and authority was connected. Full cross-app execution remains unverified.",
+    "Actual isolated parallel branch/join is verified separately. Genuine peer/additional-device and full cross-app business acceptance remain.",
+    "No repeated operation driver or original database restore."
+  ]
+}

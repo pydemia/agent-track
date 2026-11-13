@@ -19,8 +19,12 @@ worker의 운영 교체는 하지 않았다. Track `a56f558`은 그룹 범위 �
 격리 cold start를 거쳐 `0a6a900` API·웹을 함께 운영 반영했다. Task 두 개의
 계정별 저장 보기·revision409·삭제, 기존 이력과 원본 서비스 보존을 확인했다.
 Assistant의 최초 미인가 표시는 실제 목록/상세/이벤트200을 거친 뒤 connected로
-확인했다. 다음 그룹 작업은 실제 병렬 분기·합류 대조와 소유자 경계에 따른
-SDK/worker 운영 전환이다. peer/다른 기기와 전체 업무 수용의 증거로 확대하지 않는다.
+확인했다. 후속 실제 병렬 QA는 독립 멤버2개의 upstream 구간2.45초 중첩과
+합류 멤버의 양쪽 실제 결과 수신·최종 종합을 확인했다. UI14node/26edge·10그룹과
+두 선행 관계를 대조했고, 관계 레이블이 그룹 헤더에 가려지는 클릭 문제를
+`1f224c7`에서 수정·브라우저 회귀 검증했다. 다음 그룹 작업은 소유자 경계에 따른
+SDK/worker 운영 전환과 실제 peer 조직화다. 다른 기기와 전체 업무 수용의 증거로 확대하지 않는다.
+[병렬·합류 및 선택 회귀](native-parallel-flow-verification.json)를 따른다.
 [운영 업그레이드 증거](track-runtime-upgrade-verification.json)를 따른다.
 [실행·보존 기록](native-cowork-verification.json)을 따른다.
 [후속 명시 관계·renderer 검증](native-cowork-flow-verification.json)에서 새 실제

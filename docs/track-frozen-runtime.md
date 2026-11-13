@@ -121,3 +121,14 @@ Windows·Ubuntu CI957검사·타입 검사·build를 확인한 뒤 driver를 한
 운영 Entra GUI와 OS crash/fault injection, native SDK/worker 전환은 미검증이다.
 앞선 실제 QA의 그룹/edge 행동 검증을 새 운영 브라우저 검증으로 확대하지 않는다.
 실제 범위와 CI의 환경skip은 `track-runtime-upgrade-verification.json`에 기록한다.
+
+후속 operation `8da043b3-fd48-4426-a8cf-2adafff92b9e`에서는 위 `0a6a900`을
+복구 기준으로 보존하고 레이블 클릭 수정 `1f224c7`을 API·웹에 함께 반영했다.
+실제21,942,272byte·12테이블 backup, 양쪽18자산의 격리 cold start와 같은
+operator의 보존·복구 경계를 대조했다. 수정 revision의 Windows948/957통과·
+9skip, Ubuntu933/957통과·24skip, 양쪽 실패0·타입 검사·build를 확인했다.
+현재 PID59568·원본 설정 bytes·18자산 bytes/MIME·허용 Task 저장 보기·기존 이력·
+다른17프로세스와 native45테이블/보안/container·익명 차단을 다시 확인했다.
+Assistant 실제 목록·상세·37event와 connected도 대조했다. 이 operation도
+committed이며 재실행하지 않는다. `track-label-runtime-verification.json`이
+최신 운영 증거이며 Entra GUI·원본 SDK/worker·교차 앱/기기 제한은 유지한다.

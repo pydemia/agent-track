@@ -1,5 +1,27 @@
 # Agent Track 구현 goal 기준표
 
+최신 운영 상태(2026-11-13): 관계 레이블 클릭 수정 `1f224c7`의 API·웹을 새
+operation에서 함께 전환했다. PID59568의 실제 generation·loopback listener·
+manifest와18웹 파일 bytes/MIME를 확인했다. 기존12테이블 이력·원래 설정·
+native45테이블/보안/container·다른17프로세스·bridge를 보존했다. 실제 owner의
+Task 두 개 저장 보기 생성/조회·revision409·삭제와 Assistant 목록/상세/이벤트200,
+Demian19Run·Projects·Codex·Assistant 연결을 대조했다. 익명/위조API401과
+Track/Trail302를 유지한다. 운영 Entra GUI와 desktop·교차 앱/기기는 미검증이다.
+`track-label-runtime-verification.json`이 최신 배포 기록이며, 아래 단락은 이력이다.
+
+2026-11-13 실제 병렬·합류 후속: 별도 frozen SDK `8a7f7f2`에서1Run/1attempt·
+호출4·멤버3·77event·모델5요청/11,935토큰의 실제 실행을 확인했다. 독립 sorter·
+summer의 upstream 구간이2.45초 겹치고, 양쪽 종료seq40/48 후 verifier가seq50에
+시작해 두 실제 결과를 검증·최종 종합했다. 원본 metadata·정규화된 계획·3개
+명시 호출 join·두 선행선을 대조했다. Track UI14node/26edge·10그룹과 접기25edge·
+원본seq16·내부 경로·390px를 확인했다. 레이블의 클릭이 뒤쪽 그룹을 선택하는
+문제를 재현하고 `1f224c7`에서 수정·양쪽 선행선 마우스와 대표선 원본 조회로
+검증했다. 수정의 Windows·Ubuntu CI957개·타입 검사·build는 실패0이다.
+원본45테이블·42파일·18프로세스를 보존하고 성공 실행 archive 후 QA 자원과
+credential을 정리했다. 운영 SDK/worker·peer/추가 기기·전체 교차 앱은 남아
+14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+`native-parallel-flow-verification.json`에 실기·표시·운영 경계를 구분했다.
+
 2026-11-13 동결 업그레이드 후속: v2 operator `f73a6d0`의 Windows957개 중
 948통과·9skip, Ubuntu957개 중933통과·24skip, 양쪽 실패0·타입 검사·build를
 확인했다. 실제12테이블 backup·후보/복구18웹 자산의 격리 cold start를 거쳐
@@ -271,7 +293,7 @@ Native cold start·PC 재부팅을 수행한 결과는 아니다. `demian-api-st
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 전체5저장소+native 여러 workspace·필터/해제·선택 유지 실기, source별 범위/미지원 표시. 두 번째 실제 장치 연결 남음 |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
-| AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 부분. 별도 인가 native lineage9건·정확한 도구 item join3건·Run/호출 분리와 업무별 고유 Run 집계. 격리 실제 explicit managed-child Run1/17event·부모/child ID 분리와 원본 receipt·Track 상세 확인. 실제 coordinator→sorter→verifier→종합의3호출/5요청/63event를 별도 QA에서 확인. cowork/peer·교차 장치와 native 운영 전환 남음 |
+| AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 부분. 별도 인가 native lineage9건·정확한 도구 item join3건·Run/호출 분리와 업무별 고유 Run 집계. 격리 실제 explicit managed-child Run1/17event·부모/child ID 분리와 원본 receipt·Track 상세 확인. 실제 coordinator→sorter→verifier→종합의3호출/5요청/63event 및 cowork3멤버·4호출·77event의 실제 병렬/합류와 명시 ID·선행 관계를 별도 QA에서 확인. peer·교차 장치와 native SDK/worker 운영 전환 남음 (`native-parallel-flow-verification.json`) |
 | AT-19 | Projects 원본·Run 단위 binding 이력·서로 다른 완료 | 검증 완료. 실제 native QA Task A→B로 명시 Run 연결·재연결, A 원본 revision2와 당시 revision1 보존, stale revision409·동일 receipt·재시작 이력2건. Run 성공/Task todo·agent report/검증/수용 unknown 구별. bound Project 철회 시 공개 비노출·네 API404→복구 |
 | AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. Projects 원본 BFF·개요·Task 목록/상세를 소유자 QA Project1개에 운영 연결. 실제 Map 이동·socket 단절 중 업무 생성/수정·자동 복구·390px/키보드 실기. Demian owner/Session 전후 재인가 BFF·요약 UI 구현, 분리 native web에서 요약 단절 중 실제 Run 성공18event/도구0·복구 후 Run3·같은 공개 Map·390px/Tab 실기. native web120/Track238 검사 통과. 원본 web 교체 전 Docker DB 연결 종료와 API/worker 종료 발견, 운영 적용 보류. 다른 사용자 인가 계약도 별도. `projects-context-native-ui-verification.json`·`demian-context-native-ui-verification.json` |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |

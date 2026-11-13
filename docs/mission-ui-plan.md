@@ -43,6 +43,22 @@ Track의 새 API·웹은 아래 후속에서 운영 반영했다. 실제 병렬 
 새 운영 브라우저 상호작용·Entra GUI를 확인했다고 하지 않는다.
 [동결 업그레이드 기록](track-runtime-upgrade-verification.json)에 실제 범위를 남겼다.
 
+실제 병렬 후속에서는 sorter·summer가 원본 숫자를 독립 처리하고, 두 결과에
+의존하는 verifier가 끝난 뒤 조정자가 종합했다. 원본 시작seq18/20이 양쪽 종료
+seq40/48보다 앞서고 verifier는seq50에서 시작했다. 실제 upstream 구간도2.45초
+겹쳤다. 요청한 `parallel`은 의존성이 있어 SDK가 `staged`로 정규화하며, 실행
+이름 대신 이 실제 시작/종료·결과 전달을 대조한다. Track UI14node/26edge·10그룹,
+두 멤버 선행선과 접힌 대표선의 원본seq16을 확인했다.
+그룹 헤더 아래에 가려진 관계 레이블의 클릭이 그룹을 선택하는 문제를 재현하고
+`1f224c7`에서 레이블 계층을 올렸다. 양쪽 선행선 마우스 선택·대표선 원본 조회,
+키보드 내부 경로와390px를 대조했다. 화면 밖으로 잘린 레이블은 전체 맞춤 뒤
+선택했으며 screenshot capture는 timeout이어서 시각 품질 통과로 기록하지 않는다.
+운영 SDK/worker와 전체 교차 앱 업무는 별도다.
+[병렬·합류 실기 기록](native-parallel-flow-verification.json)을 따른다.
+레이블 수정 `1f224c7`의 API·웹도 별도 동결 operation으로 운영 반영하고 실제
+18자산의 bytes/MIME를 대조했다. 최신 배포 경계는
+[레이블 수정 운영 기록](track-label-runtime-verification.json)에 남긴다.
+
 ## 화면별 책임
 
 2026-11-13 실제 coordinator QA에서 그룹의 종료 표시를 보완했다. Run이 취소돼도
