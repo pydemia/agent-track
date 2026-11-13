@@ -107,10 +107,7 @@ diff --git a/apps/api/src/server.ts b/apps/api/src/server.ts
 index d696870974ab89575ad5767c3bd7776639468012..b2817a1d8b244ea74b7ae04aff40ac7d79275b1c 100644
 --- a/apps/api/src/server.ts
 +++ b/apps/api/src/server.ts
-@@ -632,6 +632,19 @@ export function buildServer(options: ServerOptions): FastifyInstance {
-     if (principal.role === "viewer") throw new HttpProblem(403, "forbidden", "A viewer cannot cancel a run")
-     await authorize(options.config, principal, "view", { kind: "session", id: existing.session_id, organizationId })
-     await authorize(options.config, principal, "cancel", { kind: "run", id: existing.id, organizationId })
+@@ -634,0 +635,13 @@ export function buildServer(options: ServerOptions): FastifyInstance {
 +    if (workRuntime?.hasContext(request)) {
 +      const result = await workRuntime.cancel(request, request.params.runId)
 +      if (result.kind === "not_cancellable") throw new HttpProblem(409, "run_not_cancellable", "Run can no longer be cancelled")
@@ -124,66 +121,41 @@ index d696870974ab89575ad5767c3bd7776639468012..b2817a1d8b244ea74b7ae04aff40ac7d
 +      }
 +      return reply.status(result.kind === "terminal" ? 200 : 202).send(result.resource)
 +    }
-     if (TERMINAL_RUN_STATUSES.has(existing.status)) return reply.status(200).send(await publicRun(existing, request))
-     const row = await cancelRun(db, organizationId, request.params.runId,principal.userId)
-     if (!row) throw new HttpProblem(409, "run_not_cancellable", "Run can no longer be cancelled")
 diff --git a/apps/api/src/work-runtime-server.ts b/apps/api/src/work-runtime-server.ts
 index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e31c6ccff 100644
 --- a/apps/api/src/work-runtime-server.ts
 +++ b/apps/api/src/work-runtime-server.ts
-@@ -2,6 +2,7 @@ import { isDeepStrictEqual } from "node:util"
- import type { FastifyInstance, FastifyRequest } from "fastify"
- import {
-   consumeWorkRuntimeDelegation,
+@@ -4,0 +5 @@ import {
 +  cancelRunInTransaction,
-   lockCurrentWorkRuntimeActor,
-   type DatabasePool,
-   type DatabaseClient,
-@@ -38,6 +39,12 @@ interface WorkRuntimeRequest {
-   admittedAt: number
- }
- 
+@@ -40,0 +42,6 @@ interface WorkRuntimeRequest {
 +class WorkRuntimeRunMissingError extends Error {
 +  readonly statusCode = 404
 +  readonly code = "run_not_found"
 +  constructor() { super("Run not found") }
 +}
 +
- const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
- 
- /** A single exact-byte collector is shared by independently verified delegations. */
-@@ -172,42 +179,60 @@ export function registerWorkRuntimeServer(
-         || policy.maximumOutputTokens !== context.policy.maximumOutputTokens) throw new WorkRuntimeSignatureError()
-   }
-   async function protectedRunRead<T>(request: FastifyRequest, runId: string,
+@@ -175 +182 @@ export function registerWorkRuntimeServer(
 -    action: (client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: Parameters<typeof runResource>[0]) => Promise<T>) {
 +    action: (client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: Parameters<typeof runResource>[0]) => Promise<T>, mutation = false) {
-     const context = contextFor(request)
-     if (!context || !UUID.test(runId)) throw new WorkRuntimeSignatureError()
-     const client = await db.connect()
+@@ -179 +186 @@ export function registerWorkRuntimeServer(
 -    let committed = false
 +    let committed = false, commitAttempted = false
-     try {
-       await client.query("BEGIN")
-       const run = (await client.query<Parameters<typeof runResource>[0]>(
+@@ -183 +190 @@ export function registerWorkRuntimeServer(
 -        "SELECT * FROM runs WHERE id=$1 AND organization_id=$2 AND session_id=$3 AND requested_by_user_id=$4 FOR SHARE",
 +        `SELECT * FROM runs WHERE id=$1 AND organization_id=$2 AND session_id=$3 AND requested_by_user_id=$4 FOR ${mutation ? "UPDATE" : "SHARE"}`,
-         [runId, context.actor.binding.organizationId, context.actor.binding.sessionId, context.actor.actingUserId])).rows[0]
+@@ -185 +192 @@ export function registerWorkRuntimeServer(
 -      if (!run) throw new WorkRuntimeSignatureError()
 +      if (!run) throw mutation ? new WorkRuntimeRunMissingError() : new WorkRuntimeSignatureError()
-       const actor = await lockCurrentWorkRuntimeActor(client, context.actor)
-       const receipt = assertReceipt(await getWorkRuntimeRunReceipt(client, { organizationId: actor.binding.organizationId, runId }), context)
-       if (!isDeepStrictEqual(receipt.trustedPolicy, context.policy)) throw new WorkRuntimeSignatureError()
+@@ -189 +196,2 @@ export function registerWorkRuntimeServer(
 -      if (actor.binding.execution) {
 +      const assertPreparedPin = async () => {
 +        if (!actor.binding.execution) return
-         const deployment = await currentPreparedDeployment(client, actor)
+@@ -191 +199 @@ export function registerWorkRuntimeServer(
 -        const pin = await client.query("SELECT settings_hash FROM deployment_run_authorities WHERE run_id=$1", [runId])
 +        const pin = await client.query("SELECT settings_hash FROM deployment_run_authorities WHERE run_id=$1 FOR SHARE", [runId])
-         if (pin.rows[0]?.settings_hash !== deployment.settingsHash) throw new WorkRuntimeSignatureError()
-       }
+@@ -193,0 +202 @@ export function registerWorkRuntimeServer(
 +      await assertPreparedPin()
-       const role = JSON.parse(receipt.canonicalRoleContextJson)
+@@ -194,0 +204,11 @@ export function registerWorkRuntimeServer(
 +      const assertCurrentAuthority = async () => {
 +        await assertCurrentPolicy(actor, context)
 +        await lockCurrentWorkRuntimeActor(client, actor)
@@ -195,7 +167,7 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 +        assertRole(role, current.now.getTime()); assertCurrentKey(request, context)
 +      }
 +      if (mutation) await assertCurrentAuthority()
-       const result = await action(client, actor, run)
+@@ -196,8 +216,3 @@ export function registerWorkRuntimeServer(
 -      await assertCurrentPolicy(actor, context)
 -      await lockCurrentWorkRuntimeActor(client, actor)
 -      const current = (await client.query<{ role: string; now: Date }>(
@@ -207,13 +179,10 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 +      if (mutation) await assertPreparedPin()
 +      await assertCurrentAuthority()
 +      commitAttempted = true
-       await client.query("COMMIT"); committed = true
+@@ -204,0 +220,2 @@ export function registerWorkRuntimeServer(
 +      // Return the committed authorization snapshot; later revocation cannot undo it.
 +      if (mutation) return result
-       await assertCurrentPolicy(actor, context)
-       assertCurrentKey(request, context); assertRole(role, Date.now())
-       if (Date.now() >= context.verified.claims.exp * 1000) throw new WorkRuntimeSignatureError()
-       return result
+@@ -209 +226,8 @@ export function registerWorkRuntimeServer(
 -    } catch {
 +    } catch (error) {
 +      if (mutation && commitAttempted) {
@@ -223,15 +192,9 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 +          statusCode: 500, code: "cancel_commit_outcome_unknown",
 +        })
 +      }
-       if (!committed) await client.query("ROLLBACK")
+@@ -210,0 +235 @@ export function registerWorkRuntimeServer(
 +      if (error instanceof WorkRuntimeRunMissingError) throw error
-       // Never echo storage metadata or protected bytes on this service-only boundary.
-       throw new WorkRuntimeSignatureError()
-     } finally { client.release() }
-@@ -234,6 +259,59 @@ export function registerWorkRuntimeServer(
-       "content-length": String(result.bytes.byteLength),
-     }).send(result.bytes)
-   })
+@@ -236,0 +262,53 @@ export function registerWorkRuntimeServer(
 +  async function decorateRun(row: Parameters<typeof runResource>[0], request?: FastifyRequest, transaction?: { client: DatabaseClient; actor: DelegatedWorkRuntimeActor }) {
 +    let resource = runResource(row)
 +    const receipt = await getWorkRuntimeRunReceipt(transaction?.client ?? db, { organizationId: row.organization_id, runId: row.id })
@@ -285,43 +248,18 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 +        sequence:messageReference.reference.sequence,payload_sha256:messageReference.reference.payloadSha256,text_sha256:messageReference.reference.textSha256}:null}:{}),
 +    } } : resource
 +  }
-   return {
-     principalFor(request: FastifyRequest): Principal {
-       return contextFor(request)?.principal ?? authenticatedPrincipalFor(request)
-@@ -254,6 +332,7 @@ export function registerWorkRuntimeServer(
-         [context.actor.binding.organizationId, context.actor.binding.sessionId],
-       )).rows[0] : undefined
-       let preparedReady = false
+@@ -256,0 +335 @@ export function registerWorkRuntimeServer(
 +      let preparedRoleMetadataReady = false
-       if (context?.actor.binding.execution && context.policy.native?.bindingSha256 === context.actor.bindingSha256) {
-         const client = await db.connect()
-         try {
-@@ -261,9 +340,11 @@ export function registerWorkRuntimeServer(
-           const actor = await lockCurrentWorkRuntimeActor(client, context.actor)
-           const deployment = await currentPreparedDeployment(client, actor)
-           const available = await client.query(
+@@ -264 +343 @@ export function registerWorkRuntimeServer(
 -            "SELECT 1 FROM worker_runtime_capabilities WHERE worker_id=$1 AND features->'delegated_prepared_codex_v1'='true'::jsonb AND checked_at BETWEEN clock_timestamp()-interval '90 seconds' AND clock_timestamp()",
 +            "SELECT features FROM worker_runtime_capabilities WHERE worker_id=$1 AND features->'delegated_prepared_codex_v1'='true'::jsonb AND checked_at BETWEEN clock_timestamp()-interval '90 seconds' AND clock_timestamp()",
-             [deployment.workerId])
-           preparedReady = available.rowCount === 1
+@@ -266,0 +346,2 @@ export function registerWorkRuntimeServer(
 +          preparedRoleMetadataReady = preparedReady && available.rows[0].features.delegated_prepared_role_metadata_v1 === true
 +          if (actor.binding.toolScope.length > 0 && !preparedRoleMetadataReady) preparedReady = false
-           await client.query("COMMIT")
-         } catch { await client.query("ROLLBACK") } finally { client.release() }
-       }
-@@ -276,7 +357,7 @@ export function registerWorkRuntimeServer(
-           contract: "assistant-delegation-v1", delegated_subject: true,
-           current_scope: true, context_pin: true, permission_budget: ready,
-           original_request_lookup: true, result_artifacts_v1: true,
+@@ -279 +360 @@ export function registerWorkRuntimeServer(
 -          ...(context?.actor.binding.execution ? { prepared_codex_text_v1: preparedReady } : {}),
 +          ...(context?.actor.binding.execution ? { prepared_codex_text_v1: preparedReady, prepared_role_metadata_v1: preparedRoleMetadataReady } : {}),
-         },
-         work_runtime_budget_units: {
-           request_count: "provider-invocation", output_tokens: "requested-max-tokens",
-@@ -289,67 +370,28 @@ export function registerWorkRuntimeServer(
-       return context ? { kind: "managed" as const, work_runtime_binding: { binding_sha256: context.actor.bindingSha256 } } : {}
-     },
-     hasContext(request: FastifyRequest) { return contexts.has(request) },
+@@ -291,0 +373,9 @@ export function registerWorkRuntimeServer(
 +    async cancel(request: FastifyRequest, runId: string) {
 +      return protectedRunRead(request, runId, async (client, actor, run) => {
 +        const terminal = ["succeeded", "failed", "cancelled", "expired"].includes(run.status)
@@ -331,19 +269,10 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 +          resource: await decorateRun(row, request, { client, actor }) }
 +      }, true)
 +    },
-     async enqueue(request: FastifyRequest) {
-       const context = contextFor(request)
-       if (!context) throw new WorkRuntimeSignatureError()
-       const capabilities = await this.capabilities(request)
-       if (!(context.actor.binding.execution ? capabilities.work_runtime?.prepared_codex_text_v1 : capabilities.work_runtime?.permission_budget)) throw new WorkRuntimeSignatureError()
+@@ -296,0 +387,2 @@ export function registerWorkRuntimeServer(
 +      if (context.actor.binding.execution && context.actor.binding.toolScope.length > 0
 +          && !capabilities.work_runtime?.prepared_role_metadata_v1) throw new WorkRuntimeSignatureError()
-       const workPackage = validateWorkRuntimePackage({
-         bodyBytes: context.rawBody, verified: context.verified, actor: context.actor,
-         idempotencyKey: request.headers["idempotency-key"],
-       })
-       return createDelegatedWorkRuntimeRun(db, { actor: context.actor, workPackage, trustedPolicy: context.policy })
-     },
+@@ -303,51 +395 @@ export function registerWorkRuntimeServer(
 -    async decorateRun(row: Parameters<typeof runResource>[0], request?: FastifyRequest) {
 -      let resource = runResource(row)
 -      const receipt = await getWorkRuntimeRunReceipt(db, { organizationId: row.organization_id, runId: row.id })
@@ -396,8 +325,6 @@ index 08ec96c799965fe6731ed7d0d28a7df0140b8cb1..dfa506d8fdded8360a05c75878e3a12e
 -      } } : resource
 -    },
 +    decorateRun: (row: Parameters<typeof runResource>[0], request?: FastifyRequest) => decorateRun(row, request),
-   }
- }
 diff --git a/apps/api/test/dedicated-work-entry.integration.test.ts b/apps/api/test/dedicated-work-entry.integration.test.ts
 new file mode 100644
 index 0000000000000000000000000000000000000000..384e23541174d9b30117edff91c9ccb403efbac9
@@ -612,35 +539,14 @@ diff --git a/apps/api/test/work-runtime-package.test.ts b/apps/api/test/work-run
 index ea3586267d6abb2f496d3a7170acf36ed65b1b48..09e06c5a29065ce3ec5074eef0c6b52482c712d4 100644
 --- a/apps/api/test/work-runtime-package.test.ts
 +++ b/apps/api/test/work-runtime-package.test.ts
-@@ -38,6 +38,7 @@ function contextFixture() {
- type ContextFixture = ReturnType<typeof contextFixture>
- 
- function fixture(options: {
+@@ -40,0 +41 @@ function fixture(options: {
 +  toolScope?: string[]
-   execution?: { kind: "prepared-codex-text-v1"; serviceId: string; serviceRevision: string }
-   mutateContext?: (context: ContextFixture) => void
-   trustMutatedRole?: boolean
-@@ -45,6 +46,7 @@ function fixture(options: {
-   mutateWire?: (canonicalWire: string) => string
- } = {}) {
-   const context = contextFixture(), originalRoleSha = sha256(JSON.stringify(context.roleContext))
+@@ -47,0 +49 @@ function fixture(options: {
 +  if (options.toolScope) context.roleContext.membership.toolScope = options.toolScope
-   options.mutateContext?.(context)
-   const request = options.request ?? "Produce the bounded answer."
-   const binding = parseTrustedWorkRuntimeBinding({
-@@ -52,7 +54,7 @@ function fixture(options: {
-     ownerId: "assistant-owner", runtimeActorId: "assistant-actor", tenantId: "trusted-tenant", organizationId: principal.organizationId,
-     servicePrincipalId: principal.userId, workspaceId: "00000000-0000-0000-0000-000000000020", sessionId: "00000000-0000-0000-0000-000000000030", kind: "managed",
-     roleContextSha256: options.trustMutatedRole ? sha256(JSON.stringify(context.roleContext)) : originalRoleSha,
+@@ -55 +57 @@ function fixture(options: {
 -    policyRevision: "p1", model: "requested-model", effort: null, readScope: ["approved-source"], toolScope: [],
 +    policyRevision: "p1", model: "requested-model", effort: null, readScope: ["approved-source"], toolScope: options.toolScope ?? [],
-     ...(options.execution ? { execution: options.execution } : {}),
-   })
-   const actor: DelegatedWorkRuntimeActor = { actingUserId: "00000000-0000-0000-0000-000000000040", authenticatedServicePrincipalId: principal.userId,
-@@ -270,3 +272,31 @@ test("prepared execution must match all three pins across a signed v2 packet and
-   invalid(() => validate(fixture({ execution, mutateContext: context => { context.skills[0].body = "forged" } })))
-   invalid(() => validate(fixture({ mutateWire: wire => wire.replace('version', 'unknown_version') })))
- })
+@@ -272,0 +275,28 @@ test("prepared execution must match all three pins across a signed v2 packet and
 +
 +test("prepared actual-role descriptors and outline-report-writing preserve exact signed context", () => {
 +  const toolScope = ["Projects 작업 상태와 결과 연결", "Note 프로젝트 폴더와 산출물 저장"]
@@ -673,32 +579,15 @@ diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/te
 index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682ad7943a0 100644
 --- a/apps/api/test/work-runtime-server.integration.test.ts
 +++ b/apps/api/test/work-runtime-server.integration.test.ts
-@@ -6,10 +6,11 @@ import { join } from "node:path"
- import { tmpdir } from "node:os"
- import { pathToFileURL } from "node:url"
- import test from "node:test"
+@@ -9 +9 @@ import test from "node:test"
 -import { createDatabase, completeRun, bindDeploymentSessionAuthority, listDeploymentServices, syncDeploymentServicePolicies, type DatabaseClient } from "@demian/db"
 +import { createDatabase, completeRun, leaseNextRun, markRunRunning, bindDeploymentSessionAuthority, listDeploymentServices, syncDeploymentServicePolicies, type DatabaseClient } from "@demian/db"
- import { appendSessionMessage } from "../../../packages/db/src/session-messages.ts"
- import { createSessionArtifact, revokeSessionArtifact, insertRunOutputArtifact } from "../../../packages/db/src/artifacts.ts"
- import { parseTrustedWorkRuntimeBinding, registerWorkRuntimeBinding, revokeWorkRuntimeBinding } from "../../../packages/db/src/work-runtime-delegation.ts"
+@@ -12,0 +13 @@ import { parseTrustedWorkRuntimeBinding, registerWorkRuntimeBinding, revokeWorkR
 +import { getWorkRuntimeRunReceipt, authorizeWorkRuntimeRun, reserveWorkRuntimeBudget, WorkRuntimeBudgetError } from "../../../packages/db/src/work-runtime-runs.ts"
- import type { DemianWorkDelegationClaims } from "../src/work-runtime-delegation.ts"
- import { buildServer } from "../src/server.ts"
- import type { ApiConfig } from "../src/config.ts"
-@@ -41,7 +42,7 @@ function contextFixture() {
- }
- 
- async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepared?: {
+@@ -44 +45 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 -  serviceId: string; workerId: string; workspaceRoot: string
 +  serviceId: string; workerId: string; workspaceRoot: string; roleMetadata?: boolean
-   provision(db: ReturnType<typeof createDatabase>, scopedUrl: string, workspaceId: string): Promise<void>
- }) {
-   const admin = createDatabase({ connectionString: databaseUrl! })
-@@ -81,12 +82,19 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
-         expectedMetadataRevision: "0", operationId: randomUUID(), primary: { serviceId: service.serviceId, authorityId: service.authorityId } })
-     }
-     const context = contextFixture()
+@@ -83,0 +85,7 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 +    if (prepared?.roleMetadata) {
 +      context.roleContext.membership.toolScope = ["Projects 작업 상태와 결과 연결", "Note 프로젝트 폴더와 산출물 저장"]
 +      context.skills[0].id = "outline-report-writing"
@@ -706,30 +595,14 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +      const { body: _, ...reference } = context.skills[0]
 +      context.roleContext.membership.skills = [reference]
 +    }
-     if (roleLifetimeMs !== undefined) context.roleContext.membership.validUntil = new Date(Date.now() + roleLifetimeMs).toISOString()
-     const binding = parseTrustedWorkRuntimeBinding({
-       enabled: true, revision: 1, bindingId: `binding-${randomUUID()}`, origin, audience: "demian", ownerId: context.ownerId,
-       runtimeActorId: context.runtimeActorId, tenantId: "synthetic-tenant", organizationId, servicePrincipalId, workspaceId, sessionId, kind: "managed",
-       roleContextSha256: sha256(JSON.stringify(context.roleContext)), policyRevision: "policy-1", model: "requested-model", effort: null,
+@@ -89 +97 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 -      readScope: ["approved-source"], toolScope: [],
 +      readScope: ["approved-source"], toolScope: context.roleContext.membership.toolScope,
-       ...(prepared ? { execution: { kind: "prepared-codex-text-v1", serviceId: prepared.serviceId, serviceRevision: "policy-1" } } : {}),
-     })
-     const actor = await registerWorkRuntimeBinding(db, { binding, actingUserId, expectedRevision: 0 })
-@@ -99,6 +107,9 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
-       ...(prepared ? { providerId: "codex-app-server", maximumProviderInvocations: 0, maximumOutputTokens: 0,
-         native: { budgetMode: "provider-unmetered" as const, bindingSha256: actor.bindingSha256, execution: binding.execution! } } : {}) }
-     let signingEnabled=true,afterReferenceRead:(()=>void)|null=null,afterArtifactRead:(()=>void|Promise<void>)|null=null
+@@ -101,0 +110,3 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 +    let beforeCancel: (() => Promise<void>) | null = null
 +    let afterCancelWrite: (() => void) | null = null, afterCancelCommit: (() => void) | null = null
 +    const mutatedClients = new WeakSet<object>()
-     const wrapped=new WeakSet<object>()
-     db.on("acquire",client=>{
-       if(wrapped.has(client))return;wrapped.add(client)
-@@ -108,12 +119,26 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
-         if(pending&&typeof pending.then==="function")return pending.then(async(result:unknown)=>{
-           if(typeof args[0]==="string"&&args[0].includes("FROM session_messages m")&&afterReferenceRead){const effect=afterReferenceRead;afterReferenceRead=null;effect()}
-           if(typeof args[0]==="string"&&args[0].includes("FROM artifact_bytes WHERE artifact_id=ANY")&&afterArtifactRead){const effect=afterArtifactRead;afterArtifactRead=null;await effect()}
+@@ -110,0 +122,9 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 +          if (typeof args[0] === "string" && args[0].includes("UPDATE runs SET status = CASE")) {
 +            mutatedClients.add(client)
 +            const effect = afterCancelWrite; afterCancelWrite = null; effect?.()
@@ -739,52 +612,23 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +            const effect = afterCancelCommit; afterCancelCommit = null; effect?.()
 +          }
 +          if (args[0] === "ROLLBACK") mutatedClients.delete(client)
-           return result
-         })
-         return pending
-       }) as typeof client.query
-     })
-     const app = buildServer({ config, db, workRuntime: { origin, servicePrincipalIds: [servicePrincipalId], resolveSigningKey: kid => signingEnabled&&kid === "synthetic-key" ? signingKey : null, resolvePolicy: async current => current.binding.bindingId === binding.bindingId ? policy : null }, ...(withPeerDelegation ? { assistantPeer: { origin, servicePrincipalIds: [servicePrincipalId], resolveSigningKey: () => null, resolveBinding: async () => null } } : {}) })
+@@ -116,0 +137,5 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 +    app.addHook("preHandler", async request => {
 +      if (request.method === "POST" && request.url.endsWith("/cancel") && beforeCancel) {
 +        const effect = beforeCancel; beforeCancel = null; await effect()
 +      }
 +    })
-     app.log.level = "silent"
-     const legacy = buildServer({ config, db })
-     legacy.log.level = "silent"
-@@ -145,6 +170,9 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
-     const runPath = `/api/v1/sessions/${sessionId}/runs`
-     const counts = async () => (await db.query("SELECT (SELECT count(*)::int FROM runs) runs,(SELECT count(*)::int FROM work_runtime_runs) receipts,(SELECT count(*)::int FROM work_runtime_budget_reservations) reservations")).rows[0] as { runs: number; receipts: number; reservations: number }
-     return { db, app, legacy, context, binding, actor, actingUserId, workspaceId, sessionId, otherSessionId, workerId, policy, worker, body, signed, runPath, counts,
+@@ -147,0 +173,3 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
 +      beforeCancel: (effect: () => Promise<void>) => { beforeCancel = effect },
 +      afterCancelWrite: (effect: () => void) => { afterCancelWrite = effect },
 +      afterCancelCommit: (effect: () => void) => { afterCancelCommit = effect },
-       withdrawKey:()=>{signingEnabled=false},afterReference:(effect:()=>void)=>{afterReferenceRead=effect},
-       afterArtifact:(effect:()=>void|Promise<void>)=>{afterArtifactRead=effect},
-       close: async () => { await app.close(); await legacy.close(); await db.end(); await drop(); await admin.end() },
-@@ -733,7 +761,7 @@ test("signed run reads scoped reported usage and persisted timing without summin
-   } finally { await s.close() }
- })
- 
+@@ -736 +764 @@ test("signed run reads scoped reported usage and persisted timing without summin
 -test("prepared native delegation traverses signed API, both worker fences, strict resume and current scope", { skip: !databaseUrl }, async () => {
 +for (const roleMetadata of [false, true]) test(`prepared native delegation traverses signed API, both worker fences, strict resume and current scope (metadata=${roleMetadata})`, { skip: !databaseUrl }, async () => {
-   const root = await mkdtemp(join(tmpdir(), "prepared-delegation-"))
-   const stateRoot = join(root, "private"), workspaceRoot = join(root, "workspace"), account = join(root, "controlled-account")
-   await Promise.all([stateRoot, workspaceRoot, account].map(path => mkdir(path, { mode: 0o700 })))
-@@ -745,7 +773,7 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-   let worker: import("../../worker/src/worker.ts").DemianWorker | undefined
-   let s: Awaited<ReturnType<typeof setup>> | undefined
-   try {
+@@ -748 +776 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 -    s = await setup(false, undefined, { serviceId, workerId, workspaceRoot,
 +    s = await setup(false, undefined, { serviceId, workerId, workspaceRoot, roleMetadata,
-       async provision(db, scopedUrl, workspaceId) {
-         const profile = "synthetic-provider", configPath = join(root, "profile.json"), manifestFile = join(root, "manifest.json")
-         const service = { serviceId, organizationId, workspaceId, workerId, providerProfile: profile, accountScope: "fixture",
-@@ -762,6 +790,22 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-       } })
-     const caps = (await s.app.inject(s.signed("GET", "/api/v1/capabilities"))).json().work_runtime
-     assert.equal(caps.prepared_codex_text_v1, true)
+@@ -764,0 +793,16 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 +    assert.equal(caps.prepared_role_metadata_v1, true)
 +    for (const flag of [null, false, "true"]) {
 +      await s.db.query("UPDATE worker_runtime_capabilities SET features=jsonb_set(features,'{delegated_prepared_role_metadata_v1}',$2::jsonb) WHERE worker_id=$1", [workerId, JSON.stringify(flag)])
@@ -801,13 +645,7 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +      assert.equal((await s.app.inject(s.signed("POST", s.runPath, s.body()))).statusCode, 403)
 +    }
 +    await s.db.query("UPDATE worker_runtime_capabilities SET checked_at=clock_timestamp() WHERE worker_id=$1", [workerId])
-     assert.equal(caps.permission_budget, false)
-     const bad = s.body().replace(serviceId, randomUUID())
-     assert.equal((await s.app.inject(s.signed("POST", s.runPath, bad))).statusCode, 403)
-@@ -772,6 +816,25 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-       const id = created.json().id, path = "/api/v1/runs/" + id
-       assert.equal((await s!.db.query("SELECT 1 FROM deployment_run_authorities WHERE run_id=$1", [id])).rowCount, 1)
-       await assert.rejects(s!.db.query("UPDATE runs SET status='leasing',worker_id=$2 WHERE id=$1", [id, workerId]))
+@@ -774,0 +819,19 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 +      const receipt = await getWorkRuntimeRunReceipt(s!.db, { organizationId, runId: id })
 +      assert.deepEqual(receipt?.binding.toolScope, s!.context.roleContext.membership.toolScope)
 +      assert.equal(receipt?.canonicalContextJson, JSON.stringify(s!.context))
@@ -827,13 +665,7 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +        }
 +        await s!.db.query("UPDATE worker_runtime_capabilities SET features=features || '{\"delegated_prepared_role_metadata_v1\":true}'::jsonb WHERE worker_id=$1", [workerId])
 +      }
-       assert.equal(await worker!.runOnce(), true)
-       const result = await s!.app.inject(s!.signed("GET", path))
-       assert.equal(result.statusCode, 200, result.body)
-@@ -781,6 +844,13 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-       assert.equal(selected.rows[0]?.model, "requested-model")
-       assert.equal(result.json().work_runtime.reported_model, null, "Native thread selection does not report the upstream model")
-       assert.equal(result.json().work_runtime.reported_effort, null)
+@@ -783,0 +847,7 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 +      if (roleMetadata) {
 +        await s!.db.query("UPDATE worker_runtime_capabilities SET features=features-'delegated_prepared_role_metadata_v1' WHERE worker_id=$1", [workerId])
 +        const historical = await s!.app.inject(s!.signed("GET", path))
@@ -841,13 +673,7 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +        assert.equal(historical.json().output_text, "Controlled prepared result")
 +        await s!.db.query("UPDATE worker_runtime_capabilities SET features=features || jsonb_build_object('delegated_prepared_role_metadata_v1',true) WHERE worker_id=$1", [workerId])
 +      }
-       return { id, work: result.json().work_runtime }
-     }
-     const first = await turn()
-@@ -814,7 +884,21 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-     s.context.requestSha256 = sha256(waiting)
-     const created = await s.app.inject(s.signed("POST", s.runPath, s.body(s.context, waiting)))
-     assert.equal(created.statusCode, 202, created.body)
+@@ -817 +887,15 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 -    const waitId = created.json().id, active = worker!.runOnce()
 +    const waitId = created.json().id
 +    // Prepared admission completes before the test hook revokes membership.
@@ -864,13 +690,7 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +    assert.deepEqual((await s.db.query("SELECT * FROM runs WHERE id=$1", [waitId])).rows[0], beforeCancel)
 +    await s.db.query("UPDATE organization_members SET role='admin' WHERE organization_id=$1 AND user_id=$2", [organizationId, s.actingUserId])
 +    const active = worker!.runOnce()
-     try {
-       const deadline = Date.now() + 10_000
-       while (!(await s.db.query("SELECT 1 FROM native_lineage_observations WHERE run_id=$1", [waitId])).rowCount) {
-@@ -828,6 +912,38 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-     assert.equal(stopped.json().status, "cancelled", stopped.body)
-     assert.equal(stopped.json().output_text, null)
-     assert.deepEqual(await s.counts(), { runs: 3, receipts: 3, reservations: 0 })
+@@ -830,0 +915,32 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 +    if (roleMetadata) {
 +      s.context.correlationId = "revalidation-" + randomUUID()
 +      s.context.requestSha256 = sha256("Produce the bounded answer.")
@@ -903,13 +723,7 @@ index 80c8b87d9dec4e29f3a4898fa32b5feda5ceb072..bdcc635865b4c83c50e5692681739682
 +      assert.equal(offlineCancel.json().status, "cancelling")
 +      assert.equal((await s.app.inject(s.signed("POST", s.runPath, s.body()))).statusCode, 403, "New admission still requires current worker compatibility")
 +    }
-     await revokeWorkRuntimeBinding(s.db, { bindingId: s.binding.bindingId, expectedRevision: 1, organizationId })
-     assert.equal((await s.app.inject(s.signed("GET", "/api/v1/runs/" + second.id))).statusCode, 403)
-   } finally {
-@@ -839,3 +955,70 @@ test("prepared native delegation traverses signed API, both worker fences, stric
-     await rm(root, { recursive: true, force: true })
-   }
- })
+@@ -841,0 +958,67 @@ test("prepared native delegation traverses signed API, both worker fences, stric
 +for (const mode of ["binding", "service", "membership", "key", "policy"] as const) {
 +  test(`delegated cancel rechecks ${mode} after preHandler admission before mutation`, { skip: !databaseUrl }, async () => {
 +    const s = await setup()
@@ -981,129 +795,64 @@ diff --git a/apps/worker/src/prepared-delegation.ts b/apps/worker/src/prepared-d
 index b3463873ad6e89e490f69d79b60a8fd4409f3f64..d454e7ea98f7831b2fa22cc41be06257cc676560 100644
 --- a/apps/worker/src/prepared-delegation.ts
 +++ b/apps/worker/src/prepared-delegation.ts
-@@ -29,7 +29,7 @@ export async function runPreparedDelegation(input: {
-   const store = options.externalSession?.store
-   const provider = options.configurationSnapshot?.providers[receipt.sessionProvider]
-   if (!run || !current || !store || !stateRoot || !isAbsolute(stateRoot) || !options.signal
+@@ -32 +32 @@ export async function runPreparedDelegation(input: {
 -      || !receipt.trustedPolicy.native || !receipt.binding.execution || receipt.binding.toolScope.length
 +      || !receipt.trustedPolicy.native || receipt.binding.execution?.kind !== "prepared-codex-text-v1" || receipt.binding.effort !== null
-       || options.mode !== "single-agent" || options.permissionPreset !== "deny" || options.artifacts?.length
-       || options.authorizedProviderProfiles?.length !== 1 || options.authorizedProviderProfiles[0] !== receipt.sessionProvider
-       || !provider || provider.type !== "codex-app-server" || !provider.cliPath || !provider.personalAuthHome
 diff --git a/apps/worker/src/worker.ts b/apps/worker/src/worker.ts
 index 4c14476c85b6cecde7d5d5be440eefeba9d2d7f8..fa7829fd8940f7393713be731d6f6107796d80ff 100644
 --- a/apps/worker/src/worker.ts
 +++ b/apps/worker/src/worker.ts
-@@ -335,7 +335,7 @@ export class DemianWorker {
-       if (deploymentPin && (run.provider_auth_id || (delegated && !prepared) || !run.requested_by_user_id)) throw new Error("Conflicting deployment authority")
-       if (peerProcessing && delegated) throw new Error("Peer processing requires a managed user session")
-       if (delegated && (run.provider_auth_id || session.mode !== "single-agent" || delegated.requestedEffort !== null
+@@ -338 +338 @@ export class DemianWorker {
 -          || delegated.binding.toolScope.length !== 0)) {
 +          || (!prepared && delegated.binding.toolScope.length !== 0))) {
-         throw new Error("This delegated work requires unsupported native, personal, tool, effort or multi-agent execution")
-       }
-       if (run.provider_auth_id) {
-@@ -643,7 +643,7 @@ export class DemianWorker {
-   }
- 
-   private async deploymentCapabilities(runtime:Awaited<ReturnType<typeof loadDemianRuntime>>) {
+@@ -646 +646 @@ export class DemianWorker {
 -    const closed = {publication:null,peerDeploymentProcessing:false,preparedCodex:false}
 +    const closed = {publication:null,peerDeploymentProcessing:false,preparedCodex:false,preparedRoleMetadata:false}
-     if (!this.intakeOpen()) return closed
-     const file=this.config.deploymentServicesFile
-     const publication=file ? await publishDeploymentRegistry(this.db,this.config.workerId,file,runtime) : false
-@@ -654,28 +654,30 @@ export class DemianWorker {
-     const preparedCodex = publication === true && !!this.config.preparedCodexStateRoot
-       && typeof runtime.runPreparedCodexTurn === "function" && (await this.db.query(
-         "SELECT to_regprocedure('require_prepared_codex_run_pins()') IS NOT NULL AS ready")).rows[0].ready === true
+@@ -657 +657,3 @@ export class DemianWorker {
 -    return {publication,peerDeploymentProcessing,preparedCodex}
 +    const preparedRoleMetadata = preparedCodex && (await this.db.query(
 +      "SELECT EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='runs'::regclass AND tgname='prepared_role_metadata_worker_capability' AND tgfoid=to_regprocedure('require_prepared_role_metadata_worker()') AND tgenabled IN ('O','A')) AS ready")).rows[0].ready === true
 +    return {publication,peerDeploymentProcessing,preparedCodex,preparedRoleMetadata}
-   }
-   private async refreshDeploymentRegistry() {
+@@ -660 +662 @@ export class DemianWorker {
 -    const closed = {publication:null,peerDeploymentProcessing:false,preparedCodex:false}
 +    const closed = {publication:null,peerDeploymentProcessing:false,preparedCodex:false,preparedRoleMetadata:false}
-     if (!this.intakeOpen()) return closed
-     const file=this.config.deploymentServicesFile
+@@ -663 +665 @@ export class DemianWorker {
 -    if (!file) return {publication:false,peerDeploymentProcessing:false,preparedCodex:false}
 +    if (!file) return {publication:false,peerDeploymentProcessing:false,preparedCodex:false,preparedRoleMetadata:false}
-     const runtime=await loadDemianRuntime(this.#qaRuntimePin)
+@@ -665 +667 @@ export class DemianWorker {
 -    const {publication,peerDeploymentProcessing,preparedCodex}=await this.deploymentCapabilities(runtime)
 +    const {publication,peerDeploymentProcessing,preparedCodex,preparedRoleMetadata}=await this.deploymentCapabilities(runtime)
-     if (!this.intakeOpen()) return closed
-     const enabled=publication === true
-     if (this.#publishingGeneralStatus) {
-       // Preserve the independent freshness of the general status publisher.
+@@ -670,2 +672,2 @@ export class DemianWorker {
 -      await this.db.query("UPDATE worker_runtime_capabilities SET features=features || jsonb_build_object('deployment_session_execution_v1',$2::boolean,'peer_deployment_processing_v1',$3::boolean,'delegated_prepared_codex_v1',$4::boolean) WHERE worker_id=$1",[this.config.workerId,enabled,peerDeploymentProcessing,preparedCodex])
 -      return {publication,peerDeploymentProcessing,preparedCodex}
 +      await this.db.query("UPDATE worker_runtime_capabilities SET features=features || jsonb_build_object('deployment_session_execution_v1',$2::boolean,'peer_deployment_processing_v1',$3::boolean,'delegated_prepared_codex_v1',$4::boolean,'delegated_prepared_role_metadata_v1',$5::boolean) WHERE worker_id=$1",[this.config.workerId,enabled,peerDeploymentProcessing,preparedCodex,preparedRoleMetadata])
 +      return {publication,peerDeploymentProcessing,preparedCodex,preparedRoleMetadata}
-     }
-     // Direct runOnce callers do not boot the general account inspector. Publish only the local
-     // execution capability; process-wide credentials are never probed for deployment discovery.
-     await replaceWorkerRuntimeCapabilities(this.db,{workerId:this.config.workerId,defaultAgent:"default",defaultProvider:"deployment",
+@@ -676 +678 @@ export class DemianWorker {
 -      defaultMode:"single-agent",agents:[],services:[],features:{managed_child_v1:runtime.MANAGED_CHILD_RUNTIME_VERSION===1,delegated_prepared_codex_v1:preparedCodex,deployment_session_execution_v1:enabled,peer_deployment_processing_v1:peerDeploymentProcessing,
 +      defaultMode:"single-agent",agents:[],services:[],features:{managed_child_v1:runtime.MANAGED_CHILD_RUNTIME_VERSION===1,delegated_prepared_codex_v1:preparedCodex,delegated_prepared_role_metadata_v1:preparedRoleMetadata,deployment_session_execution_v1:enabled,peer_deployment_processing_v1:peerDeploymentProcessing,
-         web_artifact_inputs_v1:runtime.WEB_ARTIFACT_RUNTIME_VERSION===1}})
+@@ -678 +680 @@ export class DemianWorker {
 -    return {publication,peerDeploymentProcessing,preparedCodex}
 +    return {publication,peerDeploymentProcessing,preparedCodex,preparedRoleMetadata}
-   }
- 
-   private async publishProviderStatuses(): Promise<void> {
-@@ -712,7 +714,7 @@ export class DemianWorker {
-       defaultProvider: capabilities.defaultProvider,
-       defaultMode: capabilities.defaultMode,
-       agents: capabilities.agents,
+@@ -715 +717 @@ export class DemianWorker {
 -      features: { ...capabilities.features, managed_child_v1:runtime.MANAGED_CHILD_RUNTIME_VERSION===1, delegated_prepared_codex_v1:deployment.preparedCodex, deployment_session_execution_v1: deployment.publication===true,
 +      features: { ...capabilities.features, managed_child_v1:runtime.MANAGED_CHILD_RUNTIME_VERSION===1, delegated_prepared_codex_v1:deployment.preparedCodex, delegated_prepared_role_metadata_v1:deployment.preparedRoleMetadata, deployment_session_execution_v1: deployment.publication===true,
-         peer_deployment_processing_v1: deployment.peerDeploymentProcessing,
-         remote_provider_auth: Boolean(this.config.providerAuthRoot),
-         multi_provider_session_v1: Boolean(this.config.providerAuthRoot) && runtime.MULTI_PROVIDER_SESSION_VERSION === 1,
-@@ -734,7 +736,7 @@ export class DemianWorker {
-     await replaceWorkerRuntimeCapabilities(this.db,{workerId:this.config.workerId,defaultAgent:"qa-selected",defaultProvider:"qa-selected",defaultMode:"single-agent",agents:[],services:[],features:{
-       managed_child_v1:runtime.MANAGED_CHILD_RUNTIME_VERSION===1,delegated_work_runtime_text_v1:runtime.DELEGATED_WORK_RUNTIME_TEXT_VERSION===1,
-       web_artifact_inputs_v1:runtime.WEB_ARTIFACT_RUNTIME_VERSION===1,multi_provider_session_v1:runtime.MULTI_PROVIDER_SESSION_VERSION===1,
+@@ -737 +739 @@ export class DemianWorker {
 -      remote_provider_auth:Boolean(this.config.providerAuthRoot),deployment_session_execution_v1:false,peer_deployment_processing_v1:false,delegated_prepared_codex_v1:false}})
 +      remote_provider_auth:Boolean(this.config.providerAuthRoot),deployment_session_execution_v1:false,peer_deployment_processing_v1:false,delegated_prepared_codex_v1:false,delegated_prepared_role_metadata_v1:false}})
-     if(this.intakeOpen()&&this.config.deploymentServicesFile)await this.refreshDeploymentRegistry()
-   }
- }
 diff --git a/apps/worker/test/delegated-work-runtime.integration.test.ts b/apps/worker/test/delegated-work-runtime.integration.test.ts
 index 58aa0d325757bd9d492cc796336f6b6f3d26b962..8d7d09b6a03dcede100cc33002e33662c0f3d416 100644
 --- a/apps/worker/test/delegated-work-runtime.integration.test.ts
 +++ b/apps/worker/test/delegated-work-runtime.integration.test.ts
-@@ -19,7 +19,7 @@ const hash = (value: string) => createHash("sha256").update(value).digest("hex")
- const organizationId = "00000000-0000-0000-0000-000000000001"
- const servicePrincipalId = "00000000-0000-0000-0000-000000000010"
- 
+@@ -22 +22 @@ const servicePrincipalId = "00000000-0000-0000-0000-000000000010"
 -async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegistry?: boolean } = {}) {
 +async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegistry?: boolean; toolScope?: string[] } = {}) {
-   const admin = createDatabase({ connectionString: databaseUrl! })
-   const schema = `delegated_worker_${randomUUID().replaceAll("-", "")}`
-   const isolated = new URL(databaseUrl!)
-@@ -59,7 +59,7 @@ async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegi
-   const roleContext = {
-     team: { name: "Synthetic team", symbol: "T", mission: "PINNED-WORKER-TEAM", responsibilities: [], outputCriteria: [], parentTeamId: null, state: "active", ...metadata("synthetic-team") },
-     persona: { displayName: "Synthetic reviewer", symbol: "R", expertise: [], principle: "PINNED-WORKER-ROLE", tone: "Concise", outputCriteria: [], state: "active", ...metadata("synthetic-persona") },
+@@ -62 +62 @@ async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegi
 -    membership: { teamId: "synthetic-team", personaId: "synthetic-persona", role: "reviewer", context: "Synthetic only", skills: [skillReference], readScope: [], toolScope: [], validFrom: null, validUntil: null, state: "active", ...metadata("synthetic-membership") },
 +    membership: { teamId: "synthetic-team", personaId: "synthetic-persona", role: "reviewer", context: "Synthetic only", skills: [skillReference], readScope: [], toolScope: options.toolScope ?? [], validFrom: null, validUntil: null, state: "active", ...metadata("synthetic-membership") },
-     access: { mode: "metadata-only", grantsPermissions: false },
-   }
-   const request = "Answer with the verified role and inline Skill."
-@@ -94,7 +94,7 @@ async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegi
-     enabled: true, revision: 1, bindingId: "synthetic-binding", origin: "https://demian.synthetic.invalid", audience: "demian",
-     ownerId: context.ownerId, runtimeActorId: context.runtimeActorId, tenantId: "synthetic-tenant", organizationId, servicePrincipalId,
-     workspaceId, sessionId, kind: "managed", roleContextSha256: hash(canonicalRoleContextJson), policyRevision: "policy-1",
+@@ -97 +97 @@ async function fixture(t: TestContext, options: { toolResponse?: boolean; qaRegi
 -    model: "pinned-model", effort: null, readScope: [], toolScope: [],
 +    model: "pinned-model", effort: null, readScope: [], toolScope: options.toolScope ?? [],
-   } })
-   const workPackage = { request, input: [{ type: "input_text" as const, text: JSON.stringify({ version: 1, request, context }) }],
-       correlationId, requestSha256: hash(request), contextSha256: hash(canonicalContextJson), roleContextSha256: hash(canonicalRoleContextJson),
-@@ -320,3 +320,11 @@ test("QA registry revocation rejects intake and preserves the queued Run without
-     assert.equal((await f.db.query(`SELECT count(*)::int AS n FROM ${table}`)).rows[0].n, 0)
-   assert.deepEqual(await getWorkRuntimeRunReceipt(f.db, { organizationId, runId: f.enqueued.run.id }), f.enqueued.receipt)
- })
+@@ -322,0 +323,8 @@ test("QA registry revocation rejects intake and preserves the queued Run without
 +
 +test("generic delegated workers still reject nonempty descriptive scope before dispatch", { skip: !databaseUrl }, async t => {
 +  const f = await fixture(t, { toolScope: ["Projects 작업 상태와 결과 연결", "Note 프로젝트 폴더와 산출물 저장"] })
@@ -1234,10 +983,7 @@ diff --git a/packages/db/src/index.ts b/packages/db/src/index.ts
 index 0be056b0ea9768f02da007b4e4dbf8d3353f169c..a4c2aafdbd21e51cf74440454af75758c263f983 100644
 --- a/packages/db/src/index.ts
 +++ b/packages/db/src/index.ts
-@@ -431,19 +431,25 @@ export async function cancelRun(db: DatabasePool, organizationId: string, id: st
-   const client=await db.connect()
-   try{
-     await client.query("BEGIN")
+@@ -434,10 +434,2 @@ export async function cancelRun(db: DatabasePool, organizationId: string, id: st
 -    const run=(await client.query<RunRow>("SELECT * FROM runs WHERE organization_id=$1 AND id=$2 FOR UPDATE",[organizationId,id])).rows[0]
 -    if(run)await assertPrivateRunWriter(client,run,actingUserId)
 -    const result=await client.query<RunRow>(
@@ -1250,9 +996,7 @@ index 0be056b0ea9768f02da007b4e4dbf8d3353f169c..a4c2aafdbd21e51cf74440454af75758
 -    await client.query("COMMIT");return result.rows[0]
 +    const row = await cancelRunInTransaction(client, organizationId, id, actingUserId)
 +    await client.query("COMMIT");return row
-   }catch(error){await client.query("ROLLBACK");throw error}finally{client.release()}
- }
- 
+@@ -446,0 +439,14 @@ export async function cancelRun(db: DatabasePool, organizationId: string, id: st
 +/** Caller owns BEGIN/COMMIT; locks the Run before checking writer authority. */
 +export async function cancelRunInTransaction(client: DatabaseClient, organizationId: string, id: string, actingUserId?: string): Promise<RunRow | undefined> {
 +  const run=(await client.query<RunRow>("SELECT * FROM runs WHERE organization_id=$1 AND id=$2 FOR UPDATE",[organizationId,id])).rows[0]
@@ -1267,13 +1011,7 @@ index 0be056b0ea9768f02da007b4e4dbf8d3353f169c..a4c2aafdbd21e51cf74440454af75758
 +  return result.rows[0]
 +}
 +
- export async function listPermissions(db: DatabasePool, organizationId: string, runId: string, viewerUserId?:string): Promise<PermissionRow[]> {
-   const query="SELECT * FROM permission_requests WHERE organization_id=$1 AND run_id=$2"
-   const pin=await getDeploymentRunAuthorityPin(db,runId)
-@@ -548,7 +554,14 @@ export async function leaseNextRun(
-       JOIN worker_runtime_capabilities c ON c.worker_id=b.worker_id AND c.worker_id=$1
-       WHERE ${input.deploymentSessionExecution===false?'FALSE':'TRUE'} AND p.run_id=r.id AND b.session_id=s.id AND c.features->'deployment_session_execution_v1'='true'::jsonb
-       AND (NOT EXISTS (SELECT 1 FROM work_runtime_runs wr WHERE wr.run_id=r.id AND wr.receipt->'binding' ? 'execution')
+@@ -551 +557,8 @@ export async function leaseNextRun(
 -        OR (${input.preparedCodex===true?'TRUE':'FALSE'} AND c.features->'delegated_prepared_codex_v1'='true'::jsonb))
 +        OR (${input.preparedCodex===true?'TRUE':'FALSE'} AND c.features->'delegated_prepared_codex_v1'='true'::jsonb
 +          AND (c.features->'delegated_prepared_role_metadata_v1'='true'::jsonb OR NOT EXISTS (
@@ -1283,66 +1021,30 @@ index 0be056b0ea9768f02da007b4e4dbf8d3353f169c..a4c2aafdbd21e51cf74440454af75758
 +            UNION ALL SELECT 1 FROM work_runtime_bindings wb WHERE wb.organization_id=r.organization_id AND wb.session_id=s.id
 +              AND wb.canonical_binding::jsonb->'execution'->>'kind'='prepared-codex-text-v1'
 +              AND jsonb_array_length(wb.canonical_binding::jsonb->'toolScope')>0))))
-       AND (NOT EXISTS(SELECT 1 FROM peer_processing_receipts peer WHERE peer.run_id=r.id)
-         OR (${input.peerDeploymentProcessing===true?'TRUE':'FALSE'} AND c.features->'peer_deployment_processing_v1'='true'::jsonb))
-       AND c.checked_at BETWEEN clock_timestamp()-interval '90 seconds' AND clock_timestamp()))` : ""
 diff --git a/packages/db/src/work-runtime-delegation.ts b/packages/db/src/work-runtime-delegation.ts
 index 87cd45f99646b81ac5ba59baa5d140d27c386c42..7b1a5008cab8fe1f96127b1883eb6c2a7f0064b4 100644
 --- a/packages/db/src/work-runtime-delegation.ts
 +++ b/packages/db/src/work-runtime-delegation.ts
-@@ -350,7 +350,7 @@ export function parseTrustedWorkRuntimeBinding(value: unknown): TrustedWorkRunti
-     readScope: scope(input.readScope), toolScope: scope(input.toolScope),
-     ...(Object.hasOwn(input, "execution") ? { execution: parsePreparedCodexExecution(input.execution) } : {}),
-   }
+@@ -353 +353 @@ export function parseTrustedWorkRuntimeBinding(value: unknown): TrustedWorkRunti
 -  if (binding.execution && (binding.effort !== null || binding.toolScope.length)) throw new TypeError("Unsupported native execution scope")
 +  if (binding.execution && binding.effort !== null) throw new TypeError("Unsupported native execution scope")
-   if (Buffer.byteLength(JSON.stringify(binding), "utf8") > 131072) throw new TypeError("Work runtime binding is too large")
-   return binding
- }
 diff --git a/packages/db/src/work-runtime-runs.ts b/packages/db/src/work-runtime-runs.ts
 index 61116db381350743f6923712c380144af4fef2fe..68fdff6954bc7c6689d60f6e093a6e7fe9f31b91 100644
 --- a/packages/db/src/work-runtime-runs.ts
 +++ b/packages/db/src/work-runtime-runs.ts
-@@ -137,7 +137,7 @@ export async function createDelegatedWorkRuntimeRun(
-         || (native && policy.native?.bindingSha256 !== actor.bindingSha256)) deny()
-     const scope = { organizationId: actor.binding.organizationId, workspaceId: actor.binding.workspaceId,
-       sessionId: actor.binding.sessionId, actorUserId: actor.actingUserId }
+@@ -140 +140 @@ export async function createDelegatedWorkRuntimeRun(
 -    const deployment = native ? await currentPreparedDeployment(client, actor) : null
 +    const deployment = native ? await currentPreparedDeployment(client, actor, true) : null
-     const idempotencyKey = pins.correlationId
-     // Same org/key cannot race across different delegated bindings.
-     await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
-@@ -415,6 +415,7 @@ async function lockExecution(
-        AND ($7::boolean OR EXISTS (
-          SELECT 1 FROM worker_runtime_capabilities c WHERE c.worker_id=r.worker_id
-            AND c.features->($11::text)='true'::jsonb
+@@ -417,0 +418 @@ async function lockExecution(
 +           AND (NOT $12::boolean OR c.features->'delegated_prepared_role_metadata_v1'='true'::jsonb)
-            AND c.checked_at<=clock_timestamp()
-            AND c.checked_at>clock_timestamp()-interval '90 seconds'))
-        AND ($9::timestamptz IS NULL OR $9<=clock_timestamp())
-@@ -423,7 +424,8 @@ async function lockExecution(
-      FOR UPDATE OF r,l`,
-     [fence.runId,fence.organizationId,pins.sessionId,pins.workspaceId,
-       fence.workerId,pins.actingUserId,accounting,leasing,period.validFrom,period.validUntil,
+@@ -426 +427,2 @@ async function lockExecution(
 -      pins.binding.execution ? "delegated_prepared_codex_v1" : "delegated_work_runtime_text_v1"],
 +      pins.binding.execution ? "delegated_prepared_codex_v1" : "delegated_work_runtime_text_v1",
 +      !!pins.binding.execution && pins.binding.toolScope.length > 0],
-   )).rows[0]
-   if (!row || row.provider_auth_id !== null || !same(row.input,pins.input)
-       || row.request_hash !== hash(JSON.stringify([pins.sessionId,pins.actingUserId,pins.input]))) deny()
-@@ -527,7 +529,7 @@ function packagePins(value: WorkRuntimeRunPackage,actor: DelegatedWorkRuntimeAct
-     requestedEffort: value.requestedEffort,
-   }
- }
+@@ -530 +532 @@ function packagePins(value: WorkRuntimeRunPackage,actor: DelegatedWorkRuntimeAct
 -export async function currentPreparedDeployment(client: DatabaseClient, actor: DelegatedWorkRuntimeActor) {
 +export async function currentPreparedDeployment(client: DatabaseClient, actor: DelegatedWorkRuntimeActor, requireReadyMetadataWorker = false) {
-   const scope = { organizationId: actor.binding.organizationId, workspaceId: actor.binding.workspaceId,
-     sessionId: actor.binding.sessionId, actorUserId: actor.actingUserId }
-   const native = actor.binding.execution
-@@ -539,6 +541,14 @@ export async function currentPreparedDeployment(client: DatabaseClient, actor: D
-       || selected.model !== actor.binding.model || primary?.serviceId !== native.serviceId
-       || primary.policyRevision !== native.serviceRevision || primary.providerType !== "codex-app-server"
-       || primary.providerProfile !== actor.sessionProvider || !primary.capabilities.nativeSession) deny()
+@@ -541,0 +544,8 @@ export async function currentPreparedDeployment(client: DatabaseClient, actor: D
 +  // Admission requires a compatible live worker. Reading a durable receipt or
 +  // cancelling authorized work must remain possible after that worker stops.
 +  if (requireReadyMetadataWorker && actor.binding.toolScope.length > 0 && !(await client.query(
@@ -1351,25 +1053,13 @@ index 61116db381350743f6923712c380144af4fef2fe..68fdff6954bc7c6689d60f6e093a6e7f
 +      AND features->'delegated_prepared_role_metadata_v1'='true'::jsonb
 +      AND checked_at BETWEEN clock_timestamp()-interval '90 seconds' AND clock_timestamp()`,
 +    [selected.workerId])).rowCount) deny()
-   return selected
- }
- function budgetPolicy(value: WorkRuntimeBudgetPolicy): WorkRuntimeBudgetPolicy {
-@@ -570,6 +580,7 @@ function budgetRequest(value: WorkRuntimeBudgetRequest): WorkRuntimeBudgetReques
-   }
- }
- function validateBudgetRequest(request: WorkRuntimeBudgetRequest,pins: WorkRuntimeRunReceipt): void {
+@@ -572,0 +583 @@ function validateBudgetRequest(request: WorkRuntimeBudgetRequest,pins: WorkRunti
 +  if (pins.binding.execution && request.toolNames.length > 0) budgetDenied()
-   const policy = pins.trustedPolicy
-   if (request.scopeId !== pins.runId || request.model !== pins.requestedModel
-       || request.providerId !== policy.providerId || request.policyRevision !== policy.revision
 diff --git a/packages/db/test/work-runtime-delegation.test.ts b/packages/db/test/work-runtime-delegation.test.ts
 index ab5c72d6e844bded168b64779681772e4fcf6681..d684778202568c81217b00641dbd2d1854392e87 100644
 --- a/packages/db/test/work-runtime-delegation.test.ts
 +++ b/packages/db/test/work-runtime-delegation.test.ts
-@@ -44,3 +44,12 @@ test("trusted binding parser rejects credentials, peers, invalid scope and acces
-   ]) assert.throws(() => parseTrustedWorkRuntimeBinding(value))
-   assert.equal(getterCalls,0)
- })
+@@ -46,0 +47,9 @@ test("trusted binding parser rejects credentials, peers, invalid scope and acces
 +
 +test("prepared binding permits descriptive metadata but still requires null effort and exact execution kind", () => {
 +  const toolScope = ["Projects 작업 상태와 결과 연결", "Note 프로젝트 폴더와 산출물 저장"]

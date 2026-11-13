@@ -5,7 +5,7 @@
   "targetCommit": "c43934171b89b69da0909b8a93d96cc9b2bfc601",
   "baselineTree": "b472ba2a2f8a99eacdcf2f17b9625ff28c708bfc",
   "targetTree": "e60391c0e59cb6d16cbdf9d44c85a5996f4e13fd",
-  "patchSha256": "fc4e4cebdb8f632c2f02b4ec8ca76f263ae0883dea91901cfe67e70df2bfcff8",
+  "patchSha256": "766c3d68c6f40a40fffc3c742fc16322fa4e276c9d15c307222938a3d1da00a4",
   "files": [
     {
       "path": "apps/api/src/dedicated-work-main.ts",
@@ -139,5 +139,7 @@
     "exactTargetTreeMatched": true,
     "nativeWorkingTreeChanged": false
   },
-  "scope": "Bounded source delta after demian-worker-intake; source commits local, not upstream merge; operating evidence separate"
+  "scope": "Bounded source delta after demian-worker-intake; source commits local, not upstream merge; operating evidence separate",
+  "patchContextLines": 0,
+  "applyOption": "--unidiff-zero"
 }

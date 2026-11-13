@@ -9,7 +9,8 @@ API로 보내며, 기존 브라우저 인증과 웹3001은 유지한다.
 
 `native.patch`는 배포 전용 worker 경계 `c5284e3` 이후 `c439341`까지의18개
 파일 변경이다. [provenance.json](provenance.json)의 baseline/payload hash와
-일치하는 별도 checkout에서만 `git apply --check native.patch`를 사용한다.
+일치하는 별도 checkout에서만 `git apply --check --unidiff-zero native.patch`를 사용한다.
+패치는 문맥0행으로 생성했으며 실제 적용에도 `--unidiff-zero`가 필요하다.
 독립 Git index에 적용한 전체 tree가 target commit과 정확히 일치했다.
 광범위한 원본 WIP를 통째로 채택하거나 upstream 병합한 패치가 아니다.
 
