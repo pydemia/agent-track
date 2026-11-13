@@ -1,0 +1,210 @@
+{
+  "dateKst": "2026-11-13",
+  "implementationRevision": "4d7da2814dea9dc95af7a8ea22dcb1a8fb4a790b",
+  "apiAndWebRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a",
+  "scope": "Actual Track-only API and web cutover, account-owned saved Flow view metadata on two permitted Projects Tasks; original native work untouched",
+  "codeAndTestSha256": {
+    "scripts/Start-Track.ps1": "b34de322e1052c447cb196007e97e183c09a23615ae26a9130aabde020eff1e4",
+    "scripts/Restart-Track.ps1": "27502db0a90fe02c4ed424e34ddbe7422acf65164c6af50d8f4daf16b4c3ba9b",
+    "deploy/track/runtime-release.mjs": "4e61646814313b4bf6524ebc9af1d0cad9703e984c671bb790c93da72d07958e",
+    "deploy/track/runtime-operation.mjs": "b64d6f8689d52666f178d71e8698e25db1af5913e72c0b8948ff3f34e2a8d073",
+    "deploy/track/activate-runtime.ps1": "d2436d56915e71684c1f07301de630a12d488cf05883e1104ebf98ef7d6a6385",
+    "deploy/track/sqlite-preservation.mjs": "cd4f9ac40ea65e0290c415e83cd4bc16bd8f5275734cce0099712f8c1a990ccf",
+    "deploy/demian/windows-api-process.mjs": "05b7ed3c492f33eb8f50bf7fa080e64e99208f872a9001a4f66d1d1f30e76343",
+    "deploy/demian/windows-web-process.mjs": "f6dfec980207ade282c72d6dfe5a6426cac3e483aa77703f453dc7063bb4a467",
+    "deploy/demian/write-exclusive.ps1": "0ff7a52d89387d77bab91163e647ebae511e9792ab726dbe9dd19097c717aa08",
+    "deploy/demian/native-web-database.mjs": "353846fefff03669b2eeca90477b7591eac36f27ea9e7afbdabc5ccc6e0024bd",
+    "deploy/track/runtime-operation.d.mts": "b064f74165b492551d3e8c22b06aad0ca9b8f723b385f172dabf1420f2318530",
+    "deploy/track/runtime-release.d.mts": "96bfa59ceae3d44aea3b432b8410f24245fe30b96d86663dabb4a8e1b2fa0173",
+    "deploy/track/sqlite-preservation.d.mts": "fb857cd878f0234006ca80c2be1cd2618372092328c349af73e837a02fa7f2f7",
+    "tests/track-runtime-operation.test.ts": "8ea238c7c3925a34fc74235eac36bda07f6745ee93715860759db9d0794ac1f2",
+    "tests/track-runtime-release.test.ts": "60b3ba6b4650119203743601cc447a53cf1f9c1931fb48fe3afc5a1a4352b702",
+    "tests/track-sqlite-preservation.test.ts": "f9575782ccc2deb0b7aad00e2ea4aded3533bfb6d4a8ffc23aad247f4c0fad0a"
+  },
+  "hashConvention": "Git blob bytes at implementationRevision (LF); private input pins actual working-file bytes separately",
+  "operation": {
+    "operationId": "b195364f-13b8-4764-829c-99a9de1bfcac",
+    "inputSha256": "ef70e33f6c4be6509866a6953a0ca413837d0ccce0704daaae67dde304341136",
+    "committed": true,
+    "activePid": 21312,
+    "activeCreated": "2026-11-13T00:49:28.2149850Z",
+    "activeListener": "127.0.0.1:14345",
+    "retainedHandleStop": true,
+    "bridgesRestarted": false,
+    "originalConfigBytesRestored": true,
+    "candidateManifestSha256": "3899ba962b06e6c677512314375f88e4696647dcdc358d38f7941e368f336adb",
+    "rollbackManifestSha256": "e8594c5c5fbc9974f70a3e45e6bd0cf05d504441a67de24298289027e71b9166",
+    "legacyCheckoutIndexUnchangedSha256": "ecc4744c0fc881123ad11bcc0db9c6556175788b476f9c789d2a925d31705dcb"
+  },
+  "backup": {
+    "bytes": 21196800,
+    "tableCount": 11,
+    "integrityVerified": true,
+    "snapshotFingerprintSha256": "c3f3d67360517b9ff75fc492c734142d72251f0970c8c157636b521384a37b7c",
+    "allTypedRowsAndSchemaMatched": true,
+    "originalDatabaseRestored": false
+  },
+  "coldStart": {
+    "actualBackupCopies": true,
+    "rollback": {
+      "verified": true,
+      "webFilesBytesAndMimeMatched": 18,
+      "savedViewStatus": 404,
+      "legacyTablesAndSchemaPreserved": true,
+      "childStopped": true,
+      "portReleased": true
+    },
+    "candidate": {
+      "verified": true,
+      "webFilesBytesAndMimeMatched": 18,
+      "savedViewStatus": 200,
+      "legacyTablesAndSchemaPreserved": true,
+      "additiveSavedViewOnly": true,
+      "childStopped": true,
+      "portReleased": true
+    },
+    "sourceOrModelRequests": 0
+  },
+  "actual": {
+    "savedView": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "all18WebFilesBytesAndMimeMatched": true,
+    "iconFormatsVerified": [
+      "SVG",
+      "PNG16",
+      "PNG32",
+      "ICO"
+    ],
+    "nativeDatabaseTables": 45,
+    "allNativeRowsSchemaSequencesSecurityPreserved": true,
+    "protectedFilesInventoried": 39,
+    "otherProcessesPreserved": 17,
+    "nativeApiWebGateTunnelAndDockerPreserved": true,
+    "allExistingTrackHistoryRetained": true,
+    "runAndSessionIdentityPreserved": true,
+    "monotonicDiscoveryAndRunCursors": true,
+    "bindingChangesRequireAppendedHistory": true,
+    "sourceOrNativeCommandsCreated": 0,
+    "publicAuth": [
+      {
+        "name": "trackRoot",
+        "status": 302,
+        "expected": true,
+        "authRedirect": true
+      },
+      {
+        "name": "trailRoot",
+        "status": 302,
+        "expected": true,
+        "authRedirect": true
+      },
+      {
+        "name": "trackSnapshot",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      },
+      {
+        "name": "trackSavedViews",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      },
+      {
+        "name": "publicForgedProxy",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      },
+      {
+        "name": "publicBasic",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      },
+      {
+        "name": "localNoProxy",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      },
+      {
+        "name": "localForgedProxy",
+        "status": 401,
+        "expected": true,
+        "authRedirect": false
+      }
+    ]
+  },
+  "verification": {
+    "localFullSuiteBeforeFinalGuardFix": {
+      "total": 917,
+      "passed": 908,
+      "failed": 0,
+      "skipped": 9
+    },
+    "finalGuardTests": {
+      "passed": 24,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "powershellSyntax": "3 files passed",
+    "ci": {
+      "runId": 43339666888,
+      "revision": "4d7da2814dea9dc95af7a8ea22dcb1a8fb4a790b",
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43339666888",
+      "windows": {
+        "total": 923,
+        "passed": 914,
+        "failed": 0,
+        "skipped": 9
+      },
+      "ubuntu": {
+        "total": 923,
+        "passed": 900,
+        "failed": 0,
+        "skipped": 23
+      },
+      "skipReason": "Platform-specific POSIX or Windows tests; skips are not counted as passed",
+      "includes": [
+        "typecheck",
+        "full suite",
+        "frontend build"
+      ]
+    }
+  },
+  "review": {
+    "independentReview": "Metadata advancement, current binding preservation and PID-reuse findings fixed; final source revalidation found no remaining blocker",
+    "ordinaryFailureRecovery": "Prepared frozen fallback and conditional writes; source-reviewed, no production fault injected",
+    "automaticOsCrashResume": false
+  },
+  "postSnapshot": {
+    "observedAt": "2026-11-13T00:53:51.311Z",
+    "demian": { "state": "connected", "runs": 19 },
+    "codex": { "state": "connected", "runs": 650 },
+    "projects": { "state": "connected" },
+    "assistant": { "state": "forbidden" },
+    "desktop": { "state": "unsupported" }
+  },
+  "limits": [
+    "The current Assistant source read is forbidden and the desktop connector is unsupported; neither is counted as an actual integrated execution.",
+    "Authenticated Entra browser save/restore and tab/cache/light-dark icon appearance remain unverified; Microsoft login is pending.",
+    "Saved-view browser reload and permission-revocation behavior were verified in a synthetic fixture, not an additional physical device.",
+    "No native Task/Run/subagent work was created by this operation; actual organized cross-app/device execution remains pending.",
+    "Abrupt OS/power loss requires journal, config, pointer, receipt and listener inspection; the consumed operation driver must not be rerun."
+  ],
+  "overallGoal": {
+    "completed": 14,
+    "total": 21,
+    "percent": 66.7,
+    "weighting": "Equal acceptance criteria",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "SSO and actual organized cross-app/device verification remain"
+  }
+}

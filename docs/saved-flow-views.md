@@ -74,7 +74,13 @@ Run을 추가해2node/1edge→4node/3edge로 바꾼 뒤 같은 철회를 검사�
 검증 중 기본 Vite build가 운영 `dist/web`를 갱신한 것을 발견해 원래 동결
 프런트엔드를 복원했다. 실제 HTTP18파일 byte/hash와 Track/Demian 프로세스
 보존을 확인했다. 이후 후보는 private staging으로 빌드했다.
-로컬 확인 명령은 `npm run build:check`이며 저장 기능은 아직 운영에 게시하지 않았다.
+로컬 확인 명령은 `npm run build:check`다. 위 내용은 게시 전 구현 검증 기록이다.
+
+2026-11-13 후속 운영 반영에서는 API와 웹 `7e98793`을 같은 동결 release로
+전환했다. 실제 허용 Projects Task 두 개를 묶은 보기를 owner API로 저장·조회하고,
+오래된 revision409와 임시 보기 삭제를 확인했다. 기존 이력·설정·native DB와
+다른 서비스는 보존했다. 브라우저는 Microsoft 로그인 대기라 실제 Entra GUI의
+저장/복원은 여전히 미검증이다. `track-frozen-runtime-verification.json` 참고.
 
 기획·UI 검증은 AT-12의 부분 범위다. 전체14/21개(동일 가중치66.7%)·ETA 산정
 불가·신뢰도 낮음을 유지한다. Entra/교차 앱/추가 기기와 실제 조직화 수행이

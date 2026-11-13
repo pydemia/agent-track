@@ -1,7 +1,14 @@
 {
   "dateKst": "2026-11-13",
   "baseRevision": "a6833c9d7cfde4ada8333ff2baccafb2c033cd73",
-  "scope": "Account-owned saved Flow presentation; implementation and isolated verification; not deployed",
+  "scope": "Account-owned saved Flow presentation; pre-deployment implementation and isolated verification record; see deploymentFollowUp for current operating state",
+  "deploymentFollowUp": {
+    "evidence": "track-frozen-runtime-verification.json",
+    "apiAndWebRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a",
+    "operatingPublished": true,
+    "actualPermittedTaskOwnerApiVerified": true,
+    "authenticatedBrowserGuiVerified": false
+  },
   "codeAndTestSha256": {
     "apps/api/server.ts": "11721a9216a0ce48abbc7dd10b3009778180e539598e47bbfbc63592789f960f",
     "apps/web/src/App.tsx": "67fa50534a9c58ff16ebfb739c6215a1bea38e8aa9d5e2a53ffe44cb13975d21",

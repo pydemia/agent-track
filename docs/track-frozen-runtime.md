@@ -72,5 +72,9 @@ config/pointer/receipt/listener와 journal을 대조해 소유 상태를 확인�
 실제 backup과 두 release의 격리 cold start는 완료했다. 기존11테이블·18웹 파일을
 각각 확인했고 후보에만 저장 보기 테이블·index가 추가됐다. 원본 설정·39보호파일·
 18프로세스와 native45테이블을 보존했다. activation plan·이력 손상·cursor·binding·
-pending 의미 회귀24검사를 통과했다. 배포 driver의 실제 운영 전환과 Entra GUI는
-아직 수행 전이다. production 결과는 별도 증거 파일에서 revision과 함께 기록한다.
+pending 의미 회귀24검사를 통과했다. 배포 도구 `4d7da28`의 Windows·Ubuntu CI가
+통과한 뒤 실제 driver를 수행해 API·웹 `7e98793`을 함께 전환했다. 실제 허용 Task
+두 개의 저장 보기 생성·조회·revision409·임시 보기 삭제와 기존 이력 보존을
+확인했다. 현재 PID21312의 실제 신원·listener와 공개 로그인 보호도 확인했다.
+Entra GUI와 crash/fault injection은 미검증이다. 실제 결과와 CI923검사·환경별
+skip은 `track-frozen-runtime-verification.json`에 구분해 기록한다.

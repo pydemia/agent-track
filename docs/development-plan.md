@@ -98,7 +98,8 @@ Node group의 계획·구현은 `mission-ui-plan.md`의 AT-12 보완에 연결�
 projection 검사이며 실제 대규모 브라우저 성능이나 child/peer 조직화 실기를 대신하지 않는다.
 사용자의 in-depth 요구에 따라 그룹 개발 순서는 **묶음 요약 → 내부/외부 문맥 탐색
 → 네 화면 공통 범위 → 저장 보기**로 구체화했다. 앞의 세 단계는 현재 metadata
-범위에서 구현했다. 계정별 저장도 격리 검증했으며 운영 반영과 실제 조직화 업무의 전체 실기는 남았다. 기존 그룹 동작은 유지하며
+범위에서 구현했다. 계정별 저장도 격리 검증·운영 반영과 owner API 확인을 완료했다.
+Entra GUI와 실제 조직화 업무의 전체 실기는 남았다. 기존 그룹 동작은 유지하며
 저장 기능만으로 내부 흐름의 설명을 대신하지 않는다. 상세 시나리오와
 AT-12-G01~G05는 `mission-ui-plan.md`의 작업 묶음 중심 탐색에 연결한다.
 
@@ -107,7 +108,7 @@ AT-12-G01~G05는 `mission-ui-plan.md`의 작업 묶음 중심 탐색에 연결�
 | 1. 묶음 요약 | 현재 허용된 구성/상태·대기·산출물 근거를 연결. 원본 목적/입력/수용 조건 미제공과 부분 관측 구분 | `packages/projection/flow-group-context.ts`, `apps/web/src/FlowGrouping.tsx`. AT-12-G03, 혼합 단위·실패/미확인 검사 | 현재 metadata 구현. 원본 의미 필드 추가는 producer 계약에 의존 |
 | 2. 내부/외부 문맥 | 그룹별 펼침·내부 초점·breadcrumb, 외부 선행/후속과 원본 끝점 이동·상위 복귀 | `FlowGrouping.tsx`, `flow-group-layout.ts`, `flow-navigation-state.ts`. AT-12-G01/G02, 경계 대표선·선택/viewport 검사 | 현재 화면 구현. 실제 복합 분기·합류 업무의 전체 왕복 검증은 남음 |
 | 3. 공통 범위 | 현재 허용된 멤버를 네 화면에 전달. Trail은 Run별 lane, Trace는 실행별 흐름, Track은 업무별 요약 유지 | `packages/projection/group-workspace-scope.ts`, `apps/web/src/group-workspace-client.ts`와 네 소비 화면. AT-12-G04/G05, 전환·철회·동일 ID 구별 | 구현·합성 UI/HTTP 검사·게시 확인. 현재 운영 Entra GUI와 전체 실제 조직화 검증은 남음 |
-| 4. 저장 보기 | 계정별 멤버 ID·묶음 이름·접힘 상태 저장과 재접속 시 원본 권한 재검사 | `saved-flow-views.md`, AT-12-G06. 계정 분리·CAS·재접속 복원·권한 철회와 새 관측 후 철회 검사 | 구현·격리 HTTP/SQLite·합성 UI 검사. 운영 DB/설정 backup·API/정적 경로 분리와 실제 owner 게시 검증은 남음 |
+| 4. 저장 보기 | 계정별 멤버 ID·묶음 이름·접힘 상태 저장과 재접속 시 원본 권한 재검사 | `saved-flow-views.md`, AT-12-G06. 계정 분리·CAS·재접속 복원·권한 철회와 새 관측 후 철회 검사 | 구현·격리 HTTP/SQLite·합성 UI 검사. 동결 API/웹 운영 반영과 실제 허용 Task의 owner API 저장·조회·충돌 검증 완료. Entra GUI와 실제 교차 앱 조직화 업무는 남음 |
 
 1단계 중 현재 제공되는 metadata의 단위별 상태·명시된 대기/실패/검토·선행/후속
 업무·산출물 관계 요약과 원본 상세 이동을 구현했다. 고유 Run/산출물 중복과

@@ -1,5 +1,21 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 저장 Flow 보기 운영 반영: 배포 도구 `4d7da28`의 Windows·Ubuntu CI를
+통과한 뒤 API·웹 `7e98793`을 같은 동결 release로 전환했다. 실제 PID21312의
+127.0.0.1:14345 listener·CIM·runtime receipt와 HTTP18자산 bytes/MIME를 확인했다.
+실제 허용 Projects Task 두 개의 묶음·접힘·내부 초점을 저장·조회하고 오래된
+revision409·임시 보기 삭제를 확인했다. 원래 설정 bytes·기존 Track 이력·native
+45테이블 전체 상태·다른17프로세스·bridge를 보존했다. Track/Trail302와 공개/로컬
+익명·위조 인증401도 유지된다. 실제 Entra GUI는 Microsoft 로그인 대기다.
+전환 후 실제 snapshot에서 Demian19Run·Codex·Projects 연결을 확인했다.
+Assistant는 현재 원본 접근 거부, desktop은 미지원으로 구분된다.
+기존11테이블의 검증 backup, 양쪽 release의 격리 cold start와 복구 경로를 준비했으며
+원본 DB 복원·native 업무 실행은 하지 않았다. 상세는
+`track-frozen-runtime.md`·`track-frozen-runtime-verification.json`에 기록했다.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+
+다음 단락은 운영 반영 전의 구현·검증 기록이다.
+
 2026-11-13 계정별 Flow 저장 보기(AT-12-G06): SQLite의 계정 소유·revision 비교
 저장/갱신/삭제와 현재 Task/Run/Assistant 인가 API, 저장 이름·묶음·접힘·깊이·
 내부 초점의 명시 복원을 구현했다. 로컬 전체857개 중848통과·환경skip9·실패0,
