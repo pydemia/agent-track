@@ -1,0 +1,108 @@
+{
+  "verifiedAt": "2026-11-13T14:19:15Z",
+  "requirements": ["AT-14"],
+  "phase": "native-preview-and-lifecycle-preflight-verified",
+  "scope": "Actual server candidate image, restored current databases and inert operating transition preflight. Does not establish operating Assistant promotion or whole cross-app acceptance.",
+  "source": {
+    "personaRevision": "f79a5b13c53b5c12765aa59b6a2b5302c4fa3913",
+    "candidateImage": "sha256:cb3df22a1f01a9c37e46dfa2111bb4c1bf56d196b16e8fae3b142565c6690478",
+    "operatingAssistantImage": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712",
+    "nativeLifecycleSha256": "6382389ad16e10f033b1e05b9fded67ac3920435280f736a6ac9f4be35f117f0",
+    "nativeCloneSha256": "6fe94236f51b33861f4ff5dca7ec62b36b25ef3dea8a932253d7e33164805e94"
+  },
+  "recovery": {
+    "actualEncryptedBackupAndRestoreVerified": true,
+    "workBytes": 45719552,
+    "runtimeBytes": 5203533824,
+    "perDatabaseConsistency": true,
+    "crossDatabaseAtomicSnapshot": false,
+    "sourceMountedReadonly": true,
+    "productionRestorePerformed": false
+  },
+  "preview": {
+    "fullCandidateMainStartedOnActualRestoredCopies": true,
+    "healthStatus": 200,
+    "network": "none",
+    "originalStateNotMounted": true,
+    "originalOtherMountsReadonly": true,
+    "newEmptyTables": {
+      "work": ["work_instruction_project_sources", "work_note_feedback_replies"],
+      "runtime": ["work_demian_result_artifacts", "work_demian_runtime_links"]
+    },
+    "newSchemaObjectsExactSourceDdl": 9,
+    "oldSchemasPreserved": true,
+    "workOldBusinessRowsPreserved": true,
+    "runtimeExactReviewedStartupDelta": {
+      "taskRevisions": 3,
+      "appendedUiEvents": 6,
+      "oldTaskRowsEventPrefixAndSequenceInverseHashesMatched": true
+    },
+    "operationalLeaseExceptions": ["work_execution_lease", "work_report_lease", "runtime_leases", "import_leases"],
+    "measuringConnectionsTotalChanges": 0,
+    "originalProtectedProcessesAndContractsPreserved": 13,
+    "ownedPreviewContainersRemoved": true,
+    "copyVolumeRetained": true,
+    "afterCheckRecovery": {
+      "initialError": "ERR_SQLITE_ERROR: unable to open database file",
+      "reproducedOnReadonlyCopyDirectoryWithAbsentWalAndShm": true,
+      "correctedOwnedCopyDirectoryAccessWithReadonlyQueryConnections": true,
+      "measurementWrittenToPrivateHostOutput": true,
+      "backupOrAppBootRepeatedForPostcheck": false,
+      "sqliteReference": "https://www.sqlite.org/wal.html#read_only_databases"
+    }
+  },
+  "latestSourceBaseline": {
+    "capturedAt": "2026-11-13T14:06:31.143Z",
+    "oldBusinessRowsMatchVerifiedBackup": true,
+    "reportPinsPreserved": true,
+    "activeTasksExecutionsReportsImports": 0,
+    "sourceDatabaseWrites": 0
+  },
+  "lifecycle": {
+    "strictInactiveCandidateVerified": true,
+    "nativeEnvEntriesAdded": 3,
+    "readonlyMetadataVolumesAdded": 1,
+    "actualCurrentPreflightPassed": true,
+    "originalProtectedComponentsPreserved": 13,
+    "selectedFileFingerprints": {"assistant": 33, "avatar": 32, "budget": 3},
+    "oldGuardFilesRetained": 13,
+    "newGuardsInstalled": false,
+    "operatingCandidateStarted": false,
+    "automaticDatabaseOrCredentialRestore": false,
+    "automaticOldImageFallback": false,
+    "requiredBootOrder": ["renderer", "budget", "avatar", "assistant"],
+    "rendererReadinessScope": "HTTP listener and request handler, not a render workload",
+    "writerScope": "Docker-visible mounts on both engines, not general host process isolation"
+  },
+  "verification": {
+    "syntheticPythonTests": 32,
+    "failures": 0,
+    "newRemoteCiVerified": false,
+    "independentReviewMustFixesApplied": [
+      "effective guards and no pending start job before stop",
+      "host-root bind writer detection",
+      "boot-role overlapping mount rejection and writer check after role start",
+      "raw protected network preservation including existing static IPAM",
+      "bounded dependency listener probes",
+      "required hashed evidence references and source identifiers"
+    ]
+  },
+  "productionTaskNoteRunCreates": 0,
+  "modelRequests": 0,
+  "remaining": [
+    "current-revision remote CI",
+    "guard installation and operating Assistant transition/readback",
+    "protected native Run metadata authorization path",
+    "durable WorkCoordinator/Projects result/Note workflow",
+    "desktop access and Track review of the same real work"
+  ],
+  "goal": {
+    "acceptanceCompleted": 15,
+    "acceptanceTotal": 21,
+    "acceptanceCoveragePercent": 71.4,
+    "weights": "equal top-level requirements; partial counts zero",
+    "developmentCompletionPercent": null,
+    "eta": null,
+    "scheduleConfidence": "low"
+  }
+}
