@@ -1,4 +1,5 @@
 import { timestampSchema } from "../../contracts/index.ts";
+import type { ModelRequestEvidence } from "../../contracts/model-requests.ts";
 
 export type ToolEvidenceOutcome = "succeeded" | "failed" | "unknown" | "ambiguous";
 export type ToolEvidenceEventType = "tool.requested" | "tool.started" | "tool.completed" | "tool.failed";
@@ -20,7 +21,7 @@ export interface ToolEvidenceCall {
   outcome: ToolEvidenceOutcome;
 }
 
-export interface ToolEvidencePage {
+export interface ToolEvidencePage extends ModelRequestEvidence {
   calls: ToolEvidenceCall[];
   scanned: number;
   limit: 2000;

@@ -16,11 +16,13 @@ const basisNames = { native: "원본 소속", binding: "명시적 업무 연결"
 const countNames: Record<string, string> = { task: "업무", session: "Session", uniqueRun: "관측 Run", "assistant-execution": "Assistant 실행", "assistant-role": "역할", "assistant-runtime-task": "Runtime Task 참조", "assistant-thread": "Thread 참조", "assistant-turn": "Turn 참조", invocation: "호출", "invocation-reference": "호출 참조", tool: "도구", permission: "승인", group: "원본 협업 그룹", member: "협업 멤버", artifact: "산출물", "peer-message": "처리 메시지", "session-relation-receipt": "관계 영수증", "managed-parent-reference": "부모 Run 미확인 참조" };
 const executionStates: Record<string, string> = { queued: "대기", leasing: "할당 중", running: "실행 중", waiting_for_permission: "승인 대기", cancelling: "취소 중", succeeded: "성공 종료", failed: "실패", cancelled: "취소", expired: "만료", interrupted: "중단", unknown: "미확인", unobserved: "미조회 참조", observed: "관측됨", "observed-reference": "관계 참조", registering: "등록 중", publishing: "게시 처리 중", linking: "연결 처리 중", reconciliation_required: "확인 필요", pending: "준비 대기", preparing: "준비 중", awaiting_connection: "연결 대기", awaiting_runtime: "런타임 대기" };
 export const groupStatusLabel = (kind: string, status: string): string => {
+  if (kind === "model-request") return ({ started: "요청 시작 관측", ended: "종료 관측 · 결과 미확인", unfinished: "Run 종료 · 요청 종료 미확인", unknown: "요청 시작 미확인", ambiguous: "시작·종료 대응 미확정" } as Record<string, string>)[status] ?? "미확인";
   if (["group", "member"].includes(kind)) return ({ started: "시작 관측", ended: "종료 관측 · 결과 미확인", unfinished: "Run 종료 · 협업 종료 미확인", ambiguous: "종료 근거 충돌", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측" } as Record<string, string>)[status] ?? executionStates[status] ?? status;
   if (kind === "task") return ({ todo: "할 일", in_progress: "진행", in_review: "검토", done: "원본 완료", cancelled: "취소", bound: "연결 기록 · 현재 상태 미확인", observed: "상태 미확인", "observed-reference": "상태 미확인" } as Record<string, string>)[status] ?? status;
   if (kind === "invocation" || kind === "tool") return ({ started: "시작 관측", completed: "완료 이벤트 관측", succeeded: "성공 보고", failed: "실패 이벤트 관측", cancelled: "취소 이벤트 관측", unfinished: "Run 종료 · 호출 종료 미확인", unknown: "미확인", ambiguous: "기록 모호" } as Record<string, string>)[status] ?? status;
   return status === "completed" ? "완료 관측" : executionStates[status] ?? status;
 };
+countNames["model-request"] = "모델 요청 근거";
 const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter(([kind]) => group.counts[kind])
   .map(([kind, label]) => `${label} ${group.counts[kind]}`).join(" · ") || `${group.leafKeys.length}개 항목`;
 

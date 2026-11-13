@@ -373,7 +373,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const lineage = /^\/api\/runs\/([A-Za-z0-9_-]+)\/lineage$/.exec(url.pathname);
       const tools = /^\/api\/runs\/([A-Za-z0-9_-]+)\/tools$/.exec(url.pathname);
       if (request.method === "GET" && tools) {
-        const evidence = await toolEvidence(config, snapshot, user, tools[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        const keys = [...url.searchParams.keys()], include = url.searchParams.get("include");
+        if (keys.length > 1 || keys.some(key => key !== "include") || include !== null && include !== "model-requests") {
+          json(response, 400, { error: "invalid_tool_evidence_query" }); return;
+        }
+        const evidence = await toolEvidence(config, snapshot, user, tools[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), include === "model-requests");
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

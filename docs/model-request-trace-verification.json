@@ -1,0 +1,155 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": [
+    "AT-12",
+    "AT-18"
+  ],
+  "scope": "Metadata-only model request observations added to Trace and Run/invocation groups; actual current native GET readback plus separate archive readback. No native worker activation or additional model requests.",
+  "sourceFiles": {
+    "apps/api/server.ts": "aeeb59a924f9a95468b12cad48b862bde6134d948c0cd14033b16fb95e8f01fe",
+    "apps/api/tools.ts": "76e6d922bdcad1d2f327622f893285a15435bafd63e550d485b0f94101d5bd2f",
+    "apps/web/src/FlowGrouping.tsx": "f58f9174e0b3bfa401db722e1d886ce6dd9014f7a2b0c89e3ab2bbdc267f7273",
+    "apps/web/src/MissionFlow.tsx": "cd96f3d163df1d55221172e1212a4785bc434986c56a6c968dab1634e65a423c",
+    "apps/web/src/useToolEvidence.ts": "bd6a2cb7e48884264e601a9fe40e17e50b2bf3cbc32c84b841c2ea3258e195fc",
+    "apps/web/src/ModelRequestSupport.tsx": "7fd41e573ef9706e860fb32f1c9e1599664fe8b282b4ab84e892608f04f8dd8d",
+    "apps/web/src/tool-evidence-reply.ts": "5d4553be39f3ddad6404bab7bcf4079d9352f50848b8d207f2f1d80f101e972a",
+    "packages/adapters/demian/index.ts": "92442935b2e49ebb81db633253f5ceaa9a04ac759e240f4b9e80e864565a4c3f",
+    "packages/adapters/demian/tool-evidence.ts": "44ab48794dda0c8a42381a64da3c771af709148ebe1ba1c0d8dee92248e21729",
+    "packages/adapters/demian/model-requests.ts": "0460dfe1529528036035dcf614cb37b41d1a6ad5665fcd7266f97c66b74d222f",
+    "packages/contracts/model-requests.ts": "f8a3dea1bb60859b83f27ab410dc24e41e7b5f3bb89da982640fd6d45f1cc6f8",
+    "packages/projection/flow-group-context.ts": "d13129f38ae07976f2b6ead48389afd953683202117b0c0b810e75f8ed9a0b00",
+    "packages/projection/flow-group-definitions.ts": "25452f6cd39acfde330b5e57f980f222f70137e0b79b6ae9a8a8d4b714915c93",
+    "packages/projection/model-request-flow.ts": "6f092f13cef7623564b5a4073991d39887a0f630e8bec48e76b1648e873dac32"
+  },
+  "contract": {
+    "route": "/api/runs/:key/tools?include=model-requests",
+    "legacyRoute": "/api/runs/:key/tools",
+    "legacyReplyShapePreserved": true,
+    "newClientReadsOldReplies": true,
+    "additionalUpstreamReads": 0,
+    "sourceReadBeforeAfterReauthorized": true,
+    "storedNormalizedEventsAndSchemaChanged": false,
+    "allowed": "Requested provider profile/model, lifecycle marks, reported duration, source sequence and opaque Run-scoped context hash; no native session ID/prompt/response/credential/per-call token or cost data.",
+    "pairing": "Single start/end in one context, no overlap, no missing sequence or unidentified/conflicting interior model event; otherwise unknown/ambiguous. End does not establish success.",
+    "parent": "Only same-Run observed invocation, otherwise Run; reference-only invocation does not establish execution ownership.",
+    "ordering": "Explicitly labeled record order only, never task dependency."
+  },
+  "actualLiveRead": {
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "status": "succeeded",
+    "events": 17,
+    "sequence": "4",
+    "requestedProvider": "codex-native",
+    "requestedModel": "gpt-6.1-sol",
+    "lifecycle": "start observed; end missing despite successful Run",
+    "sourceMutation": false,
+    "newModelRequests": 0,
+    "legacyAndEnhancedHttpVerified": true
+  },
+  "actualArchiveRead": {
+    "runId": "cf8cb5b9-b745-4bd8-b9da-76bb5f857137",
+    "source": "Retained SQL archive of independently verified real Linux peer Run; whitelist replay metadata, not a fresh live source or execution.",
+    "archiveSha256": "293f27460de7d8a1dbeaca2da54fc051d9185d617d0066201e9cf14a31aaccb4",
+    "events": 49,
+    "sequences": [
+      "6",
+      "45"
+    ],
+    "reportedDurationMs": 4233,
+    "newModelRequests": 0,
+    "notFreshExecution": true
+  },
+  "localUi": {
+    "nodes": 3,
+    "edges": 2,
+    "groups": 1,
+    "modelNodeDetailAndEdgeMeaningVerified": true,
+    "groupModelCounter": 1,
+    "separateRunAndModelState": true,
+    "collapseInternalEdges": 2,
+    "collapsedNodes": 1,
+    "internalDrilldownAndBreadcrumbVerified": true,
+    "finalOptInSummaryAndGroupVerifiedInBrowser": true,
+    "responsive": {
+      "width": 390,
+      "documentWidth": 375,
+      "horizontalOverflow": false
+    },
+    "viewportReset": true,
+    "screenshotExported": false,
+    "pixelQualityVerified": false,
+    "canvasNodeEnterSelectionVerified": false,
+    "nodeListMouseAndEdgeKeyboardVerified": true,
+    "publicEntraGuiVerified": false,
+    "canvasNodeMouseSelectionVerified": true
+  },
+  "assets": {
+    "files": 18,
+    "bytesShaAndMimeMatched": true,
+    "iconsPreserved": true,
+    "legacyIndexSha256": "ecc4744c0fc881123ad11bcc0db9c6556175788b476f9c789d2a925d31705dcb"
+  },
+  "checks": {
+    "initialFullSuite": {
+      "tests": 975,
+      "passed": 965,
+      "failed": 1,
+      "skipped": 9,
+      "failure": "Existing Assistant link initial-read expectation returned0 vs1. Cause unconfirmed."
+    },
+    "isolatedAssistantFile": {
+      "tests": 35,
+      "passed": 35,
+      "failed": 0
+    },
+    "finalFullSuite": {
+      "tests": 975,
+      "passed": 966,
+      "failed": 0,
+      "skipped": 9
+    },
+    "typecheck": true,
+    "isolatedWebBuild": true,
+    "buildWarnings": [
+      "Main chunk exceeds500kB",
+      "React Flow use client directive warning"
+    ],
+    "ci": "pending publication",
+    "deployment": "not applied; operating API/web remains1f224c7"
+  },
+  "review": {
+    "readOnlyIndependent": true,
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "low",
+    "actualExecutionModelIndependentlyObserved": false,
+    "findingsFixed": [
+      "Unidentified/conflicting interior model events now invalidate pairing",
+      "Reference-only invocation is no longer a model execution parent"
+    ],
+    "regressionTests": true
+  },
+  "preservation": {
+    "previousBaselineMatched": true,
+    "currentWindowsNativeAllRowsSchemaSequencesSecurityPreserved": true,
+    "nativeTables": 45,
+    "protectedFiles": 42,
+    "protectedProcesses": 18,
+    "operatingWorkerStarted": false,
+    "originalProviderCredentialCopied": false,
+    "newExecutionAuthorityCreated": false
+  },
+  "remaining": [
+    "Paired frozen API/web rollout and operating readback",
+    "Operating Entra GUI requires existing Microsoft sign-in",
+    "New owner-bound executor contract/current identity-source tuple and fresh Work/runtime backup/guard for full cross-app Task",
+    "Operating SDK/worker with native orchestration contract; current defaults own external tool orchestration"
+  ],
+  "overall": {
+    "completed": 14,
+    "total": 21,
+    "weighting": "equal",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  }
+}

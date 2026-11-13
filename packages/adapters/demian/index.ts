@@ -10,6 +10,7 @@ import { permissionJson, permissionList, permissionReview } from "./permissions.
 import { fileChangeSignal, projectFileChanges, type FileSignal } from "../../projection/file-changes.ts";
 import { canonicalLineageCursor, parseNativeLineagePage, readBoundedLineageJson, type NativeLineagePage } from "./lineage.ts";
 import { projectToolEvidence, type ToolEvidencePage } from "./tool-evidence.ts";
+import { projectModelRequests } from "./model-requests.ts";
 import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from "./session-relations.ts";
 import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
 import { readBoundedNativeJson } from "./json.ts";
@@ -249,13 +250,14 @@ export class DemianClient {
       throughSequence: String(through), omittedChanges, complete: contiguous >= target && omittedChanges === 0 };
   }
 
-  async toolEvidence(runId: string, targetSequence: string): Promise<ToolEvidencePage> {
+  async toolEvidence(runId: string, targetSequence: string, includeModels = false): Promise<ToolEvidencePage> {
     z.uuid().parse(runId); sequenceSchema.parse(targetSequence);
     const limit = 2000 as const;
     const empty: ToolEvidencePage = {
       calls: [], scanned: 0, limit, targetSequence, throughSequence: "0",
       targetReached: targetSequence === "0", gaps: false, truncated: false,
       omittedCalls: 0, unidentifiedEvents: 0, complete: targetSequence === "0",
+      ...(includeModels ? { modelRequestCoverage: "native-model-lifecycle" as const, modelRequests: [], unidentifiedModelEvents: 0, omittedModelRequests: 0 } : {}),
     };
     if (targetSequence === "0") return empty;
     const response = await this.request(`/api/v1/runs/${encodeURIComponent(runId)}/events?after=0`, AbortSignal.timeout(10_000));
@@ -289,9 +291,12 @@ export class DemianClient {
       else if (error !== stop) throw error;
     }
     const projected = projectToolEvidence(events, runId, ids);
+    const models = includeModels ? projectModelRequests(events, runId, ids) : null;
+    const omittedModelRequests = Math.max(0, (models?.modelRequests.length ?? 0) - 500);
     const omittedCalls = Math.max(0, projected.calls.length - 500);
     const targetReached = contiguous >= target;
-    const complete = targetReached && !truncated && omittedCalls === 0 && projected.unidentifiedEvents === 0;
+    const complete = targetReached && !truncated && omittedCalls === 0 && projected.unidentifiedEvents === 0 &&
+      omittedModelRequests === 0 && (models?.unidentifiedModelEvents ?? 0) === 0;
     const calls = projected.calls.slice(0, 500).map((call) =>
       !complete && call.outcome === "succeeded" ? { ...call, outcome: "unknown" as const } : call);
     return {
@@ -299,6 +304,8 @@ export class DemianClient {
       gaps: through > contiguous, truncated, omittedCalls,
       unidentifiedEvents: projected.unidentifiedEvents,
       complete,
+      ...(models ? { modelRequestCoverage: "native-model-lifecycle" as const, modelRequests: models.modelRequests.slice(0, 500),
+        unidentifiedModelEvents: models.unidentifiedModelEvents, omittedModelRequests } : {}),
     };
   }
 

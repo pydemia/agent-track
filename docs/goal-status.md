@@ -1,5 +1,20 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 Trace 모델 요청 후속: 기존 도구 근거의 제한된 SSE 읽기를 재사용해
+모델 요청 시작·종료·보고 소요 시간과 원본 sequence를 별도 node/edge로 투영했다.
+명시 opt-in에서만 확장해 구버전 도구 응답과 정규 이벤트 digest를 유지한다.
+Run/실제 호출 그룹 내부에 포함하고 참조 호출·모호한 중첩·누락 근거는 구별한다.
+운영 원본 Run17event의seq4·`codex-native`/`gpt-6.1-sol`과 종료 미확인을 실제 API로
+대조했다. 로컬 분리 화면의3node/2edge·1그룹, 상세·접기·내부 경로·390px 가로
+넘침 부재를 확인했다. 실제 Linux Run archive의seq6/45·보고4233ms도 별도 대조했다.
+추가 모델 요청은0이다. 초기 전체 검사에서 기존 Assistant 링크 검사1개 실패가
+있었고 원인은 미확인이다. 단독35개와 진단 보완 후 전체975개(966통과·9skip·실패0)
+및 타입 검사를 확인했다. 원격 CI·동결 배포와 운영 Entra GUI는 아직 별도 단계다.
+Demian·Persona의 현재 조회는 executor selector·binding·deployment authority가
+미구성임을 확인했다. 다음 운영 구성에는 새 실행 계약·현재 identity/source
+tuple과 최신 backup/guard가 필요하다. 전체14/21(동일 가중치66.7%)·ETA 산정 불가·
+신뢰도 낮음이며 운영·전체 교차 앱 수용을 전제로 유지한다. `model-request-trace.md` 참고.
+
 2026-11-13 실제 Linux peer 처리 후속: Windows의 새 메시지를 공식 Linux daemon과
 native broker가 수신·저장한 뒤 명시 processing API로 Run1/attempt1을 생성했다.
 Linux 전용 SDK `8a7f7f2` 빌드·타입 검사·동결 release와717개 source 입력을

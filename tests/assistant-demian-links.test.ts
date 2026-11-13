@@ -127,7 +127,7 @@ function safe(view: AssistantExecutionView, linked: boolean) {
   assert.equal(view.native.roles[0]!.runtime.threadId, null); assert.equal(view.native.roles[0]!.runtime.turnId, null);
   assert.equal((view.native as AssistantExecutionMetadataV2).roles[0]!.runtime.demian, null);
   assert.doesNotMatch(JSON.stringify(view), /producer\.example|private-native|private-profile|synthetic-native-token/);
-  assert.equal(view.demianLinks?.links.length, linked ? 1 : 0);
+  assert.equal(view.demianLinks?.links.length, linked ? 1 : 0, `link state: ${view.demianLinks?.state ?? "missing"}`);
   if (!linked) for (const id of [runId, sessionId, workspaceId, operationId]) assert.ok(!JSON.stringify(view).includes(id));
 }
 async function denied(pending: Promise<unknown>, status: number) {

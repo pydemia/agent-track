@@ -17,6 +17,7 @@ export async function toolEvidence(
   user: string,
   key: string,
   refreshGrants: () => Promise<void>,
+  includeModels = false,
 ): Promise<ToolEvidence> {
   const authorized = () => {
     const current = config();
@@ -41,6 +42,7 @@ export async function toolEvidence(
     state, runKey: key, calls: [], scanned: 0, limit: 2000, targetSequence: run.highWater, throughSequence: "0",
     targetReached: false, gaps: false, truncated: false, omittedCalls: 0, unidentifiedEvents: 0, complete: false,
     observedAt: new Date().toISOString(), detail,
+    ...(includeModels ? { modelRequestCoverage: "native-model-lifecycle" as const, modelRequests: [], unidentifiedModelEvents: 0, omittedModelRequests: 0 } : {}),
   });
   if (source.kind !== "demian" || !source.baseUrl) {
     return empty("unsupported", "이 출처의 도구 실행 근거 조회는 지원하지 않습니다.");
@@ -56,7 +58,7 @@ export async function toolEvidence(
   try {
     const before = await client.observe(run.runId);
     if (before.runId !== run.runId || before.sessionId !== run.sessionId) throw new SourceError(403);
-    const page = await client.toolEvidence(run.runId, run.highWater);
+    const page = await client.toolEvidence(run.runId, run.highWater, includeModels);
     const confirmed = await client.observe(run.runId);
     if (confirmed.runId !== run.runId || confirmed.sessionId !== run.sessionId) throw new SourceError(403);
 

@@ -3,6 +3,18 @@
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
+2026-11-13 Trace 모델 요청 보완: 기존 모델 이벤트가 node로 보이지 않는 경계를
+모델 근거 opt-in·Run/호출 그룹·상세·기록 순서로 보완했다. 기존 URL과 이벤트
+digest는 유지하고, 종료를 성공으로 보거나 Run 토큰을 요청별로 나누지 않는다.
+실제 운영 원본17event·seq4와 로컬3node/2edge·그룹 상세, 실제 Linux archive의
+seq6/45·4233ms를 대조했다. 초기 전체 검사1개 실패는 원인 미확인으로 남기고,
+단독 재검사·최종975개/타입 검사·분리 build를 확인했다. 원격 CI·동결 배포·운영
+Entra GUI는 후속 단계다. [모델 요청 Trace 계약](model-request-trace.md) 참고.
+별도 소유자 조회는 운영 executor selector와 native binding/authority가 미구성임을
+확인했다. 다음 전체 업무 검증은 기존 token 탐색보다 현재 identity/source tuple,
+새 executor 계약, 최신 Work/runtime backup·schema/image guard 구성부터 진행한다.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+
 2026-11-13 실제 Linux 처리 후속: 새 Windows peer 메시지 → Linux native
 broker → 명시 processing API → Run/receipt1건 → Track의 동일 ID 관계·그룹을
 대조했다. Linux 동결 SDK/worker의 실제 모델1요청·49event·성공 Run과

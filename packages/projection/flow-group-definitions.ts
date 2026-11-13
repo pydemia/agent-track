@@ -69,8 +69,8 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
         node.sourceId === invocation.sourceId && node.runKey === invocation.runKey);
     if (new Set(parents.map(node => node.key)).size === 1) group.parentKey = flowGroupKey(missionUnitKind(parents[0]!), parents[0]!.key);
   }
-  for (const node of model.nodes.filter(node => ["tool", "permission"].includes(node.kind) && node.runKey)) {
-    const owners = model.edges.filter(edge => edge.to === node.key && ["tool-of", "native-tool", "permission"].includes(edge.kind))
+  for (const node of model.nodes.filter(node => ["tool", "permission", "model-request"].includes(node.kind) && node.runKey)) {
+    const owners = model.edges.filter(edge => edge.to === node.key && ["tool-of", "native-tool", "permission", "model-request"].includes(edge.kind))
       .map(edge => nodes.get(edge.from)).filter((owner): owner is MissionNode => !!owner && owner.kind === "invocation" &&
         owner.sourceId === node.sourceId && owner.runKey === node.runKey);
     if (new Set(owners.map(owner => owner.key)).size === 1) attachLeaf(node.key, groups.get(flowGroupKey(missionUnitKind(owners[0]!), owners[0]!.key))!);
