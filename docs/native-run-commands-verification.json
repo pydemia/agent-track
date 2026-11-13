@@ -146,7 +146,20 @@
       "skipReason": "Existing POSIX-only Windows cases",
       "exitCode": 0,
       "total": 1035,
-      "skipped": 9
+      "skipped": 9,
+      "sourceCommit": "3442f78b3fceb15263e974f8861ef40e9b425fb4"
+    },
+    "delegatedGate": {
+      "files": {
+        "deploy/demian/delegated-proxy.mjs": "9c5396dde18f38523bf594617ffba064418eedf741e99757e6fd2139c3ba08f8",
+        "tests/demian-delegated-proxy.test.ts": "61f41e5105b74965eb79470cb23683e2b1305a545dfc4c36eb7a86db482f3f55"
+      },
+      "focusedPassed": 14,
+      "stage": "source-only",
+      "failed": 0,
+      "typecheck": "passed",
+      "operatingDeploymentChanged": false,
+      "skipped": 0
     }
   }
 }

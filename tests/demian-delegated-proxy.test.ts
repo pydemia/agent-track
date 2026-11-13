@@ -95,7 +95,8 @@ test("forwards exact allowed targets and UTF8 wire bytes; isolates headers and s
   const f = await fixture();
   try {
     const paths = ["/api/v1/capabilities", "/api/v1/me", session, `${session}/requests/${uuid}`,
-      `${session}/requests/${encodeURIComponent("opaque:한글+key")}`, run, `${run}/artifacts/${uuid}/content`];
+      `${session}/requests/${encodeURIComponent("opaque:한글+key")}`, `${session}/commands/${uuid}`,
+      run, `${run}/command-context`, `${run}/artifacts/${uuid}/content`];
     for (const path of paths) {
       const response = await send(f.port, path, [...replace("Host", `${hostname}:443`), "Cookie", "browser=private", "Forwarded", "for=1", "X-Forwarded-User", "admin", "Proxy-Authorization", "Basic private", "Connection", "x-browser", "X-Browser", "private"]);
       assert.equal(response.status, 201);
@@ -114,7 +115,7 @@ test("forwards exact allowed targets and UTF8 wire bytes; isolates headers and s
       for (const key of ["cookie", "forwarded", "x-forwarded-user", "proxy-authorization", "x-browser"]) assert.equal(headers[key], undefined);
     }
     const body = Buffer.from('{ "message": "안녕 🌎", "order": [2, 1] }\n');
-    for (const path of [`${session}/runs`, `${run}/cancel`]) {
+    for (const path of [`${session}/runs`, `${run}/cancel`, `${run}/commands`]) {
       const response = await send(f.port, path, [...validHeaders, "Content-Type", "application/json; charset=utf-8", "Idempotency-Key", "opaque:Keep-THIS_123", "Content-Length", String(body.length)], "POST", body);
       assert.equal(response.status, 201);
       assert.deepEqual(f.seen.at(-1)!.body, body);
@@ -159,8 +160,13 @@ test("rejects weird paths, host variants, methods, GET bodies and oversized POST
   try {
     for (const path of ["/api/v1/me?", "/api/v1/me?x=1", "/api/v1/../v1/me", "/api//v1/me", "http://foreign.invalid/api/v1/me", "/unknown",
       `${session}/requests/.`, `${session}/requests/%2E%2E`, `${session}/requests/a%2Fb`, `${session}/requests/a%5Cb`, `${session}/requests/%00`,
-      `${session}/requests/%ZZ`, `${session}/requests/${"a".repeat(257)}`, `${session.toUpperCase()}`, `${run}/artifacts/no/content`]) {
+      `${session}/requests/%ZZ`, `${session}/requests/${"a".repeat(257)}`, `${session.toUpperCase()}`, `${run}/artifacts/no/content`,
+      `${session}/commands/no`, `${session}/commands/${uuid}?`, `${run}/command-context?extra=1`, `${run}/commands`]) {
       assert.equal((await send(f.port, path)).status, 403, path);
+    }
+    for (const [method,path] of [["POST",`${run}/command-context`],["POST",`${session}/commands/${uuid}`],
+      ["POST",`${run}/commands?extra=1`],["DELETE",`${run}/commands`]]) {
+      assert.equal((await send(f.port,path!,validHeaders,method!)).status,403,path);
     }
     for (const headers of [replace("Host", "foreign.invalid"), replace("Host", `${hostname}:80`), replace("Host", `${hostname}.`), replace("Host", hostname.toUpperCase()), replace("Host", hostname, hostname)]) {
       assert.equal((await send(f.port, "/api/v1/me", headers)).status, 403);

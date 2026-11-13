@@ -33,6 +33,11 @@ receipt만 받는다. durable409 거절과 `not_found`를 구분하고 응답 �
 재접수하지 않는다. 이 메서드는 아직 사용자 제어 route나 버튼에 연결하지 않았다.
 권한 stamp는 브라우저 receipt로 내보낼 데이터가 아니다.
 
+공개 signed transport gate의 소스 allowlist에도 이 세 경로를 추가했다. 기존 bearer와
+서명 요구, 정확한 method/path·본문 바이트·header 격리·기한은 유지한다. 잘못된
+UUID·method·query는 upstream 전에 거절한다. 관련14개 검사와 타입 검사를 통과했다.
+운영 중인 gate는 교체하지 않았으며 새 사용자 권한이나 reader 제어 권한을 만들지 않았다.
+
 실제 PostgreSQL17.11 격리 검사에서는 DB 동시성·복구와 일반/보호 HTTP·prepared
 worker 사례72개가 통과하고, 선택 Assistant 환경2개는 건너뛰었다. 이후 독립 리뷰의
 개인/배포 권한 혼동을 새 사례로 재현해 수정했고 일반 HTTP 전체6개가 통과했다.
