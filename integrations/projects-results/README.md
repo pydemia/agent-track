@@ -1,7 +1,8 @@
 # Projects의 실행 결과·Note 참조 연결
 
 Assistant의 실제 업무 실행은 Note 게시 전에 Projects 결과를 연결하고, 게시 후
-같은 결과에 Note 참조를 추가한다. 운영 서비스는 이 계약을 지원하지 않는다.
+같은 결과에 Note 참조를 추가한다. 2026-11-13 운영 앱을 후보 이미지 `7d571b20`으로
+전환했고, 기존 Assistant 서명 클라이언트에서 두 확장 기능의 지원을 확인했다.
 기존 `projects-before-note` 후보를 재사용하되 현재 운영 의존관계 API를 보존하고,
 반복 결과 게시 때 이전 Note 참조가 사라지는 문제를 수정한 변경이다.
 
@@ -19,7 +20,7 @@ metadata다. Note의 본문·권한을 Projects가 검증했다는 뜻이 아니
 
 ## 고정된 입력으로 패키징
 
-[provenance.json](provenance.json)은 운영 이미지와 원본4모듈, 보존할 의존관계
+[provenance.json](provenance.json)은 배포 전 원본 이미지와 원본4모듈, 보존할 의존관계
 모듈의 hash를 고정한다. 변경4모듈만 배포 payload에 포함한다. 원본은 Docker
 GET archive로 읽었으며 공유 Projects 작업 트리를 수정하지 않았다.
 
@@ -29,7 +30,8 @@ python scripts/package-projects-results.py --variant compatibility --output .run
 ```
 
 기본 baseline은 전용 QA 작업 폴더의 `operating-modules`다. 새 작업 환경에서는
-동일한 운영 이미지의 다섯 모듈을 별도 폴더로 읽고 `--baseline`으로 전달한다.
+`baseImage`에 고정한 배포 전 이미지의 다섯 모듈을 별도 폴더로 읽고 `--baseline`으로
+전달한다. 현재 배포된 이미지의 모듈로 이전 baseline을 대체하지 않는다.
 hash 불일치·기존 output·적용 결과 불일치는 거부한다. 패키징은 서비스 전환이 아니다.
 Patch는 zero-context 형식이며 적용 전4모듈 전체 hash와 적용 후 전체 hash를
 대조한다. 기존 운영 의존관계 모듈도 별도로 고정한다.
@@ -41,6 +43,10 @@ Patch는 zero-context 형식이며 적용 전4모듈 전체 hash와 적용 후 �
 새 metadata와 영수증을 읽는 복귀용 변경이다. 과거 DB·credential·authority를
 복원하거나, 새 결과 생성 후 원래 binary로 곧바로 복귀하지 않는다.
 
-두 패키지 모두 전체 운영 이미지의 cold start·현재 설정/backup·전환과 원격
-프로세스 검증은 별도다. 운영 적용이나 실제 교차 앱 업무 수용을 완료한 산출물이
-아니다. [현재 검사와 한계](../../docs/projects-results-verification.json)를 따른다.
+현재 운영은 기존 다섯 설정 layer와 새 앱 이미지를 합친 private canonical replay를
+사용한다. 앱만 교체했으며 다른 세 역할·인증 규칙·환경·마운트·네트워크와 DB
+스키마/34테이블 데이터 지문을 보존했다. 최신 백업의 격리 복원과 두 이미지의 실제
+ASGI/서명 HTTP·새 영수증 읽기를 확인했고, 작업 잠금과 QA 자원을 정리했다.
+인증 GUI·실제 WorkCoordinator/Note/Demian/desktop 종단 업무는 별도 미완료다.
+완료된 전환을 재실행하거나 과거 다섯 파일의 이미지 값으로 현재 앱을 덮어쓰지 않는다.
+[현재 검사와 한계](../../docs/projects-results-verification.json)를 따른다.

@@ -8,16 +8,21 @@ AT-18 보류 판정을 정정했으며 전체 업무는 미검증이다. 현재 
 임계 경로다. 원본 웹 인증 이동·문맥 요약 GUI, 그룹 운영 GUI, 다중 장치 대시보드
 검사는 각각의 요구로 추적한다.
 
-현재 실행 연동의 첫 의존성은 Projects 원본의 계약 전환이다. signed GET200이나
-기존 쓰기 capability만으로 새 실행을 시작하지 않는다. 현재 두 확장 기능은
-미지원이며 별도 구현/회귀 수정과 후보·metadata 호환 복귀 이미지를 준비했다.
-패키지는 [Projects 결과 연결](../integrations/projects-results/README.md),
-실행 증거는 [검사 기록](projects-results-verification.json)을 따른다.
-다음은 현재 인증 override를 포함한 resolved 설정·최신 backup/restore·원본
-진행 업무/이미지 guard → 두 이미지의 실제 앱/DB 준비 → 한 서비스만 전환과
-서명 원본 검증 → 기존 QA 업무의 WorkCoordinator 실행이다. 후보의 모듈 import를
-전체 앱 준비나 운영 반영으로 세지 않는다. 새로운 Task JSON이 저장된 뒤에는
-구 binary로 단순 복귀하지 않고 metadata 호환 복귀본을 사용한다.
+Projects 원본 계약의 운영 전환을 완료했다. 다섯 기존 설정 layer를 포함한
+private canonical replay에서 앱 이미지만 교체했고, 다른 역할·인증·DB 보존과
+기존 Assistant 서명 클라이언트의 실제 지원을 확인했다. Source 지원 flag를
+위장하거나 소비자의 assert를 해제하지 않았다.
+[배포와 복귀 계약](../integrations/projects-results/README.md),
+[현재 운영 증거](projects-results-verification.json)를 따른다.
+
+다음 임계 작업은 현재 Assistant/native 실행 authority·source tuple과 protected
+Run의 metadata 조회 계약을 연결한 뒤, 실제 QA 업무 한 건을 WorkCoordinator →
+Projects 결과 선연결 → Note 게시/참조 → Demian 원본/Track 검토로 통과시키는 것이다.
+Desktop 접속과 현재 인증 GUI·다중 장치 대시보드는 각 수용 요구에서 추적한다.
+새 실행을 보내기 전에 현재 역할/목적지/action ACL과 durable intent를 확인하며
+유실된 응답을 새 operation으로 재전송하지 않는다. 완료한 Projects 전환을 다시
+실행하지 않는다. 이후 복귀에도 최신 DB·credential·authority와 metadata 호환을
+유지한다.
 
 ## 시점별 개발 기록
 

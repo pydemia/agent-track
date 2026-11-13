@@ -9,12 +9,14 @@
 연결·WorkCoordinator/Projects 결과·desktop/Track 전체 실기가 주요 전제다.
 [감사 근거와 한계](progress-audit-2026-11-13.md)를 따른다.
 
-실행 연동 후속: 실제 Projects signed GET200에서 필수 두 capability 미지원임을
-확인했다. 기존 후보를 현재 운영에 맞춰 의존관계 API와 Note 참조 이력을 보존한
-별도 변경으로 고정했다. PostgreSQL 관련33개·복귀/업그레이드2개·게시 이력3개
-검사와 타입 검사를 통과했다(중복 실행 포함, 개수를 합산하지 않음). 후보/복귀
-이미지의 network-none import·5파일 일치를 확인했으나 운영 전환과 실제 업무는
-미검증이다. [계약·이미지·한계](projects-results-verification.json)를 따른다.
+실행 연동 후속: Projects 운영 앱을 검증한 후보 이미지 `7d571b20`으로 전환했다.
+기존 다섯 설정 layer·인증 규칙·환경·마운트·네트워크·다른 세 역할을 보존했고,
+DB 스키마와34테이블의 전환 전후 데이터 지문도 일치했다. 최신 백업의 격리 복원,
+두 실제 앱의 서명 HTTP·metadata 호환 복귀, 현재 Assistant 서명 클라이언트의
+새 계약 지원200/위조401·Track7프로젝트/기존 의존관계1건200을 확인했다.
+QA 자원·작업 잠금은 정리했다. 이 전환에서 운영 Task/Note/Run·모델 실행은0이며,
+전체 WorkCoordinator/desktop 업무 수용으로 세지 않는다.
+[운영·실기·한계](projects-results-verification.json)를 따른다.
 
 완료: AT-01/02/03/04/05/07/08/10/11/13/16/17/18/19/21.
 부분: AT-06/09/12/14/15/20. 분모와 가중치는 변경하지 않았다.
@@ -24,7 +26,7 @@
 | AT-06 앱 간 이동 | 원본 웹 교체·Session URL/미지원 안내 | 허용 인증으로 동일 Session/Task 선택 이동 |
 | AT-09 실행 제어 | 실제 취소·receipt/중복 방어 | 원본 재개/재시도 계약·실행 지원 |
 | AT-12 그룹 탐색 | 실제 child/병렬 합류/peer·네 보기 범위·저장/복원·운영 배포 | 최신 운영 인증 GUI의 공통 범위·저장 복원, peer 대표선 마우스/pixel |
-| AT-14 전체 업무 | 실제 gateway→native Run·응답/receipt, Projects 선연결 계약/이력 보존과 후보·복귀 이미지 | 현재 Projects 운영 계약 전환·실행/metadata 인가·WorkCoordinator/Projects 결과·desktop→Track |
+| AT-14 전체 업무 | 실제 gateway→native Run·응답/receipt, Projects 결과 선연결 계약의 운영 전환·서명 원본/Track 소비자 검증 | Assistant/native 실행·metadata 인가 연결 → 실제 WorkCoordinator/Projects/Note 업무 → desktop/Track 검토 |
 | AT-15 전체 대시보드 | 여러 프로젝트·실제 두 호스트 처리 | 같은 대시보드 다중 장치 동시 조회·필터 해제/선택 보존 |
 | AT-20 문맥 요약 | Projects 운영, Demian 분리 실기·원본 웹 HTTP 반영 | 원본 인증 GUI·동일 선택·공개 웹 장애 격리 |
 

@@ -52,6 +52,8 @@
     "assistant_note_reference_history"
   ],
   "originalWorktreesModified": false,
-  "productionDeployed": false,
-  "rollback": "Use the compatibility variant to read new Task JSON and note_reference receipts. Do not restore an old database, credential, authority or an unadapted old binary after accepting new results."
+  "productionDeployed": true,
+  "rollback": "Use the compatibility variant to read new Task JSON and note_reference receipts. Do not restore an old database, credential, authority or an unadapted old binary after accepting new results.",
+  "operatingImage": "sha256:7d571b2064f9f0e61b9e4f585dd236f3c8b8c8a209eec7f0423845378b5449ab",
+  "deploymentEvidence": "../../docs/projects-results-verification.json"
 }

@@ -4,20 +4,22 @@
     "AT-14",
     "AT-19"
   ],
-  "scope": "Actual operating signed capabilities/source readback; pinned native contract patch, real isolated PostgreSQL HTTP tests, independently reviewed repeated-publication correction, packaged candidate and compatibility images with network-none Python import/source verification. No production cutover or whole cross-app work acceptance.",
+  "scope": "Projects result-before-Note contract deployed to the actual operating app after a fresh original PostgreSQL snapshot/restore, complete candidate and compatibility ASGI/signed HTTP checks, reviewed guarded app-only image replacement, existing Assistant signed client and Track dependency consumer readback. Whole native WorkCoordinator/desktop acceptance remains incomplete.",
   "operating": {
-    "id": "bea7bc49f55c971053c94e1875dbee7e6c953db67a06234e7f5154ca4c7a5c18",
-    "image": "sha256:0ad5d8008795b5b7b20377bb67dd14d2eff6794581bc5f579b3d114a52487045",
-    "pidUnchanged": true,
+    "id": "67f65d8a5805132893a07ce7cbd5a39752d8ef13cb995d7db1421e7ca76775a1",
+    "image": "sha256:7d571b2064f9f0e61b9e4f585dd236f3c8b8c8a209eec7f0423845378b5449ab",
+    "pid": 3811674,
+    "startedAt": "2026-11-13T10:11:19.605992993Z",
+    "deployed": true,
     "signedCapabilities": {
-      "observedAtUtc": "2026-11-13T08:39:42.126Z",
+      "observedAtUtc": "2026-11-13T10:13:39.695Z",
       "signedStatus": 200,
       "invalidStatus": 401,
-      "resultsBeforeNoteSupported": false,
-      "resultNoteReferencesSupported": false,
+      "resultsBeforeNoteSupported": true,
+      "resultNoteReferencesSupported": true,
       "noteReadWrite": true
     },
-    "deployed": false
+    "originalAssistantSigningContainerPidUnchanged": true
   },
   "source": {
     "baseFiles": {
@@ -136,7 +138,128 @@
       "requestedEffort": "low",
       "actualProviderExecutionNotObserved": true
     },
-    "packagingFollowUp": "Published patches use zero context with all four exact baseline/payload hashes pinned; both variants applied and matched again. Repacked archives have different tar/gzip timestamps but identical source hashes; the original built image payloads remain retained."
+    "packagingFollowUp": "Published patches use zero context with all four exact baseline/payload hashes pinned; both variants applied and matched again. Repacked archives have different tar/gzip timestamps but identical source hashes; the original built image payloads remain retained.",
+    "fullAppImages": {
+      "exitCode": 0,
+      "operationId": "6e7f8ce2-5a4a-4069-b4a5-7f8a41b442cf",
+      "productionServiceChanges": 0,
+      "phase": "verified",
+      "candidate": {
+        "variant": "candidate",
+        "capabilityFlags": true,
+        "invalidAuthentication": 401,
+        "dependencyRead": 200,
+        "idempotentResultAndNote": true,
+        "publicationHistoryPreserved": true,
+        "oldReceiptsPreserved": true,
+        "taskState": "in_review",
+        "faviconsMatched": 4,
+        "qaFakeExecutionReferences": true,
+        "realWorkOrModelRun": false
+      },
+      "compatibility": {
+        "variant": "compatibility",
+        "newMutationCapabilitiesUnavailable": true,
+        "newNoteReceiptRead": 200,
+        "taskJsonRead": 200,
+        "dependencyRead": 200,
+        "noAdditionalMutations": true
+      },
+      "backupSha256": "ec8b639d6a78d91f813358208e1ad8fd66c4563046bd3a009c4fdf7a5cee7e7a",
+      "backupBytes": 201791,
+      "restoredTableCount": 34,
+      "schemaReparseChecks": 7,
+      "restoreDigestsMatched": true,
+      "ownedQaRemoved": [
+        "app",
+        "database"
+      ],
+      "originalRolesPreserved": true
+    },
+    "existingSignedOperatingClient": {
+      "at": "2026-11-13T10:13:39.695Z",
+      "probeExit": 0,
+      "checks": [
+        {
+          "audience": "note",
+          "invalidStatus": 401,
+          "signedStatus": 200,
+          "compatible": true,
+          "flags": {
+            "read": true,
+            "write": true
+          }
+        },
+        {
+          "audience": "projects",
+          "invalidStatus": 401,
+          "signedStatus": 200,
+          "compatible": true,
+          "flags": {
+            "projectsRead": true,
+            "tasksRead": true,
+            "tasksCreate": true,
+            "tasksUpdate": true,
+            "resultsAttach": true,
+            "idempotency": true,
+            "cas": true,
+            "resultsBeforeNote": true,
+            "resultNoteReferences": true
+          }
+        }
+      ],
+      "originalSigningContainerPidUnchanged": true,
+      "providerResourceWrites": 0
+    },
+    "trackConsumer": {
+      "at": "2026-11-13T10:16:30.629Z",
+      "scope": "Existing owner-bound loopback operator hop for read-only Track Projects consumer; anonymous external routes separately checked. No new browser login, grant, Task or model.",
+      "sourceId": "projects-native",
+      "projectCount": 7,
+      "sourceState": "connected",
+      "dependencyStatus": 200,
+      "dependencySupported": true,
+      "dependencyCount": 1,
+      "anonymousSnapshot": 401,
+      "publicRoots": [
+        {
+          "origin": "https://trail.pydemia.ai",
+          "status": 302
+        },
+        {
+          "origin": "https://track.pydemia.ai",
+          "status": 302
+        }
+      ],
+      "resourceWrites": 0,
+      "trailPublicAuthenticationRedirectPreserved": true
+    },
+    "operatorGuards": {
+      "passed": true,
+      "cases": [
+        "foreign-lock-0-preserved",
+        "foreign-lock-1-preserved",
+        "foreign-lock-2-preserved",
+        "foreign-lock-3-preserved",
+        "foreign-lock-4-preserved",
+        "exclusive-all-five-and-owned-release",
+        "transient-observation-does-not-imply-new-up",
+        "verified-success-cleanup-failure-never-replaces-app"
+      ],
+      "actualServiceChanges": 0,
+      "actualProductionLockChanges": 0
+    },
+    "operatorReview": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "actualProviderExecutionNotObserved": true,
+      "findingsFixed": [
+        "Acquire aggregate and all four legacy Auth locks before state preparation; release only exact inode/operation-owned locks",
+        "Do not replace an app on transient Docker/HTTP/readiness observation timeout; retain lease for observation",
+        "Mark verified completion before result persistence/lock release so bookkeeping failure cannot trigger another up"
+      ],
+      "finalStaticReview": "No additional blocking finding in the revised completion/cleanup path; worker did not run services or tests"
+    }
   },
   "images": [
     {
@@ -192,6 +315,18 @@
     {
       "stage": "Local QA launcher",
       "result": "JavaScript interpolation and Windows SID ACL syntax failed before database container creation; corrected; no service/model dispatch"
+    },
+    {
+      "stage": "Full app restore QA",
+      "result": "Temporary PostgreSQL initialization socket readiness raced the final server; changed readiness to TCP. Subsequent strict schema text hash differed while all34 table rows matched; actual metadata diff was seven CHECK array-cast deparse differences. Verified original constraints through isolated PostgreSQL reparse."
+    },
+    {
+      "stage": "Full image compatibility QA harness",
+      "result": "Missing Python copy import failed after successful candidate requests and before fallback app creation; owned QA resources were removed, fresh snapshot taken after concurrent source-data change, complete two-image scenario rerun successfully."
+    },
+    {
+      "stage": "Operator witness collector",
+      "result": "Existing local output filename collided after actual remote preflight succeeded; recovered the server preflight record and rechecked live roles rather than replaying apply."
     }
   ],
   "cleanup": {
@@ -200,16 +335,20 @@
     "sourceArchivesAndPrivateReceiptsRetained": true,
     "remoteColdContainersAutoRemoved": true,
     "remoteCandidateImagesRetained": true,
-    "productionServiceChanges": 0,
+    "productionServiceChanges": 1,
     "productionTasksRunsNotesCreated": 0,
-    "newModelRequests": 0
+    "newModelRequests": 0,
+    "originalOtherThreeRolesPreserved": true,
+    "allFiveOperationLocksAbsent": true,
+    "unusedServerQaCredentialFilesRemoved": 8
   },
   "limits": [
-    "Current production still lacks both capability flags; no assert bypass or fake supported flag",
-    "Current auth/runtime comprises five compose layers and role-specific generated configs; Root read-only18:13KST identity/source-path evidence found migration0018. Privately pin current resolved config, fresh backup/restore and task/image guard before Projects replacement; old Root0012→0013/Auth receivers or expired backup are not reusable unchanged.",
-    "Full operating ASGI readiness, current auth overrides, signed live mutation and rollback using new-data-aware reader remain unverified",
-    "Actual WorkExecutionCoordinator through Projects/Note/native execution, protected metadata authorization and desktop/Track review remain incomplete",
-    "Current tests do not prove every native ACL race, multi-user rollout or whole image backward compatibility"
+    "This completes the Projects operating prerequisite, not actual native WorkExecutionCoordinator/Note/desktop end-to-end work acceptance. No production Task/Note/Run or model execution was created by this rollout.",
+    "Model/native execution references used in restored-image HTTP QA were explicit synthetic references in an isolated database; they are not counted as actual runtime work.",
+    "Operating Assistant still needs its executor/source promotion and current authority tuple; protected native Run metadata requires an authorized observation contract.",
+    "Fresh authenticated browser GUI was not repeated. Four favicon responses matched bytes in the full restored app; operating frontend is inherited unchanged from the original image. Existing user consent was not broadened.",
+    "Compatibility fallback was verified on the actual restored app/database with new receipts; an actual production rollback was not performed. Preserve latest DB/credentials/authority and use the data-aware fallback, not the original old image.",
+    "Future service changes must use the new current private canonical runtime and a fresh backup/guard; this completed operation must not be replayed."
   ],
   "overallGoal": {
     "completed": 15,
@@ -219,5 +358,69 @@
     "eta": "Not estimable",
     "confidence": "Low",
     "premise": "Operating execution authority/metadata and full cross-app/desktop scenario remain"
+  },
+  "initialOperating": {
+    "id": "bea7bc49f55c971053c94e1875dbee7e6c953db67a06234e7f5154ca4c7a5c18",
+    "image": "sha256:0ad5d8008795b5b7b20377bb67dd14d2eff6794581bc5f579b3d114a52487045",
+    "pidUnchanged": true,
+    "signedCapabilities": {
+      "observedAtUtc": "2026-11-13T08:39:42.126Z",
+      "signedStatus": 200,
+      "invalidStatus": 401,
+      "resultsBeforeNoteSupported": false,
+      "resultNoteReferencesSupported": false,
+      "noteReadWrite": true
+    },
+    "deployed": false
+  },
+  "deployment": {
+    "exitCode": 0,
+    "operationId": "6e7f8ce2-5a4a-4069-b4a5-7f8a41b442cf",
+    "phase": "committed",
+    "appId": "67f65d8a5805132893a07ce7cbd5a39752d8ef13cb995d7db1421e7ca76775a1",
+    "appImage": "sha256:7d571b2064f9f0e61b9e4f585dd236f3c8b8c8a209eec7f0423845378b5449ab",
+    "appPid": 3811674,
+    "appStartedAt": "2026-11-13T10:11:19.605992993Z",
+    "onlyAppReplaced": true,
+    "sameRuntimeProperties": true,
+    "otherRolesPreserved": true,
+    "parentAndBindPinsPreserved": true,
+    "authHeaderGuardPreserved": true,
+    "databaseSchemaUnchanged": true,
+    "databaseRowFingerprintsEqual": true,
+    "tablesChangedDuringWindow": [],
+    "backupSha256": "ec8b639d6a78d91f813358208e1ad8fd66c4563046bd3a009c4fdf7a5cee7e7a",
+    "originProbes": {
+      "/health": 200,
+      "/api/auth/options": 200,
+      "/api/projects": 401
+    },
+    "newWorkOrModelDispatch": false,
+    "leaseCleared": true,
+    "postcheck": {
+      "at": "2026-11-13T10:22:51.137053+00:00",
+      "appId": "67f65d8a5805132893a07ce7cbd5a39752d8ef13cb995d7db1421e7ca76775a1",
+      "appPid": 3811674,
+      "appImage": "sha256:7d571b2064f9f0e61b9e4f585dd236f3c8b8c8a209eec7f0423845378b5449ab",
+      "runtimePropertiesPreserved": true,
+      "otherThreeRolesPreserved": true,
+      "allFiveOperationLocksAbsent": true,
+      "noOwnedQaContainersOrNetwork": true,
+      "unusedQaCredentialFilesRemoved": 8,
+      "operatorSourceSha256": "cb2d289e763dfe59f2a53eda38238965e274bce8ae716bbb8eaf51002503bbb3",
+      "canonicalRuntimeFile": "/home/pydemia/.local/share/projects-releases/20261112-agent-track-dependencies-33dfdfe3c12a0ffb/agent-track-results-6e7f8ce2-5a4a-4069-b4a5-7f8a41b442cf/candidate.replay.json"
+    },
+    "backup": {
+      "bytes": 201791,
+      "sha256": "ec8b639d6a78d91f813358208e1ad8fd66c4563046bd3a009c4fdf7a5cee7e7a",
+      "source": "Read-only exported PostgreSQL snapshot of current0018 production database",
+      "restore": "Separate owned internal-network tmpfs PostgreSQL using the same DB image",
+      "tables": 34,
+      "rowDigests": "All source-snapshot tables matched after restore; count plus ordered row_to_json MD5 per table",
+      "schema": "259 columns,75 indexes,128 constraints; seven CHECK cast-expression text differences verified by reparsing original constraints on isolated temporary tables. Original database DDL unchanged.",
+      "productionDatabaseRestored": false
+    },
+    "canonicalRuntime": "One private resolved replay file includes all five previous layers plus only the new app image. Dollar escaping is round-trip checked before up; do not replay old five-layer image constants.",
+    "artifactRepositoryRevision": "efbfa68c4a78f44cad67956f16fb4c3c5a9ce061"
   }
 }
