@@ -7,7 +7,7 @@ $hasher = [System.Security.Cryptography.SHA256]::Create()
 try { $actual = [BitConverter]::ToString($hasher.ComputeHash([System.IO.File]::ReadAllBytes($InputFile))).Replace('-','').ToLowerInvariant() } finally { $hasher.Dispose() }
 if ($actual -cne $InputSha256) { throw 'Track operation input changed.' }
 $plan = Get-Content -LiteralPath $InputFile -Raw | ConvertFrom-Json
-if ($plan.version -ne 1 -or $plan.scope -ne 'track-product-14345' -or $plan.operationId -cnotmatch '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') { throw 'Invalid Track operation scope.' }
+if ($plan.version -notin @(1,2) -or $plan.scope -ne 'track-product-14345' -or $plan.operationId -cnotmatch '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$') { throw 'Invalid Track operation scope.' }
 $operationDir = Join-Path (Join-Path $stateDir 'operations') $plan.operationId
 if ([System.IO.Path]::GetFullPath($plan.operationDir) -ne [System.IO.Path]::GetFullPath($operationDir)) { throw 'Track operation directory mismatch.' }
 $node = (Get-Command node.exe).Source
@@ -17,6 +17,14 @@ function Invoke-Phase([string]$phase) {
     if ($LASTEXITCODE -ne 0) { throw ('Track phase failed: ' + $phase) }
     $null = $output | ConvertFrom-Json
     Write-Host ('Track phase completed: ' + $phase)
+}
+function Invoke-ProductStart([string]$phase) {
+    # Keep the checked config readable but deny replacement/writes until startup returns.
+    $configGuard = [System.IO.File]::Open((Join-Path $stateDir 'track-product.config.json'), [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::Read)
+    try {
+        Invoke-Phase $phase
+        & (Join-Path $repoRoot 'scripts/Start-Track.ps1') -ProductOnly | Out-Null
+    } finally { $configGuard.Dispose() }
 }
 Push-Location -LiteralPath $repoRoot
 try {
@@ -36,7 +44,7 @@ try {
             $stopAttempted = $true
             Invoke-Phase 'stop'
             Invoke-Phase 'candidate'
-            & (Join-Path $repoRoot 'scripts/Start-Track.ps1') -ProductOnly | Out-Null
+            Invoke-ProductStart 'candidate-start'
             Invoke-Phase 'verify'
             Invoke-Phase 'restore-config'
             Invoke-Phase 'finalize'
@@ -55,7 +63,7 @@ try {
             if ($stopAttempted) {
                 try {
                     Invoke-Phase 'rollback'
-                    & (Join-Path $repoRoot 'scripts/Start-Track.ps1') -ProductOnly | Out-Null
+                    Invoke-ProductStart 'rollback-start'
                     Invoke-Phase 'rollback-ready'
                 } catch { $recoveryFailed = $true }
             }

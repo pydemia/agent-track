@@ -28,14 +28,45 @@ export const trackRuntimeOperationSources = Object.freeze([
 ]);
 export function validateTrackRuntimePlan(value, {state: expectedState, repository: expectedRepository}) {
   assert(value && Object.keys(value).sort().join() === ['version','operationId','scope','state','repository','operationDir','baselineFile','baselineSha256','releasesFile','releasesSha256','qaFile','qaSha256','sources'].sort().join());
-  assert(value && value.version === 1 && uuid(value.operationId) && value.scope === 'track-product-14345');
+  assert(value && [1, 2].includes(value.version) && uuid(value.operationId) && value.scope === 'track-product-14345');
   assert(samePath(value.state, expectedState) && samePath(value.repository, expectedRepository));
   const operation = join(expectedState, 'operations', value.operationId);
   assert(samePath(value.operationDir, operation) && samePath(value.baselineFile, join(operation, 'baseline.json')) && sha(value.baselineSha256));
-  assert(samePath(value.releasesFile, join(expectedRepository, '.runtime/source-availability/track-frozen-runtimes.json')) && sha(value.releasesSha256));
-  assert(samePath(value.qaFile, join(expectedRepository, '.runtime/source-availability/track-runtime-cold-qa.json')) && sha(value.qaSha256));
+  assert(samePath(value.releasesFile, value.version === 2 ? join(operation, 'releases.json') : join(expectedRepository, '.runtime/source-availability/track-frozen-runtimes.json')) && sha(value.releasesSha256));
+  assert(samePath(value.qaFile, value.version === 2 ? join(operation, 'cold-qa.json') : join(expectedRepository, '.runtime/source-availability/track-runtime-cold-qa.json')) && sha(value.qaSha256));
   assert(value.sources && Object.keys(value.sources).sort().join() === [...trackRuntimeOperationSources].sort().join() && Object.values(value.sources).every(sha));
   return value;
+}
+export function trackRuntimePointerPrecondition(baseline) {
+  assert([1, 2].includes(baseline.version));
+  if (baseline.version === 1) { assert(!Object.hasOwn(baseline, 'pointerBeforeSha256')); return null; }
+  assert(sha(baseline.pointerBeforeSha256)); return baseline.pointerBeforeSha256;
+}
+export function validateTrackUpgradeBaseline(baseline, pointerBytes, receiptBytes, rollback) {
+  assert(baseline.version === 2 && sha(baseline.pointerBeforeSha256) && sha(baseline.receiptBeforeSha256));
+  assert.equal(hash(pointerBytes), baseline.pointerBeforeSha256); assert.equal(hash(receiptBytes), baseline.receiptBeforeSha256);
+  const before = JSON.parse(pointerBytes.toString('utf8')), receipt = JSON.parse(receiptBytes.toString('utf8'));
+  assert.deepEqual(Object.keys(before).sort(), ['manifestSha256', 'releaseDir', 'version']);
+  assert(before.version === 1 && samePath(before.releaseDir, rollback.releaseDir) && sha(before.manifestSha256) && before.manifestSha256 === rollback.manifestSha256);
+  assert(receipt.runtime.mode === 'frozen' && samePath(receipt.runtime.cwd, rollback.releaseDir) &&
+    samePath(receipt.runtime.entry, join(rollback.releaseDir, 'apps/api/main.ts')) && receipt.runtime.manifestSha256 === rollback.manifestSha256);
+  // Current frozen receipts pin the closed manifest rather than repeating its revisions.
+  for (const key of ['apiRevision', 'webRevision']) {
+    if (Object.hasOwn(receipt.runtime, key)) assert.equal(receipt.runtime[key], rollback[key]);
+    if (Object.hasOwn(receipt, key)) assert.equal(receipt[key], rollback[key]);
+  }
+  assert.deepEqual(Object.fromEntries(['pid', 'name', 'executable', 'created', 'command'].map(key => [key, receipt[key]])), baseline.roles.track);
+  return true;
+}
+export function assertTrackColdProof(qa, name, version, webFileCount, expectedManifestSha256) {
+  assert([1, 2].includes(version) && ['candidate', 'rollback'].includes(name));
+  assert(Number.isSafeInteger(webFileCount) && webFileCount > 0 && webFileCount <= 20000);
+  assert(qa.fixtureOnly === true && qa.sourceDatabaseRestored === false && qa.originalApiRestarted === false && qa.sourceOrModelRequests === 0);
+  const q = qa.releases[name];
+  assert(q.verified === true && q.childStopped === true && q.portReleased === true && q.allLegacyTablesAndSchemaPreserved === true && q.webFilesBytesAndMimeMatched === webFileCount);
+  assert.equal(q.savedViewStatus, version === 2 || name === 'candidate' ? 200 : 404);
+  if (version === 2) assert(sha(expectedManifestSha256) && q.manifestSha256 === expectedManifestSha256);
+  return true;
 }
 async function bytes(path, limit = 4 * 1024 * 1024) {
   const stat = await lstat(path); assert(stat.isFile() && !stat.isSymbolicLink() && stat.nlink === 1 && stat.size <= limit);
@@ -58,15 +89,15 @@ export function trackPendingCommands(database) {
   } finally { db.close(); }
 }
 const pending = trackPendingCommands;
-async function inputs(inputFile, inputSha) {
+async function inputs(inputFile, inputSha, recovery = false) {
   assert(sha(inputSha)); const raw = await bytes(inputFile); assert.equal(hash(raw), inputSha);
   const p = validateTrackRuntimePlan(JSON.parse(raw.toString('utf8')), {state, repository});
   assert(samePath(await realpath(state), state) && samePath(await realpath(p.operationDir), p.operationDir));
-  assert.equal((await bytes(join(p.operationDir, 'purpose'))).toString(), 'agent-track-frozen-runtime-operation-v1\n');
+  assert.equal((await bytes(join(p.operationDir, 'purpose'))).toString(), `agent-track-frozen-runtime-operation-v${p.version}\n`);
   for (const [path, expected] of Object.entries(p.sources)) assert.equal(await digest(join(repository, path)), expected);
   for (const [file, expected] of [[p.baselineFile, p.baselineSha256], [p.releasesFile, p.releasesSha256], [p.qaFile, p.qaSha256]]) assert.equal(await digest(file), expected);
   const baseline = await load(p.baselineFile), releases = await load(p.releasesFile), qa = await load(p.qaFile);
-  assert(baseline.version === 1 && baseline.operationId === p.operationId && samePath(baseline.operationDir, p.operationDir) && samePath(baseline.state, state) && samePath(baseline.repository, repository));
+  assert(baseline.version === p.version && baseline.operationId === p.operationId && samePath(baseline.operationDir, p.operationDir) && samePath(baseline.state, state) && samePath(baseline.repository, repository));
   assert(samePath(baseline.configFile, join(state, 'track-product.config.json')) && samePath(baseline.pointerFile, join(state, 'track-runtime.json')) && samePath(baseline.receiptFile, join(state, 'track-product-process.json')));
   assert(samePath(baseline.backup.file, join(p.operationDir, 'backup.sqlite')) && sha(baseline.backup.sha256));
   assert.equal(await digest(join(p.operationDir, 'config.before.json')), baseline.configBeforeSha256);
@@ -76,11 +107,16 @@ async function inputs(inputFile, inputSha) {
   const expected = structuredClone(original);
   for (const source of expected.sources) for (const key of ['cancelUsers', 'approvalUsers', 'assignmentUsers', 'taskCreateUsers']) if (Object.hasOwn(source, key)) source[key] = [];
   assert.deepEqual(maintenance, expected);
-  assert(qa.fixtureOnly && !qa.sourceDatabaseRestored && !qa.originalApiRestarted && qa.sourceOrModelRequests === 0);
+  if (p.version === 2) {
+    assert(releases.operationId === p.operationId && qa.operationId === p.operationId && qa.backupSha256 === baseline.backup.sha256);
+    validateTrackUpgradeBaseline(baseline, await bytes(join(p.operationDir, 'pointer.before.json')), await bytes(join(p.operationDir, 'receipt.before.json')), releases.releases.rollback);
+  }
   for (const name of ['candidate', 'rollback']) {
-    const r = releases.releases[name], q = qa.releases[name];
+    const r = releases.releases[name];
     assert(samePath(dirname(r.releaseDir), join(state, 'releases')) && sha(r.manifestSha256));
-    assert(q.verified && q.childStopped && q.portReleased && q.allLegacyTablesAndSchemaPreserved && q.webFilesBytesAndMimeMatched === 18 && q.savedViewStatus === (name === 'candidate' ? 200 : 404));
+    const webFileCount = recovery ? qa.releases[name].webFilesBytesAndMimeMatched :
+      Object.keys((await verifyRuntimeRelease(r.releaseDir, r.manifestSha256)).manifest.files).filter(path => path.startsWith('dist/web/')).length;
+    assertTrackColdProof(qa, name, p.version, webFileCount, r.manifestSha256);
   }
   return {p, b: baseline, releases: releases.releases, original, maintenance, inputSha};
 }
@@ -98,10 +134,23 @@ async function guardedWrite(c, kind, data, before) {
   catch { if (await digest(target) !== after) throw new Error('Conditional metadata write failed'); }
   assert.equal(await digest(target), after); await journal(c.p, 'write-confirmed', {kind, sha256: after});
 }
-function pointer(c, name) { const r = c.releases[name]; return Buffer.from(JSON.stringify({version: 1, releaseDir: r.releaseDir, manifestSha256: r.manifestSha256}, null, 2) + '\n'); }
+async function pointer(c, name) {
+  if (c.b.version === 2 && name === 'rollback') return bytes(join(c.p.operationDir, 'pointer.before.json'));
+  const r = c.releases[name]; return Buffer.from(JSON.stringify({version: 1, releaseDir: r.releaseDir, manifestSha256: r.manifestSha256}, null, 2) + '\n');
+}
+export function assertTrackRecoveryState(baseline, pointerSha256, configSha256, candidatePointerSha256) {
+  assert(sha(candidatePointerSha256) && sha(baseline.configBeforeSha256) && sha(baseline.configMaintenanceSha256));
+  assert([trackRuntimePointerPrecondition(baseline), candidatePointerSha256].includes(pointerSha256));
+  assert([baseline.configBeforeSha256, baseline.configMaintenanceSha256].includes(configSha256));
+  return true;
+}
+async function recoveryState(c) {
+  assertTrackRecoveryState(c.b, await digest(c.b.pointerFile), await digest(c.b.configFile), hash(await pointer(c, 'candidate')));
+}
 async function filesPreserved(c) {
   for (const [path, expected] of Object.entries(c.b.files)) {
     if (samePath(path, c.b.configFile) || samePath(path, join(state, 'track-product.pid'))) continue;
+    if (c.b.version === 2 && (samePath(path, c.b.pointerFile) || samePath(path, c.b.receiptFile))) continue;
     assert.equal(await digest(path), expected);
   }
 }
@@ -159,7 +208,8 @@ async function activeIdentity(c, name) {
   const record = await load(c.b.receiptFile), release = c.releases[name];
   assert(record.runtime.mode === 'frozen' && samePath(record.runtime.cwd, release.releaseDir) && record.runtime.manifestSha256 === release.manifestSha256 && samePath(record.runtime.entry, join(release.releaseDir, 'apps/api/main.ts')));
   const identity = Object.fromEntries(['pid', 'name', 'executable', 'created', 'command'].map(key => [key, record[key]]));
-  assert(identity.pid !== c.b.roles.track.pid && identity.executable === process.execPath && identity.command.includes(record.runtime.entry));
+  assert(identity.executable === process.execPath && identity.command.includes(record.runtime.entry));
+  if (identity.pid === c.b.roles.track.pid) { assert(name === 'rollback' && c.b.version === 2); assert.deepEqual(identity, c.b.roles.track); }
   assert(isDeepStrictEqual(await inspectApiProcess(identity.pid), identity)); assert.equal((await inspectOwnedWeb(identity, 14345)).state, 'owned-live');
   assert.equal(Number((await bytes(join(state, 'track-product.pid'))).toString().trim()), identity.pid); return identity;
 }
@@ -175,7 +225,8 @@ async function webReady(c, name) {
   for (const [path, expected] of Object.entries(manifest.files).filter(([path]) => path.startsWith('dist/web/'))) {
     const response = await request(c, '/' + path.slice(9)); assert.equal(response.status, 200); assert.equal(response.headers.get('content-type').split(';')[0], types[path.split('.').at(-1)]); assert.equal(hash(Buffer.from(await response.arrayBuffer())), expected); count++;
   }
-  assert.equal(count, 18); const view = await request(c, '/api/flow-views?contextId=' + 'a'.repeat(64)); assert.equal(view.status, name === 'candidate' ? 200 : 404); await view.body?.cancel(); return count;
+  assert.equal(count, Object.keys(manifest.files).filter(path => path.startsWith('dist/web/')).length);
+  const view = await request(c, '/api/flow-views?contextId=' + 'a'.repeat(64)); assert.equal(view.status, c.b.version === 2 || name === 'candidate' ? 200 : 404); await view.body?.cancel(); return count;
 }
 async function ownerProbe(c) {
   let snapshot;
@@ -199,11 +250,11 @@ async function ownerProbe(c) {
   return {actualPermittedTasks: 2, createdAndRead: true, staleRevisionDenied: true, ownedProbeRemoved: true, nativeWorkCreated: false};
 }
 export async function runTrackRuntimePhase(phase, inputFile, inputSha) {
-  assert(['preflight', 'maintenance', 'drain', 'stop', 'candidate', 'verify', 'restore-config', 'finalize', 'rollback', 'rollback-ready', 'report-failure'].includes(phase));
-  const c = await inputs(inputFile, inputSha);
+  assert(['preflight', 'maintenance', 'drain', 'stop', 'candidate', 'candidate-start', 'verify', 'restore-config', 'finalize', 'rollback', 'rollback-start', 'rollback-ready', 'report-failure'].includes(phase));
+  const c = await inputs(inputFile, inputSha, ['rollback', 'rollback-start', 'rollback-ready', 'restore-config', 'report-failure'].includes(phase));
   if (phase !== 'preflight') await driver(c);
   if (phase === 'preflight') {
-    assert.equal(await digest(c.b.configFile), c.b.configBeforeSha256); assert.equal(await digest(c.b.pointerFile), null); assert.equal(await digest(c.b.receiptFile), c.b.receiptBeforeSha256);
+    assert.equal(await digest(c.b.configFile), c.b.configBeforeSha256); assert.equal(await digest(c.b.pointerFile), trackRuntimePointerPrecondition(c.b)); assert.equal(await digest(c.b.receiptFile), c.b.receiptBeforeSha256);
     assert.equal(await digest(c.b.backup.file), c.b.backup.sha256); const db = new DatabaseSync(c.b.backup.file, {readOnly: true}); try { assert.deepEqual(trackDatabaseFingerprint(db), c.b.backup.result.fingerprint); } finally { db.close(); }
     for (const r of Object.values(c.releases)) await verifyRuntimeRelease(r.releaseDir, r.manifestSha256);
     assert.equal((await inspectOwnedWeb(c.b.roles.track, 14345)).state, 'owned-live'); assert(Object.values(pending(c.original.database)).every(n => n === 0));
@@ -219,22 +270,35 @@ export async function runTrackRuntimePhase(phase, inputFile, inputSha) {
   } else if (phase === 'stop') {
     assert.equal(await digest(c.b.configFile), c.b.configMaintenanceSha256); assert(Object.values(pending(c.original.database)).every(n => n === 0));
     await journal(c.p, 'stop-intent', c.b.roles.track); await stopOwnedWeb(c.b.roles.track, 14345); assert.equal((await inspectOwnedWeb(c.b.roles.track, 14345)).state, 'exited-free');
-  } else if (phase === 'candidate') await guardedWrite(c, 'pointer', pointer(c, 'candidate'), [null]);
+  } else if (phase === 'candidate') await guardedWrite(c, 'pointer', await pointer(c, 'candidate'), [trackRuntimePointerPrecondition(c.b)]);
+  else if (phase === 'candidate-start') {
+    assert.equal(await digest(c.b.configFile), c.b.configMaintenanceSha256);
+    assert.equal(await digest(c.b.pointerFile), hash(await pointer(c, 'candidate')));
+    assert.deepEqual(await apiListeners(14345), []);
+  }
   else if (phase === 'verify') { assert.equal(await digest(c.b.configFile), c.b.configMaintenanceSha256); await webReady(c, 'candidate'); await filesPreserved(c); await rolesPreserved(c); await nativePreserved(c); historyPreserved(c, true); }
   else if (phase === 'restore-config') await guardedWrite(c, 'config', await bytes(join(c.p.operationDir, 'config.before.json')), [c.b.configMaintenanceSha256]);
   else if (phase === 'rollback') {
+    await recoveryState(c);
     await verifyRuntimeRelease(c.releases.rollback.releaseDir, c.releases.rollback.manifestSha256);
     const listeners = await apiListeners(14345);
     if (listeners.length) {
-      if (listeners[0].pid === c.b.roles.track.pid && (await inspectOwnedWeb(c.b.roles.track, 14345)).state === 'owned-live') { await guardedWrite(c, 'pointer', pointer(c, 'rollback'), [null, hash(pointer(c, 'candidate'))]); return {retainedOriginal: true}; }
-      const owned = await activeIdentity(c, 'candidate'); await journal(c.p, 'rollback-stop-intent', owned); await stopOwnedWeb(owned, 14345);
+      if (listeners[0].pid === c.b.roles.track.pid && (await inspectOwnedWeb(c.b.roles.track, 14345)).state === 'owned-live') { await guardedWrite(c, 'pointer', await pointer(c, 'rollback'), [trackRuntimePointerPrecondition(c.b), hash(await pointer(c, 'candidate'))]); return {retainedOriginal: true}; }
+      const owned = await activeIdentity(c, 'candidate'); await recoveryState(c); await journal(c.p, 'rollback-stop-intent', owned); await stopOwnedWeb(owned, 14345);
     }
-    assert.deepEqual(await apiListeners(14345), []); await guardedWrite(c, 'pointer', pointer(c, 'rollback'), [null, hash(pointer(c, 'candidate'))]);
+    assert.deepEqual(await apiListeners(14345), []); await guardedWrite(c, 'pointer', await pointer(c, 'rollback'), [trackRuntimePointerPrecondition(c.b), hash(await pointer(c, 'candidate'))]);
+  } else if (phase === 'rollback-start') {
+    assert([c.b.configBeforeSha256, c.b.configMaintenanceSha256].includes(await digest(c.b.configFile)));
+    assert.equal(await digest(c.b.pointerFile), hash(await pointer(c, 'rollback')));
+    await verifyRuntimeRelease(c.releases.rollback.releaseDir, c.releases.rollback.manifestSha256);
+    const listeners = await apiListeners(14345);
+    if (listeners.length) { assert(listeners.length === 1 && listeners[0].pid === c.b.roles.track.pid); assert.equal((await inspectOwnedWeb(c.b.roles.track, 14345)).state, 'owned-live'); }
   } else if (phase === 'rollback-ready') {
-    if ((await inspectApiProcess(c.b.roles.track.pid))?.created === c.b.roles.track.created) assert.equal((await inspectOwnedWeb(c.b.roles.track, 14345)).state, 'owned-live'); else await webReady(c, 'rollback');
+    if (c.b.version === 2) { assert.equal(await digest(c.b.pointerFile), hash(await pointer(c, 'rollback'))); await webReady(c, 'rollback'); }
+    else if ((await inspectApiProcess(c.b.roles.track.pid))?.created === c.b.roles.track.created) assert.equal((await inspectOwnedWeb(c.b.roles.track, 14345)).state, 'owned-live'); else await webReady(c, 'rollback');
     historyPreserved(c, true);
   } else if (phase === 'finalize') {
-    assert.equal(await digest(c.b.configFile), c.b.configBeforeSha256); assert.equal(await digest(c.b.pointerFile), hash(pointer(c, 'candidate'))); const identity = await activeIdentity(c, 'candidate');
+    assert.equal(await digest(c.b.configFile), c.b.configBeforeSha256); assert.equal(await digest(c.b.pointerFile), hash(await pointer(c, 'candidate'))); const identity = await activeIdentity(c, 'candidate');
     const probe = await ownerProbe(c); await filesPreserved(c); await rolesPreserved(c); await nativePreserved(c); historyPreserved(c, true);
     const result = {committed: true, operationId: c.p.operationId, inputSha256: inputSha, identity, runtime: c.releases.candidate, probe, originalConfigRestored: true, nativeDatabaseAndProcessesPreserved: true, existingHistoryPreserved: true, anonymousAndGuiPending: true};
     await saveNew(join(c.p.operationDir, 'committed.json'), JSON.stringify(result, null, 2) + '\n'); await journal(c.p, 'committed'); return {committed: true, operationId: c.p.operationId, pid: identity.pid, probe};

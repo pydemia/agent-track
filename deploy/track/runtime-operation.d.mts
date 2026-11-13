@@ -3,3 +3,7 @@ export function validateTrackRuntimePlan(value: unknown, expected: {state: strin
 export function trackPendingCommands(database: string): Record<string, number>;
 export function assertTrackHistoryPreserved(database: string, backupFile: string, tableNames: string[], allowSaved: boolean): void;
 export function runTrackRuntimePhase(phase: string, inputFile: string, inputSha: string): Promise<unknown>;
+export function trackRuntimePointerPrecondition(baseline: unknown): string | null;
+export function validateTrackUpgradeBaseline(baseline: unknown, pointerBytes: Buffer, receiptBytes: Buffer, rollback: unknown): true;
+export function assertTrackColdProof(qa: unknown, name: string, version: number, webFileCount: number, expectedManifestSha256?: string): true;
+export function assertTrackRecoveryState(baseline: unknown, pointerSha256: string | null, configSha256: string | null, candidatePointerSha256: string): true;

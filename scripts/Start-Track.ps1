@@ -40,7 +40,7 @@ if (-not $running) {
     $recordPath = Join-Path $stateDir 'track-product-process.json'
     $staging = Join-Path $stateDir ('track-product-process.' + [Guid]::NewGuid().ToString('N') + '.new')
     [System.IO.File]::WriteAllText($staging, ($receipt | ConvertTo-Json -Depth 8), (New-Object System.Text.UTF8Encoding($false)))
-    if ([System.IO.File]::Exists($recordPath)) { [System.IO.File]::Replace($staging, $recordPath, $null) } else { [System.IO.File]::Move($staging, $recordPath) }
+    if ([System.IO.File]::Exists($recordPath)) { [System.IO.File]::Replace($staging, $recordPath, [NullString]::Value) } else { [System.IO.File]::Move($staging, $recordPath) }
     $process.Id | Set-Content (Join-Path $stateDir 'track-product.pid')
     } catch {
         if (-not $process.HasExited) {

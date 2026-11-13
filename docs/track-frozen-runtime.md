@@ -43,7 +43,8 @@ Release는 이 운영 계정이 관리하는 private 파일이다. 파일 hash�
 4. 기존 설정에서 명령 사용자 배열 네 종류만 일시적으로 비운다. 미종료 receipt가
    없음을 연속 확인한 뒤 기존 API의 정확한 generation·127.0.0.1 listener를
    확인하고 retained handle로 종료한다.
-5. candidate pointer를 create-only 게시하고 product만 시작한다. 웹 전체 bytes/MIME,
+5. 최초 설치는 candidate pointer를 create-only 게시하고, v2 업그레이드는 확인한
+   기존 pointer hash와 일치할 때만 교체한다. product만 시작한다. 웹 전체 bytes/MIME,
    새 endpoint와 보존 상태를 확인한 뒤 원래 설정 bytes를 복원한다.
 6. 실제 허용 Task 두 개에 대한 저장 보기 API를 확인한다. 오래된 revision은409,
    임시 보기 삭제 후에는 목록 부재를 확인한다. 성공 marker를 create-only 기록한다.
@@ -66,6 +67,31 @@ listener나 다른 generation은 종료하지 않는다. 복구 검증 실패와
 실패 판정이 아니므로 실행 handle과 private journal·committed marker를 먼저
 확인한다. OS crash·전원 장애의 자동 재개는 구현하지 않았으며, 이 경우 실제
 config/pointer/receipt/listener와 journal을 대조해 소유 상태를 확인해야 한다.
+
+## 기존 동결 버전 업그레이드
+
+operation v2는 현재 pointer와 process receipt의 원본 bytes를 별도로 보관한다.
+복구 release는 이 pointer가 지정한 manifest와 정확히 일치해야 하며, 기존 PID의
+실제 generation·실행 경로도 대조한다. 원본 receipt에 revision 필드가 없어도 닫힌
+manifest hash로 source를 확인하고, 중복 revision 필드가 있으면 불일치를 거부한다.
+release와 cold QA 증거는 각 operation 디렉터리의 create-only 파일로 고정한다.
+현재 saved-view schema도 backup에 포함하며, 후보·복구 API 모두 저장 보기200을
+확인한다. 웹 파일 개수는 manifest에서 유도한다.
+
+복구 진입은 candidate payload의 정상 여부와 분리한다. 손상된 후보는 시작을
+거부하되 기존 설정 복원과 유효한 rollback 검증을 막지 않는다. 정상 candidate를
+종료하기 전에 현재 pointer와 config가 이 operation의 허용 hash인지 재확인한다.
+타인이 변경한 pointer·config와 다른 listener는 보존한다. 재시작 직전에도 해당
+버전 pointer·설정을 확인하며, driver는 설정에 읽기 handle을 보관해 Node의 읽기는
+허용하고 쓰기·교체는 시작 완료까지 차단한다. Windows PowerShell의 기존 process
+receipt 교체는 명시적인 null string을 사용한다.
+
+2026-11-13 v2 준비에서는 실제 Track backup21,712,896byte·12테이블의 복사본으로
+후보 `0a6a900`·기존 `7e98793`을 격리 시작했다. 각18웹 파일의 bytes/MIME,
+저장 보기200, schema·행·sequence 보존과 자식·포트 정리를 확인했다. 실제 원본
+source·model 요청은0이며 원본 DB 복원은 하지 않았다. 세 복구 위험은 독립 검토의
+재현 후 회귀로 확인했고, Windows의 config 읽기/쓰기/교체 lock도 실기로 대조했다.
+이 준비 검증은 운영 전환이나 OS crash 복구 검증을 대신하지 않는다.
 
 ## 현재 검증 범위
 
