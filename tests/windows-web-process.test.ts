@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test, mock } from "node:test";
-import childProcess, { fork, type ChildProcess } from "node:child_process";
+import childProcess, { fork, spawn, type ChildProcess } from "node:child_process";
 import { syncBuiltinESMExports } from "node:module";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -51,6 +51,7 @@ test("observation failures expose only a generic error", { skip: process.platfor
 test("isolated Windows ownership and retained-handle stop", { skip: process.platform !== "win32", timeout: 240000 }, async () => {
   const root = await mkdtemp(join(tmpdir(), "demian-web-process-fixture-"));
   const children: ChildProcess[] = [];
+  const processHandles: ChildProcess[] = [];
   const fixture = join(root, "demian-web-process-fixture.mjs");
   await writeFile(fixture, `import net from 'node:net';
 const server = net.createServer();
@@ -62,6 +63,22 @@ process.on('message', message => { if (message === 'exit') server.close(() => pr
     children.push(child);
     const [message] = await once(child, "message", { signal: AbortSignal.timeout(10000) });
     assert.ok(![3000, 3001, 3100, 8080, 14345].includes((message as { port: number }).port));
+    // These cases require the recorded PID to remain unused after fixture exit.
+    // Keep its native object alive: otherwise Windows may give a later CIM
+    // helper the same PID, for which the production guard correctly says foreign.
+    // PROCESS_INFORMATION.dwProcessId lifetime: https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/ns-processthreadsapi-process_information
+    const retained = spawn("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", String.raw`
+$ErrorActionPreference = 'Stop'
+$held = [System.Diagnostics.Process]::GetProcessById([int]$env:DEMIAN_FIXTURE_HANDLE_PID)
+try {
+  $nativeHandle = $held.Handle
+  [Console]::Out.WriteLine('held')
+  [void][Console]::In.ReadLine()
+} finally { $held.Dispose() }
+`], { windowsHide: true, env: { ...process.env, DEMIAN_FIXTURE_HANDLE_PID: String(child.pid) }, stdio: ["pipe", "pipe", "ignore"] });
+    processHandles.push(retained);
+    const [ready] = await once(retained.stdout!, "data", { signal: AbortSignal.timeout(10000) });
+    assert.equal(String(ready).trim(), "held");
     const record = await inspectApiProcess(child.pid!);
     assert.ok(record);
     return { child, record, port: (message as { port: number }).port };
@@ -176,15 +193,46 @@ process.on('message', message => { if (message === 'exit') server.close(() => pr
     await stopOwnedWeb(restored.record, original.port);
   } finally {
     // Only ChildProcess objects created here may be cleaned up, never recorded PIDs.
+    const cleanupErrors: unknown[] = [];
     for (const child of children) {
-      if (child.exitCode === null && child.signalCode === null) {
-        const done = once(child, "exit", { signal: AbortSignal.timeout(10000) });
-        child.kill();
-        await done;
+      try {
+        if (child.exitCode === null && child.signalCode === null) {
+          const done = once(child, "exit", { signal: AbortSignal.timeout(10000) });
+          child.kill();
+          await done;
+        }
+      } catch (error) {
+        cleanupErrors.push(error);
       }
     }
-    assert.equal(dirname(resolve(root)), resolve(tmpdir()));
-    assert.ok(basename(root).startsWith("demian-web-process-fixture-"));
-    await rm(root, { recursive: true, force: true });
+    for (const retained of processHandles) {
+      try {
+        if (retained.exitCode === null && retained.signalCode === null) {
+          const done = once(retained, "exit", { signal: AbortSignal.timeout(10000) });
+          retained.stdin!.end();
+          try {
+            await done;
+          } catch (error) {
+            if (retained.exitCode === null && retained.signalCode === null) {
+              const killed = once(retained, "exit", { signal: AbortSignal.timeout(10000) });
+              retained.kill();
+              await killed;
+            }
+            cleanupErrors.push(error);
+          }
+        }
+        assert.equal(retained.exitCode, 0);
+      } catch (error) {
+        cleanupErrors.push(error);
+      }
+    }
+    try {
+      assert.equal(dirname(resolve(root)), resolve(tmpdir()));
+      assert.ok(basename(root).startsWith("demian-web-process-fixture-"));
+      await rm(root, { recursive: true, force: true });
+    } catch (error) {
+      cleanupErrors.push(error);
+    }
+    if (cleanupErrors.length) throw new AggregateError(cleanupErrors, "Windows web fixture cleanup failed.");
   }
 });
