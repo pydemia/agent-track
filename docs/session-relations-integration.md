@@ -4,7 +4,22 @@ AT-12·AT-18의 managed-child·peer 근거를 원본 세션별 읽기 API로 연
 호출·cowork 이벤트, 별도 child Run, peer 처리 영수증은 서로 다른 단위다.
 관계를 읽기 위해 모델·worker·peer discovery를 시작하지 않는다.
 
-2026-11-13 실제 backend 후속: 공식 Reason Network0.12.17의 격리 daemon을
+2026-11-13 실제 native peer 처리 후속: Windows 메시지를 Linux native broker에
+저장하고 명시 processing API로 생성한 성공 Run1/attempt1·49event·모델1요청을
+대조했다. source snapshot과 message/conversation/operation/Run ID·출력 hash를
+독립 PostgreSQL 조회로 확인했다. Track의 별도 인가 receipt/artifact 조회를
+같은 화면 모델에 결합해6node/5edge·3그룹을 확인했고 대화 그룹을 접어3edge로 줄인 뒤 대표선의
+키보드 선택·원본 처리 상세를 확인했다. `/api/snapshot`의 relation 배열만으로
+전체 화면 관계를 판정하지 않는다. 원문·원격 native Session 식별자는 여전히
+읽기 계약 밖이며 peer 처리 관계를 작업 의존으로 바꾸지 않는다.
+Linux용 SDK/worker는 별도 빌드·타입 검사·동결했고 원본 credential은 Windows
+gateway 내부에서만 사용했다. 운영 SDK/worker·전체 교차 앱 업무·Entra GUI와
+대표선 마우스/pixel 품질은 미검증이다. 원본 Windows 상태와 Persona 서비스는
+보존했으나 별도 원격 인증 container ID1개 교체가 관측되어 전체 원격 동일성은
+검증 완료로 올리지 않는다. [실제 처리 검증 기록](native-peer-processing-verification.json)
+참고. 아래 backend 단락은 앞선 전송 단계의 한계다.
+
+2026-11-13 이전 backend 후속: 공식 Reason Network0.12.17의 격리 daemon을
 Windows와 SSH Linux에서 실행하고 frozen SDK adapter의 실제 요청·응답과
 양쪽 inbox ACK를 검증했다. 수신 DB의 body hash·read_at과 발신 receipt도 별도로
 대조했다. 이는 원격 backend의 전달 증거다. 아직 native API의 peer-processing

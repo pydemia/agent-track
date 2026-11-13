@@ -3,6 +3,19 @@
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
+2026-11-13 실제 Linux 처리 후속: 새 Windows peer 메시지 → Linux native
+broker → 명시 processing API → Run/receipt1건 → Track의 동일 ID 관계·그룹을
+대조했다. Linux 동결 SDK/worker의 실제 모델1요청·49event·성공 Run과
+6node/5edge·3그룹 및 접기3edge·키보드 원본 상세를 확인했다. upstream 요청은
+Windows 제한 gateway를 통과하며 원본 credential을 Linux로 복사하지 않았다.
+마우스·pixel 품질은 미검증이다. 검증 코드 실패·실패 Run과 cleanup의 원격
+인증 container ID 변경도 기록했으며 원래 상태로 되돌리지 않았다.
+검증 자원은 정리했다. 다음 단계는 보존된 광범위 WIP를 통째로 채택하지 않고
+운영 SDK/worker에 필요한 변경·authority·복구 경계를 정한 뒤 실제 서비스에서
+검증하는 것이다. Assistant executor와 전체 교차 앱 업무 수용, 운영 Entra GUI도
+남는다. [실제 peer 처리 기록](native-peer-processing-verification.json) 참고.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음이다. 아래는 이전 단계다.
+
 2026-11-13 교차 OS 기반 후속: 공식0.12.17 daemon과 SDK `8a7f7f2`로 Windows↔
 SSH Linux 서버의 실제 요청/응답·양쪽 inbox ACK·독립 DB readback을 검증했다.
 서비스·기존 Agent 설정·원본 credential은 변경하지 않았고 daemon은 종료했다.

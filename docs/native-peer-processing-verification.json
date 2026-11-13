@@ -1,0 +1,178 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementIds": [
+    "AT-12",
+    "AT-14",
+    "AT-15",
+    "AT-18"
+  ],
+  "scope": "Actual Windows peer message received by official Linux Reason Network daemon, saved by native Demian broker and explicitly admitted through native processing API to one isolated Linux SDK/worker Run; authorized receipt/artifact metadata and group UI in Agent Track. Upstream model HTTP requests go through a bounded loopback SSH gateway on Windows. This is QA integration, not production SDK/worker promotion or cross-app Task acceptance.",
+  "sdk": {
+    "sourceRevision": "8a7f7f2122e2ad02e170bbf87f059d841df891a5",
+    "sourcePublication": "owned local worktree only",
+    "sourceArchiveSha256": "6e42ea1a233f49a15b5564178b72223ad0028dd9423ec4939184a613fca2e663",
+    "linuxSourceInputsCompared": 717,
+    "linuxReleaseManifestSha256": "e8aedafda5e4f332434f36528be0a3d9d4fb35f1848299e5ac676db23969b379",
+    "toolchain": {
+      "nodeVersion": "v24.21.0",
+      "npmVersion": "11.19.0",
+      "platform": "linux",
+      "arch": "x64"
+    },
+    "files": 19575,
+    "links": 21,
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "runtimeSha256": "9b96d2c8e0c330d7cf53499da6a1a97bcc916d3807dc7d1d3c4386ef23c1e18d",
+    "productionPromotion": false
+  },
+  "backend": {
+    "project": "reason-machines/reason-network",
+    "version": "0.12.17",
+    "upstreamRevision": "5872711927788b0d43a8a940ea45f993bc2926bc",
+    "priorTransportProof": "native-peer-transport-verification.json",
+    "genuineSshLinuxHost": true,
+    "nativeSessionIdentityUnavailable": true,
+    "physicalHardwareSeparationAudited": false
+  },
+  "actual": {
+    "runId": "cf8cb5b9-b745-4bd8-b9da-76bb5f857137",
+    "sessionId": "3f3d393c-7781-42c7-8ff5-5d2ed0347eda",
+    "processingOperationId": "8c247953-0d59-4bbd-a9d7-7807451fa5ec",
+    "connectionId": "track-peer-process-c439b984",
+    "conversationId": "5a667c65-8455-42bc-9f7f-61b58ecd4d15",
+    "brokerMessageId": "c4bde98f-d11b-48f1-b6d5-516934803825",
+    "daemonMessageId": "5WQN4Q5N06A2KGDMBGJC6D4D19",
+    "sourceBodySha256": "3348dd34d00dacb03d3f3f36d17fe0ec3e18ef6888f79d509e6177cd7cbc9a7f",
+    "outputSha256": "6f9fac0af72608ebea2317f19b11c132737b1f072e04b8cf4e95c8b12f8ab132",
+    "status": "succeeded",
+    "attempts": 1,
+    "partialEffects": "none",
+    "modelRequests": 1,
+    "requestedModel": "gpt-6-astra",
+    "requestedReasoningEffort": "low",
+    "responseReportedModel": "gpt-6-astra",
+    "responseReportedReasoningEffort": "low",
+    "modelHttpStatus": 200,
+    "modelRequestSha256": "ead95d1366670517c217f84c8768cdd9006361cbb21da3e801b4fcd666b53cf0",
+    "modelResponseSha256": "dbb543ac4c9386db461daf5cb9def0d91742c5185a5491eb35cef2e7a8b746b0",
+    "usage": {
+      "inputTokens": 679,
+      "totalTokens": 756,
+      "outputTokens": 77
+    },
+    "canonicalEvents": 49,
+    "outputCheck": "Independent sorting and summation of supplied values plus newly selected 12-hex proof absent from request. Exact successful worker output matched actual upstream output and native processing receipt.",
+    "nativeReceiptAndSourceSnapshotMatchedByIndependentPostgresRead": true,
+    "scopeAdmissions": 1,
+    "registeredRuns": 1,
+    "additionalModelsForTrackReadback": 0
+  },
+  "track": {
+    "productRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+    "deployedProductRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+    "productChangedThisTurn": false,
+    "sourceConnected": true,
+    "normalizedEvents": 49,
+    "nodes": 6,
+    "edges": 5,
+    "groups": 3,
+    "groupKinds": [
+      "peer-connection-context",
+      "peer-conversation-context",
+      "run"
+    ],
+    "expandedEdges": 5,
+    "collapsedEdges": 3,
+    "exactNativeReceiptJoins": true,
+    "collapsedPeerProcessingEvidenceRetained": true,
+    "relationsReadSeparatelyFromSnapshot": true,
+    "expandedEdgeDetailVerified": true,
+    "collapsedRepresentativeKeyboardAndOriginalDrilldownVerified": true,
+    "representativeMouseSelectionVerified": false,
+    "mouseLimitation": "Locator center lay outside visible canvas/viewport; intercepted click excluded. Keyboard selection and original relation drilldown verified.",
+    "screenshotExported": false,
+    "screenshotLimitation": "CDP Page.captureScreenshot timeout; no pixel-quality completion claim.",
+    "organizationSupportReadInQa": "failed; peer relation and artifact metadata still available",
+    "viewportReset": true,
+    "qaTabClosed": true
+  },
+  "failures": [
+    {
+      "stage": "first source preflight",
+      "nativeRuns": 0,
+      "actualModelRequests": 0,
+      "cause": "Generated build-provenance.json was wrongly required in archived source root.",
+      "correction": "Compare real source inputs and release-generated provenance at their actual roots."
+    },
+    {
+      "stage": "v2 private socket mount",
+      "nativeRuns": 0,
+      "actualModelRequests": 0,
+      "cause": "Docker single-file bind generated a root-owned 0755 endpoint parent; native SDK correctly rejected it.",
+      "correction": "Bind only the socket into a QA-owned 0700 directory; daemon state and team key remain unmounted."
+    },
+    {
+      "stage": "v3 evidence query",
+      "nativeRuns": 1,
+      "runId": "344e8d2d-dc93-4392-9e19-e3a3d2f26332",
+      "nativeStatus": "failed",
+      "actualModelRequests": 0,
+      "cause": "QA query used seq instead of native sequence and its 500 closed the bounded gateway during worker start; Run ended fetch failed.",
+      "correction": "Use correct native column and response.message.content. Preserve failure and use fresh v4 database/message/operation/Run; no replay."
+    },
+    {
+      "stage": "final cleanup parity",
+      "cause": "Owned resources were removed, then comparison detected one unrelated remote running container ID changed.",
+      "correction": "Do not revert unrelated state; independently verify owned absence and preserved Persona service/configuration. Whole-remote container parity remains unverified."
+    }
+  ],
+  "preservation": {
+    "windowsOriginalNativeTables": 45,
+    "windowsOriginalProtectedFiles": 42,
+    "windowsOriginalProcesses": 18,
+    "windowsOriginalAllRowsSchemaSequencesSecurityPreserved": true,
+    "windowsOriginalWorkerStarted": false,
+    "windowsOriginalModelRequests": 0,
+    "operatingTrackAndTrailChanged": false,
+    "originalProviderCredentialsCopiedToLinux": false,
+    "upstreamAccessCredentialUsedOnlyInsideWindowsGateway": true,
+    "linuxGatewayCapabilityRemoved": true,
+    "originalPersonaServiceAndConfigurationPreserved": true,
+    "remoteRunningContainersCount": 16,
+    "remoteRunningContainerIdsAllUnchanged": false,
+    "unrelatedRemoteContainerChanges": 1,
+    "unrelatedRemoteChangeCause": "not determined",
+    "unrelatedRemoteStateNotReverted": true,
+    "ownedQaContainersAllRemoved": true,
+    "reasonDaemonsStopped": true,
+    "sqlArchive": {
+      "sha256": "293f27460de7d8a1dbeaca2da54fc051d9185d617d0066201e9cf14a31aaccb4",
+      "bytes": 164189
+    }
+  },
+  "validation": {
+    "actualLinuxWorkerBuildAndTypecheckPassed": true,
+    "actualNativeModelRunPassed": true,
+    "actualReceiptAndTrackGroupingPassed": true,
+    "productSourceUnchangedFromVerifiedRevision": "1f224c71e8832d787ccd775f1b0738c7d98667ca",
+    "productCiReused": "https://github.com/pydemia/agent-track/actions/runs/43366014650",
+    "ciScope": "Unchanged Agent Track product revision 1f224c7 only; not CI coverage for the separately built Linux native SDK/worker. Linux build/typecheck and actual scoped execution are recorded separately.",
+    "fullSuiteRepeatedForDocumentation": false,
+    "operatingEntraGuiVerified": false
+  },
+  "remaining": [
+    "Publish and roll out source SDK/worker within original service boundary; owned source includes broad preserved WIP and must not be wholesale promoted.",
+    "Owner-bound Assistant/Demian executor and full cross-app Task execution/acceptance.",
+    "Operating Entra GUI and desktop/source acceptance.",
+    "Representative mouse/viewport and screenshot quality validation remain incomplete."
+  ],
+  "overall": {
+    "completed": 14,
+    "total": 21,
+    "weighting": "equal",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low",
+    "premises": "Native peer execution QA proven; production SDK/worker, executor provisioning, full cross-app business and operating SSO remain."
+  }
+}
