@@ -184,15 +184,21 @@
     "automaticOsCrashResume": false
   },
   "postSnapshot": {
-    "observedAt": "2026-11-13T00:53:51.311Z",
+    "observedAt": "2026-11-13T00:55:59.647Z",
     "demian": { "state": "connected", "runs": 19 },
-    "codex": { "state": "connected", "runs": 650 },
+    "codex": { "state": "connected", "runs": 652 },
     "projects": { "state": "connected" },
-    "assistant": { "state": "forbidden" },
+    "assistant": {
+      "state": "connected", "listStatus": 200, "detailStatus": 200, "eventsStatus": 200,
+      "executionMetadataCount": 1, "roleCount": 1, "eventCount": 37,
+      "projectTaskReferenceMatched": true, "dispatchPerformed": false,
+      "initialCapabilityUnconfirmedState": "forbidden",
+      "detailObservedAt": "2026-11-13T00:56:44.035Z"
+    },
     "desktop": { "state": "unsupported" }
   },
   "limits": [
-    "The current Assistant source read is forbidden and the desktop connector is unsupported; neither is counted as an actual integrated execution.",
+    "Assistant metadata reading is verified; it does not prove Demian execution dispatch. The desktop connector is unsupported.",
     "Authenticated Entra browser save/restore and tab/cache/light-dark icon appearance remain unverified; Microsoft login is pending.",
     "Saved-view browser reload and permission-revocation behavior were verified in a synthetic fixture, not an additional physical device.",
     "No native Task/Run/subagent work was created by this operation; actual organized cross-app/device execution remains pending.",

@@ -451,5 +451,6 @@ canonical producer·HTTP·SQLite Store 경계를 사용해 네 보기·중첩 �
 API 단절·재시작 후 원본 인가 미확인 상태에서 native Run19개는 보존하되 표시하지
 않았으며, 별도 Projects 업무 Map2node/1edge와 관계 상세는 공개 브라우저에서
 계속 동작했다. 후속 동결 Track 전환 뒤 실제 snapshot에서 Demian19Run의
-connected·Codex·Projects 연결을 확인했다. Assistant는 원본 접근 거부,
-desktop은 미지원 상태로 구분하며 두 출처의 실제 조직화 검증은 남아 있다.
+connected·Codex·Projects 연결을 확인했다. Assistant도 실제 executions GET200과
+1개 실행 metadata·connected를 확인했다. 초기 capability 미확인을 실제 권한
+거부로 판정하지 않는다. desktop은 미지원이며 교차 앱 조직화 검증은 남아 있다.

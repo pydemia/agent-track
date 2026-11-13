@@ -8,7 +8,8 @@ revision409·임시 보기 삭제를 확인했다. 원래 설정 bytes·기존 T
 45테이블 전체 상태·다른17프로세스·bridge를 보존했다. Track/Trail302와 공개/로컬
 익명·위조 인증401도 유지된다. 실제 Entra GUI는 Microsoft 로그인 대기다.
 전환 후 실제 snapshot에서 Demian19Run·Codex·Projects 연결을 확인했다.
-Assistant는 현재 원본 접근 거부, desktop은 미지원으로 구분된다.
+Assistant는 초기 미확인 상태였으나 실제 목록·상세·이벤트 GET200·1개 실행/역할·
+37이력·현재 Project/Task 참조와 이후 connected를 확인했다. desktop은 미지원이다.
 기존11테이블의 검증 backup, 양쪽 release의 격리 cold start와 복구 경로를 준비했으며
 원본 DB 복원·native 업무 실행은 하지 않았다. 상세는
 `track-frozen-runtime.md`·`track-frozen-runtime-verification.json`에 기록했다.
