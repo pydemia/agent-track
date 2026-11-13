@@ -1,5 +1,17 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 실행 연동 후속: 계정 준비 상태의 빈 membership 조회 오류를 수정해
+Persona PR22 `b6504e5`로 push했다(draft·운영 미배포). 실제 Assistant gateway →
+TLS/HMAC API → 동결 worker/core → native Codex Run1/attempt1·전송1·8event와
+원 assistant 응답·영수증을 독립 DB 조회로 대조했다. Windows 전체1,181개
+(1,167통과·14skip·실패0), 관련103개와 CI 네 job을 통과했다. QA는 정리했고
+원본45테이블·42파일·18프로세스를 보존했다. 기존 Note/Projects의 signed
+capability GET200·위조401도 확인했으나 개별 QA 대상 쓰기 ACL·전체 업무 수용은
+미검증이다. 전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다.
+운영 전환·protected Run metadata 인가·전체 WorkCoordinator/desktop·Entra GUI가
+남는다. [실기와 한계](assistant-native-delegation-verification.json),
+[실행 계약](demian-runtime-continuation.md#실제-assistant-gateway의-native-위임)을 따른다.
+
 2026-11-13 운영 후속: 모델 요청 근거 `a3bb446`의 API·웹을 같은 동결 release로
 전환했다. Windows CI966통과/9skip·Ubuntu951통과/24skip(각975개·실패0), 양쪽
 타입 검사·build를 확인했다. 운영18자산 bytes/hash/MIME, 구 도구 응답 호환과

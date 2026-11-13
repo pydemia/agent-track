@@ -300,3 +300,39 @@ coordinator 묶음5node/5edge를 확인했다. 전체63event와 부분 범위를
 네 보기 전환·390px·원본 seq17의 관계 상세를 대조했다. Screenshot은 CDP timeout으로
 확보하지 못했다. `native-nested-coordinator-verification.json` 참고. 실제 operating
 native worker 전환·peer/cowork·Assistant 교차 앱·추가 기기는 남아 전체14/21이다.
+
+## 실제 Assistant gateway의 native 위임
+
+2026-11-13 native 위임 후속: 실제 Assistant host loader와 계정 준비 상태 조회를
+결합하면 빈 membership으로 binding을 찾는 오류가 있었다. 최초 격리 QA는 모델
+전송 전에 멈췄다. 현재 owner의 명시 binding들을 준비 상태 검사에만 열거하고
+await 뒤 집합 변경을 재검사하도록 수정했다. 실제 실행은 정확한 membership을
+계속 요구한다. Persona PR22의 `b6504e5`로 push했고 draft·운영 미배포다.
+수정 후 실제 TLS/HMAC API·deployment/session authority·동결 worker/core·native
+Codex app-server를 통해 Run1/attempt1·전송1·8event·native turn1이 성공했다.
+PostgreSQL·SQLite의 원 assistant 응답 hash와 context/binding/receipt를 독립
+대조했다. 요청한/선택된 모델은 gpt-6.1-sol이며 upstream 내부 호출 수·서버 최종
+모델을 독립 관측했다고 하지 않는다. latest request370토큰과 같은 native session
+관측을 합산하지 않는다. `model.request` 이벤트0을 실제 모델 요청0으로 해석하지
+않는다. query-only 로컬 observe는 native binding 철회 뒤에도 이전 completed
+snapshot을 반환했으므로 새 native 권한 확인의 대체 증거로 쓰지 않는다.
+
+원본45테이블·42파일·18프로세스와 인증 파일을 보존했고 원본 worker는 시작하지
+않았다. QA worker·tmpfs DB와 비밀 파일9개를 정리했다. 초기 회귀3개 실패→관련
+103개 통과, 전체1,181개 중1,167통과·14skip·실패0과 타입 검사·build를 확인했다.
+전체 검사에도 새 회귀4개가 포함됨을 로그에서 확인했다. 원격 CI43389560563의
+앱·collection·container·native worker 네 job도 성공했다. 실제
+WorkCoordinator/Projects/Note·desktop 업무와 운영 전환·Entra GUI는 별도다.
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다. 다음은
+현재 원본 서비스 계약·최신 보존/복구 경계 및 protected Run의 인가된 metadata
+조회 경로를 대조한다. [native 위임 실기 기록](assistant-native-delegation-verification.json) 참고.
+기존 운영 Assistant 안에서 Note/Projects의 서명된 capability GET200·필수 flags와
+위조 요청401을 확인했다. 서명키는 원 컨테이너 밖으로 복사하지 않았다. 이 집계
+응답은 대상 Project의 create/update/results attach ACL이나 격리 QA의 별도
+쓰기 구성을 확인한 결과가 아니며, 새 업무·모델 요청도 없다.
+
+추가 대상 읽기에서는 Assistant의 기존 기본 Project와 활성 Note workspace revision4·
+설정 destination 일치를 확인했다. 과거 Track QA Project는 현재 Assistant 목록에
+없었다. Note 읽기는 POST RPC의 내부 GET이므로 최초 GET-only probe가 로컬에서
+막았고, workspace/layout GET만 허용한 새 probe로 대조했다. 이를 provider 장애나
+쓰기 ACL 허용으로 해석하지 않는다.

@@ -1,0 +1,314 @@
+{
+  "dateKst": "2026-11-13",
+  "requirements": [
+    "AT-12",
+    "AT-14",
+    "AT-18",
+    "AT-21"
+  ],
+  "scope": "Actual host-configured Assistant runtime gateway through real TLS/HMAC API, deployment/session authority, compiled worker and native Codex app-server. Does not establish WorkCoordinator/Projects/Note/desktop or operating deployment.",
+  "implementation": {
+    "repository": "https://github.com/pydemia/persona",
+    "revision": "b6504e5ca80f8e59d53b4326c1e3f4a47ec2c959",
+    "branch": "codex/agent-track-demian-observer",
+    "pullRequest": "https://github.com/pydemia/persona/pull/22",
+    "draft": true,
+    "merged": false,
+    "deployed": false,
+    "sourceFiles": {
+      "apps/server/src/workbench/demian-runtime-config.ts": "a47301dcadedfd3f6bd5ed1c930b371c4fb00d5b4cf59aad6073f4021689884d",
+      "apps/server/src/workbench/demian-runtime-gateway.ts": "e7a9dafe3db1feff0d6887521784dde3f5a336bead9129a7bf9ed64ba019ae0f",
+      "tests/workbench/demian-runtime-config.test.ts": "9620ba5cf097769b8b67fbc33d613abcfbbf16ac760ab06d9a8aca4cb3739fd8",
+      "tests/workbench/demian-runtime-gateway.test.ts": "ff7f79ace98e6f14049267be073256eb8db02b647d6fac2ceb809a9156948e18"
+    }
+  },
+  "bug": {
+    "trigger": "Connected work services probe the selected owner without a membership ID; the host loader resolves only an exact owner/membership.",
+    "before": "Empty membership lookup returns null and marks a valid configured owner unconfigured before dispatch.",
+    "after": "Host metadata enumerates the current owner bindings for readiness only; every configured binding is preflighted and the canonical set is rechecked after awaits. Dispatch and explicit-role probes retain exact membership resolution.",
+    "authorityExpanded": false,
+    "legacyHostResolverCompatible": true
+  },
+  "native": {
+    "sourceRevision": "8a7f7f2122e2ad02e170bbf87f059d841df891a5",
+    "releaseManifestSha256": "5dfcd5e44a5e8d326f9cc35458cd4d7078a9fc50b31c0b541d9e2c5396293414",
+    "workerSha256": "82d5d3d16681f306564afdcf51157d0028d4c0b906d6d27867c19107c9302c83",
+    "runtimeSha256": "9b96d2c8e0c330d7cf53499da6a1a97bcc916d3807dc7d1d3c4386ef23c1e18d",
+    "frozenFiles": 19606,
+    "frozenLinks": 5,
+    "runId": "8b590645-2b7d-45a3-93b0-ac89a8726119",
+    "sessionId": "5eb84087-0fcb-4eb5-8807-5ba5f0431786",
+    "correlationId": "200c4a02-bac2-4000-a0db-7fe402353c4c",
+    "status": "succeeded",
+    "attempts": 1,
+    "registeredRuns": 1,
+    "receipts": 1,
+    "sendCount": 1,
+    "nativeTurnStarts": 1,
+    "canonicalEvents": [
+      {
+        "sequence": "1",
+        "type": "response.created"
+      },
+      {
+        "sequence": "2",
+        "type": "run.started"
+      },
+      {
+        "sequence": "3",
+        "type": "run.prepared.selected"
+      },
+      {
+        "sequence": "4",
+        "type": "external.lineage.observed"
+      },
+      {
+        "sequence": "5",
+        "type": "external.lineage.observed"
+      },
+      {
+        "sequence": "6",
+        "type": "response.usage"
+      },
+      {
+        "sequence": "7",
+        "type": "response.usage"
+      },
+      {
+        "sequence": "8",
+        "type": "response.completed"
+      }
+    ],
+    "requestedAndSelectedModel": "gpt-6.1-sol",
+    "upstreamResolvedModelIndependentlyObserved": false,
+    "providerBudgetMode": "provider-unmetered",
+    "permissionBudget": false,
+    "upstreamHttpInvocationCount": null
+  },
+  "independentReadback": {
+    "nativePostgresql": true,
+    "assistantSqlite": true,
+    "assistantMessages": 1,
+    "responseSha256": "cfe7d608cab7bb2a7d90ba6e1e7522c26c8466b594384fa60f924b437c817456",
+    "assistantResponseMatches": true,
+    "receiptContextAndBindingMatched": true,
+    "replayedStartDidNotCreateAnotherRun": true,
+    "noSecondPost": true
+  },
+  "measurements": {
+    "latestRequestTokenObservation": {
+      "input": 355,
+      "output": 15,
+      "total": 370,
+      "coverage": "partial",
+      "source": "codex-app-server.tokenUsage.last"
+    },
+    "sessionTokenObservationHasSameNumbers": true,
+    "observationScopesNotSummed": true,
+    "modelRequestEventCount": 0,
+    "nativeTurnCount": 1,
+    "upstreamHttpInvocationCountUnobserved": true,
+    "initialHarnessCounterWasUninstrumented": true
+  },
+  "authorization": {
+    "realHttps": true,
+    "privateCaTrustedOnlyByOwnedClient": true,
+    "certificateAndHostnameVerificationEnabled": true,
+    "actualHmacAndHostLoaders": true,
+    "newOwnedQaBindingAndAuthority": true,
+    "originalApiBearerOrReaderKeyReusedForExecution": false,
+    "existingCodexAccessTokenProjectionUsedLocally": true,
+    "exactRoleContextPin": true,
+    "qaBindingRevoked": true,
+    "localObserveAfterNativeRevocation": "completed",
+    "localObserveIsNotFreshNativeAuthorityProof": true
+  },
+  "checks": {
+    "regressionBefore": {
+      "tests": 3,
+      "failed": 3
+    },
+    "fullWindows": {
+      "tests": 1181,
+      "passed": 1167,
+      "failed": 0,
+      "skipped": 14,
+      "scope": "Final product code and all four owner-readiness regressions present in the full suite log."
+    },
+    "finalTargeted": {
+      "tests": 103,
+      "passed": 103,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": true,
+    "build": true,
+    "changedFilesFormatCheck": true,
+    "ci": {
+      "revision": "b6504e5ca80f8e59d53b4326c1e3f4a47ec2c959",
+      "runId": 43389560563,
+      "url": "https://github.com/pydemia/persona/actions/runs/43389560563",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 131765963418,
+          "name": "container",
+          "conclusion": "success"
+        },
+        {
+          "id": 131765963776,
+          "name": "collection",
+          "conclusion": "success"
+        },
+        {
+          "id": 131765963795,
+          "name": "app",
+          "conclusion": "success"
+        },
+        {
+          "id": 131765963827,
+          "name": "code-worker",
+          "conclusion": "success"
+        }
+      ],
+      "ubuntuApp": {
+        "tests": 1181,
+        "passed": 1173,
+        "failed": 0,
+        "skipped": 8
+      },
+      "appBrowserPassed": 60,
+      "workbenchBrowserPassed": 38,
+      "nativeWorkerTestsPassed": 16,
+      "nativeWorkerBrowserPassed": 1
+    }
+  },
+  "review": {
+    "independentSourceReview": true,
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "low",
+    "actualExecutionModelIndependentlyObserved": false,
+    "noActionableBlockerReported": true,
+    "diffBoundaryNotIndependentlyVerified": true,
+    "coverageSuggestionAdded": "Two distinct bindings, enumeration reorder and denied second role"
+  },
+  "preservation": {
+    "originalTables": 45,
+    "allRowsSchemaSequencesSecurityAndContainerPreserved": true,
+    "protectedFiles": 42,
+    "protectedProcesses": 18,
+    "originalWorkerStarted": false,
+    "originalModelRequests": 0,
+    "originalAuthPreserved": true,
+    "refreshTokenCopied": false,
+    "operatingTrackRevision": "a3bb446b9f32939ec7a6e15237e6f6d4ac6f1003"
+  },
+  "cleanup": {
+    "workersStopped": true,
+    "successfulWorkerExitCode": 0,
+    "ownedContainerRemoved": true,
+    "tmpfsDisposed": true,
+    "privateSecretFilesRemoved": 9,
+    "archives": [
+      {
+        "bytes": 153391,
+        "sha256": "71a3c853e896ef4326af385a2a251059b4a393e8da96f002e03ddddc90eaede4"
+      },
+      {
+        "bytes": 171711,
+        "sha256": "5ee6323db19e0c9a4ac22a6f19d80d4a6de3526931c5217c9ebb3da2cde8b630"
+      }
+    ],
+    "archivesNotRestoredInThisCheck": true
+  },
+  "initialQaFailure": {
+    "beforeModelDispatch": true,
+    "reason": "Owner probe attempted empty membership lookup",
+    "workerExitCode": 1,
+    "noNativeRunSubmittedByDriver": true
+  },
+  "harnessCorrections": [
+    "An unused model-request counter initialized to0 is not used as an observed provider request count. Actual native turn and scoped token observations are recorded separately.",
+    "A private ACL generator expanded a replacement suffix token; literal replacement repaired it. Runtime DACL checks remained enabled.",
+    "Initial read-only target probe denied the Note RPC POST envelope before network dispatch. A fresh probe allowed only whitelisted inner GET workspace/layout requests and succeeded; the initial unreachable label was not a verified provider outage."
+  ],
+  "remaining": [
+    "Current operating owner/source/deployment contract and fresh Work/runtime backup/DDL/guard integration",
+    "Actual WorkCoordinator task through Projects and Note; current source requires Note destination even in answer mode",
+    "Authorized metadata observation path for protected delegated Runs; do not loosen normal bearer visibility",
+    "Operating Entra GUI and desktop/additional-device whole-task acceptance",
+    "Operating source promotion with fresh backup/guard and current authority contract"
+  ],
+  "overall": {
+    "completed": 14,
+    "total": 21,
+    "weighting": "equal",
+    "percent": 66.7,
+    "eta": "not estimable",
+    "confidence": "low"
+  },
+  "existingWorkServices": {
+    "at": "2026-11-13T08:08:16.000Z",
+    "scope": "Read-only capability requests from the exact operating Assistant container. Existing signing keys stayed inside that container; no business resources written.",
+    "checks": [
+      {
+        "audience": "note",
+        "invalidStatus": 401,
+        "signedStatus": 200,
+        "compatible": true,
+        "flags": {
+          "read": true,
+          "write": true
+        }
+      },
+      {
+        "audience": "projects",
+        "invalidStatus": 401,
+        "signedStatus": 200,
+        "compatible": true,
+        "flags": {
+          "projectsRead": true,
+          "tasksRead": true,
+          "tasksCreate": true,
+          "tasksUpdate": true,
+          "resultsAttach": true,
+          "idempotency": true,
+          "cas": true
+        }
+      }
+    ],
+    "productionSource": "5196c8bc9233da493c4146fec17b98e1c835dadc",
+    "productionPidUnchanged": true,
+    "providerResourceWrites": 0,
+    "newTasksOrRuns": 0,
+    "newModelCalls": 0,
+    "credentialCopiedOrPrinted": false,
+    "currentPerProjectMutationAclVerified": false,
+    "qaSenderHandoffProvisioned": false,
+    "targetReadback": {
+      "at": "2026-11-13T08:15:07.246Z",
+      "selectedProjects": [
+        {
+          "projectId": "c06bb4d0-1d79-4417-a3e5-9df6466f8f7a",
+          "version": 1,
+          "isPreviouslyNamedTrackQaProject": false
+        }
+      ],
+      "namedPreviousTrackQaProjectVisible": false,
+      "configuredNoteTarget": {
+        "workspaceId": "personal-note-production",
+        "status": "active",
+        "revision": 4,
+        "destinationMatches": true
+      },
+      "requestCount": 3,
+      "allLogicalOperationsGet": true,
+      "noteReadTransport": "POST /request RPC containing only a whitelisted GET workspace/layout request",
+      "providerResourceWrites": 0,
+      "originalSqlDatabaseOpened": false,
+      "inMemorySchemaOnly": true,
+      "currentMutationAclEstablished": false
+    }
+  }
+}

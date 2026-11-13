@@ -1,5 +1,18 @@
 # Agent Track 개발계획
 
+2026-11-13 실행 연동 후속: 계정 준비 상태 오류 수정 `b6504e5`와 실제 native
+위임 Run1/attempt1·전송1/8event를 검증했다. Persona PR22는 CI 네 job 성공·
+draft·운영 미배포다. [실기 기록](assistant-native-delegation-verification.json) 참고.
+
+| 다음 단계 | 확보된 근거 | 남은 조건 |
+| --- | --- | --- |
+| 운영 실행 설정 | host loader·정확한 역할 binding·deployment/session authority를 별도 QA에서 실제 연결 | 현재 운영 tuple·전체 DDL·최신 backup/guard·source pin |
+| 인가된 실행 관측 | native Run/응답·receipt/context의 PostgreSQL·SQLite 일치 | protected Run의 metadata 조회 계약. 일반 bearer 공개나 로컬 cached observe로 대체하지 않음 |
+| 전체 업무 | 기존 Work selector·actor·membership·Note/Projects signed capability200 확인 | 명시 QA Project/Note 대상의 현재 action ACL·WorkCoordinator 실행·결과 연결 |
+
+전체14/21(동일 가중치66.7%)·ETA 산정 불가·신뢰도 낮음을 유지한다. 운영 전환·
+전체 교차 앱/desktop 수용과 Entra GUI는 미검증이다.
+
 기준: 2026-11-12 KST · 제품 기획 v0.4 · 실행 goal 활성.
 [전체 수용 기준표](goal-status.md)가 진행률의 단일 원본이다.
 
