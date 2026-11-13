@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 from pathlib import Path
 import unittest
+import subprocess
 from unittest.mock import patch
 
 # Compile directly so discovery does not create bytecode for the frozen module.
@@ -309,6 +310,106 @@ class LifecycleHarness(unittest.TestCase):
 
 
 class NativeLifecycleTest(LifecycleHarness):
+    def quiet_pins(self):
+        return [{"ownerSha256": "1" * 64,
+                 "executionId": "11111111-1111-4111-8111-111111111111",
+                 "executionRowSha256": "2" * 64,
+                 "noteOperationId": "22222222-2222-4222-8222-222222222222",
+                 "noteRowSha256": "3" * 64}]
+
+    def enable_quiescent_publication(self):
+        pins = self.quiet_pins()
+        self.lifecycle.plan["quiescentPublications"] = pins
+        baseline = evidence_fixture(self.plan)["baseline"]
+        baseline["quiescentPublications"] = pins
+        self.replace_evidence("baseline", baseline)
+        self.engines["rootless"].exec_readonly = lambda *_: {
+            "counts": [0, 0, 1, 0, 0, 0], "quiescentPublications": deepcopy(pins)}
+        return pins
+
+    def test_exact_quiescent_publication_can_survive_cutover(self):
+        self.enable_quiescent_publication()
+        with patch.object(native.Path, "exists", return_value=False), patch.object(native, "publish", self.publish_mock):
+            self.assertEqual(self.lifecycle.cutover()["phase"], "switched-stopped")
+
+    def test_quiescent_scope_and_frozen_baseline_are_required(self):
+        for value in [None, [], self.quiet_pins() * 2,
+                      [{**self.quiet_pins()[0], "unexpected": True}],
+                      [{**self.quiet_pins()[0], "noteRowSha256": "bad"}],
+                      [{**self.quiet_pins()[0], "executionId": "bad"}]]:
+            with self.subTest(value=value), self.assertRaises(native.LifecycleError):
+                native.validate({**self.plan, "quiescentPublications": value})
+        self.lifecycle.plan["quiescentPublications"] = self.quiet_pins()
+        self.reject("quiescent_baseline_binding", self.lifecycle.preflight)
+
+    def test_quiescent_publication_drift_and_other_work_reject_before_stop(self):
+        for changed in ["ownerSha256", "executionRowSha256", "noteRowSha256",
+                        "executionId", "noteOperationId", "missing", "extra", "active"]:
+            self.setUp()
+            pins = self.enable_quiescent_publication()
+            observed = deepcopy(pins)
+            counts = [0, 0, 1, 0, 0, 0]
+            if changed == "missing":
+                observed = []
+            elif changed == "extra":
+                observed *= 2
+                counts[2] = 2
+            elif changed == "active":
+                counts[0] = 1
+            else:
+                observed[0][changed] = "changed"
+            self.engines["rootless"].exec_readonly = lambda *_: {
+                "counts": counts, "quiescentPublications": observed}
+            with self.subTest(changed=changed), patch.object(native.Path, "exists", return_value=False):
+                self.reject("active_work_before_stop" if changed in ["extra", "active"]
+                            else "quiescent_publication_changed", self.lifecycle.cutover)
+            self.assertFalse(any(call[0] == "POST" for call in self.engines["rootless"].calls))
+
+    def test_quiescent_sql_checks_actual_sqlite_rows_without_writes(self):
+        program = native.QUIESCENT_PUBLICATIONS + r'''
+import assert from'node:assert/strict';import{DatabaseSync}from'node:sqlite';
+const db=new DatabaseSync(':memory:');
+db.exec(`CREATE TABLE work_executions(owner TEXT,id TEXT,state TEXT,document TEXT,journal TEXT);
+CREATE TABLE work_note_publications(owner_id TEXT,operation_id TEXT,payload TEXT,runner TEXT,runner_until INTEGER);`);
+const id='11111111-1111-4111-8111-111111111111',op='22222222-2222-4222-8222-222222222222';
+function seed(change=()=>{}){
+ db.exec('PRAGMA query_only=OFF;DELETE FROM work_executions;DELETE FROM work_note_publications;');
+ const value={state:'reconciliation_required',document:{id,state:'reconciliation_required',roles:[{id:'role-one',state:'completed'}]},
+  journal:{reconcileRequested:false,cancelRequested:false,noteState:'unknown',noteOperationId:op,roles:[{id:'role-one',result:{text:'private-result'}}],projectOps:[{state:'saved'}]},
+  publication:{operationId:op,status:'failed',stage:'layout',errorCode:'conflict',steps:[],receipt:null},runner:null};
+ change(value);
+ db.prepare('INSERT INTO work_executions VALUES(?,?,?,?,?)').run('owner-private',id,value.state,JSON.stringify(value.document),JSON.stringify(value.journal));
+ db.prepare('INSERT INTO work_note_publications VALUES(?,?,?,?,0)').run('owner-private',op,JSON.stringify(value.publication),value.runner);
+ db.exec('PRAGMA query_only=ON;');
+ return db.prepare('SELECT total_changes() AS n').get().n;
+}
+let before=seed();const pins=quiescentPublicationPins(db);assert.equal(pins.length,1);
+assert.equal(pins[0].executionId,id);assert.equal(pins[0].noteOperationId,op);
+assert(!JSON.stringify(pins).includes('private'));assert.equal(db.prepare('SELECT total_changes() AS n').get().n,before);
+for(const change of [
+ v=>v.state='running',v=>v.document.state='publishing',v=>v.document.id='foreign',
+ v=>v.journal.reconcileRequested=true,v=>delete v.journal.reconcileRequested,
+ v=>v.journal.cancelRequested=true,v=>v.journal.noteState='dispatching',
+ v=>v.document.roles=[],v=>v.document.roles[0].state='running',
+ v=>v.journal.roles[0].result=null,v=>v.journal.roles[0].id='foreign-role',
+ v=>v.journal.projectOps[0].state='dispatching',v=>v.journal.noteOperationId='foreign',
+ v=>v.publication.status='publishing',v=>v.publication.stage='page',
+ v=>v.publication.errorCode='timeout',v=>v.publication.operationId='foreign',
+ v=>v.publication.steps=[{completed:false}],v=>v.publication.receipt={},v=>v.runner='active-runner'
+]){
+ before=seed(change);assert.throws(()=>quiescentPublicationPins(db));
+ assert.equal(db.prepare('SELECT total_changes() AS n').get().n,before);
+}
+seed(v=>v.journal.roles[0].result.text='different-private-result');
+assert.notEqual(quiescentPublicationPins(db)[0].executionRowSha256,pins[0].executionRowSha256);
+seed(v=>v.publication.additional='changed');
+assert.notEqual(quiescentPublicationPins(db)[0].noteRowSha256,pins[0].noteRowSha256);
+db.close();console.log('Actual SQLite quiescence: valid, 20 refusal boundaries, row drift and zero observer writes.');
+'''
+        result = subprocess.run(["node", "--input-type=module", "-"], input=program,
+                                text=True, capture_output=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_preflight_rejects_contract_protected_and_writer_drift(self):
         self.engines["rootless"].rows[self.plan["candidate"]["id"]]["Contract"]["host"] = "drift"
         self.reject("container_contract_changed", self.lifecycle.preflight)

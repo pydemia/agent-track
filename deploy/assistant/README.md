@@ -22,6 +22,14 @@ false, 기동 후 null을 반환했다. 다른 HostConfig 필드와 원본·다�
 hash·상태·candidate/source/state 식별자를 다시 대조한다. 합성 unit test는 이
 실제 운영 증거를 대신하지 않는다.
 
+모델 실행과 Projects 결과 첨부가 끝났고 Note layout 충돌로만 멈춘 업무는
+private plan의 선택 항목 `quiescentPublications`로 정확히 한 건을 지정할 수
+있다. 최초 baseline과 중지 직전 조회에서 owner hash·Execution ID·전체 실행 행
+hash·Note operation ID·전체 발행 행 hash가 모두 같아야 한다. 실행·취소·재개 요청,
+미완료 역할, 미저장 Projects operation, 발행 step·receipt·runner가 있으면 거절한다.
+대기 업무를 완료 처리하거나 원장을 수정하지 않는다. 이 항목을 생략하면 기존의
+모든 미완료 업무 0건 조건을 그대로 적용한다.
+
 - `inspect`: 기존 13개 component의 process와 raw 설정·network, 원본/candidate,
   renderer/boot role 계약, Docker에서 보이는 state writer와 보존 파일 확인
 - `cutover --execute`: 양쪽 실제 guard·대기 start job·15분 이내 baseline·현재

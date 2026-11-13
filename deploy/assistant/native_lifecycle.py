@@ -26,6 +26,47 @@ LIBRARY_SHA = "659ae788e62ec621c496f5aec48e4e6aed0d1d2e3e4c1b3c183331f16f99d914"
 HEX = re.compile(r"[a-f0-9]{64}")
 IDENTIFIER = re.compile(r"[a-f0-9]{64}")
 SAFE_PATH = re.compile(r"/[A-Za-z0-9_./-]+")
+UUID = re.compile(r"[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}")
+
+# Only a publication that cannot advance without an explicit reconcile request
+# can be pinned across an image transition. These are observations, not writes.
+QUIESCENT_PUBLICATIONS = r'''
+import{createHash}from'node:crypto';
+function quiescentPublicationPins(db){
+ const sha=value=>createHash('sha256').update(value).digest('hex');
+ const rows=db.prepare("SELECT * FROM work_executions WHERE state NOT IN('completed','failed','cancelled') ORDER BY owner,id").all();
+ return rows.map(row=>{
+  const journal=JSON.parse(row.journal),document=JSON.parse(row.document);
+  const note=db.prepare('SELECT * FROM work_note_publications WHERE owner_id=? AND operation_id=?').get(row.owner,journal.noteOperationId);
+  if(!note)throw Error('quiescent_publication_missing');
+  const publication=JSON.parse(note.payload);
+  if(row.state!=='reconciliation_required'||document.state!==row.state||document.id!==row.id||
+    journal.reconcileRequested!==false||journal.cancelRequested!==false||journal.noteState!=='unknown'||
+    !Array.isArray(document.roles)||document.roles.length===0||document.roles.some(role=>role.state!=='completed')||
+    !Array.isArray(journal.roles)||journal.roles.length!==document.roles.length||journal.roles.some(role=>!role.result||!document.roles.some(item=>item.id===role.id))||
+    !Array.isArray(journal.projectOps)||journal.projectOps.some(op=>op.state!=='saved')||
+    publication.operationId!==journal.noteOperationId||publication.status!=='failed'||publication.stage!=='layout'||publication.errorCode!=='conflict'||
+    !Array.isArray(publication.steps)||publication.steps.length!==0||publication.receipt!==null||note.runner!==null)
+   throw Error('publication_not_quiescent');
+  return{ownerSha256:sha(row.owner),executionId:row.id,executionRowSha256:sha(JSON.stringify(row)),
+   noteOperationId:journal.noteOperationId,noteRowSha256:sha(JSON.stringify(note))};
+ }).sort((a,b)=>a.ownerSha256.localeCompare(b.ownerSha256)||a.executionId.localeCompare(b.executionId));
+}
+'''
+
+
+def validate_quiescent_publications(value):
+    require(type(value) is list and len(value) == 1, "quiescent_publication_scope")
+    for row in value:
+        require(type(row) is dict and set(row) == {
+            "ownerSha256", "executionId", "executionRowSha256",
+            "noteOperationId", "noteRowSha256"}, "quiescent_publication_fields")
+        require(all(type(row[key]) is str and HEX.fullmatch(row[key])
+                    for key in ["ownerSha256", "executionRowSha256", "noteRowSha256"]),
+                "quiescent_publication_digest")
+        require(all(type(row[key]) is str and UUID.fullmatch(row[key])
+                    for key in ["executionId", "noteOperationId"]),
+                "quiescent_publication_identity")
 
 
 class LifecycleError(RuntimeError):
@@ -95,6 +136,8 @@ def validate(plan):
             and plan["preview"]["phase"] == "full-candidate-boot-copy-verified"
             and plan["preview"]["sourceRevision"] == plan["candidate"]["sourceCommit"],
             "recovery_preview_required")
+    if "quiescentPublications" in plan:
+        validate_quiescent_publications(plan["quiescentPublications"])
 
 
 def guard_bytes(plan, plan_sha, renderer=False):
@@ -165,6 +208,9 @@ class NativeLifecycle:
                 and baseline.get("reportPinsPreserved") is True
                 and baseline.get("capturedAt") == self.plan["precutover"]["capturedAt"],
                 "baseline_evidence")
+        if "quiescentPublications" in self.plan:
+            require(baseline.get("quiescentPublications") == self.plan["quiescentPublications"],
+                    "quiescent_baseline_binding")
 
     def container(self, row, *, name=None):
         actual = self.engine.inspect(row["id"])
@@ -329,17 +375,27 @@ class NativeLifecycle:
         existing = self.engine.request("GET", "/containers/json?all=1")
         require(all("/" + original["retainedName"] not in row.get("Names", [])
                     for row in existing), "retained_name_exists")
-        idle_script = r'''import{DatabaseSync}from'node:sqlite';const counts=[];
+        idle_script = r'''import{DatabaseSync}from'node:sqlite';const counts=[];let quiescentPublications=[];
 for(const[name,path]of[['runtime','/state/app/persona.sqlite'],['work','/state/app/workbench/assistant-work.sqlite']]){
  const db=new DatabaseSync(path,{readOnly:true,timeout:1000});try{db.exec('PRAGMA query_only=ON;BEGIN;');
  if(name==='runtime')counts.push(db.prepare("SELECT count(*)AS n FROM persona_tasks WHERE state IN('queued','awaiting_connection','awaiting_runtime','preparing','starting','running')").get().n);
  else{counts.push(db.prepare("SELECT count(*)AS n FROM work_executions WHERE state NOT IN('completed','failed','cancelled')").get().n);counts.push(db.prepare("SELECT count(*)AS n FROM work_reports WHERE json_extract(document,'$.state')IN('queued','generating','uploading','publishing')").get().n);counts.push(db.prepare("SELECT count(*)AS n FROM work_storage_imports WHERE state!='completed'").get().n);}
+ /* publication-pins */
  counts.push(db.prepare('SELECT total_changes()AS n').get().n);db.exec('ROLLBACK;');}finally{db.close();}}
-console.log(JSON.stringify({counts}));'''
+console.log(JSON.stringify({counts,quiescentPublications}));'''
+        expected = self.plan.get("quiescentPublications")
+        if expected is not None:
+            idle_script = QUIESCENT_PUBLICATIONS + idle_script.replace(
+                "/* publication-pins */",
+                "if(name==='work')quiescentPublications=quiescentPublicationPins(db);")
         idle = self.engine.exec_readonly(original["id"], idle_script)
         require(type(idle.get("counts")) is list and len(idle["counts"]) == 6
-                and all(type(value) is int and value == 0 for value in idle["counts"]),
+                and all(type(value) is int for value in idle["counts"])
+                and idle["counts"] == [0, 0, len(expected or []), 0, 0, 0],
                 "active_work_before_stop")
+        if expected is not None:
+            require(idle.get("quiescentPublications") == expected,
+                    "quiescent_publication_changed")
         # This action is deliberately one-shot. Partial outcomes are journaled by
         # its caller; boot only adopts the exact renamed candidate, never retries
         # a cutover or restores an old image/database automatically.
