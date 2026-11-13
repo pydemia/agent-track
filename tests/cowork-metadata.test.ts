@@ -65,6 +65,17 @@ test("versioned plans admit IDs only; invalid, oversized, foreign and arbitrary 
   assert.equal(normalizeEvent("native", raw(1, "cowork.group.started", { groupId: "g", flow: { version: 2 } })).data.coworkPlanIssue, "unsupported");
 });
 
+test("JSONB object key reordering preserves normalized plan bytes and immutable replay", () => {
+  const first = normalizeEvent("native", raw(1, "cowork.group.started", { groupId: "g", flow: plan }));
+  const jsonbOrder = { members: plan.members, version: 1 };
+  assert.notEqual(JSON.stringify(plan), JSON.stringify(jsonbOrder));
+  const replay = normalizeEvent("native", raw(1, "cowork.group.started", { groupId: "g", flow: jsonbOrder }));
+  assert.equal(JSON.stringify(first), JSON.stringify(replay));
+  const db = new Store(":memory:"); try {
+    db.observeRun(observation); db.ingest(first); assert.equal(db.ingest(replay), "duplicate");
+  } finally { db.close(); }
+});
+
 test("canonical HTTP event shape through SQLite creates exact member dependency and nested call/tool groups", () => {
   const f = fixture(); try {
     const deps = f.model.edges.filter(edge => edge.kind === "cowork-dependency");

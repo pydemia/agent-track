@@ -6,8 +6,9 @@ import {
     type Viewport, useReactFlow, useNodesInitialized,
 } from "@xyflow/react";
 import type { CSSProperties } from "react";
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { alignFlowNode, type FlowGuide } from "./flow-alignment.ts";
+import { captureFlowMeasurements, measuredFlowNodes, type FlowMeasurements } from "../flow-measurements.ts";
 
 type FlowNodeData = {
     title: string;
@@ -272,6 +273,14 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
     fitView = true, defaultViewport, readOnly = true, minZoom = 0.25,
 }: FlowCanvasProps) {
     const [guides, setGuides] = useState<FlowGuide[]>([]);
+    const [measurements, setMeasurements] = useState<FlowMeasurements>(new Map());
+    const measuredNodes = useMemo(() => measuredFlowNodes(nodes, measurements), [nodes, measurements]);
+    const nodeIds = JSON.stringify(nodes.map(node => node.id).sort());
+    useEffect(() => {
+        const allowed = new Set<string>(JSON.parse(nodeIds));
+        setMeasurements(previous => [...previous.keys()].some(id => !allowed.has(id))
+            ? new Map([...previous].filter(([id]) => allowed.has(id))) : previous);
+    }, [nodeIds]);
     const zoom = useRef(1);
     const container = useRef<HTMLElement | null>(null);
     const reportView = (viewport: Viewport) => {
@@ -291,9 +300,12 @@ function FlowCanvas({ label, nodes, edges, onNodesChange, onEdgesChange,
         <FlowEdgeEditContext.Provider value={onEdgeControlChange}>
         <FlowEdgeSelectContext.Provider value={onEdgeClick}>
         <FlowGroupActionsContext.Provider value={{ ...(onGroupToggle ? { toggle: onGroupToggle } : {}), ...(onGroupEnter ? { enter: onGroupEnter } : {}) }}>
-        <ReactFlow<FlowNode, FlowEdge> nodes={nodes} edges={edges}
+        <ReactFlow<FlowNode, FlowEdge> nodes={measuredNodes} edges={edges}
             nodeTypes={nodeTypes} edgeTypes={edgeTypes}
-            {...(onNodesChange ? { onNodesChange } : {})}
+            onNodesChange={changes => {
+                setMeasurements(previous => captureFlowMeasurements(previous, changes));
+                onNodesChange?.(changes);
+            }}
             {...(onEdgesChange ? { onEdgesChange } : {})}
             {...(onConnect && !readOnly ? { onConnect } : {})}
             onNodeDragStart={(_, node) => onNodeDragStart?.(node.id)}
