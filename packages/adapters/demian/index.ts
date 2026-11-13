@@ -15,6 +15,9 @@ import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from
 import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
 import { readBoundedNativeJson } from "./json.ts";
 import { coworkPlanSchema } from "../../contracts/cowork.ts";
+import { nativeCommandContextSchema, nativeCommandDescriptorSchema, nativeCommandReceiptSchema, nativeCommandStatusSchema,
+  nativeCommandWriteSchema, type NativeCommandContext, type NativeCommandReceipt, type NativeCommandStatus,
+  type NativeCommandWrite } from "../../contracts/native-run-commands.ts";
 
 export type { NativeLineageObservation, NativeLineagePage } from "./lineage.ts";
 export type { ToolEvidenceCall, ToolEvidenceEventType, ToolEvidenceMark, ToolEvidenceOutcome, ToolEvidencePage } from "./tool-evidence.ts";
@@ -120,7 +123,7 @@ export class SourceError extends Error {
 export class DemianClient {
   constructor(readonly options: DemianOptions) {}
 
-  private async request(path: string, signal?: AbortSignal, body?: object): Promise<Response> {
+  private async request(path: string, signal?: AbortSignal, body?: object, acceptedStatuses: readonly number[] = []): Promise<Response> {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (body) headers["Content-Type"] = "application/json";
     if (this.options.tokenFile) {
@@ -135,7 +138,7 @@ export class DemianClient {
       headers, redirect: "error", signal: signal ?? this.options.signal ?? AbortSignal.timeout(15_000),
       ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
     });
-    if (!response.ok) { await response.body?.cancel(); throw new SourceError(response.status); }
+    if (!response.ok && !acceptedStatuses.includes(response.status)) { await response.body?.cancel(); throw new SourceError(response.status); }
     return response;
   }
 
@@ -144,6 +147,42 @@ export class DemianClient {
     const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`);
     const session = z.object({ id: idSchema, workspace_id: idSchema }).parse(await response.json());
     if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
+  }
+
+  /** Ordinary-owner transport only. Protected runs use the Assistant owner path. */
+  async commandContext(runId: string): Promise<NativeCommandContext> {
+    const id = relationUuidSchema.parse(runId), signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request(`/api/v1/runs/${id}/command-context`, signal);
+    const value = nativeCommandContextSchema.parse(await readBoundedNativeJson(response, signal));
+    if (value.source_run.id !== id) throw new Error("Native command context identity mismatch");
+    return value;
+  }
+
+  async command(raw: NativeCommandWrite, sessionId: string): Promise<NativeCommandReceipt> {
+    const input = nativeCommandWriteSchema.parse(raw), session = relationUuidSchema.parse(sessionId);
+    const signal = this.options.signal ?? AbortSignal.timeout(15_000);
+    // A durable rejection is a receipt. Other 409 bodies fail closed; no retry here.
+    const response = await this.request(`/api/v1/runs/${input.command.sourceRunId}/commands`, signal, input, [409]);
+    if (![200, 202, 409].includes(response.status)) { await response.body?.cancel(); throw new Error("Unexpected native command status"); }
+    const value = nativeCommandReceiptSchema.parse(await readBoundedNativeJson(response, signal));
+    if (value.command_id !== input.command.commandId || value.source_run_id !== input.command.sourceRunId ||
+        value.session_id !== session || value.kind !== input.command.kind ||
+        Date.parse(value.expires_at) !== Date.parse(input.command.expiresAt) ||
+        (response.status === 409 ? value.outcome !== "rejected" : value.outcome !== "accepted")) {
+      throw new Error("Native command receipt identity mismatch");
+    }
+    return value;
+  }
+
+  async commandReceipt(sessionId: string, rawCommand: NativeCommandWrite["command"]): Promise<NativeCommandStatus> {
+    const session = relationUuidSchema.parse(sessionId), command = nativeCommandDescriptorSchema.parse(rawCommand);
+    const signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request(`/api/v1/sessions/${session}/commands/${command.commandId}`, signal);
+    const value = nativeCommandStatusSchema.parse(await readBoundedNativeJson(response, signal));
+    if (value.receipt && (value.receipt.session_id !== session || value.receipt.command_id !== command.commandId ||
+        value.receipt.source_run_id !== command.sourceRunId || value.receipt.kind !== command.kind ||
+        Date.parse(value.receipt.expires_at) !== Date.parse(command.expiresAt))) throw new Error("Native command lookup identity mismatch");
+    return value;
   }
 
   /** Current authenticated native principal; personal profile fields are discarded. */

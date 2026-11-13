@@ -29,6 +29,13 @@ Track 후보를 별도로 동결했고 운영은 교체하지 않았다. 현재 
 현재 앱 결함이나 로그인 실패로 단정하지 않는다. AT-09의 실제 계약 공백과 구현 순서는
 [개발계획](development-plan.md#at-09-재개재시도-구현-순서)에 구분했다.
 
+AT-09 후속 소스 Native d3ffeb9는 재시도/재개/계속 실행의 후속 Run·불변 명령
+receipt·Session head·현재 권한 fence와 복구를 구현했다. PostgreSQL 격리 suite72개
+통과/선택환경2개 skip, 개인/배포 권한 오류 재현·수정 후 일반 HTTP6개 통과를 확인했다.
+Track에는 strict 계약·일반 owner transport를 추가했다. 아직 운영 반영·Assistant
+owner attempt/ref·Track 제어/복구 UI·실제 제공자 검증이 남아 AT-09 완료로 세지 않는다.
+[현재 구현 단계](native-run-commands.md)와 [검증 근거](native-run-commands-verification.json)를 따른다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

@@ -1,0 +1,2117 @@
+diff --git a/apps/api/src/run-command-successor.ts b/apps/api/src/run-command-successor.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..59869cd28cd4e29c9292e5ac466c15c28f50ff8b
+--- /dev/null
++++ b/apps/api/src/run-command-successor.ts
+@@ -0,0 +1,54 @@
++import { createHash } from "node:crypto"
++import type { DatabaseClient, RunRow } from "@demian/db"
++import type { RunInputItem } from "@demian/protocol"
++import { insertOrReplayRun, IdempotencyConflictError } from "../../../packages/db/src/index.ts"
++import { getDeploymentRunAuthorityPin, inspectDeploymentSessionAuthority, lockDeploymentScope, pinDeploymentRunAuthority } from "../../../packages/db/src/deployment-services.ts"
++import { RunCommandError } from "../../../packages/db/src/run-commands.ts"
++import { normalizeArtifactDatabaseError } from "../../../packages/db/src/artifacts.ts"
++
++/** Called only within the command transaction after its current-authority fence. */
++export async function createOrdinaryCommandSuccessor(client: DatabaseClient, input: {
++  sourceRun: RunRow; commandId: string; items: RunInputItem[]
++}): Promise<RunRow> {
++  const source = input.sourceRun
++  if (!source.requested_by_user_id || source.requested_actor_scope !== "user") throw new IdempotencyConflictError()
++  const managed = await client.query(`SELECT 1 WHERE
++    EXISTS(SELECT 1 FROM work_runtime_runs WHERE run_id=$1) OR
++    EXISTS(SELECT 1 FROM managed_child_receipts WHERE run_id=$1) OR
++    EXISTS(SELECT 1 FROM peer_processing_receipts WHERE run_id=$1)`, [source.id])
++  if (managed.rowCount) throw new IdempotencyConflictError()
++  const session = (await client.query<{ workspace_id: string; mode: string }>(
++    "SELECT workspace_id,mode FROM sessions WHERE organization_id=$1 AND id=$2", [source.organization_id, source.session_id])).rows[0]
++  if (!session) throw new IdempotencyConflictError()
++  if (input.items.some(item => item.type === "input_artifact")) {
++    if (session.mode !== "single-agent") throw new RunCommandError(400, "artifact_mode_unsupported")
++    const workers = (await client.query<{ total: number; compatible: number }>(
++      `SELECT count(*)::int AS total,count(*) FILTER(WHERE features->'web_artifact_inputs_v1'='true'::jsonb)::int AS compatible
++       FROM worker_runtime_capabilities WHERE checked_at>clock_timestamp()-interval '90 seconds' AND checked_at<=clock_timestamp()`)).rows[0]
++    if (!workers || workers.total === 0 || workers.total !== workers.compatible) throw new RunCommandError(503, "artifact_runtime_unavailable")
++  }
++  const scope = { organizationId: source.organization_id, workspaceId: session.workspace_id,
++    sessionId: source.session_id, actorUserId: source.requested_by_user_id }
++  const expected = await getDeploymentRunAuthorityPin(client, source.id)
++  if (!expected && (await client.query("SELECT 1 FROM deployment_session_bindings WHERE session_id=$1", [source.session_id])).rowCount)
++    throw new IdempotencyConflictError()
++  if (expected) {
++    await lockDeploymentScope(client, scope)
++    const current = await inspectDeploymentSessionAuthority(client, scope)
++    if (!current?.available || current.settingsHash !== expected) throw new IdempotencyConflictError()
++  }
++  const requestHash = createHash("sha256").update(JSON.stringify([source.session_id, source.requested_by_user_id, input.items])).digest("hex")
++  const result = await insertOrReplayRun(client, { organizationId: source.organization_id, sessionId: source.session_id,
++    userId: source.requested_by_user_id, items: input.items,
++    idempotencyKey: `run-command:${source.requested_by_user_id}:${input.commandId}`, requestId: input.commandId,
++    ...(source.provider_auth_id ? { providerAuthId: source.provider_auth_id } : {}) }, requestHash).catch(error => {
++      if (error && typeof error === "object" && "constraint" in error && typeof error.constraint === "string" && error.constraint.startsWith("artifact_"))
++        normalizeArtifactDatabaseError(error)
++      throw error
++    })
++  if (result.replayed) throw new IdempotencyConflictError()
++  if (expected) await pinDeploymentRunAuthority(client, { ...scope, runId: result.run.id, expectedSettingsHash: expected })
++  await client.query("INSERT INTO run_event_counters(run_id,next_sequence) VALUES($1,2)", [result.run.id])
++  await client.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.created',$2)", [result.run.id, { status: "queued" }])
++  return result.run
++}
+diff --git a/apps/api/src/run-commands.ts b/apps/api/src/run-commands.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..c98e51c52bd0e6d3fb4532d56f500d99632ff9dc
+--- /dev/null
++++ b/apps/api/src/run-commands.ts
+@@ -0,0 +1,153 @@
++import { createHash } from "node:crypto"
++import type { FastifyInstance, FastifyRequest } from "fastify"
++import { getRun, type DatabaseClient, type DatabasePool, type RunRow } from "@demian/db"
++import { ProtocolValidationError, parseRunInput } from "@demian/protocol"
++import { createRunCommand, getRunCommandHead, readRunCommand, RunCommandError,
++  type RunCommandKind, type RunCommandResult, type RunCommandReceipt } from "../../../packages/db/src/run-commands.ts"
++import { getDeploymentRunAuthorityPin, inspectDeploymentSessionAuthority, lockDeploymentScope } from "../../../packages/db/src/deployment-services.ts"
++import { createOrdinaryCommandSuccessor } from "./run-command-successor.ts"
++import { parseWorkRuntimeCommandDescriptor } from "./work-runtime-package.ts"
++import type { Principal } from "./auth.ts"
++
++const sha = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex")
++const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/
++export interface NativeRunCommandContext {
++  object: "demian.run_command_context"
++  version: 1
++  source_run: { id: string; session_id: string; status: string }
++  session_head_sha256: string
++  authority_sha256: string
++  available_kinds: RunCommandKind[]
++  observed_at: string
++}
++export interface DelegatedRunCommands {
++  hasContext(request: FastifyRequest): boolean
++  commandContext(request: FastifyRequest, sourceRunId: string): Promise<NativeRunCommandContext>
++  command(request: FastifyRequest, sourceRunId: string): Promise<RunCommandResult>
++  commandReceipt(request: FastifyRequest, sessionId: string, commandId: string): Promise<RunCommandResult | undefined>
++}
++export function runCommandResource(row: RunCommandReceipt) {
++  return { object: "demian.run_command_receipt", version: 1, command_id: row.command_id,
++    session_id: row.session_id, source_run_id: row.source_run_id, kind: row.kind,
++    outcome: row.outcome, rejection_code: row.rejection_code, new_run_id: row.new_run_id,
++    task_root_run_id: row.task_root_run_id, relation: row.relation,
++    created_at: row.created_at.toISOString(), expires_at: row.expires_at.toISOString() }
++}
++export function availableRunCommands(status: string, active: boolean): RunCommandKind[] {
++  if (active) return []
++  return status === "failed" ? ["retry", "continue"] :
++    ["cancelled", "expired"].includes(status) ? ["resume", "continue"] : status === "succeeded" ? ["continue"] : []
++}
++
++/** One route composition for ordinary users and the separately signed owner path. */
++export function registerRunCommands(app: FastifyInstance, db: DatabasePool, options: {
++  principalFor(request: FastifyRequest): Principal
++  authorize(principal: Principal, action: string, resource: { kind: string; id: string; organizationId: string }): Promise<void>
++  delegated?: DelegatedRunCommands
++}) {
++  const noBody = (request: FastifyRequest) => {
++    if (request.body !== undefined || request.headers["transfer-encoding"] !== undefined || Number(request.headers["content-length"] ?? 0) !== 0 ||
++        (request.raw.url ?? request.url).includes("?")) throw new ProtocolValidationError("Command reads do not accept a body or query")
++  }
++  const principal = (request: FastifyRequest) => options.principalFor(request)
++  const sourceFor = async (request: FastifyRequest, id: string) => {
++    if (!uuid.test(id)) throw new ProtocolValidationError("Invalid Run identifier")
++    const actor = principal(request), source = await getRun(db, actor.organizationId, id)
++    if (!source || source.requested_by_user_id !== actor.userId || source.requested_actor_scope !== "user") throw new RunCommandError(404, "command_unavailable")
++    return source
++  }
++  const authorize = async (request: FastifyRequest, client: DatabaseClient, source: RunRow): Promise<string> => {
++    const actor = principal(request)
++    await options.authorize(actor, "view", { kind: "session", id: source.session_id, organizationId: actor.organizationId })
++    await options.authorize(actor, "create", { kind: "run", id: "new", organizationId: actor.organizationId })
++    const rows = await client.query<{ workspace_id: string; root_path: string; agent: string; provider: string;
++      model: string | null; mode: string; permission_policy: string; role: string; provider_auth_id: string | null; generation: string | null }>(
++      `SELECT s.workspace_id,w.root_path,s.agent,s.provider,s.model,s.mode,s.permission_policy,m.role,c.auth_job_id AS provider_auth_id,c.xmin::text AS generation
++       FROM runs r JOIN sessions s ON s.id=r.session_id AND s.organization_id=r.organization_id
++       JOIN workspaces w ON w.id=s.workspace_id AND w.organization_id=s.organization_id
++       JOIN organization_members m ON m.organization_id=r.organization_id AND m.user_id=$2
++       JOIN users u ON u.id=m.user_id
++       LEFT JOIN user_provider_connections c ON c.organization_id=r.organization_id AND c.user_id=m.user_id AND c.provider=s.provider
++       WHERE r.id=$1 AND r.organization_id=$3 AND r.requested_by_user_id=$2 AND r.requested_actor_scope='user'
++         AND u.status='active' AND m.role IN ('owner','admin','member') AND w.status='ready' AND s.archived_at IS NULL
++         AND NOT EXISTS(SELECT 1 FROM work_runtime_runs p WHERE p.run_id=r.id)
++         AND NOT EXISTS(SELECT 1 FROM work_runtime_bindings p WHERE p.session_id=s.id)
++         AND NOT EXISTS(SELECT 1 FROM managed_child_receipts p WHERE p.run_id=r.id)
++         AND NOT EXISTS(SELECT 1 FROM peer_processing_receipts p WHERE p.run_id=r.id)
++       FOR SHARE OF s,w,m,u`, [source.id, actor.userId, actor.organizationId])
++    const row = rows.rows[0]
++    if (!row || rows.rows.length !== 1 || row.role !== actor.role) throw new RunCommandError(403, "command_authority_denied")
++    const pin = await getDeploymentRunAuthorityPin(client, source.id)
++    const { provider_auth_id: personalAuth, generation: personalGeneration, ...sessionAuthority } = row
++    if (pin) {
++      const scope = { organizationId: actor.organizationId, workspaceId: row.workspace_id, sessionId: source.session_id, actorUserId: actor.userId }
++      await lockDeploymentScope(client, scope)
++      const current = await inspectDeploymentSessionAuthority(client, scope)
++      if (source.provider_auth_id !== null || !current?.available || current.settingsHash !== pin) throw new RunCommandError(403, "command_authority_denied")
++    } else {
++      if (personalAuth !== (source.provider_auth_id ?? null) ||
++          (await client.query("SELECT 1 FROM deployment_session_bindings WHERE session_id=$1", [source.session_id])).rowCount) throw new RunCommandError(403, "command_authority_denied")
++      if (personalAuth && !(await client.query(
++        `SELECT c.auth_job_id FROM user_provider_connections c JOIN provider_auth_jobs j ON j.id=c.auth_job_id
++         AND j.organization_id=c.organization_id AND j.user_id=c.user_id AND j.provider=c.provider
++         WHERE c.organization_id=$1 AND c.user_id=$2 AND c.provider=$3 AND c.auth_job_id=$4 AND j.status='succeeded'
++         FOR SHARE OF c,j`, [actor.organizationId, actor.userId, row.provider, personalAuth])).rowCount) throw new RunCommandError(403, "command_authority_denied")
++    }
++    return sha(["demian.ordinary-run-command.v1", actor.organizationId, actor.userId, source.id, sessionAuthority,
++      pin ? { deploymentSettingsHash: pin } : { personalAuth, personalGeneration }])
++  }
++  app.get<{ Params: { runId: string } }>("/api/v1/runs/:runId/command-context", async (request, reply) => {
++    noBody(request); reply.header("cache-control", "no-store")
++    if (options.delegated?.hasContext(request)) return options.delegated.commandContext(request, request.params.runId)
++    const source = await sourceFor(request, request.params.runId), client = await db.connect()
++    try {
++      await client.query("BEGIN")
++      const stamp = await authorize(request, client, source), head = await getRunCommandHead(client, source.organization_id, source.session_id)
++      const active = (await client.query("SELECT 1 FROM runs WHERE session_id=$1 AND status IN ('queued','leasing','running','waiting_for_permission','cancelling') LIMIT 1", [source.session_id])).rowCount! > 0
++      if (await authorize(request, client, source) !== stamp) throw new RunCommandError(403, "command_authority_denied")
++      const result: NativeRunCommandContext = { object: "demian.run_command_context", version: 1,
++        source_run: { id: source.id, session_id: source.session_id, status: source.status }, session_head_sha256: head,
++        authority_sha256: stamp, available_kinds: availableRunCommands(source.status, active), observed_at: new Date().toISOString() }
++      await client.query("COMMIT"); return result
++    } catch (error) { await client.query("ROLLBACK"); throw error } finally { client.release() }
++  })
++  app.post<{ Params: { runId: string } }>("/api/v1/runs/:runId/commands", async (request, reply) => {
++    reply.header("cache-control", "no-store")
++    if ((request.raw.url ?? request.url).includes("?")) throw new ProtocolValidationError("Command writes do not accept query parameters")
++    let result: RunCommandResult
++    if (options.delegated?.hasContext(request)) result = await options.delegated.command(request, request.params.runId)
++    else {
++      const source = await sourceFor(request, request.params.runId), body = request.body as Record<string, unknown>
++      if (!body || typeof body !== "object" || Array.isArray(body)) throw new ProtocolValidationError("A command object is required")
++      let command
++      try { command = parseWorkRuntimeCommandDescriptor(body.command) } catch { throw new ProtocolValidationError("Invalid command descriptor") }
++      if (command.sourceRunId !== source.id || Object.keys(body).some(key => !["command", "input"].includes(key)) ||
++          (command.kind === "continue" ? body.input === undefined : Object.hasOwn(body, "input"))) throw new ProtocolValidationError("Command input does not match its kind")
++      const continuation = command.kind === "continue" ? parseRunInput(body.input) : undefined
++      const intent = { command, ...(continuation ? { input: continuation } : {}) }
++      result = await createRunCommand(db, { organizationId: source.organization_id, sessionId: source.session_id,
++        actorUserId: principal(request).userId, sourceRunId: source.id, commandId: command.commandId, kind: command.kind,
++        expectedSessionHead: command.expectedSessionHead, expectedSourceStatus: command.expectedSourceStatus,
++        expectedAuthoritySha256: command.expectedAuthoritySha256, expiresAt: command.expiresAt, intentSha256: sha(intent),
++        ...(continuation ? { continuationItems: continuation } : {}) }, {
++        authorize: (client, row) => authorize(request, client, row),
++        createSuccessor: (client, input) => createOrdinaryCommandSuccessor(client, input),
++      })
++    }
++    return reply.code(result.receipt.outcome === "rejected" ? 409 : result.replayed ? 200 : 202).send(runCommandResource(result.receipt))
++  })
++  app.get<{ Params: { sessionId: string; commandId: string } }>("/api/v1/sessions/:sessionId/commands/:commandId", async (request, reply) => {
++    noBody(request); reply.header("cache-control", "no-store")
++    if (!uuid.test(request.params.sessionId) || !uuid.test(request.params.commandId)) throw new ProtocolValidationError("Invalid command identifier")
++    if (options.delegated?.hasContext(request)) {
++      const result = await options.delegated.commandReceipt(request, request.params.sessionId, request.params.commandId)
++      return { object: "demian.run_command_status", version: 1, status: result ? "found" : "not_found", receipt: result ? runCommandResource(result.receipt) : null }
++    }
++    const actor = principal(request)
++    await options.authorize(actor, "view", { kind: "session", id: request.params.sessionId, organizationId: actor.organizationId })
++    await options.authorize(actor, "create", { kind: "run", id: "new", organizationId: actor.organizationId })
++    const result = await readRunCommand(db, { organizationId: actor.organizationId, actorUserId: actor.userId,
++      sessionId: request.params.sessionId, commandId: request.params.commandId }, { authorize: (client, row) => authorize(request, client, row) })
++    return { object: "demian.run_command_status", version: 1, status: result ? "found" : "not_found", receipt: result ? runCommandResource(result.receipt) : null }
++  })
++}
+diff --git a/apps/api/src/server.ts b/apps/api/src/server.ts
+index b2817a1d8b244ea74b7ae04aff40ac7d79275b1c..c7fa9e5a56d4a3fec5dc725b6661ccf3aba84074 100644
+--- a/apps/api/src/server.ts
++++ b/apps/api/src/server.ts
+@@ -38,6 +38,8 @@ import { createEmptyWorkspace, listSourceEntries, provisionWorkspace } from "./w
+ import { registerProviderAuth } from './provider-auth.ts'
+ import { registerSessionManagement } from "./session-management.ts"
+ import { registerChildContextRecovery } from "./child-context-recovery.ts"
++import { registerRunCommands } from "./run-commands.ts"
++import { RunCommandError } from "../../../packages/db/src/run-commands.ts"
+ import { registerPeerConversations, type PeerConversationRegistry } from "./peer-conversations.ts"
+ import { registerPeerProcessing } from "./peer-processing.ts"
+ import { captureSignedJsonBody,registerWorkRuntimeServer, type WorkRuntimeServerOptions } from "./work-runtime-server.ts"
+@@ -97,6 +99,8 @@ export function buildServer(options: ServerOptions): FastifyInstance {
+     }
+     return principal
+   }
++  registerRunCommands(app, db, { principalFor: ordinaryDeploymentPrincipal,
++    authorize: (p,a,r) => authorize(options.config,p,a,r), ...(workRuntime ? { delegated: workRuntime } : {}) })
+   registerManagedChildren(app,db,{principalFor:ordinaryDeploymentPrincipal,authorize:(p,a,r)=>authorize(options.config,p,a,r)},options.deploymentServices)
+   registerDeploymentServices(app, db, {
+     principalFor: ordinaryDeploymentPrincipal,
+@@ -883,6 +887,7 @@ function delay(ms: number): Promise<void> {
+ }
+ 
+ function normalizeError(error: unknown, request: FastifyRequest) {
++  if (error instanceof RunCommandError) return problem(error.status, error.code, error.message, request)
+   if (error && typeof error === "object" && "statusCode" in error && "code" in error) {
+     const candidate = error as { statusCode: number; code: string; message?: string }
+     return problem(candidate.statusCode, candidate.code, candidate.message ?? candidate.code, request)
+diff --git a/apps/api/src/work-runtime-package.ts b/apps/api/src/work-runtime-package.ts
+index 7899bfcede806b6a6d4c0b0a7fe57c9660318c3d..f42c0fe32908262271bd094b25b1e1fd8e285c0e 100644
+--- a/apps/api/src/work-runtime-package.ts
++++ b/apps/api/src/work-runtime-package.ts
+@@ -22,6 +22,16 @@ export class WorkRuntimePackageError extends Error {
+ }
+ 
+ export type CanonicalWorkRuntimeContext = ReturnType<typeof parseContext>
++export interface WorkRuntimeCommandDescriptor {
++  version: 1
++  commandId: string
++  sourceRunId: string
++  kind: "retry" | "resume" | "continue"
++  expectedSessionHead: string
++  expectedSourceStatus: "succeeded" | "failed" | "cancelled" | "expired"
++  expectedAuthoritySha256: string
++  expiresAt: string
++}
+ export interface WorkRuntimeValidatedPackage {
+   version: 1 | 2
+   execution?: PreparedCodexExecution
+@@ -37,6 +47,7 @@ export interface WorkRuntimeValidatedPackage {
+   bindingSha256: string
+   canonicalContextJson: string
+   canonicalRoleContextJson: string
++  command?: WorkRuntimeCommandDescriptor
+ }
+ 
+ /**
+@@ -54,13 +65,18 @@ export function validateWorkRuntimePackage(input: {
+   verified: VerifiedWorkRuntimeDelegation
+   actor: DelegatedWorkRuntimeActor
+   idempotencyKey: unknown
+-}, options: { now?: () => number } = {}): WorkRuntimeValidatedPackage {
++}, options: { now?: () => number; commandRunId?: string } = {}): WorkRuntimeValidatedPackage {
+   try {
++    const clock = record(options, ["now", "commandRunId"], true)
++    if (clock.now !== undefined && (typeof clock.now !== "function" || types.isProxy(clock.now))) invalid()
++    const commandRunId = clock.commandRunId === undefined ? undefined : uuid(clock.commandRunId)
+     const args = record(input, ["bodyBytes", "verified", "actor", "idempotencyKey"])
+     const raw = bodyBytes(args.bodyBytes)
+     const wire = raw.toString("utf8")
+     if (!Buffer.from(wire, "utf8").equals(raw)) invalid()
+-    const outer = record(JSON.parse(wire), ["input"])
++    const outer = record(JSON.parse(wire), commandRunId ? ["input", "command"] : ["input"])
++    const command = commandRunId ? parseWorkRuntimeCommandDescriptor(outer.command) : undefined
++    if (command && command.sourceRunId !== commandRunId) invalid()
+     const items = array(outer.input, 1)
+     if (items.length !== 1) invalid()
+     const item = record(items[0], ["type", "text"])
+@@ -77,7 +93,7 @@ export function validateWorkRuntimePackage(input: {
+     const canonicalRoleContextJson = JSON.stringify(context.roleContext)
+     const canonicalPacketJson = JSON.stringify({ version: packet.version, request, context, ...(execution ? { execution } : {}) })
+     const canonicalInput: InputTextItem[] = [{ type: "input_text", text: canonicalPacketJson }]
+-    if (packetJson !== canonicalPacketJson || wire !== JSON.stringify({ input: canonicalInput })) invalid()
++    if (packetJson !== canonicalPacketJson || wire !== JSON.stringify({ input: canonicalInput, ...(command ? { command } : {}) })) invalid()
+ 
+     const verified = record(args.verified, ["authenticatedServicePrincipal", "claims", "keyId"])
+     boundedIdentifier(verified.keyId, 64)
+@@ -98,8 +114,6 @@ export function validateWorkRuntimePackage(input: {
+     const requestSha256 = sha256(request), contextSha256 = sha256(canonicalContextJson)
+     const roleContextSha256 = sha256(canonicalRoleContextJson)
+     const correlationId = boundedIdentifier(args.idempotencyKey, 200)
+-    const clock = record(options, ["now"], true)
+-    if (clock.now !== undefined && (typeof clock.now !== "function" || types.isProxy(clock.now))) invalid()
+     const nowMs = clock.now === undefined ? Date.now() : (clock.now as () => number)()
+     if (!Number.isFinite(nowMs)) invalid()
+     const now = Math.floor(nowMs / 1000)
+@@ -108,7 +122,7 @@ export function validateWorkRuntimePackage(input: {
+     if (issuedAt > now || expiresAt <= now || expiresAt <= issuedAt || expiresAt - issuedAt > 60) invalid()
+ 
+     if (claims.version !== 1 || claims.iss !== "assistant" || claims.aud !== "demian"
+-      || claims.method !== "POST" || claims.path !== `/api/v1/sessions/${binding.sessionId}/runs`
++      || claims.method !== "POST" || claims.path !== (commandRunId ? `/api/v1/runs/${commandRunId}/commands` : `/api/v1/sessions/${binding.sessionId}/runs`)
+       || claims.body_sha256 !== sha256(raw)
+       || service.userId !== principal || service.organizationId !== binding.organizationId
+       || binding.servicePrincipalId !== principal || actor.bindingSha256 !== bindingSha256
+@@ -125,6 +139,7 @@ export function validateWorkRuntimePackage(input: {
+       || context.requestSha256 !== requestSha256 || claims.request_sha256 !== requestSha256
+       || claims.context_sha256 !== contextSha256 || context.requestedModel !== binding.model
+       || context.requestedEffort !== binding.effort) invalid()
++    if (command && command.commandId !== correlationId) invalid()
+     const signedReadScope = scope(claims.read_scope), signedToolScope = scope(claims.tool_scope)
+     if (!same(binding.readScope, signedReadScope) || !same(binding.toolScope, signedToolScope)
+       || !same(binding.readScope, context.roleContext.membership.readScope.map(value => value.id))
+@@ -146,13 +161,22 @@ export function validateWorkRuntimePackage(input: {
+     return { version: packet.version, ...(execution ? { execution } : {}), request, context, input: canonicalInput, correlationId,
+       requestedModel: binding.model, requestedEffort: binding.effort,
+       requestSha256, contextSha256, roleContextSha256, bindingSha256,
+-      canonicalContextJson, canonicalRoleContextJson }
++      canonicalContextJson, canonicalRoleContextJson, ...(command ? { command } : {}) }
+   } catch {
+     // Neither raw request/source bytes nor signed identity are exposed in errors.
+     throw new WorkRuntimePackageError()
+   }
+ }
+ 
++export function parseWorkRuntimeCommandDescriptor(value: unknown): WorkRuntimeCommandDescriptor {
++  const v = record(value, ["version", "commandId", "sourceRunId", "kind", "expectedSessionHead", "expectedSourceStatus", "expectedAuthoritySha256", "expiresAt"])
++  if (v.version !== 1 || !["retry", "resume", "continue"].includes(String(v.kind)) ||
++      !["succeeded", "failed", "cancelled", "expired"].includes(String(v.expectedSourceStatus))) invalid()
++  return { version: 1, commandId: uuid(v.commandId), sourceRunId: uuid(v.sourceRunId), kind: v.kind as WorkRuntimeCommandDescriptor["kind"],
++    expectedSessionHead: digest(v.expectedSessionHead), expectedSourceStatus: v.expectedSourceStatus as WorkRuntimeCommandDescriptor["expectedSourceStatus"],
++    expectedAuthoritySha256: digest(v.expectedAuthoritySha256), expiresAt: timestamp(v.expiresAt) }
++}
++
+ function parseContext(value: unknown) {
+   const input = record(value, CONTEXT_FIELDS)
+   const context = {
+diff --git a/apps/api/src/work-runtime-server.ts b/apps/api/src/work-runtime-server.ts
+index fd56ee6d25fe30c37e98f61e5fd55379025d2ebb..c8308746b17defb570e7a9882e4c28b58e73063b 100644
+--- a/apps/api/src/work-runtime-server.ts
++++ b/apps/api/src/work-runtime-server.ts
+@@ -1,4 +1,5 @@
+ import { isDeepStrictEqual } from "node:util"
++import { createHash } from "node:crypto"
+ import type { FastifyInstance, FastifyRequest } from "fastify"
+ import {
+   consumeWorkRuntimeDelegation,
+@@ -9,7 +10,7 @@ import {
+   type DelegatedWorkRuntimeActor,
+ } from "@demian/db"
+ import {
+-  createDelegatedWorkRuntimeRun, currentPreparedDeployment,
++  createDelegatedWorkRuntimeRun, createDelegatedWorkRuntimeRunInTransaction, currentPreparedDeployment,
+   getWorkRuntimeRunReceipt,
+   type WorkRuntimeBudgetPolicy,
+   type WorkRuntimeRunReceipt,
+@@ -19,6 +20,8 @@ import { artifactDisposition, readWorkRuntimeArtifacts } from "./work-runtime-ar
+ import { readWorkRuntimeEvidence } from "./work-runtime-evidence.ts"
+ import { MetadataQueryError, parseMetadataQuery, readWorkRuntimeMetadata } from "./work-runtime-metadata.ts"
+ import { readRunMeasurements } from "./run-measurements.ts"
++import { createRunCommand, getRunCommandHead, readRunCommand } from "../../../packages/db/src/run-commands.ts"
++import { availableRunCommands, type NativeRunCommandContext } from "./run-commands.ts"
+ import { runResource } from "./resources.ts"
+ import { verifyWorkRuntimeDelegation, WorkRuntimeSignatureError, type VerifiedWorkRuntimeDelegation } from "./work-runtime-delegation.ts"
+ import { validateWorkRuntimePackage } from "./work-runtime-package.ts"
+@@ -134,6 +137,13 @@ export function registerWorkRuntimeServer(
+     const session = `/api/v1/sessions/${actor.binding.sessionId}`
+     if (request.method === "GET" && ["/api/v1/capabilities", "/api/v1/me", session].includes(path)) return
+     if (request.method === "POST" && path === `${session}/runs`) return
++    if (request.method === "GET" && path.startsWith(`${session}/commands/`)) {
++      const commandId = path.slice(`${session}/commands/`.length)
++      if (!UUID.test(commandId) || commandId !== verified.claims.correlation_id ||
++          !verified.claims.context_sha256 || !verified.claims.request_sha256 || (request.raw.url ?? request.url).includes("?"))
++        throw new WorkRuntimeSignatureError()
++      return
++    }
+     if (request.method === "GET" && path.startsWith(`${session}/requests/`)) {
+       const correlation = decodeURIComponent(path.slice(`${session}/requests/`.length))
+       if (correlation !== verified.claims.correlation_id || !verified.claims.context_sha256 || !verified.claims.request_sha256) {
+@@ -141,18 +151,29 @@ export function registerWorkRuntimeServer(
+       }
+       return
+     }
+-    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/metadata|\/evidence|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
+-    if (!runMatch || !UUID.test(runMatch[1]) || request.method !== (runMatch[2] === "/cancel" ? "POST" : "GET")) {
++    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/commands|\/command-context|\/metadata|\/evidence|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
++    if (!runMatch || !UUID.test(runMatch[1]) || request.method !== (["/cancel", "/commands"].includes(runMatch[2]) ? "POST" : "GET")) {
+       throw new WorkRuntimeSignatureError()
+     }
+     const receipt = await getWorkRuntimeRunReceipt(db, { organizationId: actor.binding.organizationId, runId: runMatch[1] })
+     if (!receipt || receipt.sessionId !== actor.binding.sessionId || receipt.bindingSha256 !== actor.bindingSha256
+-        || receipt.actingUserId !== actor.actingUserId || receipt.servicePrincipalId !== actor.authenticatedServicePrincipalId
+-        || receipt.contextSha256 !== verified.claims.context_sha256 || receipt.requestSha256 !== verified.claims.request_sha256
+-        || receipt.correlationId !== verified.claims.correlation_id) throw new WorkRuntimeSignatureError()
++        || receipt.actingUserId !== actor.actingUserId || receipt.servicePrincipalId !== actor.authenticatedServicePrincipalId) throw new WorkRuntimeSignatureError()
++    if (runMatch[2] === "/commands") {
++      if (!verified.claims.correlation_id || !UUID.test(verified.claims.correlation_id) ||
++          !verified.claims.context_sha256 || !verified.claims.request_sha256 || (request.raw.url ?? request.url).includes("?"))
++        throw new WorkRuntimeSignatureError()
++    } else if (receipt.contextSha256 !== verified.claims.context_sha256 || receipt.requestSha256 !== verified.claims.request_sha256
++      || receipt.correlationId !== verified.claims.correlation_id) throw new WorkRuntimeSignatureError()
+   }
+ 
+   const contextFor = (request: FastifyRequest) => contexts.get(request)
++  function commandRecoveryProof(context: WorkRuntimeRequest, commandId: string) {
++    return createHash("sha256").update(JSON.stringify([
++      "demian.run-command.recovery.v1", context.actor.bindingSha256, context.actor.actingUserId,
++      context.actor.authenticatedServicePrincipalId, context.verified.claims.context_sha256,
++      context.verified.claims.request_sha256, commandId,
++    ])).digest("hex")
++  }
+   function assertCurrentKey(request:FastifyRequest,context:WorkRuntimeRequest) {
+     verifyWorkRuntimeDelegation({delegationHeader:request.headers["x-demian-delegation"],principal:authenticatedPrincipalFor(request),
+       organizationHeader:request.headers["x-demian-organization-id"],method:request.method,path:request.raw.url??request.url,bodyBytes:context.rawBody},
+@@ -180,6 +201,39 @@ export function registerWorkRuntimeServer(
+         || policy.maximumProviderInvocations !== context.policy.maximumProviderInvocations
+         || policy.maximumOutputTokens !== context.policy.maximumOutputTokens) throw new WorkRuntimeSignatureError()
+   }
++  /** Commands use a fresh operation context while retaining the original scope. */
++  async function commandAuthority(request: FastifyRequest, client: DatabaseClient,
++    run: Parameters<typeof runResource>[0]) {
++    const context = contextFor(request)
++    if (!context) throw new WorkRuntimeSignatureError()
++    const actor = await lockCurrentWorkRuntimeActor(client, context.actor)
++    const receipt = await getWorkRuntimeRunReceipt(client, { organizationId: actor.binding.organizationId, runId: run.id })
++    if (!receipt || run.organization_id !== actor.binding.organizationId || run.session_id !== actor.binding.sessionId ||
++        run.requested_by_user_id !== actor.actingUserId || run.requested_actor_scope !== "user" || run.provider_auth_id !== null ||
++        receipt.runId !== run.id || receipt.organizationId !== run.organization_id || receipt.sessionId !== run.session_id ||
++        receipt.workspaceId !== actor.binding.workspaceId || receipt.actingUserId !== actor.actingUserId ||
++        receipt.servicePrincipalId !== actor.authenticatedServicePrincipalId || receipt.bindingSha256 !== actor.bindingSha256 ||
++        !isDeepStrictEqual(receipt.binding, actor.binding) || !isDeepStrictEqual(receipt.trustedPolicy, context.policy))
++      throw new WorkRuntimeSignatureError()
++    const current = (await client.query<{ role: string; now: Date }>(
++      "SELECT role,clock_timestamp() AS now FROM organization_members WHERE organization_id=$1 AND user_id=$2",
++      [actor.binding.organizationId, actor.actingUserId])).rows[0]
++    if (!current || current.role !== context.principal.role || current.now.getTime() >= context.verified.claims.exp * 1000)
++      throw new WorkRuntimeSignatureError()
++    assertRole(JSON.parse(receipt.canonicalRoleContextJson), current.now.getTime())
++    await assertCurrentPolicy(actor, context)
++    assertCurrentKey(request, context)
++    const deployment = actor.binding.execution ? await currentPreparedDeployment(client, actor) : null
++    if (deployment && (await client.query<{ settings_hash: string }>(
++      "SELECT settings_hash FROM deployment_run_authorities WHERE run_id=$1 FOR SHARE", [run.id])).rows[0]?.settings_hash !== deployment.settingsHash)
++      throw new WorkRuntimeSignatureError()
++    const stamp = createHash("sha256").update(JSON.stringify([
++      "demian.run-command.authority.v1", run.id, actor.bindingSha256, actor.actingUserId,
++      actor.authenticatedServicePrincipalId, actor.sessionProvider, actor.sessionPermissionPolicy,
++      receipt.requestSha256, receipt.roleContextSha256, context.policy, deployment?.settingsHash ?? null,
++    ])).digest("hex")
++    return { actor, receipt, stamp }
++  }
+   async function protectedRunRead<T>(request: FastifyRequest, runId: string,
+     action: (client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: Parameters<typeof runResource>[0], receipt: WorkRuntimeRunReceipt) => Promise<T>, mutation = false) {
+     const context = contextFor(request)
+@@ -242,7 +296,11 @@ export function registerWorkRuntimeServer(
+   app.addHook("preHandler", async request => {
+     const context = contextFor(request)
+     const runId = (request.params as { runId?: string } | undefined)?.runId
+-    if (context?.actor.binding.execution && runId && request.method === "POST") {
++    // A command carries a fresh signed operation context. Its own transaction
++    // reauthorizes the predecessor, prepared pin, and current policy instead of
++    // matching the predecessor's original context/correlation here.
++    if (context?.actor.binding.execution && runId && request.method === "POST"
++        && request.routeOptions.url !== "/api/v1/runs/:runId/commands") {
+       await protectedRunRead(request, runId, async () => undefined)
+     }
+   })
+@@ -398,6 +456,58 @@ export function registerWorkRuntimeServer(
+       return context ? { kind: "managed" as const, work_runtime_binding: { binding_sha256: context.actor.bindingSha256 } } : {}
+     },
+     hasContext(request: FastifyRequest) { return contexts.has(request) },
++    async commandContext(request: FastifyRequest, runId: string): Promise<NativeRunCommandContext> {
++      const context = contextFor(request)
++      if (!context) throw new WorkRuntimeSignatureError()
++      const capabilities = await this.capabilities(request)
++      const ready = context.actor.binding.execution ? capabilities.work_runtime?.prepared_codex_text_v1 : capabilities.work_runtime?.permission_budget
++      return protectedRunRead(request, runId, async (client, _actor, run) => {
++        const authority = await commandAuthority(request, client, run)
++        const head = await getRunCommandHead(client, run.organization_id, run.session_id)
++        const active = (await client.query("SELECT 1 FROM runs WHERE session_id=$1 AND status IN ('queued','leasing','running','waiting_for_permission','cancelling') LIMIT 1", [run.session_id])).rowCount! > 0
++        return { object: "demian.run_command_context", version: 1,
++          source_run: { id: run.id, session_id: run.session_id, status: run.status },
++          session_head_sha256: head, authority_sha256: authority.stamp,
++          available_kinds: ready ? availableRunCommands(run.status, active) : [], observed_at: new Date().toISOString() }
++      })
++    },
++    async command(request: FastifyRequest, runId: string) {
++      const context = contextFor(request)
++      if (!context) throw new WorkRuntimeSignatureError()
++      const capabilities = await this.capabilities(request)
++      if (!(context.actor.binding.execution ? capabilities.work_runtime?.prepared_codex_text_v1 : capabilities.work_runtime?.permission_budget)) throw new WorkRuntimeSignatureError()
++      const workPackage = validateWorkRuntimePackage({ bodyBytes: context.rawBody,
++        verified: context.verified, actor: context.actor, idempotencyKey: request.headers["idempotency-key"] }, { commandRunId: runId })
++      const command = workPackage.command
++      if (!command) throw new WorkRuntimeSignatureError()
++      return createRunCommand(db, { organizationId: context.actor.binding.organizationId, sessionId: context.actor.binding.sessionId,
++        actorUserId: context.actor.actingUserId, commandId: command.commandId, sourceRunId: runId, kind: command.kind,
++        expectedSessionHead: command.expectedSessionHead, expectedSourceStatus: command.expectedSourceStatus,
++        expectedAuthoritySha256: command.expectedAuthoritySha256, expiresAt: command.expiresAt,
++        intentSha256: context.verified.claims.body_sha256, recoveryProofSha256: commandRecoveryProof(context, command.commandId),
++        ...(command.kind === "continue" ? { continuationItems: workPackage.input } : {}) }, {
++        authorize: async (client, source) => (await commandAuthority(request, client, source)).stamp,
++        createSuccessor: async (client) => {
++          const accepted = await createDelegatedWorkRuntimeRunInTransaction(client,
++            { actor: context.actor, workPackage, trustedPolicy: context.policy })
++          if (!accepted.replayed && !accepted.creationEventPersisted) {
++            await client.query("INSERT INTO run_event_counters(run_id,next_sequence) VALUES($1,2)", [accepted.run.id])
++            await client.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.created',$2)", [accepted.run.id, { status: "queued" }])
++          }
++          return accepted.run
++        },
++      })
++    },
++    async commandReceipt(request: FastifyRequest, sessionId: string, commandId: string) {
++      const context = contextFor(request)
++      if (!context || sessionId !== context.actor.binding.sessionId || commandId !== context.verified.claims.correlation_id ||
++          Date.now() >= context.verified.claims.exp * 1000) throw new WorkRuntimeSignatureError()
++      await assertCurrentPolicy(context.actor, context); assertCurrentKey(request, context)
++      return readRunCommand(db, { organizationId: context.actor.binding.organizationId, sessionId, actorUserId: context.actor.actingUserId,
++        commandId, recoveryProofSha256: commandRecoveryProof(context, commandId) }, {
++        authorize: async (client, source) => (await commandAuthority(request, client, source)).stamp,
++      })
++    },
+     async cancel(request: FastifyRequest, runId: string) {
+       return protectedRunRead(request, runId, async (client, actor, run) => {
+         const terminal = ["succeeded", "failed", "cancelled", "expired"].includes(run.status)
+diff --git a/apps/api/test/run-commands.integration.test.ts b/apps/api/test/run-commands.integration.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..7c6f3a900315412d4187196ae19f663825db3028
+--- /dev/null
++++ b/apps/api/test/run-commands.integration.test.ts
+@@ -0,0 +1,174 @@
++import assert from "node:assert/strict"
++import { randomUUID } from "node:crypto"
++import { readdir, readFile } from "node:fs/promises"
++import { createServer } from "node:http"
++import test from "node:test"
++import { createDatabase, bindDeploymentSessionAuthority, configureDeploymentService, publishDeploymentServiceAuthority,
++  inspectDeploymentSessionAuthority, pinDeploymentRunAuthority } from "@demian/db"
++import { buildServer } from "../src/server.ts"
++import type { ApiConfig } from "../src/config.ts"
++
++const databaseUrl = process.env.TEST_DATABASE_URL
++const options = { skip: !databaseUrl }
++const org = "00000000-0000-0000-0000-000000000001", actor = "00000000-0000-0000-0000-000000000010"
++const headers = { authorization: "Bearer synthetic-command-test" }
++async function fixture(status = "failed", withPolicy = false) {
++  const admin = createDatabase({ connectionString: databaseUrl! }), schema = `command_http_${randomUUID().replaceAll("-", "")}`
++  await admin.query(`CREATE SCHEMA "${schema}"`)
++  const url = new URL(databaseUrl!); url.searchParams.set("options", `-csearch_path=${schema}`)
++  const db = createDatabase({ connectionString: url.href }), workspace = randomUUID(), session = randomUUID(), source = randomUUID()
++  let allowed = true, revokeAfterInsert = false
++  const policy = createServer((_request, response) => response.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({results:[{actions:{view:allowed?"EFFECT_ALLOW":"EFFECT_DENY",create:allowed?"EFFECT_ALLOW":"EFFECT_DENY"}}]})))
++  try {
++    const migrations = new URL("../../../packages/db/migrations/", import.meta.url)
++    for (const file of (await readdir(migrations)).filter(file => file.endsWith(".sql")).sort()) await db.query(await readFile(new URL(file, migrations), "utf8"))
++    await db.query("INSERT INTO users(id,email,display_name) VALUES($1,'synthetic-owner@example.invalid','Synthetic') ON CONFLICT(id) DO NOTHING", [actor])
++    await db.query("INSERT INTO organization_members(organization_id,user_id,role) VALUES($1,$2,'owner') ON CONFLICT(organization_id,user_id) DO UPDATE SET role='owner'", [org, actor])
++    await db.query("INSERT INTO workspaces(id,organization_id,name,root_path,status) VALUES($1,$2,'Synthetic','/synthetic','ready')", [workspace, org])
++    await db.query("INSERT INTO sessions(id,organization_id,workspace_id,agent,provider,model,permission_policy) VALUES($1,$2,$3,'build','synthetic','model','deny')", [session,org,workspace])
++    await db.query("INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status) VALUES($1,$2,$3,$4,$5::jsonb,$6)", [source,org,session,actor,JSON.stringify([{type:"input_text",text:"PRIVATE ORIGINAL TASK"}]),status])
++    await db.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.failed','{\"reason\":\"PRIVATE ORIGINAL EVENT\"}')", [source])
++    let policyUrl: string | undefined
++    if (withPolicy) {
++      await new Promise<void>(resolve => policy.listen(0,"127.0.0.1",resolve))
++      const address = policy.address(); assert(address && typeof address !== "string"); policyUrl = `http://127.0.0.1:${address.port}`
++      const seen = new WeakSet<object>()
++      db.on("acquire", client => {
++        if (seen.has(client)) return; seen.add(client)
++        const original = client.query.bind(client)
++        client.query = ((...args: Parameters<typeof original>) => {
++          const result = original(...args)
++          if (revokeAfterInsert && typeof args[0] === "string" && /^\s*INSERT INTO runs\s*\(/.test(args[0]))
++            return Promise.resolve(result).then(value => { allowed = false; return value })
++          return result
++        }) as typeof client.query
++      })
++    }
++    const config: ApiConfig = { host:"127.0.0.1",port:8080,databaseUrl:url.href,apiToken:"synthetic-command-test",organizationId:org,
++      workspaceRoot:"/synthetic",corsOrigins:[],auth:{mode:"trusted"},cerbosTimeoutMs:1000,mountRoots:[],
++      compatibility:{provider:"synthetic",agent:"build",models:["model"],timeoutMs:100},...(policyUrl?{cerbosUrl:policyUrl}:{}) }
++    const app = buildServer({config,db}); app.log.level = "silent"
++    const context = async () => {
++      const value = await app.inject({method:"GET",url:`/api/v1/runs/${source}/command-context`,headers})
++      assert.equal(value.statusCode,200,value.body); return value.json()
++    }
++    const intent = async (kind = "retry") => {
++      const view = await context()
++      return {command:{version:1,commandId:randomUUID(),sourceRunId:source,kind,expectedSessionHead:view.session_head_sha256,
++        expectedSourceStatus:status,expectedAuthoritySha256:view.authority_sha256,expiresAt:new Date(Date.now()+90_000).toISOString()}}
++    }
++    const post = async (body: unknown) => app.inject({method:"POST",url:`/api/v1/runs/${source}/commands`,headers:{...headers,"content-type":"application/json"},payload:JSON.stringify(body)})
++    const original = async () => JSON.stringify((await db.query("SELECT row_to_json(r) AS row,(SELECT json_agg(e ORDER BY sequence) FROM run_events e WHERE e.run_id=r.id) AS events FROM runs r WHERE r.id=$1", [source])).rows)
++    return {db,app,workspace,session,source,intent,context,post,original,
++      revokeDuringAdmission:()=>{revokeAfterInsert=true},
++      close:async()=>{await app.close();await db.end();if(policy.listening){const done=new Promise<void>(resolve=>policy.close(()=>resolve()));policy.closeAllConnections();await done}await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end()} }
++  } catch (error) { await db.end(); if(policy.listening)policy.close(); await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end();throw error }
++}
++
++test("ordinary retry HTTP admits one successor and recovers its receipt without returning private pins", options, async () => {
++  const f=await fixture()
++  try {
++    const before=await f.original(),body=await f.intent(),created=await f.post(body)
++    assert.equal(created.statusCode,202,created.body)
++    const receipt=created.json();assert.equal(receipt.outcome,"accepted");assert.equal(receipt.relation,"retry_of");assert.equal(receipt.task_root_run_id,f.source)
++    const next=(await f.db.query("SELECT input FROM runs WHERE id=$1",[receipt.new_run_id])).rows[0]
++    assert.deepEqual(next.input,[{type:"input_text",text:"PRIVATE ORIGINAL TASK"}]);assert.equal(await f.original(),before)
++    const replay=await f.post(body);assert.equal(replay.statusCode,200,replay.body);assert.equal(replay.json().new_run_id,receipt.new_run_id)
++    const recovered=await f.app.inject({method:"GET",url:`/api/v1/sessions/${f.session}/commands/${body.command.commandId}`,headers})
++    assert.equal(recovered.statusCode,200,recovered.body);assert.equal(recovered.json().receipt.new_run_id,receipt.new_run_id)
++    assert.doesNotMatch(created.body,/PRIVATE|authority_sha|request_sha|actor_user|recovery_proof/)
++    const conflict=await f.post({...body,command:{...body.command,expiresAt:new Date(Date.now()+80_000).toISOString()}})
++    assert.equal(conflict.statusCode,409,conflict.body);assert.equal(conflict.json().code,"command_digest_conflict")
++    const events=(await f.db.query("SELECT type FROM run_events WHERE run_id=$1 ORDER BY sequence",[receipt.new_run_id])).rows
++    assert.deepEqual(events.map(row=>row.type),["response.created","run.command.created"])
++  } finally { await f.close() }
++})
++
++test("deployment-pinned commands ignore unrelated personal login and keep their deployment authority", options, async () => {
++  const f=await fixture()
++  try {
++    // Bind a fresh Session before inserting the original deployment Run.
++    await f.db.query("DELETE FROM runs WHERE id=$1",[f.source])
++    const scope={organizationId:org,workspaceId:f.workspace,sessionId:f.session,actorUserId:actor}
++    const policy={organizationId:org,workspaceId:f.workspace,serviceId:randomUUID(),workerId:"synthetic-deployment-command-worker",
++      providerProfile:"synthetic",accountScope:"synthetic",policyRevision:"v1"}
++    await configureDeploymentService(f.db,policy)
++    const authority=await publishDeploymentServiceAuthority(f.db,{...policy,providerType:"codex",defaultModel:"model",
++      materialRevision:"a".repeat(64),capabilities:{nativeSession:true,multiAgent:false}})
++    const revision=(await f.db.query("SELECT metadata_revision::text AS revision FROM sessions WHERE id=$1",[f.session])).rows[0].revision
++    await bindDeploymentSessionAuthority(f.db,{...scope,operationId:randomUUID(),expectedMetadataRevision:revision,primary:{serviceId:policy.serviceId,...authority}})
++    const view=await inspectDeploymentSessionAuthority(f.db,scope);assert.ok(view?.available)
++    const client=await f.db.connect()
++    try {
++      await client.query("BEGIN")
++      await client.query("INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input) VALUES($1,$2,$3,$4,'[{\"type\":\"input_text\",\"text\":\"deployment task\"}]')",[f.source,org,f.session,actor])
++      await pinDeploymentRunAuthority(client,{...scope,runId:f.source,expectedSettingsHash:view.settingsHash})
++      await client.query("COMMIT")
++    } catch(error) {await client.query("ROLLBACK");throw error} finally {client.release()}
++    await f.db.query("UPDATE runs SET status='failed' WHERE id=$1",[f.source])
++    const connect=async()=>{
++      const job=randomUUID()
++      await f.db.query("INSERT INTO provider_auth_jobs(id,organization_id,user_id,provider,provider_type,status) VALUES($1,$2,$3,'synthetic','codex','succeeded')",[job,org,actor])
++      await f.db.query("INSERT INTO user_provider_connections(organization_id,user_id,provider,auth_job_id) VALUES($1,$2,'synthetic',$3) ON CONFLICT(organization_id,user_id,provider) DO UPDATE SET auth_job_id=excluded.auth_job_id",[org,actor,job])
++    }
++    await connect()
++    const body=await f.intent(),before=await f.original()
++    await connect() // Personal rotation must not change a deployment command's stamp.
++    const accepted=await f.post(body);assert.equal(accepted.statusCode,202,accepted.body)
++    const next=accepted.json().new_run_id
++    assert.equal((await f.db.query("SELECT provider_auth_id FROM runs WHERE id=$1",[next])).rows[0].provider_auth_id,null)
++    assert.equal((await f.db.query("SELECT settings_hash FROM deployment_run_authorities WHERE run_id=$1",[next])).rows[0].settings_hash,view.settingsHash)
++    await connect()
++    const recovered=await f.app.inject({method:"GET",url:`/api/v1/sessions/${f.session}/commands/${body.command.commandId}`,headers})
++    assert.equal(recovered.statusCode,200,recovered.body);assert.equal(recovered.json().receipt.new_run_id,next)
++    assert.equal((await f.post(body)).json().new_run_id,next);assert.equal(await f.original(),before)
++    await f.db.query("UPDATE deployment_services SET current_authority_id=NULL WHERE service_id=$1",[policy.serviceId])
++    const denied=await f.app.inject({method:"GET",url:`/api/v1/sessions/${f.session}/commands/${body.command.commandId}`,headers})
++    assert.equal(denied.statusCode,403,denied.body);assert.doesNotMatch(denied.body,/new_run_id|deployment task/)
++  } finally {await f.close()}
++})
++test("ordinary continue and interrupted resume retain distinct task roots and input rules", options, async () => {
++  for (const [status,kind] of [["succeeded","continue"],["cancelled","resume"],["expired","resume"]]) {
++    const f=await fixture(status!)
++    try {
++      const body=await f.intent(kind),input=[{type:"input_text",text:"New explicit task"}]
++      if(kind==="resume")assert.equal((await f.post({...body,input})).statusCode,400)
++      const created=await f.post({...body,...(kind==="continue"?{input}:{})})
++      assert.equal(created.statusCode,202,created.body);assert.equal(created.json().relation,"continues")
++      assert.equal(created.json().task_root_run_id,kind==="continue"?created.json().new_run_id:f.source)
++    } finally { await f.close() }
++  }
++})
++test("stale HTTP head produces one durable rejection and cannot be reused with new expectations", options, async () => {
++  const f=await fixture()
++  try {
++    const body=await f.intent()
++    await f.db.query("INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status,created_at) VALUES($1,$2,$3,$4,'[]','failed','2000-01-01')",[randomUUID(),org,f.session,actor])
++    const rejected=await f.post(body);assert.equal(rejected.statusCode,409,rejected.body);assert.equal(rejected.json().outcome,"rejected");assert.equal(rejected.json().rejection_code,"session_head_changed")
++    assert.equal((await f.post(body)).json().rejection_code,"session_head_changed")
++    const fresh=await f.context(),changed=await f.post({...body,command:{...body.command,expectedSessionHead:fresh.session_head_sha256}})
++    assert.equal(changed.statusCode,409,changed.body);assert.equal(changed.json().code,"command_digest_conflict")
++    assert.equal((await f.db.query("SELECT count(*)::int AS n FROM runs WHERE session_id=$1",[f.session])).rows[0].n,2)
++  } finally { await f.close() }
++})
++test("current policy withdrawal after successor INSERT rolls back HTTP admission and all new events", options, async () => {
++  const f=await fixture("failed",true)
++  try {
++    const body=await f.intent(),before=await f.original();f.revokeDuringAdmission()
++    const denied=await f.post(body);assert.equal(denied.statusCode,403,denied.body);assert.doesNotMatch(denied.body,/new_run_id|PRIVATE/)
++    assert.equal((await f.db.query("SELECT count(*)::int AS n FROM runs")).rows[0].n,1)
++    assert.equal((await f.db.query("SELECT count(*)::int AS n FROM run_commands")).rows[0].n,0)
++    assert.equal(await f.original(),before)
++  } finally { await f.close() }
++})
++test("command HTTP validates method, body, query, actor and current membership before data release", options, async () => {
++  const f=await fixture()
++  try {
++    const path=`/api/v1/runs/${f.source}/command-context`
++    assert.equal((await f.app.inject({method:"GET",url:path+"?extra=1",headers})).statusCode,400)
++    assert.equal((await f.app.inject({method:"GET",url:path,headers:{authorization:"Bearer wrong"}})).statusCode,401)
++    const body=await f.intent();assert.equal((await f.post({...body,private:"unexpected"})).statusCode,400)
++    await f.db.query("UPDATE organization_members SET role='viewer' WHERE organization_id=$1 AND user_id=$2",[org,actor])
++    const denied=await f.post(body);assert.equal(denied.statusCode,403,denied.body);assert.doesNotMatch(denied.body,/PRIVATE|new_run_id/)
++  } finally { await f.close() }
++})
+diff --git a/apps/api/test/work-runtime-package.test.ts b/apps/api/test/work-runtime-package.test.ts
+index 09e06c5a29065ce3ec5074eef0c6b52482c712d4..dbe5ad8cde333b25fcbfb4f1cf04ee1e0c741955 100644
+--- a/apps/api/test/work-runtime-package.test.ts
++++ b/apps/api/test/work-runtime-package.test.ts
+@@ -8,7 +8,7 @@ import {
+   type DelegatedWorkRuntimeActor,
+ } from "../../../packages/db/src/work-runtime-delegation.ts"
+ import { verifyWorkRuntimeDelegation, type DemianWorkDelegationClaims } from "../src/work-runtime-delegation.ts"
+-import { validateWorkRuntimePackage, WorkRuntimePackageError } from "../src/work-runtime-package.ts"
++import { validateWorkRuntimePackage, WorkRuntimePackageError, type WorkRuntimeCommandDescriptor } from "../src/work-runtime-package.ts"
+ import type { Principal } from "../src/auth.ts"
+ 
+ const now = Date.parse("2026-11-09T00:00:00Z")
+@@ -44,8 +44,11 @@ function fixture(options: {
+   trustMutatedRole?: boolean
+   request?: string
+   mutateWire?: (canonicalWire: string) => string
++  command?: WorkRuntimeCommandDescriptor
+ } = {}) {
+   const context = contextFixture(), originalRoleSha = sha256(JSON.stringify(context.roleContext))
++  const operationId = options.command?.commandId ?? "original-request-id"
++  context.correlationId = operationId
+   if (options.toolScope) context.roleContext.membership.toolScope = options.toolScope
+   options.mutateContext?.(context)
+   const request = options.request ?? "Produce the bounded answer."
+@@ -60,7 +63,7 @@ function fixture(options: {
+   const actor: DelegatedWorkRuntimeActor = { actingUserId: "00000000-0000-0000-0000-000000000040", authenticatedServicePrincipalId: principal.userId,
+     binding, bindingSha256: sha256(JSON.stringify(binding)), sessionProvider: "test-model-provider", sessionPermissionPolicy: "deny" }
+   const packetJson = JSON.stringify({ version: options.execution ? 2 : 1, request, context, ...(options.execution ? { execution: options.execution } : {}) })
+-  const wire = JSON.stringify({ input: [{ type: "input_text", text: packetJson }] })
++  const wire = JSON.stringify({ input: [{ type: "input_text", text: packetJson }], ...(options.command ? { command: options.command } : {}) })
+   const bodyBytes = Buffer.from(options.mutateWire?.(wire) ?? wire)
+   const claims: DemianWorkDelegationClaims = {
+     version: 1, iss: "assistant", aud: "demian", sub: binding.ownerId, tenant_id: binding.tenantId,
+@@ -69,20 +72,52 @@ function fixture(options: {
+     binding_sha256: actor.bindingSha256, workspace_id: binding.workspaceId, session_id: binding.sessionId,
+     policy_revision: binding.policyRevision, role_context_sha256: binding.roleContextSha256,
+     read_scope: binding.readScope, tool_scope: binding.toolScope,
+-    context_sha256: sha256(JSON.stringify(context)), request_sha256: sha256(request), correlation_id: "original-request-id",
+-    method: "POST", path: `/api/v1/sessions/${binding.sessionId}/runs`, body_sha256: sha256(bodyBytes),
++    context_sha256: sha256(JSON.stringify(context)), request_sha256: sha256(request), correlation_id: operationId,
++    method: "POST", path: options.command ? `/api/v1/runs/${options.command.sourceRunId}/commands` : `/api/v1/sessions/${binding.sessionId}/runs`, body_sha256: sha256(bodyBytes),
+     iat: now / 1000, exp: now / 1000 + 60, nonce: randomUUID(),
+   }
+   const payload = Buffer.from(JSON.stringify(claims)).toString("base64url"), message = `v1.test-key.${payload}`
+   const header = `DemianWork ${message}.${createHmac("sha256", key).update(message).digest("base64url")}`
+   const verified = verifyWorkRuntimeDelegation({ delegationHeader: header, principal, organizationHeader: principal.organizationId,
+     method: "POST", path: claims.path, bodyBytes }, { resolveSigningKey: () => key, now: () => now })
+-  return { bodyBytes, verified, actor, idempotencyKey: "original-request-id", context, claims }
++  return { bodyBytes, verified, actor, idempotencyKey: operationId, context, claims }
+ }
+ function args(value: ReturnType<typeof fixture>): Parameters<typeof validateWorkRuntimePackage>[0] {
+   return { bodyBytes: value.bodyBytes, verified: value.verified, actor: value.actor, idempotencyKey: value.idempotencyKey }
+ }
+ const validate = (value: ReturnType<typeof fixture>, clock = now) => validateWorkRuntimePackage(args(value), { now: () => clock })
++
++const commandFixture = (): WorkRuntimeCommandDescriptor => ({ version: 1, commandId: randomUUID(),
++  sourceRunId: "00000000-0000-0000-0000-000000000050", kind: "retry", expectedSessionHead: "a".repeat(64),
++  expectedSourceStatus: "failed", expectedAuthoritySha256: "b".repeat(64), expiresAt: new Date(now + 60_000).toISOString() })
++test("signed command envelope binds intent and keeps the existing worker packet unchanged", () => {
++  for (const execution of [undefined, {kind: "prepared-codex-text-v1" as const, serviceId: "native", serviceRevision: "r1"}]) {
++    const command = commandFixture(), value = fixture({ command, execution });
++    const result = validateWorkRuntimePackage(args(value), { now: () => now, commandRunId: command.sourceRunId });
++    assert.deepEqual(result.command, command);
++    assert.equal(result.correlationId, command.commandId);
++    assert.equal(result.version, execution ? 2 : 1);
++    assert.equal(JSON.parse(result.input[0]!.text).version, execution ? 2 : 1);
++    assert.equal(JSON.parse(result.input[0]!.text).command, undefined);
++    assert.equal(result.request, "Produce the bounded answer.");
++    invalid(() => validate(value));
++    invalid(() => validateWorkRuntimePackage(args(value), { now: () => now, commandRunId: principal.userId }));
++  }
++});
++test("command metadata cannot change kind, scope, key or add unvalidated fields inside a valid signature", () => {
++  const command = commandFixture();
++  for (const change of [
++    { commandId: principal.userId }, { sourceRunId: principal.userId }, { kind: "approve" },
++    { expectedSessionHead: "not-a-digest" }, { expectedAuthoritySha256: "A".repeat(64) },
++    { expectedSourceStatus: "running" }, { expiresAt: "2026-02-30T00:00:00Z" }, { private: "not-allowed" },
++  ]) {
++    const value = fixture({ command, mutateWire: wire => { const v = JSON.parse(wire); Object.assign(v.command, change); return JSON.stringify(v); } });
++    invalid(() => validateWorkRuntimePackage(args(value), { now: () => now, commandRunId: command.sourceRunId }));
++  }
++  const reordered = fixture({ command, mutateWire: wire => { const v = JSON.parse(wire); return JSON.stringify({command:v.command,input:v.input}); } });
++  invalid(() => validateWorkRuntimePackage(args(reordered), { now: () => now, commandRunId: command.sourceRunId }));
++  const legacy = fixture(); invalid(() => validateWorkRuntimePackage(args(legacy), { now: () => now, commandRunId: command.sourceRunId }));
++});
+ function invalid(operation: () => unknown): void {
+   assert.throws(operation, error => {
+     assert.ok(error instanceof WorkRuntimePackageError)
+diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/test/work-runtime-server.integration.test.ts
+index 23bb459dfa0e96d6c6900b475fcfa9929c886c59..9863e29edd4358a54591c484fd8ce12d7a863fc5 100644
+--- a/apps/api/test/work-runtime-server.integration.test.ts
++++ b/apps/api/test/work-runtime-server.integration.test.ts
+@@ -6,7 +6,7 @@ import { join } from "node:path"
+ import { tmpdir } from "node:os"
+ import { pathToFileURL } from "node:url"
+ import test from "node:test"
+-import { createDatabase, completeRun, leaseNextRun, markRunRunning, bindDeploymentSessionAuthority, listDeploymentServices, syncDeploymentServicePolicies, type DatabaseClient } from "@demian/db"
++import { createDatabase, completeRun, finishWorkerRunWithError, leaseNextRun, markRunRunning, bindDeploymentSessionAuthority, listDeploymentServices, syncDeploymentServicePolicies, type DatabaseClient } from "@demian/db"
+ import { appendSessionMessage } from "../../../packages/db/src/session-messages.ts"
+ import { createSessionArtifact, revokeSessionArtifact, insertRunOutputArtifact } from "../../../packages/db/src/artifacts.ts"
+ import { parseTrustedWorkRuntimeBinding, registerWorkRuntimeBinding, revokeWorkRuntimeBinding } from "../../../packages/db/src/work-runtime-delegation.ts"
+@@ -140,6 +140,8 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
+       }) as typeof client.query
+     })
+     const app = buildServer({ config, db, workRuntime: { origin, servicePrincipalIds: [servicePrincipalId], resolveSigningKey: kid => signingEnabled&&kid === "synthetic-key" ? signingKey : null, resolvePolicy: async current => current.binding.bindingId === binding.bindingId ? policy : null }, ...(withPeerDelegation ? { assistantPeer: { origin, servicePrincipalIds: [servicePrincipalId], resolveSigningKey: () => null, resolveBinding: async () => null } } : {}) })
++    let failureLocation: string | undefined
++    app.addHook("onError", async (_request, _reply, error) => { failureLocation = error.stack?.split("\n").slice(0,4).join("\n") })
+     app.addHook("preHandler", async request => {
+       if (request.method === "POST" && request.url.endsWith("/cancel") && beforeCancel) {
+         const effect = beforeCancel; beforeCancel = null; await effect()
+@@ -176,6 +178,7 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
+     const runPath = `/api/v1/sessions/${sessionId}/runs`
+     const counts = async () => (await db.query("SELECT (SELECT count(*)::int FROM runs) runs,(SELECT count(*)::int FROM work_runtime_runs) receipts,(SELECT count(*)::int FROM work_runtime_budget_reservations) reservations")).rows[0] as { runs: number; receipts: number; reservations: number }
+     return { db, app, legacy, context, binding, actor, actingUserId, workspaceId, sessionId, otherSessionId, workerId, policy, worker, body, signed, runPath, counts,
++      failureLocation: () => failureLocation,
+       beforeCancel: (effect: () => Promise<void>) => { beforeCancel = effect },
+       afterCancelWrite: (effect: () => void) => { afterCancelWrite = effect },
+       afterCancelCommit: (effect: () => void) => { afterCancelCommit = effect },
+@@ -212,6 +215,50 @@ async function completeWithJournal(s:Awaited<ReturnType<typeof setup>>,runId:str
+   return {runId,output,rows}
+ }
+ 
++test("signed failed-task retry commits one linked successor with a fresh context and actor-bound recovery", {skip:!databaseUrl}, async () => {
++  const s = await setup()
++  try {
++    await s.worker()
++    const original = await s.app.inject(s.signed("POST", s.runPath, s.body()))
++    assert.equal(original.statusCode, 202, original.body)
++    const sourceId = original.json().id
++    await s.db.query("UPDATE runs SET status='running',attempts=1,worker_id=$2,lease_expires_at=clock_timestamp()+interval '30 seconds' WHERE id=$1", [sourceId,s.workerId])
++    await s.db.query("INSERT INTO workspace_leases(workspace_id,run_id,worker_id,expires_at) VALUES($1,$2,$3,clock_timestamp()+interval '30 seconds')", [s.workspaceId,sourceId,s.workerId])
++    assert.equal(await finishWorkerRunWithError(s.db, {runId:sourceId,workerId:s.workerId,expectedAttempt:1,status:"failed",error:{code:"runtime_failed"},partialEffects:"unknown"}), true)
++    const before = JSON.stringify((await s.db.query("SELECT * FROM runs WHERE id=$1",[sourceId])).rows)
++    const view = await s.app.inject(s.signed("GET", `/api/v1/runs/${sourceId}/command-context`))
++    assert.equal(view.statusCode,200,view.body); assert.deepEqual(view.json().available_kinds,["retry","continue"])
++    s.context.correlationId = randomUUID()
++    const command = {version:1,commandId:s.context.correlationId,sourceRunId:sourceId,kind:"retry",
++      expectedSessionHead:view.json().session_head_sha256,expectedSourceStatus:"failed",expectedAuthoritySha256:view.json().authority_sha256,
++      expiresAt:new Date(Date.now()+90_000).toISOString()}
++    const wire = JSON.stringify({...JSON.parse(s.body()),command}), target = `/api/v1/runs/${sourceId}/commands`
++    const created = await s.app.inject(s.signed("POST",target,wire))
++    assert.equal(created.statusCode,202,created.body+"\n"+s.failureLocation()); assert.equal(created.json().outcome,"accepted"); assert.equal(created.json().relation,"retry_of")
++    const successorId = created.json().new_run_id
++    assert.notEqual(successorId,sourceId)
++    const oldReceipt = await getWorkRuntimeRunReceipt(s.db,{organizationId,runId:sourceId})
++    const nextReceipt = await getWorkRuntimeRunReceipt(s.db,{organizationId,runId:successorId})
++    assert.equal(oldReceipt!.requestSha256,nextReceipt!.requestSha256); assert.notEqual(oldReceipt!.contextSha256,nextReceipt!.contextSha256)
++    assert.equal(JSON.stringify((await s.db.query("SELECT * FROM runs WHERE id=$1",[sourceId])).rows),before)
++    const events = (await s.db.query("SELECT type,data FROM run_events WHERE run_id=$1 ORDER BY sequence",[successorId])).rows
++    assert.deepEqual(events.map(event=>event.type),["response.created","run.command.created"])
++    assert.equal(events[1].data.source_run_id,sourceId)
++    await completeWithJournal(s,successorId)
++    const replay = await s.app.inject(s.signed("POST",target,wire))
++    assert.equal(replay.statusCode,200,replay.body); assert.equal(replay.json().new_run_id,successorId)
++    const lookup = `/api/v1/sessions/${s.sessionId}/commands/${command.commandId}`
++    const recovered = await s.app.inject(s.signed("GET",lookup))
++    assert.equal(recovered.statusCode,200,recovered.body); assert.equal(recovered.json().receipt.new_run_id,successorId)
++    for (const override of [{context_sha256:"a".repeat(64)},{request_sha256:"b".repeat(64)},{correlation_id:randomUUID()}]) {
++      const denied = await s.app.inject(s.signed("GET",lookup,"",override))
++      assert.equal(denied.statusCode,403,denied.body); assert.doesNotMatch(denied.body,/new_run_id|source_input_sha256/)
++    }
++    assert.deepEqual(await s.counts(),{runs:2,receipts:2,reservations:0})
++    assert.doesNotMatch(created.body,/actor_user_id|recovery_proof|intent_sha256|source_input_sha256|private|DemianWork/)
++  } finally { await s.close() }
++})
++
+ test("signed metadata projects real PostgreSQL rows with exact int64 pages and portable redaction", { skip: !databaseUrl }, async () => {
+   const s = await setup()
+   try {
+@@ -950,10 +997,18 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
+     const bad = s.body().replace(serviceId, randomUUID())
+     assert.equal((await s.app.inject(s.signed("POST", s.runPath, bad))).statusCode, 403)
+     assert.equal((await s.counts()).runs, 0)
+-    const turn = async () => {
+-      const created = await s!.app.inject(s!.signed("POST", s!.runPath, s!.body()))
+-      assert.equal(created.statusCode, 202, created.body)
+-      const id = created.json().id, path = "/api/v1/runs/" + id
++    const turn = async (command?: { sourceRunId: string; sessionHead: string; authority: string }) => {
++      const descriptor = command ? { version: 1, commandId: s!.context.correlationId, sourceRunId: command.sourceRunId, kind: "continue",
++        expectedSessionHead: command.sessionHead, expectedSourceStatus: "succeeded", expectedAuthoritySha256: command.authority,
++        expiresAt: new Date(Date.now()+90_000).toISOString() } : undefined
++      const wire = descriptor ? JSON.stringify({ ...JSON.parse(s!.body()), command: descriptor }) : s!.body()
++      const created = await s!.app.inject(s!.signed("POST", command ? `/api/v1/runs/${command.sourceRunId}/commands` : s!.runPath, wire))
++      assert.equal(created.statusCode, 202, created.body+"\n"+s!.failureLocation())
++      const id = command ? created.json().new_run_id : created.json().id, path = "/api/v1/runs/" + id
++      if (command) {
++        assert.equal(created.json().outcome, "accepted"); assert.equal(created.json().relation, "continues")
++        assert.equal(created.json().source_run_id, command.sourceRunId)
++      }
+       assert.equal((await s!.db.query("SELECT 1 FROM deployment_run_authorities WHERE run_id=$1", [id])).rowCount, 1)
+       await assert.rejects(s!.db.query("UPDATE runs SET status='leasing',worker_id=$2 WHERE id=$1", [id, workerId]))
+       const receipt = await getWorkRuntimeRunReceipt(s!.db, { organizationId, runId: id })
+@@ -1011,11 +1066,24 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
+         assert.equal(historical.json().output_text, "Controlled prepared result")
+         await s!.db.query("UPDATE worker_runtime_capabilities SET features=features || jsonb_build_object('delegated_prepared_role_metadata_v1',true) WHERE worker_id=$1", [workerId])
+       }
++      if (command) {
++        const replay = await s!.app.inject(s!.signed("POST", `/api/v1/runs/${command.sourceRunId}/commands`, wire))
++        assert.equal(replay.statusCode, 200, replay.body); assert.equal(replay.json().new_run_id, id)
++        const recovered = await s!.app.inject(s!.signed("GET", `/api/v1/sessions/${s!.sessionId}/commands/${s!.context.correlationId}`))
++        assert.equal(recovered.statusCode, 200, recovered.body); assert.equal(recovered.json().receipt.new_run_id, id)
++      }
+       return { id, work: result.json().work_runtime }
+     }
+     const first = await turn()
+-    s.context.correlationId = "follow-up-" + randomUUID()
+-    const second = await turn()
++    const commandContext = await s.app.inject(s.signed("GET", `/api/v1/runs/${first.id}/command-context`))
++    assert.equal(commandContext.statusCode, 200, commandContext.body)
++    assert.deepEqual(commandContext.json().available_kinds, ["continue"])
++    const originalEvents = JSON.stringify((await s.db.query("SELECT * FROM run_events WHERE run_id=$1 ORDER BY sequence", [first.id])).rows)
++    s.context.correlationId = randomUUID()
++    const second = await turn({ sourceRunId: first.id, sessionHead: commandContext.json().session_head_sha256, authority: commandContext.json().authority_sha256 })
++    assert.equal(JSON.stringify((await s.db.query("SELECT * FROM run_events WHERE run_id=$1 ORDER BY sequence", [first.id])).rows), originalEvents)
++    const relation = (await s.db.query("SELECT data FROM run_events WHERE run_id=$1 AND type='run.command.created'", [second.id])).rows
++    assert.equal(relation.length, 1); assert.equal(relation[0].data.source_run_id, first.id)
+     assert.ok(first.work.native_thread_id)
+     assert.equal(first.work.native_thread_id, second.work.native_thread_id)
+     assert.notEqual(first.work.native_turn_id, second.work.native_turn_id)
+diff --git a/docs/run-commands.md b/docs/run-commands.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..8b72d1e3ff4fdbf12f563fb86cbf5f2303a04b7a
+--- /dev/null
++++ b/docs/run-commands.md
+@@ -0,0 +1,57 @@
++# Run command admission
++
++`GET /api/v1/runs/:runId/command-context` observes the current source status,
++opaque Session head and current authority stamp. `POST .../commands` atomically
++creates a queued successor, immutable command receipt and one
++`run.command.created` event on that successor. The predecessor's Run, events,
++messages, usage and receipts remain unchanged.
++
++| Kind | Source status | Input | Relation | Task root |
++| --- | --- | --- | --- | --- |
++| retry | failed | Original logical request | retry_of | Inherited |
++| resume | cancelled, expired | Original logical request | continues | Inherited |
++| continue | Any terminal status | Explicit new input | continues | Successor |
++
++A pending permission is not a terminal source. Resolve its exact permission
++through the existing permission endpoint and attempt/worker/lease fence.
++
++The body is `{command, input?}` for ordinary requests. The command has exactly
++`version:1`, `commandId`, `sourceRunId`, `kind`, `expectedSessionHead`,
++`expectedSourceStatus`, `expectedAuthoritySha256`, and `expiresAt`. Only continue
++accepts/requires `input`. The deadline must be within 120 seconds at admission.
++
++Signed Work Runtime requests preserve the existing canonical packet unchanged in
++`{input:[packetText], command}`. The HTTP path/body and fresh operation context,
++correlation and idempotency key are signed. Current actor, binding, original role,
++policy, signing key and prepared deployment are rechecked inside the transaction.
++Recovery requires the same signed operation context/request/correlation proof.
++The original receipt's context is still required for ordinary protected Run reads.
++This does not grant an observer credential control authority.
++
++Same actor/command ID with the same full intent returns the original receipt;
++different intent returns 409. Distinct IDs observing one Session head cannot both
++admit successors. Active Runs, changed head/status and expiry create durable
++rejected receipts. Ordinary enqueue remains fenced by the active-Run constraint.
++Accepted receipt source/successor/root references have scoped foreign keys.
++Rejected attempts retain the checked source identity without waiting on an active
++worker's Run row lock. Session authorization and scope checks still apply.
++
++`GET /api/v1/sessions/:sessionId/commands/:commandId` returns `found` with the
++original positive receipt, or `not_found`. It rechecks current authority; no stored
++receipt bypasses revocation. A lost COMMIT acknowledgement is `503 outcome_unknown`.
++Recover the same command ID before any further user decision. Do not create a new
++key or infer acceptance from an unrelated Run.
++
++New accepted admission is HTTP202; accepted replay is HTTP200; durable rejection
++is HTTP409. Acceptance means queued admission, not execution success, external
++effects rollback or completion of the parent Task. Native receipt resources omit
++actor, authority/input hashes, recovery proof, input and credentials.
++
++Ordinary personal provider authorization retains its original connection pin.
++Deployment-pinned execution instead requires its current deployment settings and
++availability; unrelated personal login rotation does not change that authority.
++
++Migration027 and these endpoints have only been exercised in isolated PostgreSQL
++QA. Operating processes/databases have not been upgraded. Assistant WorkCoordinator
++attempt/ref integration and Track control/recovery UI remain separate work; sending
++a native successor alone does not implement a failed coordinator-role retry.
+diff --git a/packages/db/migrations/027_run_commands.sql b/packages/db/migrations/027_run_commands.sql
+new file mode 100644
+index 0000000000000000000000000000000000000000..bf7edb581b65d5bcb9439915ea622508535c94fc
+--- /dev/null
++++ b/packages/db/migrations/027_run_commands.sql
+@@ -0,0 +1,71 @@
++-- AT-09 immutable admission receipts. No inputs, context, or credentials.
++ALTER TABLE runs ADD CONSTRAINT runs_command_scope_unique
++  UNIQUE (organization_id, session_id, id);
++CREATE TABLE run_commands (
++  organization_id uuid NOT NULL,
++  session_id uuid NOT NULL,
++  actor_user_id uuid NOT NULL,
++  command_id uuid NOT NULL,
++  source_run_id uuid NOT NULL,
++  accepted_source_run_id uuid,
++  kind text NOT NULL CHECK (kind IN ('retry','resume','continue')),
++  request_sha256 text NOT NULL CHECK (request_sha256 ~ '^[a-f0-9]{64}$'),
++  intent_sha256 text NOT NULL CHECK (intent_sha256 ~ '^[a-f0-9]{64}$'),
++  expected_session_head text NOT NULL CHECK (expected_session_head ~ '^[a-f0-9]{64}$'),
++  expected_source_status text NOT NULL CHECK (expected_source_status IN ('succeeded','failed','cancelled','expired')),
++  expected_authority_sha256 text NOT NULL CHECK (expected_authority_sha256 ~ '^[a-f0-9]{64}$'),
++  source_input_sha256 text NOT NULL CHECK (source_input_sha256 ~ '^[a-f0-9]{64}$'),
++  recovery_proof_sha256 text CHECK (recovery_proof_sha256 ~ '^[a-f0-9]{64}$'),
++  expires_at timestamptz NOT NULL,
++  outcome text NOT NULL CHECK (outcome IN ('accepted','rejected')),
++  rejection_code text CHECK (rejection_code IN ('command_expired','session_head_changed',
++    'source_status_changed','active_run','invalid_source_state')),
++  new_run_id uuid,
++  task_root_run_id uuid,
++  relation text CHECK (relation IN ('retry_of','continues')),
++  created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
++  PRIMARY KEY (organization_id, actor_user_id, command_id),
++  FOREIGN KEY (organization_id,session_id) REFERENCES sessions(organization_id,id) ON DELETE CASCADE,
++  -- Rejected intents must not wait on an active worker's Run UPDATE lock.
++  -- Their attempted source identity is scope-checked by the INSERT trigger.
++  FOREIGN KEY (organization_id,session_id,accepted_source_run_id)
++    REFERENCES runs(organization_id,session_id,id) ON DELETE CASCADE,
++  FOREIGN KEY (organization_id,session_id,new_run_id)
++    REFERENCES runs(organization_id,session_id,id) ON DELETE CASCADE,
++  FOREIGN KEY (organization_id,session_id,task_root_run_id)
++    REFERENCES runs(organization_id,session_id,id) ON DELETE CASCADE,
++  CHECK ((outcome='accepted' AND rejection_code IS NULL AND new_run_id IS NOT NULL
++    AND accepted_source_run_id IS NOT NULL AND accepted_source_run_id=source_run_id
++    AND new_run_id<>source_run_id AND task_root_run_id IS NOT NULL AND relation IS NOT NULL
++    AND relation=CASE WHEN kind='retry' THEN 'retry_of' ELSE 'continues' END
++    AND (kind<>'continue' OR task_root_run_id=new_run_id))
++    OR (outcome='rejected' AND rejection_code IS NOT NULL AND new_run_id IS NULL AND accepted_source_run_id IS NULL
++      AND task_root_run_id IS NULL AND relation IS NULL))
++);
++CREATE UNIQUE INDEX run_commands_accepted_head_idx
++  ON run_commands(organization_id,session_id,expected_session_head) WHERE outcome='accepted';
++CREATE UNIQUE INDEX run_commands_successor_idx
++  ON run_commands(new_run_id) WHERE outcome='accepted';
++CREATE FUNCTION guard_run_command_scope() RETURNS trigger LANGUAGE plpgsql AS $$
++BEGIN
++  IF EXISTS (
++    SELECT 1 FROM runs r WHERE r.id IN (NEW.source_run_id,NEW.new_run_id,NEW.task_root_run_id)
++      AND (r.organization_id<>NEW.organization_id OR r.session_id<>NEW.session_id
++        OR r.requested_by_user_id IS DISTINCT FROM NEW.actor_user_id
++        OR r.requested_actor_scope<>'user')
++  ) THEN
++    RAISE EXCEPTION 'Invalid command run scope' USING ERRCODE='23514';
++  END IF;
++  RETURN NEW;
++END;
++$$;
++CREATE TRIGGER run_commands_scope BEFORE INSERT ON run_commands
++  FOR EACH ROW EXECUTE FUNCTION guard_run_command_scope();
++CREATE FUNCTION immutable_run_command() RETURNS trigger LANGUAGE plpgsql AS $$
++BEGIN
++  RAISE EXCEPTION 'Run command receipts are immutable' USING ERRCODE='23514';
++END;
++$$;
++-- Deliberately no DELETE trigger: authorized Session deletion must cascade.
++CREATE TRIGGER run_commands_immutable BEFORE UPDATE ON run_commands
++  FOR EACH ROW EXECUTE FUNCTION immutable_run_command();
+diff --git a/packages/db/src/index.ts b/packages/db/src/index.ts
+index a4c2aafdbd21e51cf74440454af75758c263f983..c094ac298e5c1944632e663b3ffbc417cbf4c549 100644
+--- a/packages/db/src/index.ts
++++ b/packages/db/src/index.ts
+@@ -984,3 +984,4 @@ export * from "./child-context-recovery.ts"
+ export { resolveRunProviderStore } from "./provider-session-stores.ts"
+ export * from "./peer-processing.ts"
+ export * from "./deployment-services.ts"
++export * from "./run-commands.ts"
+diff --git a/packages/db/src/run-commands.ts b/packages/db/src/run-commands.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..d243c35f9b96c76af33b96fab58e4fe39cfd0eec
+--- /dev/null
++++ b/packages/db/src/run-commands.ts
+@@ -0,0 +1,386 @@
++import { createHash } from "node:crypto"
++import { parseRunInput, type RunInputItem } from "@demian/protocol"
++import type { DatabaseClient, DatabasePool, RunRow } from "./index.ts"
++
++export type RunCommandKind = "retry" | "resume" | "continue"
++export type RunCommandTerminalStatus = "succeeded" | "failed" | "cancelled" | "expired"
++export interface RunCommandScope {
++  organizationId: string
++  sessionId: string
++  actorUserId: string
++  commandId: string
++  /** Trusted, verified request context pin; never returned in a receipt. */
++  recoveryProofSha256?: string | null
++}
++export interface CreateRunCommandInput extends RunCommandScope {
++  sourceRunId: string
++  kind: RunCommandKind
++  expectedSessionHead: string
++  expectedSourceStatus: RunCommandTerminalStatus
++  expectedAuthoritySha256: string
++  intentSha256: string
++  expiresAt: string
++  continuationItems?: RunInputItem[]
++}
++export interface RunCommandReceipt {
++  organization_id: string
++  session_id: string
++  actor_user_id: string
++  command_id: string
++  source_run_id: string
++  kind: RunCommandKind
++  request_sha256: string
++  intent_sha256: string
++  expected_session_head: string
++  expected_source_status: RunCommandTerminalStatus
++  expected_authority_sha256: string
++  source_input_sha256: string
++  expires_at: Date
++  outcome: "accepted" | "rejected"
++  rejection_code: RunCommandRejectionCode | null
++  new_run_id: string | null
++  task_root_run_id: string | null
++  relation: "retry_of" | "continues" | null
++  created_at: Date
++}
++export type RunCommandRejectionCode = "command_expired" | "session_head_changed"
++  | "source_status_changed" | "active_run" | "invalid_source_state"
++export interface RunCommandResult { receipt: RunCommandReceipt; replayed: boolean }
++export interface RunCommandPorts {
++  /** SQL-only, same client; must not dispatch, commit, or begin a transaction. */
++  authorize(client: DatabaseClient, sourceRun: RunRow): Promise<string>
++  /** SQL-only admission. Delegated creators compose a fresh canonical packet. */
++  createSuccessor(client: DatabaseClient, input: {
++    sourceRun: RunRow; items: RunInputItem[]; commandId: string
++    kind: RunCommandKind; organizationId: string; sessionId: string
++    actorUserId: string
++  }): Promise<RunRow>
++}
++export class RunCommandError extends Error {
++  constructor(readonly status: number, readonly code: string) {
++    super(code)
++    this.name = "RunCommandError"
++  }
++}
++interface StoredReceipt extends RunCommandReceipt { recovery_proof_sha256: string | null; accepted_source_run_id: string | null }
++const sha = (value: string) => createHash("sha256").update(value).digest("hex")
++const shaPattern = /^[a-f0-9]{64}$/
++const uuidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i
++const terminal = new Set(["succeeded", "failed", "cancelled", "expired"])
++function fail(status: number, code: string): never { throw new RunCommandError(status, code) }
++function validateScope(scope: RunCommandScope): void {
++  for (const value of [scope.organizationId, scope.sessionId, scope.actorUserId, scope.commandId]) {
++    if (!uuidPattern.test(value)) fail(400, "invalid_command")
++  }
++  if (scope.recoveryProofSha256 != null && !shaPattern.test(scope.recoveryProofSha256)) fail(400, "invalid_command")
++}
++function publicReceipt(row: StoredReceipt): RunCommandReceipt {
++  const { recovery_proof_sha256: _proof, accepted_source_run_id: _source, ...receipt } = row
++  return receipt
++}
++
++/** Opaque observation only. The caller supplies transaction/statement bounds. */
++export async function getRunCommandHead(
++  client: DatabaseClient, organizationId: string, sessionId: string,
++): Promise<string> {
++  const row = (await client.query<{ head: unknown }>(
++    `SELECT jsonb_build_array(s.organization_id,s.id,s.workspace_id,s.agent,
++      s.provider,s.model,s.mode,s.permission_policy,s.revision::text,
++      s.archived_at,(SELECT count(*)::text FROM runs r WHERE r.session_id=s.id),
++      (SELECT jsonb_build_array(r.id,
++        to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US'),r.status) FROM runs r
++        WHERE r.session_id=s.id ORDER BY r.created_at DESC,r.id DESC LIMIT 1)) AS head
++     FROM sessions s WHERE s.organization_id=$1 AND s.id=$2`,
++    [organizationId, sessionId],
++  )).rows[0]
++  if (!row) fail(404, "command_unavailable")
++  return sha(JSON.stringify(row.head))
++}
++async function transaction<T>(db: DatabasePool, body: (client: DatabaseClient) => Promise<T>): Promise<T> {
++  const client = await db.connect()
++  let committing = false
++  let releaseError: Error | undefined
++  try {
++    await client.query("BEGIN")
++    await client.query("SET LOCAL lock_timeout = '3s'")
++    await client.query("SET LOCAL statement_timeout = '10s'")
++    await client.query("SET LOCAL idle_in_transaction_session_timeout = '15s'")
++    const result = await body(client)
++    committing = true
++    await client.query("COMMIT")
++    return result
++  } catch (error) {
++    if (committing) {
++      releaseError = new Error("command_commit_outcome_unknown")
++      fail(503, "outcome_unknown")
++    }
++    try { await client.query("ROLLBACK") } catch { releaseError = new Error("command_rollback_failed") }
++    throw error
++  } finally { client.release(releaseError) }
++}
++async function lockScope(client: DatabaseClient, scope: RunCommandScope): Promise<void> {
++  await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
++    JSON.stringify([scope.organizationId.toLowerCase(), scope.actorUserId.toLowerCase(), scope.commandId.toLowerCase()]),
++  ])
++  await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [
++    JSON.stringify(["run-command-session", scope.organizationId.toLowerCase(), scope.sessionId.toLowerCase()]),
++  ])
++  // Compatible with legacy cancel's Run UPDATE -> Session SHARE order.
++  // Active successor uniqueness and the before/after observations fence enqueue.
++  const session = await client.query(`SELECT id FROM sessions
++    WHERE organization_id=$1 AND id=$2 AND archived_at IS NULL FOR SHARE`,
++  [scope.organizationId, scope.sessionId])
++  if (!session.rowCount) fail(404, "command_unavailable")
++  await currentScope(client, scope)
++}
++async function currentScope(client: DatabaseClient, scope: RunCommandScope): Promise<void> {
++  const result = await client.query(`SELECT u.id FROM users u
++    JOIN organization_members m ON m.user_id=u.id
++    JOIN sessions s ON s.organization_id=m.organization_id
++    JOIN workspaces w ON w.id=s.workspace_id AND w.organization_id=s.organization_id
++    WHERE u.id=$1 AND u.status='active' AND m.organization_id=$2
++      AND m.role IN ('owner','admin','member')
++      AND s.id=$3 AND s.archived_at IS NULL AND w.status='ready'
++    FOR SHARE OF u,m,w`, [scope.actorUserId, scope.organizationId, scope.sessionId])
++  if (!result.rowCount) fail(403, "command_authority_denied")
++}
++async function sourceRun(client: DatabaseClient, scope: RunCommandScope, id: string, lock = false): Promise<RunRow> {
++  const row = (await client.query<RunRow>(`SELECT * FROM runs
++    WHERE id=$1 AND organization_id=$2 AND session_id=$3
++      AND requested_by_user_id=$4 AND requested_actor_scope='user' ${lock ? "FOR SHARE" : ""}`,
++  [id, scope.organizationId, scope.sessionId, scope.actorUserId])).rows[0]
++  if (!row) fail(404, "command_unavailable")
++  return row
++}
++async function authorize(client: DatabaseClient, scope: RunCommandScope, source: RunRow,
++  ports: Pick<RunCommandPorts, "authorize">, expected: string): Promise<void> {
++  await currentScope(client, scope)
++  const stamp = await ports.authorize(client, structuredClone(source))
++  if (!shaPattern.test(stamp) || stamp !== expected) fail(403, "command_authority_denied")
++}
++async function stored(client: DatabaseClient, scope: RunCommandScope): Promise<StoredReceipt | undefined> {
++  return (await client.query<StoredReceipt>(`SELECT * FROM run_commands
++    WHERE organization_id=$1 AND actor_user_id=$2 AND command_id=$3`,
++  [scope.organizationId, scope.actorUserId, scope.commandId])).rows[0]
++}
++interface DelegatedPins {
++  requestSha256: string; roleContextSha256: string; bindingSha256: string
++  requestedModel: string; requestedEffort: string | null; sessionProvider: string
++  servicePrincipalId: string; binding: unknown
++  contextSha256: string; correlationId: string
++}
++async function delegatedPins(client: DatabaseClient, run: RunRow): Promise<DelegatedPins | undefined> {
++  const row = (await client.query<{ receipt: Record<string, unknown>; organization_id: string }>(
++    "SELECT organization_id,receipt FROM work_runtime_runs WHERE run_id=$1", [run.id],
++  )).rows[0]
++  if (!row) return undefined
++  const p = row.receipt
++  if (row.organization_id !== run.organization_id || p.runId !== run.id
++    || p.organizationId !== run.organization_id || p.sessionId !== run.session_id
++    || p.actingUserId !== run.requested_by_user_id
++    || typeof p.servicePrincipalId !== "string" || !uuidPattern.test(p.servicePrincipalId)
++    || !p.binding || typeof p.binding !== "object" || Array.isArray(p.binding)
++    || typeof p.requestedModel !== "string" || !p.requestedModel
++    || !(p.requestedEffort === null || typeof p.requestedEffort === "string")
++    || typeof p.sessionProvider !== "string" || !p.sessionProvider
++    || [p.requestSha256,p.roleContextSha256,p.bindingSha256].some(v => typeof v !== "string" || !shaPattern.test(v))) {
++    fail(409, "invalid_delegated_receipt")
++  }
++  return p as unknown as DelegatedPins
++}
++function fingerprint(source: RunRow, pins: DelegatedPins | undefined): string {
++  return sha(JSON.stringify(pins ? [pins.requestSha256, pins.roleContextSha256,
++    pins.bindingSha256, pins.requestedModel, pins.requestedEffort, pins.sessionProvider]
++    : parseRunInput(source.input)))
++}
++function proof(scope: RunCommandScope, delegated: boolean): void {
++  if (delegated ? !scope.recoveryProofSha256 : scope.recoveryProofSha256 != null) fail(403, "command_authority_denied")
++}
++
++export async function createRunCommand(db: DatabasePool, input: CreateRunCommandInput,
++  ports: RunCommandPorts): Promise<RunCommandResult> {
++  // Snapshot caller-owned data before the first await.
++  const request = structuredClone(input)
++  validateScope(request)
++  if (!uuidPattern.test(request.sourceRunId) || !["retry","resume","continue"].includes(request.kind)
++    || !terminal.has(request.expectedSourceStatus)
++    || [request.expectedSessionHead, request.expectedAuthoritySha256, request.intentSha256].some(v => !shaPattern.test(v))
++    || typeof request.expiresAt !== "string" || !Number.isFinite(Date.parse(request.expiresAt))
++    || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(request.expiresAt)) fail(400, "invalid_command")
++  const continuation = request.kind === "continue" ? parseRunInput(request.continuationItems) : null
++  if (request.kind !== "continue" && request.continuationItems !== undefined) fail(400, "invalid_command")
++  const digest = sha(JSON.stringify([
++    request.organizationId.toLowerCase(), request.sessionId.toLowerCase(), request.actorUserId.toLowerCase(),
++    request.sourceRunId.toLowerCase(), request.commandId.toLowerCase(), request.kind,
++    request.expectedSessionHead, request.expectedSourceStatus, request.expectedAuthoritySha256,
++    request.intentSha256, request.recoveryProofSha256 ?? null, request.expiresAt, continuation,
++  ]))
++  return transaction(db, async client => {
++    await lockScope(client, request)
++    const old = await stored(client, request)
++    if (old && old.session_id !== request.sessionId.toLowerCase()) fail(409, "command_digest_conflict")
++    let source = await sourceRun(client, request, old?.source_run_id ?? request.sourceRunId)
++    await authorize(client, request, source, ports, old?.expected_authority_sha256 ?? request.expectedAuthoritySha256)
++    const pins = await delegatedPins(client, source)
++    proof(request, !!pins)
++    if (old) {
++      if (old.request_sha256 !== digest) fail(409, "command_digest_conflict")
++      await authorize(client, request, source, ports, old.expected_authority_sha256)
++      return { receipt: publicReceipt(old), replayed: true }
++    }
++    const timing = (await client.query<{expired: boolean; too_far: boolean}>(
++      `SELECT $1::timestamptz<=clock_timestamp() AS expired,
++        $1::timestamptz>clock_timestamp()+interval '120 seconds' AS too_far`, [request.expiresAt],
++    )).rows[0]
++    if (timing.too_far) fail(400, "invalid_command_deadline")
++    const head = await getRunCommandHead(client, request.organizationId, request.sessionId)
++    const active = (await client.query(`SELECT 1 FROM runs WHERE session_id=$1
++      AND status IN ('queued','leasing','running','waiting_for_permission','cancelling') LIMIT 1`, [request.sessionId])).rowCount
++    let rejected: RunCommandRejectionCode | null = timing.expired ? "command_expired"
++      : head !== request.expectedSessionHead ? "session_head_changed"
++      : source.status !== request.expectedSourceStatus ? "source_status_changed"
++      : active ? "active_run"
++      : (request.kind === "retry" ? source.status !== "failed"
++        : request.kind === "resume" ? !["cancelled","expired"].includes(source.status)
++          : !terminal.has(source.status)) ? "invalid_source_state" : null
++    let successor: RunRow | undefined
++    let root: string | null = null
++    const sourceFingerprint = fingerprint(source, pins)
++    let before: string[] = []
++    if (!rejected) {
++      // Do not wait on an active worker holding Run UPDATE while it needs
++      // Session UPDATE. Quiescence was checked without a Run lock above.
++      source = await sourceRun(client, request, source.id, true)
++      before = (await client.query<{ids: string[]}>(
++        "SELECT coalesce(array_agg(id),ARRAY[]::uuid[]) AS ids FROM runs WHERE session_id=$1", [request.sessionId],
++      )).rows[0].ids
++      if (await getRunCommandHead(client, request.organizationId, request.sessionId) !== request.expectedSessionHead) {
++        rejected = "session_head_changed"
++      } else if (source.status !== request.expectedSourceStatus) rejected = "source_status_changed"
++      else if ((await client.query(`SELECT 1 FROM runs WHERE session_id=$1
++        AND status IN ('queued','leasing','running','waiting_for_permission','cancelling') LIMIT 1`,
++      [request.sessionId])).rowCount) rejected = "active_run"
++    }
++    if (!rejected) {
++      await client.query("SAVEPOINT command_successor")
++      const items = continuation ?? parseRunInput(source.input)
++      const expectedItems = JSON.stringify(items)
++      const returned = await ports.createSuccessor(client, {
++        sourceRun: structuredClone(source), items: structuredClone(items), commandId: request.commandId,
++        kind: request.kind, organizationId: request.organizationId,
++        sessionId: request.sessionId, actorUserId: request.actorUserId,
++      })
++      const after = (await client.query<RunRow>("SELECT * FROM runs WHERE session_id=$1", [request.sessionId])).rows
++      const inserted = after.filter(row => !before.includes(row.id))
++      if (inserted.length !== 1 || after.length !== before.length + 1 || !returned
++        || inserted[0].id !== returned.id || before.includes(returned.id)) fail(409, "invalid_successor")
++      successor = inserted[0]
++      // SAVEPOINT inserts carry a subtransaction xmin, not the top-level xid.
++      // A visible, still-in-progress tuple belongs to this client. Count its
++      // writes across all sessions to reject extra Run insertion or mutation.
++      const writes = (await client.query<{count: string; own: boolean}>(
++        `SELECT count(*)::text AS count,
++          bool_and(pg_xact_status(xmin::text::xid8)='in progress') AS own
++         FROM runs WHERE xmin=(SELECT xmin FROM runs WHERE id=$1)`, [successor.id],
++      )).rows[0]
++      if (!writes.own || writes.count !== "1") fail(409, "invalid_successor")
++      if (successor.organization_id !== source.organization_id || successor.session_id !== source.session_id
++        || successor.requested_by_user_id !== source.requested_by_user_id
++        || successor.requested_actor_scope !== "user" || successor.id === source.id
++        || successor.status !== "queued"
++        || returned.organization_id !== successor.organization_id || returned.session_id !== successor.session_id
++        || returned.requested_by_user_id !== successor.requested_by_user_id
++        || returned.requested_actor_scope !== "user" || returned.status !== "queued"
++        || JSON.stringify(parseRunInput(returned.input)) !== JSON.stringify(parseRunInput(successor.input))) fail(409, "invalid_successor")
++      const nextPins = await delegatedPins(client, successor)
++      if (!!pins !== !!nextPins) fail(409, "invalid_successor")
++      if (pins && nextPins) {
++        if (!shaPattern.test(nextPins.contextSha256) || nextPins.correlationId !== request.commandId
++          || request.recoveryProofSha256 !== sha(JSON.stringify([
++            "demian.run-command.recovery.v1", nextPins.bindingSha256, successor.requested_by_user_id,
++            nextPins.servicePrincipalId, nextPins.contextSha256,
++            nextPins.requestSha256, request.commandId,
++          ]))) fail(409, "invalid_successor")
++        const equalBinding = (await client.query<{same: boolean}>(
++          "SELECT $1::jsonb=$2::jsonb AS same", [JSON.stringify(pins.binding), JSON.stringify(nextPins.binding)],
++        )).rows[0].same
++        if (!equalBinding || pins.servicePrincipalId !== nextPins.servicePrincipalId
++          || pins.roleContextSha256 !== nextPins.roleContextSha256 || pins.bindingSha256 !== nextPins.bindingSha256
++          || pins.requestedModel !== nextPins.requestedModel || pins.requestedEffort !== nextPins.requestedEffort
++          || pins.sessionProvider !== nextPins.sessionProvider
++          || (request.kind !== "continue" && pins.requestSha256 !== nextPins.requestSha256)) fail(409, "invalid_successor")
++      } else if (JSON.stringify(parseRunInput(successor.input)) !== expectedItems) fail(409, "invalid_successor")
++      const predecessor = (await client.query<{task_root_run_id: string}>(`SELECT task_root_run_id FROM run_commands
++        WHERE organization_id=$1 AND session_id=$2 AND actor_user_id=$3 AND new_run_id=$4 AND outcome='accepted'`,
++      [request.organizationId, request.sessionId, request.actorUserId, source.id])).rows[0]
++      root = request.kind === "continue" ? successor.id : predecessor?.task_root_run_id ?? source.id
++    }
++    await authorize(client, request, source, ports, request.expectedAuthoritySha256)
++    // Preserve a durable rejection if the deadline elapsed during admission,
++    // rolling back all callback effects before storing it.
++    if (successor && (await client.query<{expired: boolean}>(
++      "SELECT clock_timestamp()>=$1::timestamptz AS expired", [request.expiresAt],
++    )).rows[0].expired) {
++      await client.query("ROLLBACK TO SAVEPOINT command_successor")
++      successor = undefined
++      root = null
++      rejected = "command_expired"
++      await authorize(client, request, source, ports, request.expectedAuthoritySha256)
++    }
++    if (successor) {
++      const sequence = (await client.query<{sequence: string}>(
++        `INSERT INTO run_event_counters(run_id,next_sequence)
++         VALUES ($1,(SELECT coalesce(max(sequence),0)+2 FROM run_events WHERE run_id=$1))
++         ON CONFLICT (run_id) DO UPDATE SET next_sequence=run_event_counters.next_sequence+1
++         RETURNING (next_sequence-1)::text AS sequence`, [successor.id],
++      )).rows[0].sequence
++      await client.query(`INSERT INTO run_events(run_id,sequence,type,data)
++        VALUES ($1,$2,'run.command.created',$3::jsonb)`, [successor.id,sequence,JSON.stringify({
++        command_id: request.commandId,source_run_id: source.id,
++        relationship: request.kind === "retry" ? "retry_of" : "continues",task_root_run_id: root,
++      })])
++    }
++    const persist = async () => (await client.query<StoredReceipt>(`INSERT INTO run_commands (
++      organization_id,session_id,actor_user_id,command_id,source_run_id,kind,
++      request_sha256,intent_sha256,expected_session_head,expected_source_status,
++      expected_authority_sha256,source_input_sha256,recovery_proof_sha256,expires_at,
++      outcome,rejection_code,new_run_id,task_root_run_id,relation,accepted_source_run_id)
++      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20) RETURNING *`,
++    [request.organizationId,request.sessionId,request.actorUserId,request.commandId,source.id,request.kind,
++      digest,request.intentSha256,request.expectedSessionHead,request.expectedSourceStatus,
++      request.expectedAuthoritySha256,sourceFingerprint,request.recoveryProofSha256 ?? null,request.expiresAt,
++      rejected ? "rejected" : "accepted",rejected,successor?.id ?? null,root,
++      successor ? request.kind === "retry" ? "retry_of" : "continues" : null, successor ? source.id : null])).rows[0]
++    let row = await persist()
++    await authorize(client, request, source, ports, request.expectedAuthoritySha256)
++    if (successor && (await client.query<{expired: boolean}>(
++      "SELECT clock_timestamp()>=$1::timestamptz AS expired", [request.expiresAt],
++    )).rows[0].expired) {
++      await client.query("ROLLBACK TO SAVEPOINT command_successor")
++      successor = undefined
++      root = null
++      rejected = "command_expired"
++      await authorize(client, request, source, ports, request.expectedAuthoritySha256)
++      row = await persist()
++      await authorize(client, request, source, ports, request.expectedAuthoritySha256)
++    }
++    return { receipt: publicReceipt(row), replayed: false }
++  })
++}
++
++export async function readRunCommand(db: DatabasePool, scope: RunCommandScope,
++  ports: Pick<RunCommandPorts, "authorize">): Promise<RunCommandResult | undefined> {
++  const request = structuredClone(scope)
++  validateScope(request)
++  return transaction(db, async client => {
++    await lockScope(client, request)
++    const row = await stored(client, request)
++    if (!row || row.session_id !== request.sessionId.toLowerCase()) return undefined
++    const source = await sourceRun(client, request, row.source_run_id)
++    proof(request, !!(await delegatedPins(client, source)))
++    if ((request.recoveryProofSha256 ?? null) !== row.recovery_proof_sha256) fail(403, "command_authority_denied")
++    await authorize(client, request, source, ports, row.expected_authority_sha256)
++    await authorize(client, request, source, ports, row.expected_authority_sha256)
++    return { receipt: publicReceipt(row), replayed: true }
++  })
++}
+diff --git a/packages/db/src/work-runtime-runs.ts b/packages/db/src/work-runtime-runs.ts
+index 68fdff6954bc7c6689d60f6e093a6e7fe9f31b91..3234be8747010f06ad68a512c7dcc9ecc3701156 100644
+--- a/packages/db/src/work-runtime-runs.ts
++++ b/packages/db/src/work-runtime-runs.ts
+@@ -123,81 +123,87 @@ export async function createDelegatedWorkRuntimeRun(
+     trustedPolicy: WorkRuntimeBudgetPolicy
+     providerAuthId?: string
+   },
++): Promise<{ run: RunRow; replayed: boolean; creationEventPersisted?: boolean; receipt: WorkRuntimeRunReceipt }> {
++  return transaction(db, client => createDelegatedWorkRuntimeRunInTransaction(client, input))
++}
++
++/** Compose command receipt and successor admission in one caller-owned transaction. */
++export async function createDelegatedWorkRuntimeRunInTransaction(
++  client: DatabaseClient,
++  input: Parameters<typeof createDelegatedWorkRuntimeRun>[1],
+ ): Promise<{ run: RunRow; replayed: boolean; creationEventPersisted?: boolean; receipt: WorkRuntimeRunReceipt }> {
+   if (input.providerAuthId !== undefined) deny()
+-  return transaction(db,async client => {
+-    const actor = await lockCurrentWorkRuntimeActor(client,input.actor)
+-    const pins = packagePins(input.workPackage,actor)
+-    await requireCurrentMembershipPeriod(client,pins.canonicalRoleContextJson)
+-    const policy = budgetPolicy(input.trustedPolicy)
+-    if (policy.revision !== actor.binding.policyRevision) deny()
+-    const native = actor.binding.execution
+-    if (!same(native ?? null, input.workPackage.execution ?? null)
+-        || !same(native ?? null, policy.native?.execution ?? null)
+-        || (native && policy.native?.bindingSha256 !== actor.bindingSha256)) deny()
+-    const scope = { organizationId: actor.binding.organizationId, workspaceId: actor.binding.workspaceId,
+-      sessionId: actor.binding.sessionId, actorUserId: actor.actingUserId }
+-    const deployment = native ? await currentPreparedDeployment(client, actor, true) : null
+-    const idempotencyKey = pins.correlationId
+-    // Same org/key cannot race across different delegated bindings.
+-    await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
+-      [JSON.stringify([actor.binding.organizationId,idempotencyKey])])
+-    const requestHash = hash(JSON.stringify([
+-      actor.binding.sessionId,actor.actingUserId,pins.input,
+-    ]))
+-    const previous = (await client.query<RunRow & { request_hash: string }>(
+-      "SELECT * FROM runs WHERE organization_id=$1 AND idempotency_key=$2",
+-      [actor.binding.organizationId,idempotencyKey],
+-    )).rows[0]
+-    const receipt: WorkRuntimeRunReceipt = {
+-      runId: previous?.id ?? randomUUID(),
+-      organizationId: actor.binding.organizationId,
+-      workspaceId: actor.binding.workspaceId,sessionId: actor.binding.sessionId,
+-      actingUserId: actor.actingUserId,
+-      servicePrincipalId: actor.authenticatedServicePrincipalId,
+-      binding: actor.binding,
+-      sessionProvider: actor.sessionProvider,
+-      sessionPermissionPolicy: actor.sessionPermissionPolicy,
+-      ...pins,requestedModel: actor.binding.model,trustedPolicy: policy,
+-    }
+-    if (previous) {
+-      const stored = await readReceipt(client,receipt.organizationId,previous.id)
+-      if (previous.request_hash !== requestHash || !stored
+-          || !same(stored,receipt)) throw new IdempotencyConflictError()
+-      await requireCurrentMembershipPeriod(client,pins.canonicalRoleContextJson)
+-      await registerWorkerQaAdmission(client,{kind:"delegated-work",organizationId:receipt.organizationId,workspaceId:receipt.workspaceId,
+-        sessionId:receipt.sessionId,actorId:receipt.actingUserId,operationId:idempotencyKey,
+-        requestSha256:delegatedWorkQaRequestSha256({...receipt,policyRevision:policy.revision}),runId:previous.id,replayed:true})
+-      return { run: previous,replayed: true,receipt: stored }
+-    }
++  const actor = await lockCurrentWorkRuntimeActor(client,input.actor)
++  const pins = packagePins(input.workPackage,actor)
++  await requireCurrentMembershipPeriod(client,pins.canonicalRoleContextJson)
++  const policy = budgetPolicy(input.trustedPolicy)
++  if (policy.revision !== actor.binding.policyRevision) deny()
++  const native = actor.binding.execution
++  if (!same(native ?? null, input.workPackage.execution ?? null)
++      || !same(native ?? null, policy.native?.execution ?? null)
++      || (native && policy.native?.bindingSha256 !== actor.bindingSha256)) deny()
++  const scope = { organizationId: actor.binding.organizationId, workspaceId: actor.binding.workspaceId,
++    sessionId: actor.binding.sessionId, actorUserId: actor.actingUserId }
++  const deployment = native ? await currentPreparedDeployment(client, actor, true) : null
++  const idempotencyKey = pins.correlationId
++  // Same org/key cannot race across different delegated bindings.
++  await client.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))",
++    [JSON.stringify([actor.binding.organizationId,idempotencyKey])])
++  const requestHash = hash(JSON.stringify([
++    actor.binding.sessionId,actor.actingUserId,pins.input,
++  ]))
++  const previous = (await client.query<RunRow & { request_hash: string }>(
++    "SELECT * FROM runs WHERE organization_id=$1 AND idempotency_key=$2",
++    [actor.binding.organizationId,idempotencyKey],
++  )).rows[0]
++  const receipt: WorkRuntimeRunReceipt = {
++    runId: previous?.id ?? randomUUID(),
++    organizationId: actor.binding.organizationId,
++    workspaceId: actor.binding.workspaceId,sessionId: actor.binding.sessionId,
++    actingUserId: actor.actingUserId,
++    servicePrincipalId: actor.authenticatedServicePrincipalId,
++    binding: actor.binding,
++    sessionProvider: actor.sessionProvider,
++    sessionPermissionPolicy: actor.sessionPermissionPolicy,
++    ...pins,requestedModel: actor.binding.model,trustedPolicy: policy,
++  }
++  if (previous) {
++    const stored = await readReceipt(client,receipt.organizationId,previous.id)
++    if (previous.request_hash !== requestHash || !stored
++        || !same(stored,receipt)) throw new IdempotencyConflictError()
+     await requireCurrentMembershipPeriod(client,pins.canonicalRoleContextJson)
+-    // Matches createRun's canonical request hash/input/actor and existing unique
+-    // active-session/idempotency guards; immutable pins commit with the run.
+-    const run = (await client.query<RunRow>(
+-      `INSERT INTO runs(id,organization_id,session_id,input,request_id,
+-        idempotency_key,request_hash,provider_auth_id,requested_by_user_id)
+-       VALUES ($1,$2,$3,$4::jsonb,$5,$5,$6,$7,$8) RETURNING *`,
+-      [receipt.runId,receipt.organizationId,receipt.sessionId,
+-        JSON.stringify(pins.input),idempotencyKey,requestHash,
+-        input.providerAuthId === undefined ? null : uuid(input.providerAuthId),
+-        receipt.actingUserId],
+-    )).rows[0]
+-    await client.query(
+-      "INSERT INTO work_runtime_runs(run_id,organization_id,receipt) VALUES ($1,$2,$3::jsonb)",
+-      [run.id,receipt.organizationId,JSON.stringify(receipt)],
+-    )
+-    if (deployment) {
+-      await pinDeploymentRunAuthority(client, { ...scope, runId: run.id, expectedSettingsHash: deployment.settingsHash })
+-      await client.query("INSERT INTO run_event_counters(run_id,next_sequence) VALUES($1,2)", [run.id])
+-      await client.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.created',$2)", [run.id, {status:"queued"}])
+-    } else {
+-      await client.query("INSERT INTO work_runtime_budget_scopes(run_id) VALUES ($1)",[run.id])
+-    }
+     await registerWorkerQaAdmission(client,{kind:"delegated-work",organizationId:receipt.organizationId,workspaceId:receipt.workspaceId,
+       sessionId:receipt.sessionId,actorId:receipt.actingUserId,operationId:idempotencyKey,
+-      requestSha256:delegatedWorkQaRequestSha256({...receipt,policyRevision:policy.revision}),runId:run.id,replayed:false})
+-    return { run,replayed: false,receipt, ...(deployment ? { creationEventPersisted: true } : {}) }
+-  })
++      requestSha256:delegatedWorkQaRequestSha256({...receipt,policyRevision:policy.revision}),runId:previous.id,replayed:true})
++    return { run: previous,replayed: true,receipt: stored }
++  }
++  await requireCurrentMembershipPeriod(client,pins.canonicalRoleContextJson)
++  // Matches createRun's canonical request hash/input/actor and existing unique
++  // active-session/idempotency guards; immutable pins commit with the run.
++  const run = (await client.query<RunRow>(
++    `INSERT INTO runs(id,organization_id,session_id,input,request_id,
++      idempotency_key,request_hash,provider_auth_id,requested_by_user_id)
++     VALUES ($1,$2,$3,$4::jsonb,$5,$5,$6,$7,$8) RETURNING *`,
++    [receipt.runId,receipt.organizationId,receipt.sessionId,
++      JSON.stringify(pins.input),idempotencyKey,requestHash,
++      input.providerAuthId === undefined ? null : uuid(input.providerAuthId),
++      receipt.actingUserId],
++  )).rows[0]
++  await client.query(
++    "INSERT INTO work_runtime_runs(run_id,organization_id,receipt) VALUES ($1,$2,$3::jsonb)",
++    [run.id,receipt.organizationId,JSON.stringify(receipt)],
++  )
++  if (deployment) {
++    await pinDeploymentRunAuthority(client, { ...scope, runId: run.id, expectedSettingsHash: deployment.settingsHash })
++    await client.query("INSERT INTO run_event_counters(run_id,next_sequence) VALUES($1,2)", [run.id])
++    await client.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.created',$2)", [run.id, {status:"queued"}])
++  } else {
++    await client.query("INSERT INTO work_runtime_budget_scopes(run_id) VALUES ($1)",[run.id])
++  }
++  await registerWorkerQaAdmission(client,{kind:"delegated-work",organizationId:receipt.organizationId,workspaceId:receipt.workspaceId,
++    sessionId:receipt.sessionId,actorId:receipt.actingUserId,operationId:idempotencyKey,
++    requestSha256:delegatedWorkQaRequestSha256({...receipt,policyRevision:policy.revision}),runId:run.id,replayed:false})
++  return { run,replayed: false,receipt, ...(deployment ? { creationEventPersisted: true } : {}) }
+ }
+ 
+ /** No delegated receipt means ordinary execution; a broken delegated pin throws. */
+diff --git a/packages/db/test/run-commands.integration.test.ts b/packages/db/test/run-commands.integration.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..e29defa34487950a7604d9e452fd450ee048f77e
+--- /dev/null
++++ b/packages/db/test/run-commands.integration.test.ts
+@@ -0,0 +1,460 @@
++import assert from "node:assert/strict"
++import { createHash, randomUUID } from "node:crypto"
++import { readdir, readFile } from "node:fs/promises"
++import test from "node:test"
++import { createDatabase, type DatabaseClient, type DatabasePool, type RunRow } from "../src/index.ts"
++import {
++  createRunCommand, getRunCommandHead, readRunCommand, RunCommandError,
++  type CreateRunCommandInput, type RunCommandPorts,
++} from "../src/run-commands.ts"
++
++const databaseUrl = process.env.TEST_DATABASE_URL
++const org = "00000000-0000-0000-0000-000000000001"
++const hash = (text: string) => createHash("sha256").update(text).digest("hex")
++const authority = hash("synthetic-current-authority")
++const options = { skip: !databaseUrl }
++const hasCode = (code: string) => (error: unknown) => error instanceof RunCommandError && error.code === code
++
++async function fixture() {
++  const admin = createDatabase({connectionString: databaseUrl!})
++  const schema = `run_commands_${randomUUID().replaceAll("-", "")}`
++  const url = new URL(databaseUrl!)
++  url.searchParams.set("options", `-csearch_path=${schema}`)
++  const db = createDatabase({connectionString: url.href, max: 12})
++  const actor = randomUUID(), workspace = randomUUID(), session = randomUUID()
++  const sourceId = randomUUID()
++  try {
++    await admin.query(`CREATE SCHEMA "${schema}"`)
++    const migrations = new URL("../migrations/", import.meta.url)
++    for (const name of (await readdir(migrations)).filter(v => v.endsWith(".sql")).sort()) {
++      await db.query(await readFile(new URL(name, migrations), "utf8"))
++    }
++    await db.query("INSERT INTO users(id,email,display_name) VALUES($1,$2,'Synthetic')", [actor, `${actor}@synthetic.invalid`])
++    await db.query("INSERT INTO organization_members(organization_id,user_id,role) VALUES($1,$2,'member')", [org,actor])
++    await db.query("INSERT INTO workspaces(id,organization_id,name,root_path,status) VALUES($1,$2,'synthetic','/synthetic','ready')", [workspace,org])
++    await db.query("INSERT INTO sessions(id,organization_id,workspace_id,provider,history) VALUES($1,$2,$3,'synthetic','[{\"role\":\"user\",\"content\":\"original\"}]')", [session,org,workspace])
++    await db.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status)
++      VALUES($1,$2,$3,$4,'[{"type":"input_text","text":"original logical request"}]','failed')`, [sourceId,org,session,actor])
++    await db.query("UPDATE runs SET status='running',worker_id='synthetic',lease_expires_at=now()+interval '1 minute' WHERE id=$1",[sourceId])
++    await db.query("INSERT INTO workspace_leases(workspace_id,run_id,worker_id,expires_at) VALUES($1,$2,'synthetic',now()+interval '1 minute')",[workspace,sourceId])
++    await db.query(`INSERT INTO session_messages(organization_id,session_id,run_id,sequence,worker_id,
++      actor_scope,message,payload_sha256,source) VALUES($1,$2,$3,1,'synthetic','user',
++      '{"role":"assistant","content":"original partial output"}',$4,'journal')`,[org,session,sourceId,hash("placeholder")])
++    await db.query("UPDATE runs SET status='failed',lease_expires_at=NULL WHERE id=$1",[sourceId])
++    await db.query("DELETE FROM workspace_leases WHERE run_id=$1",[sourceId])
++    await db.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,1,'response.failed','{\"code\":\"synthetic_failure\"}')", [sourceId])
++    const head = async () => {
++      const client = await db.connect()
++      try { return await getRunCommandHead(client,org,session) } finally { client.release() }
++    }
++    const input = async (overrides: Partial<CreateRunCommandInput> = {}): Promise<CreateRunCommandInput> => ({
++      organizationId: org,sessionId: session,actorUserId: actor,sourceRunId: sourceId,
++      commandId: randomUUID(),kind: "retry",expectedSessionHead: await head(),
++      expectedSourceStatus: "failed",expectedAuthoritySha256: authority,
++      expiresAt: new Date(Date.now()+110_000).toISOString(),intentSha256: hash("synthetic intent"),...overrides,
++    })
++    const ports: RunCommandPorts = {
++      authorize: async () => authority,
++      createSuccessor: async (client, request) => {
++        const row = (await client.query<RunRow>(`INSERT INTO runs
++          (id,organization_id,session_id,requested_by_user_id,input) VALUES($1,$2,$3,$4,$5::jsonb) RETURNING *`,
++        [randomUUID(),request.organizationId,request.sessionId,request.actorUserId,JSON.stringify(request.items)])).rows[0]
++        await client.query("INSERT INTO run_events(run_id,sequence,type) VALUES($1,1,'response.created')", [row.id])
++        await client.query("INSERT INTO run_event_counters(run_id,next_sequence) VALUES($1,2)", [row.id])
++        return row
++      },
++    }
++    return {db,actor,workspace,session,sourceId,head,input,ports,
++      close: async () => { await db.end(); await admin.query(`DROP SCHEMA "${schema}" CASCADE`); await admin.end() },
++    }
++  } catch (error) {
++    await db.end(); await admin.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`); await admin.end(); throw error
++  }
++}
++type Fixture = Awaited<ReturnType<typeof fixture>>
++async function counts(f: Fixture) {
++  return (await f.db.query(`SELECT (SELECT count(*)::text FROM runs) AS runs,
++    (SELECT count(*)::text FROM run_commands) AS commands`)).rows[0]
++}
++async function preserved(f: Fixture) {
++  return (await f.db.query(`SELECT
++    (SELECT to_jsonb(r) FROM runs r WHERE id=$1) AS source,
++    (SELECT jsonb_agg(to_jsonb(e) ORDER BY sequence) FROM run_events e WHERE run_id=$1) AS events,
++    (SELECT jsonb_agg(to_jsonb(m) ORDER BY id) FROM session_messages m WHERE session_id=$2) AS messages,
++    (SELECT history FROM sessions WHERE id=$2) AS history`, [f.sourceId,f.session])).rows[0]
++}
++
++test("same ID concurrency creates one successor, preserves history, appends one relation event", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input(), before = await preserved(f)
++    const results = await Promise.all(Array.from({length: 4}, () => createRunCommand(f.db,input,f.ports)))
++    assert.equal(results.filter(v => !v.replayed).length,1)
++    assert.equal(new Set(results.map(v => v.receipt.new_run_id)).size,1)
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++    assert.deepEqual(await preserved(f),before)
++    const receipt = results[0].receipt
++    assert.equal(receipt.outcome,"accepted")
++    assert.equal(receipt.task_root_run_id,f.sourceId)
++    const events = (await f.db.query("SELECT sequence,type,data FROM run_events WHERE run_id=$1 ORDER BY sequence", [receipt.new_run_id])).rows
++    assert.deepEqual(events.map(v => v.type),["response.created","run.command.created"])
++    assert.deepEqual(events[1].data,{command_id:input.commandId,source_run_id:f.sourceId,relationship:"retry_of",task_root_run_id:f.sourceId})
++    assert.equal("recovery_proof_sha256" in receipt,false)
++    assert.deepEqual((await readRunCommand(f.db,input,f.ports))?.receipt,receipt)
++    await assert.rejects(f.db.query("UPDATE run_commands SET outcome=outcome"), /immutable/)
++    await f.db.query("DELETE FROM sessions WHERE id=$1",[f.session])
++    assert.deepEqual(await counts(f),{runs:"0",commands:"0"})
++  } finally { await f.close() }
++})
++
++test("distinct command keys observing one head accept exactly one successor", options, async () => {
++  const f = await fixture()
++  try {
++    const a = await f.input(), b = {...a,commandId:randomUUID()}
++    const results = await Promise.all([createRunCommand(f.db,a,f.ports),createRunCommand(f.db,b,f.ports)])
++    assert.equal(results.filter(v => v.receipt.outcome === "accepted").length,1)
++    assert.equal(results.find(v => v.receipt.outcome === "rejected")?.receipt.rejection_code,"session_head_changed")
++    assert.deepEqual(await counts(f),{runs:"2",commands:"2"})
++  } finally { await f.close() }
++})
++
++test("digest conflicts bind intent, deadline, expectations, kind and continuation", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input({expiresAt:new Date(Date.now()-1000).toISOString()})
++    const rejected = await createRunCommand(f.db,input,f.ports)
++    assert.equal(rejected.receipt.rejection_code,"command_expired")
++    assert.equal((await createRunCommand(f.db,input,f.ports)).replayed,true)
++    for (const change of [
++      {intentSha256:hash("different")}, {expectedSessionHead:hash("different")},
++      {expectedSourceStatus:"cancelled" as const}, {expiresAt:new Date(Date.now()+60_000).toISOString()},
++      {kind:"continue" as const,continuationItems:[{type:"input_text" as const,text:"new explicit request"}]},
++    ]) await assert.rejects(createRunCommand(f.db,{...input,...change},f.ports),hasCode("command_digest_conflict"))
++    assert.deepEqual(await counts(f),{runs:"1",commands:"1"})
++  } finally { await f.close() }
++})
++
++test("head includes full count, execution preferences, and accepts an older terminal source", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input()
++    await f.db.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status,created_at)
++      SELECT $1,organization_id,session_id,requested_by_user_id,input,'succeeded',created_at-interval '1 hour' FROM runs WHERE id=$2`, [randomUUID(),f.sourceId])
++    assert.notEqual(await f.head(),input.expectedSessionHead)
++    assert.equal((await createRunCommand(f.db,input,f.ports)).receipt.rejection_code,"session_head_changed")
++    const head = await f.head()
++    await f.db.query("UPDATE sessions SET model='other-model' WHERE id=$1",[f.session])
++    assert.notEqual(await f.head(),head)
++    await f.db.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status,created_at)
++      SELECT $1,organization_id,session_id,requested_by_user_id,input,'succeeded',created_at+interval '1 hour' FROM runs WHERE id=$2`, [randomUUID(),f.sourceId])
++    assert.equal((await createRunCommand(f.db,await f.input(),f.ports)).receipt.outcome,"accepted")
++  } finally { await f.close() }
++})
++
++test("active, changed status, retry state and resume restrictions produce durable rejections", options, async () => {
++  const f = await fixture()
++  try {
++    await f.db.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input)
++      SELECT $1,organization_id,session_id,requested_by_user_id,input FROM runs WHERE id=$2`, [randomUUID(),f.sourceId])
++    const active = await f.input()
++    assert.equal((await createRunCommand(f.db,active,f.ports)).receipt.rejection_code,"active_run")
++    await f.db.query("UPDATE runs SET status='succeeded' WHERE status='queued'")
++    assert.equal((await createRunCommand(f.db,active,f.ports)).replayed,true)
++    assert.equal((await createRunCommand(f.db,await f.input({expectedSourceStatus:"cancelled"}),f.ports)).receipt.rejection_code,"source_status_changed")
++    assert.equal((await createRunCommand(f.db,await f.input({kind:"resume"}),f.ports)).receipt.rejection_code,"invalid_source_state")
++    await f.db.query("UPDATE runs SET status='succeeded' WHERE id=$1",[f.sourceId])
++    assert.equal((await createRunCommand(f.db,await f.input({expectedSourceStatus:"succeeded"}),f.ports)).receipt.rejection_code,"invalid_source_state")
++    await assert.rejects(createRunCommand(f.db,await f.input({continuationItems:[{type:"input_text",text:"forbidden"}]}),f.ports),hasCode("invalid_command"))
++  } finally { await f.close() }
++})
++
++test("resume inherits task root; continue creates a new root with explicit input", options, async () => {
++  const f = await fixture()
++  try {
++    const first = await createRunCommand(f.db,await f.input(),f.ports)
++    await f.db.query("UPDATE runs SET status='cancelled' WHERE id=$1",[first.receipt.new_run_id])
++    const resume = await createRunCommand(f.db,await f.input({sourceRunId:first.receipt.new_run_id!,kind:"resume",expectedSourceStatus:"cancelled"}),f.ports)
++    assert.equal(resume.receipt.task_root_run_id,f.sourceId)
++    assert.equal(resume.receipt.relation,"continues")
++    await f.db.query("UPDATE runs SET status='expired' WHERE id=$1",[resume.receipt.new_run_id])
++    const next = await createRunCommand(f.db,await f.input({kind:"continue",continuationItems:[{type:"input_text",text:"next logical task"}]}),f.ports)
++    assert.equal(next.receipt.task_root_run_id,next.receipt.new_run_id)
++    assert.deepEqual((await f.db.query("SELECT input FROM runs WHERE id=$1",[next.receipt.new_run_id])).rows[0].input,[{type:"input_text",text:"next logical task"}])
++  } finally { await f.close() }
++})
++
++test("current membership and current authority gate create, read and replay", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input(), accepted = await createRunCommand(f.db,input,f.ports)
++    const revoked = {...f.ports,authorize:async () => hash("revoked")}
++    await assert.rejects(createRunCommand(f.db,input,revoked),hasCode("command_authority_denied"))
++    await assert.rejects(readRunCommand(f.db,input,revoked),hasCode("command_authority_denied"))
++    await assert.rejects(createRunCommand(f.db,{...input,commandId:randomUUID()},revoked),hasCode("command_authority_denied"))
++    await f.db.query("DELETE FROM organization_members WHERE user_id=$1",[f.actor])
++    await assert.rejects(createRunCommand(f.db,input,f.ports),hasCode("command_authority_denied"))
++    await assert.rejects(readRunCommand(f.db,input,f.ports),hasCode("command_authority_denied"))
++    await assert.rejects(createRunCommand(f.db,{...input,commandId:randomUUID()},f.ports),hasCode("command_authority_denied"))
++    assert.equal(accepted.receipt.outcome,"accepted")
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++  } finally { await f.close() }
++})
++
++test("creator errors, late authority and in-transaction membership withdrawal roll back all writes", options, async () => {
++  const f = await fixture()
++  try {
++    const before = await preserved(f)
++    await assert.rejects(createRunCommand(f.db,await f.input(),{...f.ports,createSuccessor:async (client,input) => {
++      await f.ports.createSuccessor(client,input); throw new Error("synthetic creator error")
++    }}),/synthetic creator error/)
++    let calls = 0
++    await assert.rejects(createRunCommand(f.db,await f.input(),{...f.ports,authorize:async () => ++calls === 1 ? authority : hash("revoked")}),hasCode("command_authority_denied"))
++    await assert.rejects(createRunCommand(f.db,await f.input(),{...f.ports,createSuccessor:async (client,input) => {
++      const run = await f.ports.createSuccessor(client,input)
++      await client.query("DELETE FROM organization_members WHERE user_id=$1",[f.actor]); return run
++    }}),hasCode("command_authority_denied"))
++    assert.deepEqual(await counts(f),{runs:"1",commands:"0"})
++    assert.deepEqual(await preserved(f),before)
++  } finally { await f.close() }
++})
++
++test("borrowed, altered-input, mismatched-scope and extra successors cannot commit", options, async () => {
++  const f = await fixture()
++  try {
++    const borrowed = (await f.db.query<RunRow>("SELECT * FROM runs WHERE id=$1",[f.sourceId])).rows[0]
++    const creators: RunCommandPorts["createSuccessor"][] = [
++      async () => borrowed,
++      async (client,input) => f.ports.createSuccessor(client,{...input,items:[{type:"input_text",text:"wrong"}]}),
++      async (client,input) => ({...await f.ports.createSuccessor(client,input),session_id:randomUUID()}),
++      async (client,input) => {
++        const run = await f.ports.createSuccessor(client,input)
++        await client.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status)
++          VALUES($1,$2,$3,$4,'[]','failed')`,[randomUUID(),org,f.session,f.actor])
++        return run
++      },
++    ]
++    for (const createSuccessor of creators) {
++      await assert.rejects(createRunCommand(f.db,await f.input(),{...f.ports,createSuccessor}),hasCode("invalid_successor"))
++      assert.deepEqual(await counts(f),{runs:"1",commands:"0"})
++    }
++  } finally { await f.close() }
++})
++
++// Facade forwards real PostgreSQL COMMIT, then loses only its acknowledgement.
++function lostCommitPool(db: DatabasePool): DatabasePool {
++  return new Proxy(db, {get(target, key) {
++    if (key !== "connect") return Reflect.get(target,key)
++    return async () => {
++      const client = await target.connect()
++      return new Proxy(client, {get(connection, property) {
++        if (property === "query") return async (...args: unknown[]) => {
++          const result = await Reflect.apply(connection.query,connection,args)
++          if (args[0] === "COMMIT") throw new Error("synthetic lost COMMIT acknowledgement")
++          return result
++        }
++        const value = Reflect.get(connection,property)
++        return typeof value === "function" ? value.bind(connection) : value
++      }}) as DatabaseClient
++    }
++  }})
++}
++test("COMMIT acknowledgement loss is outcome_unknown and same-ID recovery never launches twice", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input()
++    await assert.rejects(createRunCommand(lostCommitPool(f.db),input,f.ports),error =>
++      error instanceof RunCommandError && error.status === 503 && error.code === "outcome_unknown")
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++    const recovered = await readRunCommand(f.db,input,f.ports)
++    assert.equal(recovered?.receipt.outcome,"accepted")
++    assert.equal((await createRunCommand(f.db,input,f.ports)).receipt.new_run_id,recovered?.receipt.new_run_id)
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++  } finally { await f.close() }
++})
++
++async function delegated(f: Fixture) {
++  const original = {
++    runId:f.sourceId,organizationId:org,sessionId:f.session,actingUserId:f.actor,
++    servicePrincipalId:"00000000-0000-0000-0000-000000000010",
++    requestSha256:hash("logical request"),roleContextSha256:hash("role"),bindingSha256:hash("binding"),
++    requestedModel:"synthetic-model",requestedEffort:null,sessionProvider:"synthetic",
++    binding:{id:"synthetic-binding",model:"synthetic-model"},
++    contextSha256:hash("old context"),correlationId:randomUUID(),
++  }
++  await f.db.query("INSERT INTO work_runtime_runs(run_id,organization_id,receipt) VALUES($1,$2,$3::jsonb)",[f.sourceId,org,JSON.stringify(original)])
++  const input = async (overrides: Partial<CreateRunCommandInput> = {}) => {
++    const request = await f.input(overrides)
++    request.recoveryProofSha256 = hash(JSON.stringify(["demian.run-command.recovery.v1",original.bindingSha256,f.actor,
++      original.servicePrincipalId,hash("new context"),original.requestSha256,request.commandId]))
++    return request
++  }
++  const ports: RunCommandPorts = {...f.ports,createSuccessor:async (client,request) => {
++    const run = await f.ports.createSuccessor(client,{...request,items:[{type:"input_text",text:"new canonical packet with fresh context and correlation"}]})
++    await client.query("INSERT INTO work_runtime_runs(run_id,organization_id,receipt) VALUES($1,$2,$3::jsonb)",
++      [run.id,org,JSON.stringify({...original,runId:run.id,contextSha256:hash("new context"),correlationId:request.commandId})])
++    return run
++  }}
++  return {original,input,ports}
++}
++
++test("delegated retry accepts a fresh packet, pins logical leaves, and requires recovery proof", options, async () => {
++  const f = await fixture()
++  try {
++    const d = await delegated(f), input = await d.input()
++    const accepted = await createRunCommand(f.db,input,d.ports)
++    assert.equal(accepted.receipt.outcome,"accepted")
++    assert.equal(accepted.receipt.source_input_sha256,hash(JSON.stringify([
++      d.original.requestSha256,d.original.roleContextSha256,d.original.bindingSha256,
++      d.original.requestedModel,d.original.requestedEffort,d.original.sessionProvider,
++    ])))
++    assert.equal((await readRunCommand(f.db,input,d.ports))?.receipt.new_run_id,accepted.receipt.new_run_id)
++    await assert.rejects(readRunCommand(f.db,{...input,recoveryProofSha256:hash("wrong")},d.ports),hasCode("command_authority_denied"))
++    await assert.rejects(readRunCommand(f.db,{...input,recoveryProofSha256:null},d.ports),hasCode("command_authority_denied"))
++    const rejectedInput = await d.input({expiresAt:new Date(Date.now()-1000).toISOString()})
++    const rejected = await createRunCommand(f.db,rejectedInput,d.ports)
++    assert.equal(rejected.receipt.rejection_code,"command_expired")
++    assert.equal((await readRunCommand(f.db,rejectedInput,d.ports))?.receipt.outcome,"rejected")
++    await assert.rejects(readRunCommand(f.db,{...rejectedInput,recoveryProofSha256:hash("wrong")},d.ports),hasCode("command_authority_denied"))
++  } finally { await f.close() }
++})
++
++test("delegated logical-pin mismatch and ordinary/delegated mode swaps roll back", options, async () => {
++  const f = await fixture()
++  try {
++    const d = await delegated(f)
++    await assert.rejects(createRunCommand(f.db,await d.input(),f.ports),hasCode("invalid_successor"))
++    for (const change of [
++      {requestSha256:hash("other request")},{roleContextSha256:hash("other role")},
++      {bindingSha256:hash("other binding")},{requestedModel:"other model"},
++      {requestedEffort:"high"},{sessionProvider:"other provider"},
++      {binding:{id:"other binding"}}, {servicePrincipalId:randomUUID()},
++    ]) {
++      const input = await d.input()
++      await assert.rejects(createRunCommand(f.db,input,{...d.ports,createSuccessor:async (client,request) => {
++        const run = await f.ports.createSuccessor(client,request)
++        await client.query("INSERT INTO work_runtime_runs(run_id,organization_id,receipt) VALUES($1,$2,$3::jsonb)",
++          [run.id,org,JSON.stringify({...d.original,runId:run.id,contextSha256:hash("new context"),correlationId:request.commandId,...change})])
++        return run
++      }}),hasCode("invalid_successor"))
++      assert.deepEqual(await counts(f),{runs:"1",commands:"0"})
++    }
++  } finally { await f.close() }
++})
++
++test("expired accepted replay ignores the successor head and original deadline", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input({expiresAt:new Date(Date.now()+1500).toISOString()})
++    const accepted = await createRunCommand(f.db,input,f.ports)
++    await f.db.query("SELECT pg_sleep(1.6)")
++    const replay = await createRunCommand(f.db,input,f.ports)
++    assert.equal(replay.replayed,true)
++    assert.deepEqual(replay.receipt,accepted.receipt)
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++  } finally { await f.close() }
++})
++
++test("expiry during callback rolls back successor and stores a durable rejected receipt", options, async () => {
++  const f = await fixture()
++  try {
++    const input = await f.input({expiresAt:new Date(Date.now()+1500).toISOString()})
++    const result = await createRunCommand(f.db,input,{...f.ports,createSuccessor:async (client,request) => {
++      const run = await f.ports.createSuccessor(client,request)
++      await client.query("SELECT pg_sleep(1.6)")
++      return run
++    }})
++    assert.equal(result.receipt.rejection_code,"command_expired")
++    assert.deepEqual(await counts(f),{runs:"1",commands:"1"})
++    assert.equal((await createRunCommand(f.db,input,f.ports)).replayed,true)
++  } finally { await f.close() }
++})
++
++function signal() {
++  let resolve!: () => void
++  const promise = new Promise<void>(done => { resolve = done })
++  return {promise,resolve}
++}
++
++test("legacy terminal cancel Run UPDATE then Session SHARE is compatible with command", options, async () => {
++  const f = await fixture(), legacy = await f.db.connect()
++  let command: Promise<unknown> | undefined
++  try {
++    const input = await f.input(), admitted = signal()
++    await legacy.query("BEGIN")
++    await legacy.query("SELECT id FROM runs WHERE id=$1 FOR UPDATE",[f.sourceId])
++    command = createRunCommand(f.db,input,{...f.ports,authorize:async () => {admitted.resolve();return authority}})
++    await admitted.promise
++    // The old Session UPDATE-first implementation deadlocks here.
++    await legacy.query("SET LOCAL statement_timeout='2s'")
++    await legacy.query("SELECT id FROM sessions WHERE id=$1 FOR SHARE",[f.session])
++    await legacy.query("COMMIT")
++    assert.equal((await command as {receipt:{outcome:string}}).receipt.outcome,"accepted")
++  } finally { await legacy.query("ROLLBACK"); legacy.release(); await command?.catch(() => {}); await f.close() }
++})
++
++test("active source rejection never waits for worker Run UPDATE needing Session UPDATE", options, async () => {
++  const f = await fixture(), worker = await f.db.connect()
++  try {
++    await f.db.query("UPDATE runs SET status='running' WHERE id=$1",[f.sourceId])
++    const input = await f.input()
++    await worker.query("BEGIN")
++    await worker.query("SELECT id FROM runs WHERE id=$1 FOR UPDATE",[f.sourceId])
++    const result = await createRunCommand(f.db,input,f.ports)
++    assert.equal(result.receipt.rejection_code,"source_status_changed")
++    await worker.query("SET LOCAL statement_timeout='2s'")
++    await worker.query("SELECT id FROM sessions WHERE id=$1 FOR UPDATE",[f.session])
++    await worker.query("COMMIT")
++  } finally { await worker.query("ROLLBACK"); worker.release(); await f.close() }
++})
++
++test("legacy enqueue racing admission cannot commit a second active Run", options, async () => {
++  const f = await fixture(), enqueue = await f.db.connect()
++  let other: Promise<unknown> | undefined
++  try {
++    const input = await f.input(), entered = signal(), release = signal()
++    const command = createRunCommand(f.db,input,{...f.ports,createSuccessor:async (client,request) => {
++      entered.resolve(); await release.promise
++      return f.ports.createSuccessor(client,request)
++    }})
++    await entered.promise
++    // Same SQL path used by ordinary enqueue; archive guard obtains Session UPDATE.
++    other = enqueue.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input)
++      VALUES($1,$2,$3,$4,'[{"type":"input_text","text":"legacy"}]')`,[randomUUID(),org,f.session,f.actor])
++    const otherRejected = assert.rejects(other,(error: unknown) =>
++      !!error && typeof error === "object" && "code" in error && error.code === "23505")
++    release.resolve()
++    assert.equal((await command).receipt.outcome,"accepted")
++    await otherRejected
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++  } finally { await other?.catch(() => {}); enqueue.release(); await f.close() }
++})
++
++test("baseline followed by head recheck detects an older-timestamp concurrent insertion", options, async () => {
++  const f = await fixture()
++  try {
++    let injected = false
++    const facade = new Proxy(f.db,{get(target,key) {
++      if (key !== "connect") return Reflect.get(target,key)
++      return async () => {
++        const client = await target.connect()
++        return new Proxy(client,{get(connection,property) {
++          if (property === "query") return async (...args: unknown[]) => {
++            if (!injected && typeof args[0] === "string" && args[0].includes("array_agg(id)")) {
++              injected = true
++              await f.db.query(`INSERT INTO runs(id,organization_id,session_id,requested_by_user_id,input,status,created_at)
++                SELECT $1,organization_id,session_id,requested_by_user_id,input,'succeeded',created_at-interval '1 day'
++                FROM runs WHERE id=$2`,[randomUUID(),f.sourceId])
++            }
++            return Reflect.apply(connection.query,connection,args)
++          }
++          const value = Reflect.get(connection,property)
++          return typeof value === "function" ? value.bind(connection) : value
++        }}) as DatabaseClient
++      }
++    }})
++    const result = await createRunCommand(facade,await f.input(),f.ports)
++    assert.equal(injected,true)
++    assert.equal(result.receipt.rejection_code,"session_head_changed")
++    assert.deepEqual(await counts(f),{runs:"2",commands:"1"})
++  } finally { await f.close() }
++})

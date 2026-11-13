@@ -50,8 +50,13 @@ Native Codex 실행기는 이미 `thread/resume` 후 새 `turn/start`를 수행�
    실제 DB/API로 검사한다. 같은 thread/new turn/new Run과 명령 관계를 fixture와 실제
    제공자 실행으로 각각 확인한다. 단순 enqueue2회 성공을 retry 수용으로 세지 않는다.
 
-현재 명령 구현은 cancel-only다. 위 계약·구현·운영 검증은 **미완료**이며 AT-09를
-기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
+후속 Native d3ffeb9에 명령 접수·불변 receipt·후속 관계·같은 ID 복구를 구현했다.
+실제 격리 PostgreSQL의 DB/일반·보호 HTTP/prepared worker72개 통과·선택환경2개 skip,
+독립 리뷰의 개인/배포 권한 분기 오류 재현·수정 후 일반 HTTP6개 통과를 확인했다.
+Track 서버용 계약·일반 owner transport도 추가했다. 두 suite의 중복 사례는 합산하지
+않는다. [구현 단계와 남은 범위](native-run-commands.md)를 따른다. 운영 명령은 여전히
+cancel-only이며, Assistant owner의 새 attempt/ref·Track 제어/복구와 실제 제공자 검증은
+**미완료**다. AT-09를 기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
 검토하며, 실패 전에 이미 발생했을 수 있는 외부 효과를 rollback됐다고 표시하지 않는다.
 
 ## 이전 시점의 기록

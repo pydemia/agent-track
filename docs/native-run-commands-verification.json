@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "nativeCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b",
+  "nativePatchSha256": "b09f7e3b7bb34f9a6ddcf25671b21fe5b21ab65b165a7666465e62d315585dea",
+  "qas": [
+    {
+      "suite": "run-commands-qa-v3-20261114",
+      "passed": 72,
+      "skipped": 2,
+      "failed": 0,
+      "engine": "PostgreSQL 17.11",
+      "productionDatabaseUsed": false,
+      "cleanupConfirmed": true,
+      "coveredFiles": {
+        "apps/api/src/work-runtime-package.ts": {
+          "qaRawSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d",
+          "committedSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d"
+        },
+        "apps/api/src/work-runtime-server.ts": {
+          "qaRawSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4",
+          "committedSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4"
+        },
+        "apps/api/src/run-command-successor.ts": {
+          "qaRawSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d",
+          "committedSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d"
+        },
+        "packages/db/src/run-commands.ts": {
+          "qaRawSha256": "931d4aca879639809df6b287a4fa80f292866f1b1e990cdb66470d8584fb4e03",
+          "committedSha256": "7f2d4a1a3c7e086ec553a34f97f36e7880582e996b439f761233564e278a86e2"
+        },
+        "packages/db/src/work-runtime-runs.ts": {
+          "qaRawSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541",
+          "committedSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541"
+        },
+        "packages/db/migrations/027_run_commands.sql": {
+          "qaRawSha256": "9a3c95dfbba95772b346855de86c8a4ce6e85d1b3600349bfc568c075b35e3ec",
+          "committedSha256": "6e3b3bb82906e8cd66f602917c7591c3ac6491b998dc3fedc7ab72e5b1a37897"
+        },
+        "packages/db/test/run-commands.integration.test.ts": {
+          "qaRawSha256": "523d044190cc3be1d40eff476d96eddfc85299d45fcff13ef1308524bb75cae5",
+          "committedSha256": "22239e4e2b2a5090d39275ba1929c040548a2777766f03ed75c48c1aa3574441"
+        },
+        "apps/api/test/work-runtime-package.test.ts": {
+          "qaRawSha256": "aa98f5e0db8869b78f89f111b433199adde5697bf73e8dde8b34af40b1b93ee1",
+          "committedSha256": "29070c8f264d95a09f03ed04443e448ee3c30a972a2e214a0d0956fe4c2eeb10"
+        },
+        "apps/api/test/work-runtime-server.integration.test.ts": {
+          "qaRawSha256": "d51f724f88affd97f95c6adb1ddeb81b738079038f7d908f78b5ed2511a69acf",
+          "committedSha256": "a7e5bd2591847ed825d656cc81d007e983076040b30e4050ef3de04395ef76cb"
+        }
+      },
+      "scope": "DB concurrency/recovery, ordinary HTTP, signed HTTP/parser, controlled prepared worker"
+    },
+    {
+      "suite": "run-commands-deployment-fixed-20261114",
+      "passed": 6,
+      "skipped": 0,
+      "failed": 0,
+      "engine": "PostgreSQL 17.11",
+      "productionDatabaseUsed": false,
+      "cleanupConfirmed": true,
+      "coveredFiles": {
+        "apps/api/test/run-commands.integration.test.ts": {
+          "qaRawSha256": "e06f0b503bfc4e7cf1075475d0e135f4dab692d70a7b8468982cb82c07752f35",
+          "committedSha256": "e06f0b503bfc4e7cf1075475d0e135f4dab692d70a7b8468982cb82c07752f35"
+        },
+        "apps/api/src/work-runtime-package.ts": {
+          "qaRawSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d",
+          "committedSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d"
+        },
+        "apps/api/src/work-runtime-server.ts": {
+          "qaRawSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4",
+          "committedSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4"
+        },
+        "apps/api/src/run-commands.ts": {
+          "qaRawSha256": "a2968cf5d2e4a63f84b32503912a4d905fd5a083f4a4d97369d5ec60941cb413",
+          "committedSha256": "a2968cf5d2e4a63f84b32503912a4d905fd5a083f4a4d97369d5ec60941cb413"
+        },
+        "apps/api/src/run-command-successor.ts": {
+          "qaRawSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d",
+          "committedSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d"
+        },
+        "packages/db/src/run-commands.ts": {
+          "qaRawSha256": "931d4aca879639809df6b287a4fa80f292866f1b1e990cdb66470d8584fb4e03",
+          "committedSha256": "7f2d4a1a3c7e086ec553a34f97f36e7880582e996b439f761233564e278a86e2"
+        },
+        "packages/db/src/work-runtime-runs.ts": {
+          "qaRawSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541",
+          "committedSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541"
+        },
+        "packages/db/migrations/027_run_commands.sql": {
+          "qaRawSha256": "9a3c95dfbba95772b346855de86c8a4ce6e85d1b3600349bfc568c075b35e3ec",
+          "committedSha256": "6e3b3bb82906e8cd66f602917c7591c3ac6491b998dc3fedc7ab72e5b1a37897"
+        },
+        "packages/db/test/run-commands.integration.test.ts": {
+          "qaRawSha256": "523d044190cc3be1d40eff476d96eddfc85299d45fcff13ef1308524bb75cae5",
+          "committedSha256": "22239e4e2b2a5090d39275ba1929c040548a2777766f03ed75c48c1aa3574441"
+        },
+        "apps/api/test/work-runtime-package.test.ts": {
+          "qaRawSha256": "aa98f5e0db8869b78f89f111b433199adde5697bf73e8dde8b34af40b1b93ee1",
+          "committedSha256": "29070c8f264d95a09f03ed04443e448ee3c30a972a2e214a0d0956fe4c2eeb10"
+        },
+        "apps/api/test/work-runtime-server.integration.test.ts": {
+          "qaRawSha256": "d51f724f88affd97f95c6adb1ddeb81b738079038f7d908f78b5ed2511a69acf",
+          "committedSha256": "a7e5bd2591847ed825d656cc81d007e983076040b30e4050ef3de04395ef76cb"
+        }
+      },
+      "scope": "All ordinary command HTTP cases, including deployment/personal authority separation"
+    }
+  ],
+  "typecheck": {
+    "api": "passed",
+    "db": "passed"
+  },
+  "review": {
+    "mode": "independent-read-only",
+    "finding": "Deployment-pinned commands were incorrectly coupled to personal login",
+    "regression": "Reproduced 403 before fix; all six ordinary HTTP cases passed after fix"
+  },
+  "limitations": [
+    "No production migration or rollout",
+    "No actual provider/model invocation",
+    "Two optional frozen Assistant tests skipped: TEST_ASSISTANT_GATEWAY_ROOT absent",
+    "Assistant owner attempt/ref integration and Track control/recovery UI remain incomplete"
+  ],
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null
+  },
+  "track": {
+    "adapterRelated": {
+      "passed": 10,
+      "skipped": 0,
+      "total": 10,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "operatingDeploymentChanged": false,
+    "fullRegression": {
+      "failed": 0,
+      "passed": 1026,
+      "skipReason": "Existing POSIX-only Windows cases",
+      "exitCode": 0,
+      "total": 1035,
+      "skipped": 9
+    }
+  }
+}
