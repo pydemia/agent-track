@@ -1,6 +1,6 @@
 {
-  "observedAt": "2026-11-13T18:02:56.278Z",
-  "phase": "native-run-and-projects-result-observed-note-reconciliation-pending",
+  "observedAt": "2026-11-13T18:44:37.790Z",
+  "phase": "real-backend-workflow-completed-gui-and-detailed-trace-pending",
   "requirements": [
     "AT-05",
     "AT-14",
@@ -62,7 +62,19 @@
     "projectsTaskStateAfterAttach": "in_review",
     "executionStateAfterNoteFailure": "reconciliation_required",
     "httpOwnerWorkflowExercised": true,
-    "freshBrowserOAuthAndGuiWorkflowExercised": false
+    "freshBrowserOAuthAndGuiWorkflowExercised": false,
+    "currentExecutionState": "completed",
+    "currentProjectsTaskRevision": 5,
+    "currentProjectsTaskState": "in_review",
+    "projectsNoteReferenceReadbackVerified": true,
+    "sameRuntimeTaskPreserved": true,
+    "newExecutionsOnReconciliation": 0,
+    "newNativeRunsOnReconciliation": 0,
+    "executionEventCount": 72,
+    "resultUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/4bdc4a4e-46f1-4a1b-afd6-b398787e1d9b",
+    "projectsUrl": "https://projects.pydemia.ai/?project=c06bb4d0-1d79-4417-a3e5-9df6466f8f7a&view=tasks&item=e4470864-d249-445b-9f0b-e4516fab6fc9",
+    "trackTaskMapUrl": "https://track.pydemia.ai/?view=map&taskSource=projects-native&taskProject=c06bb4d0-1d79-4417-a3e5-9df6466f8f7a&task=e4470864-d249-445b-9f0b-e4516fab6fc9",
+    "trackTaskMapUrlBasis": "App.tsx readUrl/writeUrl contract; selection rendering not verified"
   },
   "note": {
     "operationId": "2c35062b-b4e6-4741-909d-5bcaf70ca4bc",
@@ -77,11 +89,11 @@
       "id": "space-923099df-4303-4b71-bf8e-60be356bed43"
     },
     "parentSpaceActive": true,
-    "status": "failed",
-    "stage": "layout",
-    "errorCode": "conflict",
-    "publicationSteps": 0,
-    "receiptPresent": false,
+    "status": "verified",
+    "stage": "verified",
+    "errorCode": null,
+    "publicationSteps": 3,
+    "receiptPresent": true,
     "fixRevision": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
     "fixLocalRelatedTests": {
       "pass": 260,
@@ -89,18 +101,41 @@
       "skip": 0
     },
     "fixTypecheck": "passed",
-    "fixOperating": false,
-    "nextAction": "Deploy checked fix; reconcile this execution and Note operation without creating another Task or native Run.",
+    "fixOperating": true,
     "fixCandidate": {
-      "phase": "built-not-deployed",
+      "phase": "operating-and-preservation-verified",
       "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
       "sourceArchiveSha256": "0a46a256c8d7a55060258729401db63c22a4b1ea0f812d6f392e7b55058299e4",
       "compiledPublicationSha256": "feb45659eb17d53405e54c8f240a1ddc395c03c922ea829fc2d8cd16692ea6bc",
       "operatingAppUnchanged": true,
       "pushCiRunId": 43478970112,
       "pullRequestCiRunId": 43478983163,
-      "ciStatusAtObservation": "in_progress"
-    }
+      "ciStatusAtObservation": "success",
+      "operating": true,
+      "pushCiStatus": "failure",
+      "pushFailureScope": "Avatar curation browser focus assertion; retained without retry",
+      "operatorRevision": "964b031df9827b965ccd23fd9c2f370e0629001c",
+      "operatorCiRunId": 43481460685,
+      "operatorWindowsAndUbuntu": "success"
+    },
+    "initialFailure": {
+      "status": "failed",
+      "stage": "layout",
+      "errorCode": "conflict",
+      "publicationSteps": 0,
+      "receiptPresent": false
+    },
+    "url": "https://note.pydemia.ai/#/w/personal-note-production/page/4bdc4a4e-46f1-4a1b-afd6-b398787e1d9b",
+    "pageId": "4bdc4a4e-46f1-4a1b-afd6-b398787e1d9b",
+    "revision": "a52c4951dcaeea166895495700d54094d441baef3b4c4fa10d9215e45d93eabe",
+    "sourceSha256": "75e67973a84f35cec9431121ef7a3d269ed6f144eedaf42b822f135e7f1c11d1",
+    "indexReady": true,
+    "artifactsVerified": true,
+    "sourceReadbackHashMatched": true,
+    "verifiedAt": "2026-11-13T18:42:35.606Z",
+    "sameOperationReconciled": true,
+    "projectsReferenceSavedAndReadBack": true,
+    "projectsTaskRevision": 5
   },
   "observation": {
     "runIdAndTaskBindingMatch": true,
@@ -124,12 +159,25 @@
     ],
     "traceSteps": 0,
     "traceTools": 0,
-    "limitation": "Current protected event metadata has no invocation/call identifiers or lineage endpoints. Do not manufacture nodes, edges, timings or complete usage from these event names."
+    "limitation": "Current protected event metadata has no invocation/call identifiers or lineage endpoints. Do not manufacture nodes, edges, timings or complete usage from these event names.",
+    "currentProjectsTaskRevision": "5",
+    "eventMetadataPreserved": true,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "historicalBindingPreserved": true,
+    "currentRunCount": 1,
+    "flowNodes": 6,
+    "flowEdges": 5,
+    "executionGroups": 1,
+    "groupMembers": 3,
+    "flowProvenance": "Actual operating APIs passed through unchanged frontend projection; GUI rendering was not verified",
+    "guiVerificationLimitation": "CDP focus observation timeout; native Windows AX unavailable and monitor capture failed 0x80070057",
+    "projectionSourceMatchesOperatingTrackRelease": true
   },
   "requestedProgressNote": {
     "url": "https://note.pydemia.ai/#/w/personal-note-production/page/20f30102-e3ea-4290-86a4-c8268c1827ca",
     "publishedAndReadbackVerified": true,
     "separateFromWorkCoordinatorAcceptance": true,
     "republished": false
-  }
+  },
+  "backendWorkflowVerified": true
 }

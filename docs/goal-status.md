@@ -10,25 +10,29 @@ owner/QA 범위의 누적 증거다. 이번 점검은 모든 완료 기능을 �
 마지막 상위 증가(11월13일18:10)는 AT-18 판정 정정이었다. 그 뒤 새 상위 완료는
 없다. 후속에서는 Track 운영 전환·보호 source 활성화와 실제 WorkCoordinator 실행을
 진행했다. 같은 Projects 업무에 실제 결과를 먼저 첨부했고 Track에서 성공 Run과
-이벤트8개를 확인했다. Note 발행의 기존 폴더 위치 충돌과 보호 원본의 상세 Trace
-누락이 남아 전체 업무를 완료로 세지 않는다. 집계가 거친 문제와 실제 통합 미충족을
+이벤트8개를 확인했다. 기존 폴더 이동 처리도 수정·운영 반영해 같은 Execution의 Note
+발행과 Projects 참조 연결을 완료했다. 현재 PC의 실제 화면 검토와 보호 원본의 상세
+Trace 누락이 남아 전체 업무를 완료로 세지 않는다. 집계가 거친 문제와 실제 통합 미충족을
 구분한다. [현재 실제 업무 근거](workflow-observation-2026-11-14.json)를 따른다.
 
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |
 | 보호 metadata 원본 조회 | 실제 WorkCoordinator 성공 Run60cca68d의 metadata·이벤트8개가 현재 인가된 reader를 거쳐 Track에 수집됨 | 원본 step/tool/lineage 식별자를 제공하는 계약·현재 흐름 표현 보완 |
-| Assistant reader | 새0691e1a 운영·PID136177, 기존 전용 credential의v2 reader로 실제 업무의 보호 Run 조회 | 같은 업무의 Note 발행 재개·현재 권한 결과 참조 확인 |
-| 후보 보존·복구 | 새 backup/격리 복원·같은 preview 후속 검증·시험 앱 정리·운영 DB readback 완료. schema와 기존 업무 행·보고서·파일68개·다른12개 서비스와 renderer 대조 | 이전 실패 기록 보존. 시작 시 Task3revision/UI6event는 정확한 역산 hash 대조, 무제한 예외 허용 아님 |
+| Assistant reader | 9382c9c 운영·PID266620. 기존 전용 credential의v2 reader로 실제 업무의 보호 Run과 완료 Execution 조회 | 보호 원본 상세 관측과 현재 PC의 인증된 화면 대조 |
+| 후보 보존·복구 | 현재 Work45,719,552B/Runtime5,203,615,744B를 암호화·복원하고 같은 사본에서 후보 시작·31/64schema·업무 행을 대조. 운영 전환 후 파일68개·다른12개 서비스·renderer 보존과 같은 PID boot adoption 확인 | 이전 실패 보존. 정확한 Task3revision/UI6event 역산 hash와 발행 대기 원장 pin 적용. 물리 재기동/crash는 미실기 |
 | Track 수집·Trace | 9639375 API/web 운영·PID78884. 설정6source·새 보호 source connected. 같은 Run/Projects binding·cursor=highWater=8·gap없음 확인. Trace steps0/tools0 | 이벤트의 step/tool ID 부재를 해결해야 상세 Trace를 제공할 수 있음. 수집 성공을 상세 시각화 성공으로 계산하지 않음 |
-| 실제 전체 업무 | 동일 Instruction/Projects Task에서 실행. 최초 high/null effort 불일치로 native전송 전 거절. 앱 기본값을 binding과 맞춘 다음 실행은 native성공·Projects 결과 첨부/in_review. Note는 기존 프로젝트 폴더 이동을 잘못 거절해 reconciliation_required | Persona9382c9c 폴더 이동 수정의 운영 반영 후 같은 Execution/Note operation을 reconcile. 새 Task·모델 재실행 없이 Note 참조·현재 PC 접속을 대조 |
+| 실제 전체 업무 | 같은 Execution/Note operation 재개로 Note 본문 hash·첨부2개·인덱스와 Projects의 현재 결과/Note 참조를 독립 재조회. Execution completed·Task revision5/in_review. 모델·Run·Task 재생성0. Track의 기존8event·역사 binding revision3 보존, 현재 Task revision5의6node/5edge/실행group1 확인 | 현재 PC 화면에서 같은 업무 선택·그룹 탐색을 검토. 상세 native Trace의 원본 식별자·관측 계약 보완 |
 | desktop 접속 | 대상은 현재 Windows pydemia-desktop PC로 확인됨 | 같은 실제 업무 접속·선택 대조. 별도 앱/bridge 계약을 대기 조건으로 만들지 않음 |
 
-현재 main `80b9d3d` CI43472882812는 Windows·Ubuntu 모두 성공이다. 운영 release는
-9639375다. 새 보존 도구는 실제 live worker의 registry3종에 한해 checked_at 단조
+현재 구현 main `964b031` CI43481460685는 Windows·Ubuntu 모두 성공이다. Track 운영
+release는9639375이고 Assistant는9382c9c다. 앞선80b9d3d 보존 도구는 실제 live worker의 registry3종에 한해 checked_at 단조
 갱신을 판별하며 나머지 행·설정·권한·schema 대조는 유지한다. 실제 두 snapshot과
-관련41개 검사로 확인했다. Persona9382c9c의 Note 수정은 관련260개와 서버 타입 검사가
-통과했으며 운영 배포 전이다. 직전73aabbb Windows의 프로세스 관찰 timeout 실패는
+관련41개 검사로 확인했다. 새964b031의 정지 발행 대기 원장 pin은 Python41개와 운영
+중지 검사 SQL 전체의 읽기 전용 조회로 확인했다. 독립 리뷰의 실행 inactivity와 lease
+writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·서버 타입 검사와
+동일 tree의 PR CI43478983163 네 작업을 통과했고 실제 같은 발행을 완료했다.
+별도 push43478970112의 Avatar 포커스 실패59/60과 73aabbb Windows 관찰 timeout 실패는
 보존하고 재실행하지 않았다.
 테스트 수·commit 수·백업 성공·HTTP200을 사용자 업무 완료 수로 환산하지 않는다.
 
@@ -62,7 +66,7 @@ owner/QA 범위의 누적 증거다. 이번 점검은 모든 완료 기능을 �
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 배포된 네 보기 공통 범위/저장 복원의 사용자 동작 대조와 peer 대표선 포인터 선택 성공 확인이 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 새 보호 metadata 경로·Assistant0691e1a·Track9639375/6source가 운영 연결됐다. 실제 WorkCoordinator Executionf8a9e44f의 native Run60cca68d가 성공했고 같은 Projects Taske4470864에 결과를 선첨부/in_review했다. Track에서 같은 Run/Task binding과 이벤트8개·gap없음을 확인했다. Note는 이동된 기존 프로젝트 폴더 위치 충돌로 reconciliation_required이며 상세 Trace steps0이다. 같은 Execution의 Note 발행 재개·현재 PC/UI 전체 검토가 남는다 (`workflow-observation-2026-11-14.json`). 기존 위임/배포 근거도 보존한다 |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. Assistant9382c9c·Track9639375/6source가 운영 연결됐다. 실제 Executionf8a9e44f/Run60cca68d/Taske4470864를 유지해 모델 성공→Projects 결과 선첨부→Note 발행→Projects Note 참조 연결→Track 완료 관측의 API 경로를 검증했다. Note 본문·첨부2개·인덱스와 실제 Projects revision5/in_review를 재조회했다. 기존8event/역사 binding3은 불변이고 현재 Task/Execution/역할/Run의6node·5edge·실행group1을 실제 API로 projection했다. 현재 PC 화면 관측 도구가 실패해 인증된 GUI 선택·그룹 탐색은 미검증이며 상세 native Trace steps0이다 (`workflow-observation-2026-11-14.json`). 기존 위임/배포 근거도 보존한다 |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

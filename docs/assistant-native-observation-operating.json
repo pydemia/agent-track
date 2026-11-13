@@ -1,9 +1,9 @@
 {
-  "verifiedAt": "2026-11-13T17:03:13.264Z",
+  "verifiedAt": "2026-11-13T18:44:37.790Z",
   "requirements": [
     "AT-14"
   ],
-  "phase": "native-api-gate-and-assistant-metadata-reader-operating-track-collector-not-activated",
+  "phase": "native-assistant-note-fix-operating-backend-workflow-completed",
   "native": {
     "revision": "db861e85d72dd59368704dddb089f0615113532d",
     "manifestSha256": "2c9589f2fbf3520fc30caeec2fba7d9068008e4b0c44259b9f794d217874508f",
@@ -43,7 +43,8 @@
     },
     "nativeAuthNonceMayAdvance": true,
     "newModelRequests": 0,
-    "databaseRestore": false
+    "databaseRestore": false,
+    "historicalCountsScope": "The existing targetSessionCountsBefore/After describe the earlier API rollout before the first WorkCoordinator Run. See workflow-observation-2026-11-14.json for the actual later Run."
   },
   "gate": {
     "pid": 22040,
@@ -65,15 +66,15 @@
     "cloudflaredUnchanged": true
   },
   "assistant": {
-    "revision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
-    "tree": "3d03ce2b22c4bb0c887d193af2f4eb8c24ca2f49",
-    "archiveSha256": "3d7c53aaa2f01c9a2830f7491ce8e05703fe8a7e2f3a2518c612cb8a8ec74f31",
-    "candidateId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
-    "candidateImage": "sha256:272bcdcc040cd069c3395795108e7ae85342d9a7ccd3bf969237897dbfe31541",
-    "cloneModuleSha256": "47038a132b5f90d0aa975b252776135d11a0da47e7d51c2e5a24899a6303989b",
+    "revision": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+    "tree": "fc6b956ff9e688b6d9e65257cb373e625f213f8e",
+    "archiveSha256": "0a46a256c8d7a55060258729401db63c22a4b1ea0f812d6f392e7b55058299e4",
+    "candidateId": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "candidateImage": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+    "cloneModuleSha256": "68a9d8515de90b662022cc800d33e4f0792a7b40e5ce6e73e531b7355a099645",
     "stage": "operating-and-preservation-verified",
-    "operatingContainerId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
-    "operatingSource": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
+    "operatingContainerId": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "operatingSource": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
     "imageOnly": true,
     "envPreserved": true,
     "mountCount": 13,
@@ -88,18 +89,18 @@
     "revalidatedCloneModuleSha256": "68a9d8515de90b662022cc800d33e4f0792a7b40e5ce6e73e531b7355a099645",
     "currentModuleReverifiedExistingInactiveCandidate": true,
     "operatingProcess": {
-      "id": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
+      "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
       "name": "/pydemia-persona-assistant-public-428cb10",
-      "image": "sha256:272bcdcc040cd069c3395795108e7ae85342d9a7ccd3bf969237897dbfe31541",
+      "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
       "running": true,
-      "pid": 136177,
-      "startedAt": "2026-11-13T17:00:49.549092918Z"
+      "pid": 266620,
+      "startedAt": "2026-11-13T18:39:11.798884188Z"
     },
-    "retainedOriginalId": "b94103c44ffea0c32de2ddb1a61f76c3ae90726b53bdf081521f0a3f0e2b9da3",
+    "retainedOriginalId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
     "retainedOriginalStopped": true,
-    "guardPlanSha256": "89da9224ea4f88c04d55df8791d1ec69b0ea5dc6f8f190171c95e2c221c8f725",
-    "remoteRelease": "/home/pydemia/.local/share/agent-track/assistant-candidates/native-metadata-0691e1a/rollout-0ffdaa3e43d54a3b83eaf06d1e66a1fc/native-lifecycle-v1",
-    "backupBaselineCapturedAt": "2026-11-13T16:58:25.537Z",
+    "guardPlanSha256": "05c04431da6a960305fb5f934a68721f630ccebb147ca3bbbd00a59a48f825c5",
+    "remoteRelease": "/home/pydemia/.local/share/agent-track/assistant-candidates/note-placement-9382c9c/rollout-9155efe113294b1da74c4cbfb2451d4c/native-lifecycle-v1",
+    "backupBaselineCapturedAt": "2026-11-13T18:37:15.000Z",
     "previewExactHistoricalTaskRevisions": 3,
     "previewExactHistoricalUiEvents": 6,
     "previewReusedSameCopies": true,
@@ -143,7 +144,8 @@
       "selectedFileFingerprintsPreserved": 68,
       "otherProtectedComponentsPreserved": 12,
       "rendererPreserved": true,
-      "helperRemoved": true
+      "helperRemoved": true,
+      "quiescentPublicationPreserved": true
     },
     "bootAdoption": {
       "sameProcess": true,
@@ -165,7 +167,11 @@
     "newRuntimeRuns": 0,
     "newModelRequests": 0,
     "originalContainerUnchangedBeforeCutover": true,
-    "originalContainerPreservedStopped": true
+    "originalContainerPreservedStopped": true,
+    "promotionCountsScope": "Only this image transition; the existing WorkCoordinator native Run already succeeded.",
+    "backendWorkCoordinatorWorkflowVerified": true,
+    "verifiedBackendExecutionId": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "notePageUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/4bdc4a4e-46f1-4a1b-afd6-b398787e1d9b"
   },
   "checks": {
     "pythonNativeSuites": {
@@ -204,8 +210,8 @@
       "scope": "Current module plus same real inactive Docker candidate; no new create/start"
     },
     "currentMainCI": {
-      "revision": "9639375f00dae0686a217ec44963df0072dabb06",
-      "run": 43468025771,
+      "revision": "964b031df9827b965ccd23fd9c2f370e0629001c",
+      "run": 43481460685,
       "windows": "success",
       "ubuntu": "success"
     },
@@ -216,6 +222,16 @@
       "fail": 0,
       "skip": 0,
       "scope": "Retained native fixture handles and independent cleanup; production guard unchanged; prior PID reuse remains a hypothesis"
+    },
+    "noteFolderFix": {
+      "revision": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+      "relatedTests": 260,
+      "typecheck": true,
+      "pullRequestCi": 43478983163,
+      "pullRequestJobs": 4,
+      "allPullRequestJobsPassed": true,
+      "sourceTreeMatchesMergeTree": true,
+      "separatePushFailurePreserved": 43478970112
     }
   },
   "corrections": {
@@ -223,13 +239,14 @@
     "firstGateCanary": "Expected application/json instead of native RFC problem+json; direct and proxy responses matched; corrected assertion",
     "firstGateActivation": "Expected entry used forward slash while Windows command used canonical backslash; identity refused before stop; canonical path matched existing process",
     "previewStartupDelta": "New copy preview incorrectly assumed existing Task context refresh could not repeat; exact three historical Task revisions and six UI events/inverse hashes matched existing source contract. Same copies reverified, original failed result preserved.",
-    "previewCleanup": "Preview app lacked helper operation label. Removed only exact owned stopped app after image/config/network/port/mount validation; final successful Docker inventory proves absence. First post-delete diagnostic matched an overly specific stderr string; no second delete/start."
+    "previewCleanup": "This candidate inherited LogConfig.Type=none; optional docker logs failed before preview removal. Exact owned stopped app and unchanged schema/row proof were reverified on the same copies, app removed once, successful complete Docker inventory proves cleanup. Original result retained.",
+    "quiescentPublication": "One exact pending Note layout-conflict publication was pinned across baseline and pre-stop observation. Its execution and publication rows did not change during promotion. Other active Task/report/import counts stayed zero; lease renewal remains an expected writer."
   },
   "limitations": [
-    "Actual protected Run body observation remains unverified",
-    "Track operating source remains a3bb446; new collector/source is not activated",
-    "Actual WorkCoordinator/Projects/Note/Track/same Windows PC workflow remains",
-    "Physical reboot/crash recovery and remaining authenticated GUI user paths were not exercised"
+    "Authenticated current-PC GUI selection/rendering remains unverified because desktop observation tools failed",
+    "Protected Run events currently lack invocation/call identifiers; detailed native Trace remains empty",
+    "Backend workflow success is not user acceptance; Projects Task remains in_review",
+    "Physical reboot/crash recovery and remaining acceptance criteria were not exercised by this promotion"
   ],
   "progress": {
     "complete": 15,
@@ -243,11 +260,28 @@
   },
   "originalAgentTrailPreserved": true,
   "privateOperatingEvidenceSha256": {
-    "activation": "77e7c4fa154e4d22d6e84048a6caca1ce6e8642ea3a1993b02537b599dc593f2",
-    "readback": "386237df0c200cc085e458d0ac00af47d3c17dde02c8fc6bc90ed9b9b376d7b9",
-    "readiness": "76a8e50bf36a4a1800b9d147e485542c1b5349dfa1a074f1c70d6870be854ab4",
-    "baseline": "70402bab92f5186af56c5891948e3700ec8aabe9650dc826640b44e8dc3e9e2e",
-    "preview": "8e9bf85a4c3c2641ab2a5c12f51ddaf29221d562f8b49d2e8c9ece1355a438d1",
-    "guardPreflight": "5b061839cdbeeaf5c5e70a965f5212087df99a485e2cdaf47c7cba3326ea8166"
+    "activation": "e15d9a7b6cae105b4085c804acdfc0b5390489b88cc49baeb448be13754fdfe2",
+    "readback": "2c2bc82fd6e045d2adc90c2a6d72e4fdf309df3e6854a2c4d8f400c37c405f49",
+    "readiness": "dad157f09a680000ae7acf559855ad059b55906577887735dd911c050f72a4a4",
+    "baseline": "b1f95f6064c2460ecc83f799670613832c75505305b7a1095734d5eb1b9b757d",
+    "preview": "c7362c7a04c61b42637cb6fd0d5a6cf9b590b7c25de97aa4d77972c809f6c607",
+    "guardPreflight": "a040561f149d2dc15edafccb78edacc349e4f7449dfccc2a0183281ec6753825"
+  },
+  "track": {
+    "revision": "9639375f00dae0686a217ec44963df0072dabb06",
+    "pid": 78884,
+    "sourceCount": 6,
+    "protectedSource": "demian-assistant-owner",
+    "protocol": 2,
+    "actualRunId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "incomplete": false,
+    "actualFlowNodes": 6,
+    "actualFlowEdges": 5,
+    "actualExecutionGroups": 1,
+    "renderedGuiVerified": false,
+    "actualExecutionState": "completed",
+    "currentProjectsTaskRevision": 5,
+    "eventsPreserved": true
   }
 }

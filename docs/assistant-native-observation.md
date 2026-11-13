@@ -1,11 +1,24 @@
 # Assistant를 통한 보호 Run 관측
 
-기준: 2026-11-14 KST. **native API·공개 gate는 운영 반영했고 Assistant는
-정지된 새 이미지 후보까지 검증했다.** Track 새 collector와 Assistant 교체,
-WorkCoordinator→Projects→Note→desktop→Track 실제 업무 수용은 아직 미완료다.
-[현재 운영·후보 근거](assistant-native-observation-operating.json)를 따른다.
+기준: 2026-11-14 KST. native API·공개 gate·Assistant9382c9c·Track9639375의
+보호 source가 운영 연결됐다. 같은 실제 업무의 모델 결과를 Projects에 먼저 첨부하고
+Note 발행·Projects 참조 연결·Track 관측까지 API 경로로 검증했다. 기존 폴더 이동
+오류는 같은 Execution/Note operation에서 재개해 해결했고 모델을 다시 실행하지 않았다.
+[운영 근거](assistant-native-observation-operating.json)와
+[실제 업무 대조](workflow-observation-2026-11-14.json)를 따른다.
 
-## 운영 전환 후속
+현재 보호 Run은8event·gap없음이며 기존 이벤트와 역사 binding은 불변이다. 현재
+Task/Execution/역할/Run은6node·5edge·실행group1로 연결된다. 하지만 이 Run의 이벤트에는
+invocation/call 식별자가 없어 상세 Trace의 step/tool은0개다. 아래 합성 fixture의
+도구 Trace 성공을 이 실제 Run의 상세 관측 성공으로 확대하지 않는다. 현재 PC의
+화면 관측 도구도 실패해 인증된 GUI 선택·그룹 탐색은 미검증이다.
+
+다음 상세 Trace 보완은 기존8event의 내용을 바꾸지 않고, 현재 보호 인가를 다시
+확인하는 별도 관측 계약으로 진행한다. Assistant 역할에 이미 있는 실제 usage·wall
+관측과 native Run의 도구·lineage 관측을 구분하고, 없는 invocation이나 의존 edge를
+새로 만들어 빈 화면을 채우지 않는다.
+
+## 이전 운영 전환 준비 기록
 
 Dedicated API8081은 `db861e8`의 동결 후보로 교체했다. 원래 API8080과 worker는
 같은 PID로 유지했다. 공통 시작 도구는 API에만 별도 release pointer를 사용하고
