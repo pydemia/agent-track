@@ -41,7 +41,24 @@
       "non-numeric int64 safeParse throws before fix; now validation failure",
       "Project withdrawal during final signed confirmation exposed a page before fix; now hidden"
     ],
-    "databaseBoundary": "Real HTTP + synthetic upstream, actual Track Sources and SQLite; evidence read preserves existing event journal"
+    "databaseBoundary": "Real HTTP + synthetic upstream, actual Track Sources and SQLite; evidence read preserves existing event journal",
+    "ci": {
+      "runId": 43494168243,
+      "headSha": "17e5ff0a057b93ba4f4b24ed13c06e380660ecd3",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "rerunRequested": false
+    }
   },
   "persona": {
     "commit": "f9f78ac0bf242a6300511b686c4bc4c4083478be",
@@ -83,7 +100,14 @@
   },
   "browser": {
     "projectionAndStaticMarkup": "passed",
-    "renderingAndInteraction": "unverified"
+    "renderingAndInteraction": "unverified",
+    "currentPc": {
+      "browserControl": "connected",
+      "authenticatedWorkflow": "pending-user-login",
+      "stage": "Entra password",
+      "newConsentGranted": false,
+      "screenshot": "CDP capture timed out; not an app defect determination"
+    }
   },
   "rollout": {
     "native": false,
@@ -102,10 +126,57 @@
     "eta": "not estimable; confidence low"
   },
   "remaining": [
-    "CI actual execution and required gates",
+    "Persona CI actual execution and required gates (Track17e5 Windows/Ubuntu now passed)",
     "Paired Native/Assistant/Track operating rollout and same real Run evidence readback",
     "Current Windows authenticated browser group/node/edge interaction",
     "Recent-50 execution lookup window and full-history navigation",
     "Other existing partial AT-06/09/12/14/15/20 conditions remain in goal ledger"
-  ]
+  ],
+  "candidateObservationAt": "2026-11-13T19:55:43.509Z",
+  "candidates": {
+    "operatingRollout": false,
+    "native": {
+      "revision": "9f45e6c69a1fc8d48cc75f7ece82ffa0e61b1197",
+      "trackRevision": "17e5ff0a057b93ba4f4b24ed13c06e380660ecd3",
+      "manifestSha256": "5b1afad2d0498ba8563ae02bd43461aaab6d137bc4ca0380217372bab94a0c62",
+      "phase": "frozen-verified-not-running"
+    },
+    "track": {
+      "revision": "17e5ff0a057b93ba4f4b24ed13c06e380660ecd3",
+      "webRevision": "17e5ff0a057b93ba4f4b24ed13c06e380660ecd3",
+      "manifestSha256": "829ac3ce67d85a02febc5e5796d9559853a9e908b4ef3f020ce37280eeb7d79c",
+      "files": 2034,
+      "packages": 27,
+      "rollbackManifestSha256": "32983c6d97e3c348000fa2b641fdb0d279fe7a18a69f8f862be8baca13f08b22"
+    },
+    "persona": {
+      "revision": "f9f78ac0bf242a6300511b686c4bc4c4083478be",
+      "image": "sha256:056982e886ce7980858cea8aabc2b0a76ddf63770f063cb760d1d670126de79d",
+      "sourceTree": "d06ee11d1519279121f5406d6571ca02c232a5e3",
+      "archiveSha256": "cdc4e1b77dd74f9c6ac1e23a06eb8ebeb7ce87239166d89232775a4fa6de22dd",
+      "originalContainerUnchanged": true,
+      "compiledHashes": {
+        "main.js": "3b3d725fe2f258f776ae5cf6065acd5bd6cdd0337ac9b76ea2d8c69aaf147ce1",
+        "workbench/note-publication.js": "feb45659eb17d53405e54c8f240a1ddc395c03c922ea829fc2d8cd16692ea6bc",
+        "workbench/connected.js": "16779e0dfb30ca7dd2cabacd929341d23aa999c4492e19cd4a3a5fe22db2d0e3",
+        "workbench/demian-runtime-gateway.js": "4791d406d65c870551ef3ad1a7f19861590abdff83360aaead8c602688daa97d",
+        "workbench/demian-runtime-config.js": "a1d0b17a87eacca95ceff23245719bbda7eb4a14f5659746ada7356ccfdfdaf9",
+        "workbench/demian-runtime-auth.js": "e47ad55105de7cdea32d0f6c5b4106ed677b69d35c5e8d80e28e14cc4b4af443",
+        "workbench/executions.js": "0a9958ea9b23a62bb76d293b43b4cc23ce9606e653b2b2312c057b1acd899c04",
+        "track-read/service.js": "c23230e82316fb38d62bcf8e70661bf65b97a386c798191d83c426b2e2553641"
+      },
+      "compiledSchemaCheck": {
+        "compiledNativeEvidenceSchema": true,
+        "validWindows": 2,
+        "invalidCursorFailuresWithoutThrow": 3,
+        "privateFieldRejected": true,
+        "foreignArtifactRejected": true,
+        "providerCalls": 0,
+        "databaseOpens": 0
+      },
+      "network": "none",
+      "credentialMounts": 0,
+      "productionWrites": 0
+    }
+  }
 }

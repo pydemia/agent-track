@@ -1,13 +1,60 @@
 # Agent Track 개발계획
 
-현재 후속: 새 Assistant0691e1a 운영 전환·동일 프로세스 guard adoption·운영 DB,
-보고서/파일68개·다른12서비스 보존을 확인했다. 같은 복원본에서 preview 실패의
-정확한 Task3revision/UI6event 역산을 대조했고 시험 앱도 제거했다. 현재 역할의
-native 서명 GET3개와 Track의 기존 reader credential을 쓰는v2 capability/목록은200이다.
-9639375 CI43468025771은 Windows·Ubuntu 모두 성공. 새 Track release2031file/
-27package를 별도 동결했으나 운영은a3bb446, 새 보호 source는 미활성이다. 다음은
-Track 운영 연결→실제 전체 업무다. 수용15/21·71.4%·전체 ETA 산정 불가/신뢰도
-낮음은 유지한다. [운영 근거](assistant-native-observation-operating.json)를 우선한다.
+현재 후속: Assistant9382c9c·Track9639375와 보호 source가 운영 연결돼 있다.
+같은 실제 Execution/Run/Task에서 실행 성공→Projects 결과 선첨부→Note 발행·참조→
+Track 관측을 확인했다. [현재 업무 근거](workflow-observation-2026-11-14.json)를 따른다.
+상세 Trace 보완 source는 Track17e5ff0·Native9f45e6c·Personaf9f78ac다. Track의
+CI43494168243은 Windows·Ubuntu 모두 성공했고 세 후보를 별도로 동결했다.
+새 evidence 운영 전환은 아직 하지 않았다. Persona CI는 결제/한도 annotation과 함께
+실행 step 없이 실패했다. 현재 PC 브라우저는 Entra 비밀번호 단계로 사용자 로그인 대기다.
+수용15/21·71.4%(상위 동일 가중치·부분0)·전체 ETA 산정 불가/신뢰도 낮음을 유지한다.
+[상세 조회 계약](native-run-evidence.md)과 [전체 기준표](goal-status.md)를 우선한다.
+
+## AT-09 재개·재시도 구현 순서
+
+Native Codex 실행기는 이미 `thread/resume` 후 새 `turn/start`를 수행한다.
+`prepared-delegation.ts`는 기존 binding과 native thread가 있으면 엄격한 resume를
+요구한다. 현재 PostgreSQL 통합 fixture는 동일 thread·서로 다른 turn/Run·receipt2개를
+검증한다. 이것은 실제 제공자 재시도 명령의 운영 성공 증거는 아니다.
+
+따라서 부족한 기능을 단순히 ‘Native resume 자체가 없음’으로 정리하지 않는다.
+필요한 것은 업무·이전 Run·명령·새 Run을 연결하는 원본 명령 계약과 Track의 복구다.
+
+| 동작 | 실제 의미 | 유지할 경계 |
+| --- | --- | --- |
+| Session 계속 실행 | 새 입력으로 같은 Session/native thread에 새 turn·Run 생성 | 실패 업무 재시도와 구별 |
+| 실패 재시도 | 같은 논리 업무·입력 revision의 새 실행 시도, `retry_of`로 이전 Run 연결 | 원래 실패 상태·이벤트·메시지·usage·receipt 불변 |
+| 중단 작업 재개 | 이전 실행의 종료 확인 후 `continues` 관계의 후속 Run 생성 | cancelled/failed Run을 running으로 되돌리지 않음 |
+| 승인 대기 해결 | 정확한 pending permission에 명시 결정 전달, 같은 worker/attempt/lease에서 계속 | 일반 재개 버튼으로 도구를 자동 허용하지 않음 |
+
+1. **Native admission·receipt**: `POST /api/v1/runs/:runId/commands`와 Session별 명령
+   조회 계약을 추가한다. command ID·kind·canonical digest·원본 업무/입력/문맥 pin·기대
+   Session head·Run 상태·기한·현재 actor/authority를 고정한다. 같은 transaction에서
+   receipt·후속 Run·명시 관계를 저장하고 원래 Run은 보존한다. 같은 ID/같은 digest는
+   같은 결과를, 다른 digest는409를 반환한다. 다른 ID의 동시 요청도 같은 관측 head에서
+   후속 Run을 두 개 만들지 못해야 한다. 기존 enqueue key 재사용은 원래 Run 조회이며
+   실패 재시도가 아니다.
+2. **Assistant 실행 소유권**: 보호된 실행은 기존 read-only Track reader로 명령을 보내지
+   않는다. Assistant의 현재 owner/Task/역할을 확인하는 제어 경로가 새 runtime attempt와
+   Native command/Run 관계를 journal에 반영해야 한다. 현재 `WorkCoordinator.reconcile`
+   은 `reconciliation_required` 확인·발행 복구이며, 실패 역할 재실행 계약이 아니다.
+   Native Run만 별도로 재시도하고 coordinator가 예전 Run을 계속 읽는 구현을 피한다.
+   실제로 지원하는 일반·보호된 경로를 모두 capability와 권한에 연결한다.
+3. **Track 제어·복구**: 현재 Projects/Session/Run 인가와 실제 capability를 대조한다.
+   응답 유실·재시작 후에는 같은 native command ID를 조회한다. `unknown`을 다른 Run의
+   존재로 성공 처리하거나 새 key로 자동 재전송하지 않는다. 명령 접수와 후속 Run의
+   성공·업무 수용을 각각 표시한다. 버튼은 ‘실패 재시도’·‘작업 재개’·‘승인 대기 해결’의
+   실제 의미에 맞게 구분하고 predecessor/successor를 Flow에서 선택할 수 있게 한다.
+4. **검증**: 중복/동시 요청, digest 충돌, Session head 변경, 현재 권한 철회, commit 후
+   응답 유실, Track 재시작, 원래 이력 보존, binding 불일치, pending permission fence를
+   실제 DB/API로 검사한다. 같은 thread/new turn/new Run과 명령 관계를 fixture와 실제
+   제공자 실행으로 각각 확인한다. 단순 enqueue2회 성공을 retry 수용으로 세지 않는다.
+
+현재 명령 구현은 cancel-only다. 위 계약·구현·운영 검증은 **미완료**이며 AT-09를
+기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
+검토하며, 실패 전에 이미 발생했을 수 있는 외부 효과를 rollback됐다고 표시하지 않는다.
+
+## 이전 시점의 기록
 
 아래01:51의 preview 실패는 후속 검증 전의 기록이다.
 

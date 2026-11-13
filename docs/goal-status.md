@@ -23,6 +23,11 @@ Native9f45e6c/Personaf9f78ac에 고정했으나 세 서비스의 새 evidence �
 아직 미검증이다. 구현·검사 결과를 AT-12/14의 사용자 수용 완료로 계산하지 않는다.
 새 Persona PR CI43493618449는 네 job 모두 step 시작 전에 실패했다. GitHub annotation의
 사유는 계정 결제 실패 또는 spending limit이다. CI 성공을 주장하거나 반복 재실행하지 않는다.
+Track17e5ff0의 CI43494168243은 Windows·Ubuntu 모두 성공으로 종료됐다. Native/Assistant/
+Track 후보를 별도로 동결했고 운영은 교체하지 않았다. 현재 PC 브라우저 제어는 연결됐으나
+해당 프로필이 Entra 비밀번호 단계여서 사용자 로그인을 기다린다. 과거 화면 캡처 실패를
+현재 앱 결함이나 로그인 실패로 단정하지 않는다. AT-09의 실제 계약 공백과 구현 순서는
+[개발계획](development-plan.md#at-09-재개재시도-구현-순서)에 구분했다.
 
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |

@@ -66,6 +66,13 @@ spending limit을 사유로 표시한다. 별도 push43493606606도 실패다. �
 결과와 구분하며 CI 성공·운영 반영으로 계산하지 않는다. CI를 반복 실행하거나 결제 설정을
 변경하지 않았다.
 
+Track source17e5ff0의 CI43494168243은 Windows·Ubuntu의 실제 검사·build가 모두 성공했다.
+Native 후보는19626file/5link, Track 후보는2034file/27package로 검증·동결했다.
+Assistant 후보 image `056982e8`도 빌드됐고 network none·credential mount0 환경에서
+컴파일된 evidence schema의 정상 window와 잘못된 cursor/private field/타 Run 산출물 거부를
+확인했다. 이 검사는 운영 DB를 열지 않는다. 후보 준비를 Persona CI 성공이나 운영 반영으로
+표시하지 않는다.
+
 QA 컨테이너는 제거됐고 임시 환경 파일의 부재도 별도 최종 조회로 확인했다. 최초 정리
 관찰 실패 기록은 그대로 보존한다. 운영 DB·실제 Task·Execution·Run·Note를 재생성하지 않았다.
 
