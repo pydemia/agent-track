@@ -106,7 +106,18 @@
     ],
     "personaRevision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
     "demianRevision": "db861e85d72dd59368704dddb089f0615113532d",
-    "nativePatchSha256": "873d8ece4b87938fe68cb25ee27d5de6e4fa721fd140c21d60664c27642cc1d8"
+    "nativePatchSha256": "873d8ece4b87938fe68cb25ee27d5de6e4fa721fd140c21d60664c27642cc1d8",
+    "trackRevision": "47fa23f9932fcb0cfd03e94980e294efb43fc5d1",
+    "gateFollowupFiles": [
+      {
+        "path": "deploy/demian/delegated-proxy.mjs",
+        "sha256": "a7c4187bf1f054c8498ad88e991b2eea0bb434f2a46ebf8112a3f3c61866e433"
+      },
+      {
+        "path": "tests/demian-delegated-proxy.test.ts",
+        "sha256": "3fb8d5e276600f0d64b8c905000d4453e9cc02bdb4645f7ec12f2aaf61d7d759"
+      }
+    ]
   },
   "checks": {
     "trackTypecheck": true,
@@ -155,7 +166,16 @@
       },
       "finalWholeSuitePassed": true
     },
-    "nativePatchExactTargetTreeMatched": true
+    "nativePatchExactTargetTreeMatched": true,
+    "gateFollowup": {
+      "tests": 12,
+      "pass": 12,
+      "skipped": 0,
+      "reproducedBeforeFix": true,
+      "scope": "Actual HTTP metadata query forwarding, exact bytes/signature and old domain/browser gate regressions",
+      "trackTypecheck": true,
+      "fullTrackSuiteAtEarlierSourceRevision": true
+    }
   },
   "operating": {
     "newMetadataRolloutPerformed": false,
@@ -164,13 +184,23 @@
     "productionTaskNoteRunCreated": false,
     "productionModelRequests": 0,
     "fullWorkCoordinatorProjectsNoteDesktopTrackAccepted": false,
-    "desktopContractConfirmed": false
+    "desktopDeviceIdentified": true,
+    "desktopEvidence": {
+      "threadId": "01a173cd-0935-7213-a827-3ab30a298212",
+      "title": "SSH config에 장비 접속 설정 추가",
+      "userDefinedHost": "pydemia-desktop",
+      "userDefinedAddress": "192.168.0.2",
+      "currentHostnameMatches": true,
+      "currentIPv4Matches": true,
+      "meaning": "Treat the named Windows PC as the desktop integration target; no evidence of a separate desktop application",
+      "sameWorkAcceptanceProven": false
+    }
   },
   "next": [
     "Deploy matching native API and public gate metadata route with a fresh current-state plan",
     "Deploy Persona reader and Track source together with existing Entra/owner restrictions",
     "Run one actual durable WorkCoordinator/Projects/Note flow and compare receipts in Track",
-    "Confirm actual desktop contract and same-work access"
+    "Validate same-work access on the identified pydemia-desktop Windows PC; do not invent a separate desktop application contract"
   ],
   "progress": {
     "completed": 15,
@@ -181,7 +211,33 @@
     "meaning": "Acceptance coverage only; not effort or operating readiness",
     "eta": null,
     "confidence": "low",
-    "etaPremises": "First full operating workflow and confirmed desktop contract"
+    "etaPremises": "First full operating workflow, same-work access on the identified Windows PC, and remaining resume/retry implementation"
   },
-  "remoteCI": "pending after commit/push"
+  "remoteCI": {
+    "track": {
+      "revision": "47fa23f9932fcb0cfd03e94980e294efb43fc5d1",
+      "runId": 43455156723,
+      "conclusion": "success",
+      "jobs": [
+        "ubuntu-latest",
+        "windows-latest"
+      ]
+    },
+    "persona": {
+      "revision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
+      "draftPR": 22,
+      "pushRunId": 43455162968,
+      "pushApp": "in_progress; build/typecheck/format/media installation succeeded",
+      "pullRequestRunId": 43455173734,
+      "failedJobId": 131987274474,
+      "failedStep": "Install report media runtime",
+      "error": "report_tts_download_failed; archive-0 response HTTP403",
+      "fullCIConclusion": "not established",
+      "retryRequested": true,
+      "pullRequestRunAttempt": 2,
+      "retryReason": "Same-revision push app completed the report media installation; first PR attempt failed upstream response HTTP403",
+      "pushContainer": "success"
+    },
+    "gateFollowup": "pending after commit"
+  }
 }

@@ -19,6 +19,10 @@ WorkCoordinator→Projects→Note→desktop→Track 업무 수용은 아직 미�
 5. 원장 snapshot은 새 source의 현재 `authorizedRunIds` 교집합만 내보낸다.
    기존 Trace projection이 invocation/call ID를 이용해 도구 시작·완료를 연결하고,
    Assistant 역할 상세에서 같은 Run의 Trace로 이동할 수 있다.
+6. 공개 `delegated-proxy`에도 metadata GET 경로를 추가했다. query는 생략하거나
+   정확한 `?after=<canonical-int64>&limit=<1..250>` 순서만 허용하고, HMAC envelope와
+   bearer·Host·organization을 기존대로 대조한 뒤 원래 URL 그대로 전달한다.
+   query alias·추가 key·POST·무서명 요청은 거부한다. 운영 gate 교체는 아직 수행하지 않았다.
 
 원문·도구 인수/결과·native signing key·binding/context/request hash·native
 principal은 Track 원장과 공개 응답에 포함하지 않는다. private writer가 있는
@@ -73,13 +77,28 @@ session relations·orchestration·permission/control API는 아직 지원하지 
   frontend build 통과. frontend는 운영 `dist/web`를 덮어쓰지 않았다.
 
 전체 Track 회귀의 첫 실행은 다른 actor 거부 경로에서1개 실패해 수정했다.
-해당 API/수집25개는 수정 후 통과했다. 최종 전체 회귀와 원격 CI 상태는
+해당 API/수집25개는 수정 후 통과했다. 최종 전체 회귀는990통과·실패0·9skip이며,
+`47fa23f`의 Track Windows/Ubuntu CI43455156723은 모두 성공했다. Persona PR22의
+CI 한 app job은 build/typecheck/format 뒤 report TTS archive 다운로드 HTTP403으로
+실패했다. 별도 push run의 같은 설치 단계는 통과했고 후속 검사가 진행 중이다.
+Persona 전체 CI 통과로 보고하지 않는다. 원격 CI 상태와 검사 범위는
 `assistant-native-observation-verification.json`에 별도로 기록한다. Windows의
 POSIX 백업 전용 skip은 통과로 합산하지 않는다.
+
+공개 gate 경로가 빠져 있던 문제도 후속으로 수정했다. 수정 전403을 재현했고,
+수정 후 metadata 전달과 기존 gate 회귀12개/타입 검사가 통과했다. 이 gate 변경은
+위 `47fa23f` 이후이므로 해당 CI 결과로 gate 후속까지 통과했다고 주장하지 않는다.
+Persona push의 같은 media 설치 단계가 통과한 근거로, PR의 실패 app job만1회
+재실행 요청했다. 다른 job·원본 설정·검사 기준은 변경하지 않았다.
 
 다음은 native API·public gate의 metadata 경로·Assistant image/reader와 Track
 source의 운영 반영이다. 현재 운영 release·DB·인증을 확인한 새 계획을 사용하며,
 이전 소비된 cutover/backup runner를 재실행하지 않는다. 그 뒤 한 실제 지속 업무의
 지시·Run·Projects 결과·Note 참조·Track 관측을 같은 ID/receipt로 대조한다.
-desktop 계약도 별도로 확인한다. 수용15/21·71.4%는 유지하며 개발 완료율로
+desktop은 과거 사용자 지정을 찾았다. 「SSH config에 장비 접속 설정 추가」
+대화 `01a173cd-0935-7213-a827-3ab30a298212`에서 현재 Windows PC를
+`192.168.0.2 pydemia-desktop`으로 명시했고, 이번 hostname/IPv4 검사와 일치했다.
+따라서 이 PC를 desktop 실기 대상으로 삼는다. 별도 desktop 앱/bridge 계약을
+가정해 추가 대기 조건을 만들지 않는다. 이 PC에서 같은 실제 업무로 접속하는
+검사는 남는다. 수용15/21·71.4%는 유지하며 개발 완료율로
 환산하지 않는다. 전체 ETA 산정 불가·신뢰도 낮음이다.

@@ -16,8 +16,10 @@ metadata를 읽는 경계와 늦은 철회를 검사했다. 각 검사에 skip�
 수용15/21·71.4%(동일 가중치·부분0), 직전 대비0%p를 유지한다. 이번 진전은
 AT-14의 **코드와 격리 통합 경로 확보**이며 운영 업무 수용이 아니다. 다음 조건은
 새 경로 운영 반영 후 실제 WorkCoordinator/Projects/Note→Track 업무 대조다.
-desktop 계약 확인도 남는다. ETA 산정 불가·신뢰도 낮음이며 첫 전체 업무 결과와
-desktop 경로가 다음 재산정 근거다. [구조·근거](assistant-native-observation.md)를 따른다.
+과거 사용자 지정과 현재 hostname/IP를 대조해 desktop은 현재 Windows PC로
+확인했다. 별도 앱 계약을 추가 대기 조건으로 삼지 않으며 같은 업무 접속 실기를
+수행한다. ETA 산정 불가·신뢰도 낮음이며 첫 전체 업무 결과와 재개/재시도 구현
+범위가 다음 재산정 근거다. [구조·근거](assistant-native-observation.md)를 따른다.
 
 아래는 수집 구현 전의 감사 기록이다.
 

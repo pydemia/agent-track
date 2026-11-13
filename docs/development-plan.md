@@ -6,7 +6,7 @@ metadata 수집→원장→Trace를 연결했다. 격리 PostgreSQL44개와 Pers
 실제 HTTP/SQLite 수집6개가 통과했으나 운영 배포·전체 업무 성공은 남는다.
 다음 완료 조건은 새 native API/Assistant reader/Track source의 운영 반영이다. 이후 실제
 WorkCoordinator/Projects/Note 업무와 desktop 접속을 검증한다. 전체 ETA 산정 불가·
-신뢰도 낮음이며 첫 전체 업무 결과와 desktop 계약 확보 시 재산정한다.
+신뢰도 낮음이며 첫 전체 업무 결과와 재개/재시도 구현 범위 확인 시 재산정한다.
 [최신 기준표](goal-status.md)와 [재점검](progress-audit-2026-11-13.md#2026-11-14-kst-현재-작업본-재점검)을
 우선하며 아래 운영 전환 기록은 당시 증거로 유지한다.
 [새 연결의 적용·검증 범위](assistant-native-observation.md)를 따른다.

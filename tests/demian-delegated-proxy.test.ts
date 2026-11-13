@@ -220,6 +220,25 @@ test("timeout and backend disconnect yield generic 502; redirects never followed
   } finally { await f.close(); }
 });
 
+test("metadata forwarding preserves exact signed int64 query and rejects aliases, writes and missing signature", async () => {
+  const f = await fixture();
+  try {
+    for (const path of [`${run}/metadata`, `${run}/metadata?after=0&limit=250`, `${run}/metadata?after=9223372036854775807&limit=1`]) {
+      const response = await send(f.port, path);
+      assert.equal(response.status, 201, path);
+      assert.equal(f.seen.at(-1)!.url, path);
+      assert.equal(f.seen.at(-1)!.headers["x-demian-delegation"], envelope);
+    }
+    const allowed = f.seen.length;
+    for (const query of ["?after=01&limit=1", "?after=9223372036854775808&limit=1", "?after=0&limit=0", "?after=0&limit=251",
+      "?limit=1&after=0", "?after=0&limit=1&extra=1", "?after=0&after=1&limit=1", "?after=%30&limit=1", "?after=0&limit=01", "#fragment", "/extra"])
+      assert.equal((await send(f.port, `${run}/metadata${query}`)).status, 403, query);
+    assert.equal((await send(f.port, `${run}/metadata?after=0&limit=1`, validHeaders, "POST")).status, 403);
+    assert.equal((await send(f.port, `${run}/metadata?after=0&limit=1`, replace("x-demian-delegation"))).status, 403);
+    assert.equal(f.seen.length, allowed);
+  } finally { await f.close(); }
+});
+
 test("validates fixed destination and resolver options", () => {
   const options = { hostname, organizationId, upstreamPort: 12345, resolveBearer: async () => bearer };
   for (const bad of [{ hostname: "http://bad" }, { hostname: "a:443" }, { hostname: "a..b" }, { hostname: "-bad" },
