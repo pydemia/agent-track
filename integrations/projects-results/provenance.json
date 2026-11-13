@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "baseImage": "sha256:0ad5d8008795b5b7b20377bb67dd14d2eff6794581bc5f579b3d114a52487045",
+  "baseFiles": {
+    "src/projects/assistant_integration.py": "59f9ba853205914fb57318f6bb7a808c25fca853fb53a23541b838a0fa29240d",
+    "src/projects/assistant_result.py": "dccbba43ee93f839afc7442f6db783d94b584dd33eebf1dfc6902a22bf041214",
+    "src/projects/domain.py": "e04fc57da2e252f091b87a88bfb7d8337998d9e64f99045f1437570fa6dbf54f",
+    "src/projects/note_references.py": "d3be82726b5c2742ce4d4a31b00c09c48606b7664d4fa79857c1ce810b17704b"
+  },
+  "retainedFiles": {
+    "src/projects/task_dependencies.py": "918900701cc904f18783ef555c2ad5b2e22a50c7686b1e38b3064f24570f024a"
+  },
+  "variants": {
+    "candidate": {
+      "patch": "native.patch",
+      "patchSha256": "9c3dbbc9d19411b0cfb358a689a11b08360111b8511c153aa302a9739b73f8dc",
+      "payloadFiles": {
+        "src/projects/assistant_integration.py": "6d4218f006eda0213ed1c88a688a13a40e3a847e8cfc6c764af99bca2e4ed377",
+        "src/projects/assistant_result.py": "0536ebaa6268f8544b4ad7fbf6a99e0e1a98bd80472868c33fd303dd63e06a61",
+        "src/projects/domain.py": "2a25e03b3c236d6791d1589d4dd1644489b3a4cc3bcebc5e8b20551d74a6ed8c",
+        "src/projects/note_references.py": "0e2d29d578cc1d03d802a2bd529bc44637849ae7db9e2722975e98b0c920d291"
+      }
+    },
+    "compatibility": {
+      "patch": "compatibility.patch",
+      "patchSha256": "c46d2be94fa6bd40838212e2f1675d6fa650e893922f91860450bbb91b6d0981",
+      "payloadFiles": {
+        "src/projects/assistant_integration.py": "03fe6d2ed6dbc7a1394d2327673c68bfbfe74ed96bd0c11ca4bf2cfc590147c9",
+        "src/projects/assistant_result.py": "0536ebaa6268f8544b4ad7fbf6a99e0e1a98bd80472868c33fd303dd63e06a61",
+        "src/projects/domain.py": "2a25e03b3c236d6791d1589d4dd1644489b3a4cc3bcebc5e8b20551d74a6ed8c",
+        "src/projects/note_references.py": "0e2d29d578cc1d03d802a2bd529bc44637849ae7db9e2722975e98b0c920d291"
+      }
+    }
+  },
+  "upstreamCandidate": {
+    "repository": "https://github.com/pydemia/projects",
+    "branch": "codex/projects-before-note",
+    "head": "79c42b39d4a644b85de6ba8e69711f5d623fb1d4",
+    "uncommittedSource": true,
+    "fileHashesBeforeParentChanges": {
+      "assistant_integration.py": "9d0458facebf8a2a31bc47b47feffc5d7e5fb72555a2a6c14ca4c4426b88e029",
+      "assistant_result.py": "0536ebaa6268f8544b4ad7fbf6a99e0e1a98bd80472868c33fd303dd63e06a61",
+      "domain.py": "b0e847b24460f786c413761321d29b4717e0e13be357b8697483292aeb38ee5b",
+      "note_references.py": "4f898ab04dd39d34658fc34d9da693ba6e26c8a523dbc82574d8b959b801b670"
+    }
+  },
+  "nativeSchemaMigration": false,
+  "newPrincipalsOrScopes": false,
+  "taskJsonExtensions": [
+    "assistant_result_operation_id",
+    "assistant_note_reference",
+    "assistant_note_reference_history"
+  ],
+  "originalWorktreesModified": false,
+  "productionDeployed": false,
+  "rollback": "Use the compatibility variant to read new Task JSON and note_reference receipts. Do not restore an old database, credential, authority or an unadapted old binary after accepting new results."
+}

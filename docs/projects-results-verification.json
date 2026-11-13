@@ -1,0 +1,223 @@
+{
+  "dateKst": "2026-11-13",
+  "requirementIds": [
+    "AT-14",
+    "AT-19"
+  ],
+  "scope": "Actual operating signed capabilities/source readback; pinned native contract patch, real isolated PostgreSQL HTTP tests, independently reviewed repeated-publication correction, packaged candidate and compatibility images with network-none Python import/source verification. No production cutover or whole cross-app work acceptance.",
+  "operating": {
+    "id": "bea7bc49f55c971053c94e1875dbee7e6c953db67a06234e7f5154ca4c7a5c18",
+    "image": "sha256:0ad5d8008795b5b7b20377bb67dd14d2eff6794581bc5f579b3d114a52487045",
+    "pidUnchanged": true,
+    "signedCapabilities": {
+      "observedAtUtc": "2026-11-13T08:39:42.126Z",
+      "signedStatus": 200,
+      "invalidStatus": 401,
+      "resultsBeforeNoteSupported": false,
+      "resultNoteReferencesSupported": false,
+      "noteReadWrite": true
+    },
+    "deployed": false
+  },
+  "source": {
+    "baseFiles": {
+      "src/projects/assistant_integration.py": "59f9ba853205914fb57318f6bb7a808c25fca853fb53a23541b838a0fa29240d",
+      "src/projects/assistant_result.py": "dccbba43ee93f839afc7442f6db783d94b584dd33eebf1dfc6902a22bf041214",
+      "src/projects/domain.py": "e04fc57da2e252f091b87a88bfb7d8337998d9e64f99045f1437570fa6dbf54f",
+      "src/projects/note_references.py": "d3be82726b5c2742ce4d4a31b00c09c48606b7664d4fa79857c1ce810b17704b"
+    },
+    "payloadFiles": {
+      "src/projects/assistant_integration.py": "6d4218f006eda0213ed1c88a688a13a40e3a847e8cfc6c764af99bca2e4ed377",
+      "src/projects/assistant_result.py": "0536ebaa6268f8544b4ad7fbf6a99e0e1a98bd80472868c33fd303dd63e06a61",
+      "src/projects/domain.py": "2a25e03b3c236d6791d1589d4dd1644489b3a4cc3bcebc5e8b20551d74a6ed8c",
+      "src/projects/note_references.py": "0e2d29d578cc1d03d802a2bd529bc44637849ae7db9e2722975e98b0c920d291"
+    },
+    "retainedFiles": {
+      "src/projects/task_dependencies.py": "918900701cc904f18783ef555c2ad5b2e22a50c7686b1e38b3064f24570f024a"
+    },
+    "candidatePatchSha256": "9c3dbbc9d19411b0cfb358a689a11b08360111b8511c153aa302a9739b73f8dc",
+    "compatibilityPatchSha256": "c46d2be94fa6bd40838212e2f1675d6fa650e893922f91860450bbb91b6d0981",
+    "upstream": {
+      "repository": "https://github.com/pydemia/projects",
+      "branch": "codex/projects-before-note",
+      "head": "79c42b39d4a644b85de6ba8e69711f5d623fb1d4",
+      "uncommittedSource": true,
+      "fileHashesBeforeParentChanges": {
+        "assistant_integration.py": "9d0458facebf8a2a31bc47b47feffc5d7e5fb72555a2a6c14ca4c4426b88e029",
+        "assistant_result.py": "0536ebaa6268f8544b4ad7fbf6a99e0e1a98bd80472868c33fd303dd63e06a61",
+        "domain.py": "b0e847b24460f786c413761321d29b4717e0e13be357b8697483292aeb38ee5b",
+        "note_references.py": "4f898ab04dd39d34658fc34d9da693ba6e26c8a523dbc82574d8b959b801b670"
+      }
+    },
+    "sharedWorktreesModified": false
+  },
+  "behavior": [
+    "Native runtime-only in_review result before Note publication; original result/principal/Task binding and CAS/idempotent receipts",
+    "Scoped publication history retained for repeated results; same-page different revision/hash uses distinct derived reference identity",
+    "History capacity denies new connection before mutation instead of discarding evidence",
+    "Current results:attach/service Project grants and different principal regressions; existing signed dependency endpoint preserved",
+    "Compatibility reader knows new Task metadata and note_reference receipt action while not advertising new mutation capability"
+  ],
+  "checks": {
+    "postgresql": {
+      "isolated": true,
+      "full": {
+        "exitCode": 0,
+        "files": [
+          "tests/test_assistant_integration.py",
+          "tests/test_assistant_result_order.py",
+          "tests/test_task_dependencies.py",
+          "tests/test_task_discovery_http.py",
+          "tests/test_assistant_result_history.py",
+          "tests/test_assistant_result_upgrade.py"
+        ],
+        "summary": [
+          "33 passed, 1 warning in 26.84s"
+        ],
+        "passed": 33,
+        "failed": 0,
+        "durationSeconds": 26.84
+      },
+      "compatibilityReader": {
+        "exitCode": 0,
+        "files": [
+          "tests/test_assistant_result_upgrade.py"
+        ],
+        "summary": [
+          "2 passed, 1 warning in 2.55s"
+        ],
+        "passed": 2,
+        "failed": 0,
+        "durationSeconds": 2.55,
+        "overlap": "One baseline-upgrade test repeats the full run; do not add counts as unique cases"
+      },
+      "publishedHistoryTests": {
+        "exitCode": 0,
+        "files": [
+          "tests/test_assistant_result_history.py"
+        ],
+        "summary": [
+          "3 passed, 1 warning in 3.55s"
+        ],
+        "passed": 3,
+        "failed": 0,
+        "durationSeconds": 3.55
+      },
+      "testPrincipals": "Synthetic signed fixture keys, existing real HTTP handlers and actual PostgreSQL. No operating business Task or real model execution.",
+      "baselineUpgrade": "Installed pinned API router/AttachResult helper issues a signed HTTP mutation into the isolated database; candidate replays and reads the identical stored receipt. Shared candidate domain/helper dependencies mean this is not a whole old-image upgrade proof."
+    },
+    "mypy": {
+      "sourceFiles": 4,
+      "passed": true
+    },
+    "ruff": {
+      "packager": true,
+      "publishedTestsUnderProjectsStyle": true
+    },
+    "packageGuards": {
+      "cases": [
+        {
+          "case": "existing-output",
+          "rejected": true
+        },
+        {
+          "case": "changed-base",
+          "rejected": true
+        }
+      ],
+      "existingCandidatePreserved": true,
+      "rejectedOutputCreated": false
+    },
+    "independentReview": {
+      "firstFinding": "Candidate erased older scoped Note references on later result publication; reproduced with one new failing regression",
+      "secondFinding": "Parent version identity change initially disagreed with projection validator; fixed",
+      "final": "No additional blocking source finding; no worker test or deployment claim",
+      "recommendedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "actualProviderExecutionNotObserved": true
+    },
+    "packagingFollowUp": "Published patches use zero context with all four exact baseline/payload hashes pinned; both variants applied and matched again. Repacked archives have different tar/gzip timestamps but identical source hashes; the original built image payloads remain retained."
+  },
+  "images": [
+    {
+      "variant": "candidate",
+      "imageId": "sha256:7d571b2064f9f0e61b9e4f585dd236f3c8b8c8a209eec7f0423845378b5449ab",
+      "tag": "pydemia-projects:results-candidate-50ddffb5964cccc2",
+      "payloadSha256": "50ddffb5964cccc21c11325f8627e9b4a9277d37d8d798df8766120f0c9e56e1",
+      "coldImport": {
+        "imported": true,
+        "filesMatched": 5,
+        "resultContractSupported": true,
+        "taskDependenciesRetained": true,
+        "network": "none",
+        "databaseOpened": false,
+        "workerStarted": false
+      },
+      "coldImportLimits": "Imports and source/AST validation in an isolated read-only network-none container; not actual ASGI server readiness, signed HTTP, database access or instrumentation of database/worker attempts."
+    },
+    {
+      "variant": "compatibility",
+      "imageId": "sha256:6db563645273c43b7b81952df6822a0c17dc2296570dbf84f8b7e5804167fb65",
+      "tag": "pydemia-projects:results-compatibility-124da1ae70290ab0",
+      "payloadSha256": "124da1ae70290ab06fa9e6ab1817ac05f678e75122f70cf8bb13d7e7caa75669",
+      "coldImport": {
+        "imported": true,
+        "filesMatched": 5,
+        "resultContractSupported": false,
+        "taskDependenciesRetained": true,
+        "network": "none",
+        "databaseOpened": false,
+        "workerStarted": false
+      },
+      "coldImportLimits": "Imports and source/AST validation in an isolated read-only network-none container; not actual ASGI server readiness, signed HTTP, database access or instrumentation of database/worker attempts."
+    }
+  ],
+  "failuresRetained": [
+    {
+      "stage": "Existing candidate",
+      "result": "29 passed before adding repeat-publication regression"
+    },
+    {
+      "stage": "Repeat-publication regression",
+      "result": "1 failed,29 passed: old Note revision absent"
+    },
+    {
+      "stage": "Initial parent fix",
+      "result": "3 failed,28 passed: reference identity validator mismatch"
+    },
+    {
+      "stage": "Upgrade witness harness",
+      "result": "1 failed,31 passed: deferred FastAPI included-router lookup; replaced with separate original router app"
+    },
+    {
+      "stage": "Local QA launcher",
+      "result": "JavaScript interpolation and Windows SID ACL syntax failed before database container creation; corrected; no service/model dispatch"
+    }
+  ],
+  "cleanup": {
+    "postgresqlContainersRemoved": true,
+    "generatedPostgresSecretFilesRemoved": true,
+    "sourceArchivesAndPrivateReceiptsRetained": true,
+    "remoteColdContainersAutoRemoved": true,
+    "remoteCandidateImagesRetained": true,
+    "productionServiceChanges": 0,
+    "productionTasksRunsNotesCreated": 0,
+    "newModelRequests": 0
+  },
+  "limits": [
+    "Current production still lacks both capability flags; no assert bypass or fake supported flag",
+    "Current auth/runtime comprises five compose layers and role-specific generated configs; Root read-only18:13KST identity/source-path evidence found migration0018. Privately pin current resolved config, fresh backup/restore and task/image guard before Projects replacement; old Root0012→0013/Auth receivers or expired backup are not reusable unchanged.",
+    "Full operating ASGI readiness, current auth overrides, signed live mutation and rollback using new-data-aware reader remain unverified",
+    "Actual WorkExecutionCoordinator through Projects/Note/native execution, protected metadata authorization and desktop/Track review remain incomplete",
+    "Current tests do not prove every native ACL race, multi-user rollout or whole image backward compatibility"
+  ],
+  "overallGoal": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "Equal original top-level acceptance items; no partial weights",
+    "eta": "Not estimable",
+    "confidence": "Low",
+    "premise": "Operating execution authority/metadata and full cross-app/desktop scenario remain"
+  }
+}

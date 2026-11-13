@@ -1,0 +1,98 @@
+--- a/src/projects/assistant_integration.py
++++ b/src/projects/assistant_integration.py
+@@ -342,0 +343 @@
++        "note_reference": "results:attach",
+@@ -348,0 +350 @@
++        "note_reference": "task.update",
+--- a/src/projects/assistant_result.py
++++ b/src/projects/assistant_result.py
+@@ -5,0 +6 @@
++from uuid import UUID
+@@ -70,0 +72,27 @@
++    note: AssistantNoteResult | None = None
++    runtime: AssistantRuntimeResult
++
++    @model_validator(mode="after")
++    def require_result_link(self) -> "AssistantResult":
++        if self.note is not None:
++            return self
++        runtime = self.runtime
++        prefix = "https://assistant.pydemia.ai/#workbench/projects/"
++        if runtime.service != "assistant" or not runtime.url:
++            raise ValueError("Expected an Assistant execution link")
++        instruction, _, execution = runtime.url.removeprefix(prefix).partition(
++            "/executions/"
++        )
++        if (
++            runtime.url != f"{prefix}{instruction}/executions/{execution}"
++            or execution != runtime.run_id
++            or str(UUID(instruction)) != instruction
++            or str(UUID(execution)) != execution
++        ):
++            raise ValueError("Expected the canonical Assistant execution link")
++        return self
++
++
++class AssistantNotePublicationReference(StrictReferenceData):
++    result_operation_id: str = Field(pattern=r"^[a-f0-9-]{36}$")
++    publication_operation_id: str = Field(pattern=r"^[a-f0-9-]{36}$")
+@@ -72 +99,0 @@
+-    runtime: AssistantRuntimeResult
+--- a/src/projects/domain.py
++++ b/src/projects/domain.py
+@@ -19 +19,4 @@
+-from projects.assistant_result import AssistantResult
++from projects.assistant_result import (
++    AssistantNotePublicationReference,
++    AssistantResult,
++)
+@@ -118,0 +122,5 @@
++    assistant_result_operation_id: str | None = None
++    assistant_note_reference: AssistantNotePublicationReference | None = None
++    assistant_note_reference_history: list[
++        AssistantNotePublicationReference
++    ] = Field(default_factory=list, max_length=100)
+--- a/src/projects/note_references.py
++++ b/src/projects/note_references.py
+@@ -43 +43,2 @@
+-        if self.id != str(uuid5(NAMESPACE_URL, note.url)):
++        identity = (note.url, note.revision, note.content_hash)
++        if self.id != str(uuid5(NAMESPACE_URL, "\x1f".join(identity))):
+@@ -70,14 +71,23 @@
+-    if not isinstance(result, dict):
+-        return references
+-    try:
+-        note = AssistantNoteResult.model_validate(result.get("note"))
+-        projected = _AssistantNoteReferenceView(
+-            id=str(uuid5(NAMESPACE_URL, note.url)), **note.model_dump()
+-        ).model_dump()
+-    except ValidationError:
+-        # Invalid stored metadata must not create a clickable external target.
+-        return references
+-    # result_url repeats this same scoped resource; project it only once.
+-    # Legacy manual references have no workspace identity, so a matching page
+-    # alone cannot establish equivalence or replace their revision metadata.
+-    references.append(projected)
++    publication = item.data.get("assistant_note_reference")
++    history = item.data.get("assistant_note_reference_history", [])
++    scoped = (
++        *(entry.get("note") for entry in history if isinstance(entry, dict)),
++        result.get("note") if isinstance(result, dict) else None,
++        publication.get("note") if isinstance(publication, dict) else None,
++    )
++    seen: set[tuple[str, str, str]] = set()
++    for raw in scoped:
++        if raw is None:
++            continue
++        try:
++            note = AssistantNoteResult.model_validate(raw)
++            identity = (note.url, note.revision, note.content_hash)
++            projected = _AssistantNoteReferenceView(
++                id=str(uuid5(NAMESPACE_URL, "\x1f".join(identity))),
++                **note.model_dump(),
++            ).model_dump()
++        except ValidationError:
++            continue
++        if identity not in seen:
++            references.append(projected)
++            seen.add(identity)

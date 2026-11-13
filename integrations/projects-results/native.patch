@@ -1,0 +1,201 @@
+--- a/src/projects/assistant_integration.py
++++ b/src/projects/assistant_integration.py
+@@ -27,4 +27 @@
+-from projects.assistant_result import (
+-    AssistantNoteResult,
+-    AssistantRuntimeResult,
+-)
++from projects.assistant_result import AssistantNoteResult, AssistantResult
+@@ -304 +301 @@
+-class AttachResult(OperationInput):
++class AttachResult(OperationInput, AssistantResult):
+@@ -305,0 +303,6 @@
++    state: Literal["in_review", "done"] = "in_review"
++
++
++class LinkNoteReference(OperationInput):
++    expected_revision: int = Field(ge=1)
++    publication_operation_id: str
+@@ -307,2 +310,5 @@
+-    runtime: AssistantRuntimeResult
+-    state: Literal["in_review", "done"] = "in_review"
++
++    @field_validator("publication_operation_id")
++    @classmethod
++    def valid_publication(cls, value: str) -> str:
++        return canonical_uuid(value)
+@@ -342,0 +349 @@
++        "note_reference": "results:attach",
+@@ -348,0 +356 @@
++        "note_reference": "task.update",
+@@ -423,0 +432,2 @@
++        "resultsBeforeNote": True,
++        "resultNoteReferences": True,
+@@ -580,0 +591,2 @@
++    if payload.note is None and payload.state != "in_review":
++        raise Problem(422, "An Assistant result requires separate review")
+@@ -582 +594 @@
+-        "note": payload.note.model_dump(),
++        "note": payload.note.model_dump() if payload.note else None,
+@@ -585 +597,4 @@
+-    data["result_url"] = payload.note.url
++    data["assistant_result_operation_id"] = payload.operation_id
++    data["result_url"] = (
++        payload.note.url if payload.note else payload.runtime.url
++    )
+@@ -601,0 +617,63 @@
++@router.post("/tasks/{task_id}/results/{result_id}/note-reference")
++def link_note_reference(
++    request: Request,
++    task_id: str,
++    result_id: str,
++    payload: LinkNoteReference,
++    principal: PrincipalDep,
++    db: DB,
++) -> dict:
++    authorize(db, principal, "results:attach", write=True)
++    allowed_task(db, principal, task_id)
++    digest = operation_hash(
++        "note_reference", f"{task_id}/{result_id}", payload
++    )
++    replay = existing(db, principal, payload.operation_id, digest)
++    if replay is not None:
++        return replay
++    original = existing(db, principal, result_id)
++    if (
++        original is None
++        or original["request_path"] != f"{PREFIX}/tasks/{task_id}/results"
++    ):
++        raise Problem(409, "Original task result unavailable")
++    task = allowed_task(db, principal, task_id, "task.update", lock=True)
++    data = copy.deepcopy(task.data)
++    expected = original["task"]["data"]
++    if (
++        data.get("assistant_result_operation_id") != result_id
++        or data.get("assistant_result") != expected["assistant_result"]
++        or data.get("result_url") != expected["result_url"]
++        or expected["assistant_result"]["note"] is not None
++    ):
++        raise Problem(
++            409, "Current result differs from the original operation"
++        )
++    previous = data.get("assistant_note_reference")
++    if previous and previous["result_operation_id"] == result_id:
++        raise Problem(409, "Note reference already recorded for this result")
++    if previous:
++        history = data.get("assistant_note_reference_history", [])
++        if len(history) >= 100:
++            raise Problem(409, "Preserve the existing Note reference history")
++        data["assistant_note_reference_history"] = [*history, previous]
++    data["assistant_note_reference"] = {
++        "result_operation_id": result_id,
++        "publication_operation_id": payload.publication_operation_id,
++        "note": payload.note.model_dump(),
++    }
++    revise_item(
++        db,
++        task,
++        payload.expected_revision,
++        task.title,
++        task.body,
++        data,
++        status=task.status,
++        actor_id=principal.accountId,
++    )
++    return record(
++        request, db, principal, payload, digest, "note_reference", task
++    )
++
++
+--- a/src/projects/assistant_result.py
++++ b/src/projects/assistant_result.py
+@@ -5,0 +6 @@
++from uuid import UUID
+@@ -70,0 +72,27 @@
++    note: AssistantNoteResult | None = None
++    runtime: AssistantRuntimeResult
++
++    @model_validator(mode="after")
++    def require_result_link(self) -> "AssistantResult":
++        if self.note is not None:
++            return self
++        runtime = self.runtime
++        prefix = "https://assistant.pydemia.ai/#workbench/projects/"
++        if runtime.service != "assistant" or not runtime.url:
++            raise ValueError("Expected an Assistant execution link")
++        instruction, _, execution = runtime.url.removeprefix(prefix).partition(
++            "/executions/"
++        )
++        if (
++            runtime.url != f"{prefix}{instruction}/executions/{execution}"
++            or execution != runtime.run_id
++            or str(UUID(instruction)) != instruction
++            or str(UUID(execution)) != execution
++        ):
++            raise ValueError("Expected the canonical Assistant execution link")
++        return self
++
++
++class AssistantNotePublicationReference(StrictReferenceData):
++    result_operation_id: str = Field(pattern=r"^[a-f0-9-]{36}$")
++    publication_operation_id: str = Field(pattern=r"^[a-f0-9-]{36}$")
+@@ -72 +99,0 @@
+-    runtime: AssistantRuntimeResult
+--- a/src/projects/domain.py
++++ b/src/projects/domain.py
+@@ -19 +19,4 @@
+-from projects.assistant_result import AssistantResult
++from projects.assistant_result import (
++    AssistantNotePublicationReference,
++    AssistantResult,
++)
+@@ -118,0 +122,5 @@
++    assistant_result_operation_id: str | None = None
++    assistant_note_reference: AssistantNotePublicationReference | None = None
++    assistant_note_reference_history: list[
++        AssistantNotePublicationReference
++    ] = Field(default_factory=list, max_length=100)
+--- a/src/projects/note_references.py
++++ b/src/projects/note_references.py
+@@ -43 +43,2 @@
+-        if self.id != str(uuid5(NAMESPACE_URL, note.url)):
++        identity = (note.url, note.revision, note.content_hash)
++        if self.id != str(uuid5(NAMESPACE_URL, "\x1f".join(identity))):
+@@ -70,14 +71,23 @@
+-    if not isinstance(result, dict):
+-        return references
+-    try:
+-        note = AssistantNoteResult.model_validate(result.get("note"))
+-        projected = _AssistantNoteReferenceView(
+-            id=str(uuid5(NAMESPACE_URL, note.url)), **note.model_dump()
+-        ).model_dump()
+-    except ValidationError:
+-        # Invalid stored metadata must not create a clickable external target.
+-        return references
+-    # result_url repeats this same scoped resource; project it only once.
+-    # Legacy manual references have no workspace identity, so a matching page
+-    # alone cannot establish equivalence or replace their revision metadata.
+-    references.append(projected)
++    publication = item.data.get("assistant_note_reference")
++    history = item.data.get("assistant_note_reference_history", [])
++    scoped = (
++        *(entry.get("note") for entry in history if isinstance(entry, dict)),
++        result.get("note") if isinstance(result, dict) else None,
++        publication.get("note") if isinstance(publication, dict) else None,
++    )
++    seen: set[tuple[str, str, str]] = set()
++    for raw in scoped:
++        if raw is None:
++            continue
++        try:
++            note = AssistantNoteResult.model_validate(raw)
++            identity = (note.url, note.revision, note.content_hash)
++            projected = _AssistantNoteReferenceView(
++                id=str(uuid5(NAMESPACE_URL, "\x1f".join(identity))),
++                **note.model_dump(),
++            ).model_dump()
++        except ValidationError:
++            continue
++        if identity not in seen:
++            references.append(projected)
++            seen.add(identity)

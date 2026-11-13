@@ -8,6 +8,17 @@ AT-18 보류 판정을 정정했으며 전체 업무는 미검증이다. 현재 
 임계 경로다. 원본 웹 인증 이동·문맥 요약 GUI, 그룹 운영 GUI, 다중 장치 대시보드
 검사는 각각의 요구로 추적한다.
 
+현재 실행 연동의 첫 의존성은 Projects 원본의 계약 전환이다. signed GET200이나
+기존 쓰기 capability만으로 새 실행을 시작하지 않는다. 현재 두 확장 기능은
+미지원이며 별도 구현/회귀 수정과 후보·metadata 호환 복귀 이미지를 준비했다.
+패키지는 [Projects 결과 연결](../integrations/projects-results/README.md),
+실행 증거는 [검사 기록](projects-results-verification.json)을 따른다.
+다음은 현재 인증 override를 포함한 resolved 설정·최신 backup/restore·원본
+진행 업무/이미지 guard → 두 이미지의 실제 앱/DB 준비 → 한 서비스만 전환과
+서명 원본 검증 → 기존 QA 업무의 WorkCoordinator 실행이다. 후보의 모듈 import를
+전체 앱 준비나 운영 반영으로 세지 않는다. 새로운 Task JSON이 저장된 뒤에는
+구 binary로 단순 복귀하지 않고 metadata 호환 복귀본을 사용한다.
+
 ## 시점별 개발 기록
 
 아래 수치와 보류 사유는 당시 기록이다. 최신 판정은 위 기준표가 우선한다.
