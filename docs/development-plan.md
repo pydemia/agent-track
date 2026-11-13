@@ -55,8 +55,12 @@ Native Codex 실행기는 이미 `thread/resume` 후 새 `turn/start`를 수행�
 독립 리뷰의 개인/배포 권한 분기 오류 재현·수정 후 일반 HTTP6개 통과를 확인했다.
 Track 서버용 계약·일반 owner transport도 추가했다. 두 suite의 중복 사례는 합산하지
 않는다. [구현 단계와 남은 범위](native-run-commands.md)를 따른다. 운영 명령은 여전히
-cancel-only이며, Assistant owner의 새 attempt/ref·Track 제어/복구와 실제 제공자 검증은
-**미완료**다. AT-09를 기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
+cancel-only다. 후속 Assistant e9c6f7c에 owner intent·이전 시도 history·새 correlation/ref·
+native 명령 한 번 접수와 같은 ID 복구를 구현했고, 관련241개와 실제 PostgreSQL/
+Assistant schema·signer·gateway 연동3개를 통과했다. 원본의 후속 paired 검사 source는
+2c113bb다. 운영 반영, Track 과거 시도의 보호 reader·제어 broker/UI·Flow와 실제 제공자
+검증은 **미완료**다. [단계별 근거](assistant-run-command-verification.json)를 따른다.
+AT-09를 기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
 검토하며, 실패 전에 이미 발생했을 수 있는 외부 효과를 rollback됐다고 표시하지 않는다.
 
 ## 이전 시점의 기록

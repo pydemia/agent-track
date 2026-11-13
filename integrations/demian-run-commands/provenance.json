@@ -1,10 +1,12 @@
 {
-  "version": 1,
+  "version": 2,
   "repository": "https://github.com/pydemia/demian",
   "baseline": "9f45e6c69a1fc8d48cc75f7ece82ffa0e61b1197",
-  "target": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b",
-  "targetTree": "afcdb1f88830e611d6a77e4b03ee2db0be3200a0",
-  "patchSha256": "b09f7e3b7bb34f9a6ddcf25671b21fe5b21ab65b165a7666465e62d315585dea",
+  "target": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+  "implementationCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b",
+  "targetTree": "65a4cd6e831fe1dff034b35a3c8a55ae5d148979",
+  "patchSha256": "318daddbd8db1cc143418bcb77da772ab9327d77c929c71dc3b0ea59e3423849",
   "includesMigration": "027_run_commands.sql",
+  "temporaryIndexReproducesTargetTree": true,
   "operatingDeploymentChanged": false
 }

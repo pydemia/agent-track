@@ -1,7 +1,8 @@
 # Native 실행 명령의 구현 단계
 
 원본 Demian의 `d3ffeb9d5207a65bd0498a576410c3d1596acc9b`에 명시적 명령 접수와
-복구를 추가했다. 현재 단계는 **소스 구현·격리 검증**이다. 운영 DB migration이나
+복구를 추가했다. 후속2c113bb에는 실제 Assistant gateway와의 PostgreSQL 검사를
+추가했다. 현재 단계는 **소스 구현·격리 검증**이다. 운영 DB migration이나
 Native/Assistant/Track 교체는 수행하지 않았다.
 
 | 명령 | 원본 상태 | 업무 입력·root | 후속 관계 |
@@ -32,6 +33,7 @@ Track에는 서버용 strict contract와 일반 owner용 transport를 추가했�
 receipt만 받는다. durable409 거절과 `not_found`를 구분하고 응답 유실 시 자동
 재접수하지 않는다. 이 메서드는 아직 사용자 제어 route나 버튼에 연결하지 않았다.
 권한 stamp는 브라우저 receipt로 내보낼 데이터가 아니다.
+기한의 offset 표현은 원본 명령의 canonical UTC 문자열로 정규화한다.
 
 공개 signed transport gate의 소스 allowlist에도 이 세 경로를 추가했다. 기존 bearer와
 서명 요구, 정확한 method/path·본문 바이트·header 격리·기한은 유지한다. 잘못된
@@ -51,9 +53,33 @@ worker 사례72개가 통과하고, 선택 Assistant 환경2개는 건너뛰었�
 일치함을 확인했다. 기존 evidence 후보는9f45e6c 기준이므로 새 명령 코드가 포함된
 후보라고 표시하지 않는다.
 
-AT-09의 남은 범위는 Assistant WorkCoordinator가 실패 역할의 새 attempt와
-후속 Run reference를 소유하는 제어 경로, Track의 현재 권한·capability 연결,
+Assistant e9c6f7c에는 WorkCoordinator의 owner 명령 경로와 새 attempt/ref를
+추가했다. 기존 요청·ref·결과·역할 snapshot은 history에 보존하고, 현재 요청의
+correlation만 새 command UUID로 바꾼다. 과거 문맥은 read-only이며 현재 시도만
+dispatch를 허용한다. Projects·Note·역할·instruction과 await 후 owner session을
+다시 확인하고, 역할의 새 ref는 native successor 명령에 연결한다.
+
+| 표시 | 실제 의미 |
+| --- | --- |
+| Assistant intentState=saved | 소유자 coordinator가 후속 시도를 준비·기록 |
+| Native receipt accepted | 원본이 새 Run을 접수 |
+| Run succeeded | 실행 성공 관측; 업무 수용·발행은 별도 |
+
+관련241개 검사와 실제 PostgreSQL/Assistant schema·signer·gateway 연동3개가
+모두 통과했다. 접수 후 응답 유실과 gateway 재생성에서도 POST1번·후속 Run1개를
+같은 command ID 조회로 복구했고 predecessor Run/local journal은 불변이었다.
+실제 모델과 운영 DB를 사용한 검사는 아니다. [같은 source의 근거](assistant-run-command-verification.json)를 따른다.
+
+재개 후 재취소가 과거 취소 operation에 막히는 문제와 Projects await 중 동일 요청이
+거짓 revision 충돌이 되는 문제도 회귀 검사로 닫았다. source 변경은 commit·push했으나
+운영에는 아직 반영하지 않았다. Persona e9c6f7c의 PR CI43511231649와 push
+CI43511220100은 네 job 모두 step 시작 전에 실패했다. GitHub annotation은 계정
+결제 실패 또는 spending limit 증가 필요를 명시한다. 코드 검사 실패로 단정하거나
+재실행·결제 설정 변경을 하지 않았다. 로컬 성공으로 CI를 대체하지 않는다.
+
+AT-09의 남은 범위는 Track의 과거 시도까지 포함한 보호 reader projection,
+현재 권한·capability와 제어 broker/UI 연결,
 receipt 재시작 복구·Flow 이동·사용자 화면과 실제 제공자 실행이다. native Run만
-생성하고 coordinator가 과거 Run을 계속 읽게 해서는 안 된다. 명령 접수, 실행
+생성하는 방식의 구현을 수용 완료로 세지 않는다. 명령 접수, 실행
 성공, Projects 업무 수용은 별도 상태다. 전체 수용률은15/21·71.4%(상위 동일
 가중치·부분0)이며 개발 작업량 비율은 아니다. 전체 ETA는 산정 불가·신뢰도 낮음이다.

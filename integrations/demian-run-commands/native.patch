@@ -816,7 +816,7 @@ index 09e06c5a29065ce3ec5074eef0c6b52482c712d4..dbe5ad8cde333b25fcbfb4f1cf04ee1e
    assert.throws(operation, error => {
      assert.ok(error instanceof WorkRuntimePackageError)
 diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/test/work-runtime-server.integration.test.ts
-index 23bb459dfa0e96d6c6900b475fcfa9929c886c59..9863e29edd4358a54591c484fd8ce12d7a863fc5 100644
+index 23bb459dfa0e96d6c6900b475fcfa9929c886c59..2a2d4871d8f6670d4ff2ee4960d718a9f86a8da4 100644
 --- a/apps/api/test/work-runtime-server.integration.test.ts
 +++ b/apps/api/test/work-runtime-server.integration.test.ts
 @@ -6,7 +6,7 @@ import { join } from "node:path"
@@ -896,7 +896,73 @@ index 23bb459dfa0e96d6c6900b475fcfa9929c886c59..9863e29edd4358a54591c484fd8ce12d
  test("signed metadata projects real PostgreSQL rows with exact int64 pages and portable redaction", { skip: !databaseUrl }, async () => {
    const s = await setup()
    try {
-@@ -950,10 +997,18 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
+@@ -873,6 +920,65 @@ test("actual frozen Assistant signer and gateway pair with the real PostgreSQL A
+   } finally { await gateway?.close(); journal.close(); await s.close() }
+ })
+ 
++test("actual Assistant successor gateway recovers a lost command ACK against PostgreSQL without resending", { skip: !databaseUrl || !assistantRoot }, async () => {
++  const s=await setup(),journal=new DatabaseSync(":memory:")
++  let gateway:{close():Promise<void>}|undefined
++  try {
++    await s.worker()
++    const module=await import(pathToFileURL(join(assistantRoot!,"apps/server/src/workbench/demian-runtime-gateway.ts")).href)
++    const configModule=await import(pathToFileURL(join(assistantRoot!,"apps/server/src/workbench/demian-runtime-config.ts")).href)
++    const host=configModule.loadDemianRuntimeOptions({PERSONA_DEMIAN_RUNTIME_CONFIG_FILE:join(assistantRoot!,"synthetic-command-host.json"),
++      PERSONA_DEMIAN_RUNTIME_SIGNING_KEY_TEST:signingKey.toString("base64url"),PERSONA_DEMIAN_RUNTIME_BEARER_TEST:apiToken},
++      {readMetadata:()=>({version:1,selectedOwnerIds:[s.context.ownerId],entries:[{membershipId:s.context.roleContext.membership.id,
++        binding:s.binding,keyId:"synthetic-key",signingKeyEnv:"PERSONA_DEMIAN_RUNTIME_SIGNING_KEY_TEST",serviceBearerEnv:"PERSONA_DEMIAN_RUNTIME_BEARER_TEST"}]})})
++    const calls:string[]=[];let lost=false
++    const options={...host,db:journal,catalog:{resolve:()=>({body:skillBody})},authorizeContext:()=>true,authorizeContextAsync:async()=>true,
++      fetch:async(target:string|URL|Request,init?:RequestInit)=>{
++        const url=new URL(String(target));assert.equal(url.origin,origin);assert.equal(init?.redirect,"error");assert.equal(init?.credentials,"omit")
++        calls.push(`${init?.method} ${url.pathname}`)
++        const response=await s.app.inject({method:init?.method as "GET"|"POST",url:url.pathname+url.search,
++          headers:Object.fromEntries(new Headers(init?.headers).entries()),...(init?.body===undefined?{}:{payload:String(init.body)})})
++        noSecrets(response)
++        if(init?.method==="POST"&&url.pathname.endsWith("/commands")&&!lost){
++          assert.equal(response.statusCode,202,response.body);lost=true;throw new Error("controlled command response loss")
++        }
++        return new Response(response.body,{status:response.statusCode,headers:response.headers as Record<string,string>})
++      }}
++    const instance=new module.DemianWorkRuntimeGateway(options);gateway=instance
++    const input={ownerId:s.context.ownerId,runtimeActorId:s.context.runtimeActorId,correlationId:s.context.correlationId,
++      title:"Actual paired successor",text:"Produce the bounded answer.",roleContext:s.context.roleContext,
++      skillRefs:s.context.roleContext.membership.skills,model:"requested-model",effort:null,outputMode:"answer"}
++    const predecessor=instance.start(input);await instance.flush(input.ownerId,predecessor)
++    const sourceId=instance.get(input.ownerId,predecessor).external.runId
++    await s.db.query("UPDATE runs SET status='running',attempts=1,worker_id=$2,lease_expires_at=clock_timestamp()+interval '30 seconds' WHERE id=$1",[sourceId,s.workerId])
++    await s.db.query("INSERT INTO workspace_leases(workspace_id,run_id,worker_id,expires_at) VALUES($1,$2,$3,clock_timestamp()+interval '30 seconds')",[s.workspaceId,sourceId,s.workerId])
++    assert.equal(await finishWorkerRunWithError(s.db,{runId:sourceId,workerId:s.workerId,expectedAttempt:1,status:"failed",error:{code:"synthetic_failure"},partialEffects:"unknown"}),true)
++    await instance.flush(input.ownerId,predecessor)
++    assert.equal(instance.get(input.ownerId,predecessor).state,"failed")
++    const original=JSON.stringify((await s.db.query("SELECT * FROM runs WHERE id=$1",[sourceId])).rows)
++    const originalJournal=journal.prepare("SELECT * FROM work_demian_runtime_links WHERE task_id=?").get(predecessor.taskId)
++    const commandId=randomUUID(),plan=await instance.prepareSuccessor(input.ownerId,predecessor,{kind:"retry",commandId,expiresAt:new Date(Date.now()+90_000).toISOString()})
++    const next=instance.startSuccessor({...input,correlationId:commandId},plan);assert.notEqual(next.taskId,predecessor.taskId)
++    await instance.flush(input.ownerId,next);assert.equal(lost,true)
++    assert.equal((await s.db.query("SELECT count(*)::int AS n FROM run_commands")).rows[0].n,1)
++    await instance.close()
++    const restarted=new module.DemianWorkRuntimeGateway(options);gateway=restarted
++    for(let step=0;step<3;step++)await restarted.flush(input.ownerId,next)
++    const recovered=restarted.get(input.ownerId,next);assert.equal(recovered.state,"queued",JSON.stringify(recovered))
++    assert.ok(recovered.external.runId);assert.notEqual(recovered.external.runId,sourceId)
++    assert.equal(calls.filter(value=>value.startsWith("POST ")&&value.endsWith("/commands")).length,1)
++    assert.equal(calls.filter(value=>value===`POST ${s.runPath}`).length,1)
++    assert.ok(calls.includes(`GET /api/v1/sessions/${s.sessionId}/commands/${commandId}`))
++    assert.deepEqual(await s.counts(),{runs:2,receipts:2,reservations:0})
++    const relation=(await s.db.query("SELECT data FROM run_events WHERE run_id=$1 AND type='run.command.created'",[recovered.external.runId])).rows
++    assert.equal(relation.length,1);assert.equal(relation[0].data.source_run_id,sourceId);assert.equal(relation[0].data.relationship,"retry_of")
++    assert.equal(JSON.stringify((await s.db.query("SELECT * FROM runs WHERE id=$1",[sourceId])).rows),original)
++    assert.deepEqual(journal.prepare("SELECT * FROM work_demian_runtime_links WHERE task_id=?").get(predecessor.taskId),originalJournal)
++    await completeWithJournal(s,recovered.external.runId);await restarted.flush(input.ownerId,next)
++    assert.equal(restarted.get(input.ownerId,next).state,"completed")
++  } finally {await gateway?.close();journal.close();await s.close()}
++})
++
+ test("signed run reads scoped reported usage and persisted timing without summing replay or scopes", { skip: !databaseUrl }, async () => {
+   const s = await setup()
+   try {
+@@ -950,10 +1056,18 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
      const bad = s.body().replace(serviceId, randomUUID())
      assert.equal((await s.app.inject(s.signed("POST", s.runPath, bad))).statusCode, 403)
      assert.equal((await s.counts()).runs, 0)
@@ -919,7 +985,7 @@ index 23bb459dfa0e96d6c6900b475fcfa9929c886c59..9863e29edd4358a54591c484fd8ce12d
        assert.equal((await s!.db.query("SELECT 1 FROM deployment_run_authorities WHERE run_id=$1", [id])).rowCount, 1)
        await assert.rejects(s!.db.query("UPDATE runs SET status='leasing',worker_id=$2 WHERE id=$1", [id, workerId]))
        const receipt = await getWorkRuntimeRunReceipt(s!.db, { organizationId, runId: id })
-@@ -1011,11 +1066,24 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
+@@ -1011,11 +1125,24 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
          assert.equal(historical.json().output_text, "Controlled prepared result")
          await s!.db.query("UPDATE worker_runtime_capabilities SET features=features || jsonb_build_object('delegated_prepared_role_metadata_v1',true) WHERE worker_id=$1", [workerId])
        }

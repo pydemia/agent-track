@@ -1,8 +1,8 @@
 {
   "version": 1,
   "stage": "source-only",
-  "nativeCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b",
-  "nativePatchSha256": "b09f7e3b7bb34f9a6ddcf25671b21fe5b21ab65b165a7666465e62d315585dea",
+  "nativeCommit": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+  "nativePatchSha256": "318daddbd8db1cc143418bcb77da772ab9327d77c929c71dc3b0ea59e3423849",
   "qas": [
     {
       "suite": "run-commands-qa-v3-20261114",
@@ -50,7 +50,8 @@
           "committedSha256": "a7e5bd2591847ed825d656cc81d007e983076040b30e4050ef3de04395ef76cb"
         }
       },
-      "scope": "DB concurrency/recovery, ordinary HTTP, signed HTTP/parser, controlled prepared worker"
+      "scope": "DB concurrency/recovery, ordinary HTTP, signed HTTP/parser, controlled prepared worker",
+      "sourceCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b"
     },
     {
       "suite": "run-commands-deployment-fixed-20261114",
@@ -106,7 +107,8 @@
           "committedSha256": "a7e5bd2591847ed825d656cc81d007e983076040b30e4050ef3de04395ef76cb"
         }
       },
-      "scope": "All ordinary command HTTP cases, including deployment/personal authority separation"
+      "scope": "All ordinary command HTTP cases, including deployment/personal authority separation",
+      "sourceCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b"
     }
   ],
   "typecheck": {
@@ -121,8 +123,8 @@
   "limitations": [
     "No production migration or rollout",
     "No actual provider/model invocation",
-    "Two optional frozen Assistant tests skipped: TEST_ASSISTANT_GATEWAY_ROOT absent",
-    "Assistant owner attempt/ref integration and Track control/recovery UI remain incomplete"
+    "Initial two optional Assistant cases were skipped; followup real-source paired suite ran all three cases without skip",
+    "Assistant owner intent/attempt/ref is implemented in source e9c6f7c; Track historical-attempt reader, control broker/UI and operating acceptance remain incomplete"
   ],
   "fullGoalAcceptance": {
     "completed": 15,
@@ -160,6 +162,15 @@
       "typecheck": "passed",
       "operatingDeploymentChanged": false,
       "skipped": 0
+    },
+    "canonicalDeadline": {
+      "skipped": 0,
+      "format": "UTC ISO timestamp",
+      "focusedPassed": 4,
+      "failed": 0,
+      "typecheck": "passed"
     }
-  }
+  },
+  "nativeImplementationCommit": "d3ffeb9d5207a65bd0498a576410c3d1596acc9b",
+  "followupPairedVerification": "assistant-run-command-verification.json"
 }

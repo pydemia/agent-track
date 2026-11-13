@@ -62,6 +62,8 @@ test("command replies reject wrong identities, kind, deadline, outcome and priva
 });
 
 test("command contract closes unsupported states and continuation input rules before any dispatch", async () => {
+  const offset = new Date(Date.parse(expires) + 9 * 60 * 60 * 1000).toISOString().replace("Z", "+09:00");
+  assert.equal(nativeCommandWriteSchema.parse({ command: { ...command, expiresAt: offset } }).command.expiresAt, expires);
   assert.equal(nativeCommandWriteSchema.safeParse({ command, input: [{ type: "input_text", text: "changed retry" }] }).success, false);
   assert.equal(nativeCommandWriteSchema.safeParse({ command: { ...command, kind: "continue" } }).success, false);
   assert.equal(nativeCommandWriteSchema.safeParse({ command: { ...command, kind: "continue" }, input: [{ type: "input_text", text: "next task" }] }).success, true);

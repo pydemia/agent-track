@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "commits": {
+    "persona": "e9c6f7ce92d25ee0d9319ff34c575e2c5e20b25c",
+    "native": "2c113bb34fe120345d9e617524c8d41df2bbd4c6"
+  },
+  "files": {
+    "persona": {
+      "apps/server/src/workbench/runtime-types.ts": {
+        "qaRawSha256": "dcb595d9bea508eb657f9d9e1c7fba691cd56b7768ed6d86d7d1b091f7db435b",
+        "committedSha256": "dcb595d9bea508eb657f9d9e1c7fba691cd56b7768ed6d86d7d1b091f7db435b"
+      },
+      "apps/server/src/workbench/executions.ts": {
+        "qaRawSha256": "26197a8461810a60437e7e493f042d725b6a5970d08ab17b0ff6a5a6dfbe056b",
+        "committedSha256": "26197a8461810a60437e7e493f042d725b6a5970d08ab17b0ff6a5a6dfbe056b"
+      },
+      "apps/server/src/workbench/execution-routes.ts": {
+        "qaRawSha256": "2603da2057e3274f116e6a62b20e43cee24dab1ac9a8eb5818ff7a791850ffb8",
+        "committedSha256": "2603da2057e3274f116e6a62b20e43cee24dab1ac9a8eb5818ff7a791850ffb8"
+      },
+      "apps/server/src/workbench/demian-runtime-gateway.ts": {
+        "qaRawSha256": "c3c7989b78270983ce4336ba727231d824eab4673ce83059d7cc723298377520",
+        "committedSha256": "c3c7989b78270983ce4336ba727231d824eab4673ce83059d7cc723298377520"
+      },
+      "tests/workbench/executions.test.ts": {
+        "qaRawSha256": "8fd8caa52185db498b701187dcc83643894b03504449db7ff19d09fddc1ef75b",
+        "committedSha256": "8fd8caa52185db498b701187dcc83643894b03504449db7ff19d09fddc1ef75b"
+      },
+      "tests/workbench/demian-runtime-gateway.test.ts": {
+        "qaRawSha256": "021a1ccc6abd1badb06a409867674127fceee08bf613e7d62c8c48259752d28b",
+        "committedSha256": "021a1ccc6abd1badb06a409867674127fceee08bf613e7d62c8c48259752d28b"
+      }
+    },
+    "native": {
+      "apps/api/test/run-commands.integration.test.ts": {
+        "qaRawSha256": "e06f0b503bfc4e7cf1075475d0e135f4dab692d70a7b8468982cb82c07752f35",
+        "committedSha256": "e06f0b503bfc4e7cf1075475d0e135f4dab692d70a7b8468982cb82c07752f35"
+      },
+      "apps/api/src/work-runtime-package.ts": {
+        "qaRawSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d",
+        "committedSha256": "567da94b2fa40a0594b593627e79bc9b0543b3021693d30813a99dad7544802d"
+      },
+      "apps/api/src/work-runtime-server.ts": {
+        "qaRawSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4",
+        "committedSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4"
+      },
+      "apps/api/src/run-commands.ts": {
+        "qaRawSha256": "a2968cf5d2e4a63f84b32503912a4d905fd5a083f4a4d97369d5ec60941cb413",
+        "committedSha256": "a2968cf5d2e4a63f84b32503912a4d905fd5a083f4a4d97369d5ec60941cb413"
+      },
+      "apps/api/src/run-command-successor.ts": {
+        "qaRawSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d",
+        "committedSha256": "ce1da7d4f923b10d17325a8bad67c1ddf5b7b1575713301dcfa767ebbb32e62d"
+      },
+      "packages/db/src/run-commands.ts": {
+        "qaRawSha256": "931d4aca879639809df6b287a4fa80f292866f1b1e990cdb66470d8584fb4e03",
+        "committedSha256": "7f2d4a1a3c7e086ec553a34f97f36e7880582e996b439f761233564e278a86e2"
+      },
+      "packages/db/src/work-runtime-runs.ts": {
+        "qaRawSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541",
+        "committedSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541"
+      },
+      "packages/db/migrations/027_run_commands.sql": {
+        "qaRawSha256": "9a3c95dfbba95772b346855de86c8a4ce6e85d1b3600349bfc568c075b35e3ec",
+        "committedSha256": "6e3b3bb82906e8cd66f602917c7591c3ac6491b998dc3fedc7ab72e5b1a37897"
+      },
+      "packages/db/test/run-commands.integration.test.ts": {
+        "qaRawSha256": "523d044190cc3be1d40eff476d96eddfc85299d45fcff13ef1308524bb75cae5",
+        "committedSha256": "22239e4e2b2a5090d39275ba1929c040548a2777766f03ed75c48c1aa3574441"
+      },
+      "apps/api/test/work-runtime-package.test.ts": {
+        "qaRawSha256": "aa98f5e0db8869b78f89f111b433199adde5697bf73e8dde8b34af40b1b93ee1",
+        "committedSha256": "29070c8f264d95a09f03ed04443e448ee3c30a972a2e214a0d0956fe4c2eeb10"
+      },
+      "apps/api/test/work-runtime-server.integration.test.ts": {
+        "qaRawSha256": "058b3be24a20d606477f6654d2562921ade01d94f5d9063b1f9b23e7186c0cc8",
+        "committedSha256": "e6a2fd7d212a37a3dcc5a8357acd83f78fc8493c9936dcc055fbeb2f5645a30a"
+      }
+    }
+  },
+  "localRegression": {
+    "passed": 241,
+    "failed": 0,
+    "skipped": 0,
+    "sourceAliases": true,
+    "buildOutputsRebuilt": false,
+    "scope": [
+      "executions",
+      "Demian runtime gateway",
+      "Demian runtime config",
+      "Demian runtime auth",
+      "Tasks runtime gateway"
+    ]
+  },
+  "pairedQa": {
+    "engine": "PostgreSQL 17.11",
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "actualAssistantSchemaSignerGateway": true,
+    "sourceHashesStableDuringQa": true,
+    "commitBeforeResponseLoss": true,
+    "restartAndSameCommandLookup": true,
+    "commandPosts": 1,
+    "successorRuns": 1,
+    "predecessorRunAndLocalJournalUnchanged": true,
+    "productionDatabaseUsed": false,
+    "actualModelInvoked": false,
+    "ownedContainerCleanupConfirmed": true
+  },
+  "typecheck": "passed",
+  "format": "passed",
+  "review": {
+    "independent": true,
+    "findings": [
+      {
+        "issue": "Saved cancellation suppressed a later cancel after resume",
+        "status": "fixed",
+        "regressionPassed": true,
+        "executedBeforeFix": false
+      },
+      {
+        "issue": "Identical requests parked in Projects returned a false revision conflict",
+        "status": "fixed",
+        "regressionPassed": true,
+        "executedBeforeFix": true
+      }
+    ],
+    "additionalRegression": "Projects withdrawal after preparation and before dispatch/read; owner session confirmation after awaited preparation"
+  },
+  "previousTrackCi": {
+    "runId": 43506947505,
+    "sourceCommit": "4233d3b531c9748907f69adbdc18aaed19cd3b82",
+    "windows": "success",
+    "ubuntu": "success",
+    "allJobStepsObserved": true
+  },
+  "limitations": [
+    "No operating rollout or production migration",
+    "No actual provider/model retry",
+    "Track historical-attempt reader projection and control broker/UI remain incomplete",
+    "Current-PC authenticated GUI still awaits existing user login handoff",
+    "Persona CI must be observed separately; prior source failed before steps due account billing/limit annotation"
+  ],
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null,
+    "eta": null,
+    "confidence": "low"
+  },
+  "nativePatchSha256": "318daddbd8db1cc143418bcb77da772ab9327d77c929c71dc3b0ea59e3423849",
+  "personaCi": {
+    "stepsPerJob": 0,
+    "annotationCheck": 132181713685,
+    "sourceCommit": "e9c6f7ce92d25ee0d9319ff34c575e2c5e20b25c",
+    "conclusion": "failure-before-any-step",
+    "jobs": 4,
+    "billingChanged": false,
+    "annotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased.",
+    "pullRequestRun": 43511231649,
+    "pushRun": 43511220100,
+    "rerunRequested": false,
+    "status": "completed"
+  }
+}

@@ -12,7 +12,7 @@ export const nativeCommandDescriptorSchema = z.object({
   version: z.literal(1), commandId: relationUuidSchema, sourceRunId: relationUuidSchema,
   kind: nativeCommandKindSchema, expectedSessionHead: digest,
   expectedSourceStatus: nativeCommandTerminalSchema, expectedAuthoritySha256: digest,
-  expiresAt: timestampSchema,
+  expiresAt: timestampSchema.transform(value => new Date(value).toISOString()),
 }).strict();
 export type NativeCommandDescriptor = z.infer<typeof nativeCommandDescriptorSchema>;
 export const nativeCommandWriteSchema = z.object({
