@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { coworkPlanSchema } from "./cowork.ts";
+import type { NativeCommandLink } from "./native-command-observation.ts";
 
 export const idSchema = z.string().min(1).max(512).regex(/^[^\u0000-\u001f\u007f]+$/);
 export const sequenceSchema = z.string().regex(/^(0|[1-9][0-9]{0,18})$/)
@@ -155,6 +156,8 @@ export interface ProjectTaskMetadata {
 }
 export interface ProjectTaskPage { tasks: ProjectTaskMetadata[]; total: number; nextCursor: string | null; snapshot: string }
 export interface RunView extends RunObservation {
+  /** Derived from an accepted owner journal receipt and current source/Run grants. */
+  nativeCommandLink?: NativeCommandLink;
   key: string;
   cursor: string;
   highWater: string;

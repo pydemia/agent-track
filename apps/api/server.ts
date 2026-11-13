@@ -6,6 +6,7 @@ import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
 import { SuccessorCommands } from "../../packages/commands/run-successors.ts";
 import { RunSuccessors } from "./run-successors.ts";
+import { projectSuccessorSnapshot } from "./run-successor-observation.ts";
 import { artifactEvidence } from "./evidence.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { RunBindings } from "./bindings.ts";
@@ -65,7 +66,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   if (!Number.isSafeInteger(flowViewRequestTimeoutMs) || flowViewRequestTimeoutMs < 1 || flowViewRequestTimeoutMs > 10_000) throw new Error("Invalid saved-view request deadline");
   const root = resolve(webRoot);
   const taskAssignments = new TaskAssignments(store, config, sources);
-  const snapshot = (user: string) => taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user)));
+  const snapshot = (user: string) => projectSuccessorSnapshot(taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user))), config(), successors);
   const commands = new CommandService(store);
   const successors = new SuccessorCommands(store);
   const runSuccessors = new RunSuccessors(store, config, sources, snapshot);

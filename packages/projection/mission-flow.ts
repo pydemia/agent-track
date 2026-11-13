@@ -4,6 +4,8 @@ import { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
 import { withCoworkFlow } from "./cowork-flow.ts";
 import { assistantRunAttemptSchema } from "../contracts/index.ts";
 import { withAssistantAttempts } from "./assistant-attempt-flow.ts";
+import { nativeCommandPairs, withNativeCommandFlow } from "./native-command-flow.ts";
+import { nativeCommandLinkSchema, type NativeCommandObservation } from "../contracts/native-command-observation.ts";
 export { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
 
 export interface MissionNode {
@@ -19,6 +21,7 @@ export interface MissionNode {
   assistantExecutionRef?: { sourceId: string; executionId: string };
   assistantAttemptRef?: AssistantRunAttempt;
   assistantAttemptScope?: { projectSourceId: string; projectId: string; taskId: string; workspaceId: string | null };
+  nativeCommandRef?: NativeCommandObservation;
   callId?: string;
   invocationId?: string;
   coworkRef?: { groupId: string; memberId?: string };
@@ -43,8 +46,10 @@ export interface MissionFlow { nodes: MissionNode[]; edges: MissionEdge[]; hidde
 
 const attemptObservationStamp = (run: RunView): string => {
   const parsed = assistantRunAttemptSchema.safeParse(run.assistantAttempt), binding = run.binding;
+  const command = nativeCommandLinkSchema.safeParse(run.nativeCommandLink);
   return JSON.stringify([run.key, run.sourceId, run.runId, run.sessionId, run.workspaceId, run.status, run.sourceState, run.stale,
     parsed.success ? parsed.data : run.assistantAttempt ?? null,
+    command.success ? command.data : run.nativeCommandLink ?? null,
     binding ? [binding.sourceId, binding.runId, binding.projectSourceId, binding.projectId, binding.taskId] : null]);
 };
 
@@ -145,10 +150,18 @@ export function missionFlow(
     for (const run of matches) addEdge(run.sourceId, taskNode, actualRunNode(run), "task-binding", "같은 작업", `${run.binding?.taskTitle || binding.taskTitle || binding.taskId} · ${run.binding?.provenance ?? "연결 기록"}`);
   }
   const eligibleKeys = new Set(eligibleRuns.map((run) => run.key));
+  const attemptInputs = runs.some(run => attemptObservationStamp(run) === attemptObservationStamp(selected)) ? runs : [selected, ...runs];
+  const commandPairs = mode === "mission" ? nativeCommandPairs(attemptInputs) : [];
   // Follow explicit Run endpoints across sessions, including children whose Task
   // binding is absent. A reference does not assign that child to the parent's Task.
   for (let changed = true; changed;) {
     changed = false;
+    for (const pair of commandPairs) {
+      if (!eligibleKeys.has(pair.from.key) && !eligibleKeys.has(pair.to.key)) continue;
+      for (const run of [pair.from, pair.to]) if (!eligibleKeys.has(run.key)) {
+        eligibleKeys.add(run.key); eligibleRuns.push(run); changed = true;
+      }
+    }
     for (const relation of relations) {
       if (!eligibleKeys.has(relation.runKey)) continue;
       const owner = runByKey.get(relation.runKey); if (!owner) continue;
@@ -320,8 +333,7 @@ export function missionFlow(
     }
   }
 
-  const attemptInputs = runs.some(run => attemptObservationStamp(run) === attemptObservationStamp(selected)) ? runs : [selected, ...runs];
-  const cowork = withAssistantAttempts(withCoworkFlow({ nodes: [...nodes.values()], edges: [...edges.values()], eventCount, hiddenNodes: 0, incomplete }, eligibleRuns, events), attemptInputs);
+  const cowork = withNativeCommandFlow(withAssistantAttempts(withCoworkFlow({ nodes: [...nodes.values()], edges: [...edges.values()], eventCount, hiddenNodes: 0, incomplete }, eligibleRuns, events), attemptInputs), attemptInputs);
   nodes.clear(); for (const node of cowork.nodes) nodes.set(node.key, node);
   edges.clear(); for (const edge of cowork.edges) edges.set(edge.key, edge);
   incomplete = cowork.incomplete;

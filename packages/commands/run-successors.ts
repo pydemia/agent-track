@@ -14,6 +14,7 @@ const targetSchema = z.object({ runKey: idSchema, sourceId: idSchema, runId: z.u
   binding: bindingSchema.nullable() }).strict();
 const preparedSchema = z.object({ target: targetSchema, scopeIdentity: z.string().min(1), native: nativeCommandWriteSchema }).strict();
 export type PreparedSuccessor = z.infer<typeof preparedSchema>;
+export interface AcceptedCommandObservation { sourceId: string; sourceIdentity: string; receipt: NativeCommandReceipt }
 export interface SuccessorPorts {
   prepare(input: SuccessorReviewInput): Promise<PreparedSuccessor>;
   authorize(prepared: PreparedSuccessor | null, writing: boolean): Promise<void>;
@@ -187,6 +188,22 @@ export class SuccessorCommands {
     }))];
   }
 
+  /** Metadata projection only; the caller must intersect current source and Run grants. */
+  acceptedObservations(actor: string): { observations: AcceptedCommandObservation[]; incomplete: boolean } {
+    this.actor(actor);
+    const rows = this.store.db.prepare("SELECT * FROM successor_intents WHERE actor=? AND state='accepted' AND observed=1 ORDER BY created_at DESC,rowid DESC LIMIT 1001")
+      .all(actor) as unknown as Row[];
+    const observations: AcceptedCommandObservation[] = []; let incomplete = rows.length > 1000;
+    for (const row of rows.slice(0, 1000)) {
+      try {
+        const prepared = this.prepared(row), receipt = this.checkedReceipt(row, prepared, JSON.parse(row.receipt_json!));
+        if (receipt.outcome !== "accepted") throw new Error("Nonaccepted observation");
+        observations.push({ sourceId: prepared.target.sourceId, sourceIdentity: prepared.target.sourceIdentity, receipt });
+      } catch { incomplete = true; }
+    }
+    return { observations, incomplete };
+  }
+
   private actor(actor: string): void { if (typeof actor !== "string" || !actor.trim()) throw fail(400, "invalid_actor"); }
   private find(actor: string, id: string): Row | undefined {
     return this.store.db.prepare("SELECT * FROM successor_intents WHERE actor=? AND id=?").get(actor, id) as Row | undefined;
@@ -234,10 +251,14 @@ export class SuccessorCommands {
     }
     return this.require(row.actor, row.id);
   }
-  private record(row: Row, p: PreparedSuccessor, raw: unknown, ports: SuccessorPorts): void {
+  private checkedReceipt(row: Row, p: PreparedSuccessor, raw: unknown): NativeCommandReceipt {
     const receipt = nativeCommandReceiptSchema.parse(raw);
     if (receipt.command_id !== row.id || receipt.session_id !== p.target.sessionId || receipt.source_run_id !== p.target.runId ||
         receipt.kind !== p.native.command.kind || Date.parse(receipt.expires_at) !== Date.parse(p.native.command.expiresAt)) throw fail(502, "invalid_native_receipt");
+    return receipt;
+  }
+  private record(row: Row, p: PreparedSuccessor, raw: unknown, ports: SuccessorPorts): void {
+    const receipt = this.checkedReceipt(row, p, raw);
     this.store.db.prepare(`UPDATE successor_intents SET state=?,detail=?,receipt_json=?,input_json=NULL,updated_at=?
       WHERE actor=? AND id=? AND state IN ('dispatching','unknown')`)
       .run(receipt.outcome, receipt.outcome === "accepted" ? "observation_pending" : "native_rejected",
@@ -248,7 +269,7 @@ export class SuccessorCommands {
     const prepared = this.prepared(row);
     await this.auth(ports, prepared, false);
     let observed = false;
-    try { observed = await ports.observeAccepted(structuredClone(prepared), nativeCommandReceiptSchema.parse(JSON.parse(row.receipt_json!))); }
+    try { observed = await ports.observeAccepted(structuredClone(prepared), this.checkedReceipt(row, prepared, JSON.parse(row.receipt_json!))); }
     catch { /* Acceptance is durable even when materialization is temporarily unavailable. */ }
     await this.auth(ports, prepared, false);
     if (observed) this.store.db.prepare("UPDATE successor_intents SET observed=1,detail='accepted',updated_at=? WHERE actor=? AND id=? AND state='accepted'")
@@ -256,7 +277,7 @@ export class SuccessorCommands {
   }
   private dto(row: Row): SuccessorReceipt {
     const p = this.prepared(row);
-    const receipt = row.receipt_json ? nativeCommandReceiptSchema.parse(JSON.parse(row.receipt_json)) : null;
+    const receipt = row.receipt_json ? this.checkedReceipt(row, p, JSON.parse(row.receipt_json)) : null;
     return successorReceiptSchema.parse({ id: row.id, runKey: row.run_key, sourceId: p.target.sourceId,
       runId: p.target.runId, sessionId: p.target.sessionId, kind: p.native.command.kind,
       sourceStatus: p.target.sourceStatus, expectedCursor: p.target.expectedCursor, state: row.state, detail: row.detail,

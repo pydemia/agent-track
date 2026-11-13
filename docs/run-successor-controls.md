@@ -84,7 +84,8 @@ Native upstream 데이터는 합성값이며 실제 모델·운영 DB를 사용�
 보호된 Assistant 실행의 owner 제어 API를 Track에 연결하는 계약·별도 권한은
 아직 구현하지 않았다. 단순히 같은 Entra 이메일이거나 reader token이 있다는 이유로
 owner를 대행하지 않는다. 일반 Native의 receipt 관계를 Flow의 전후 Run edge로
-표현하는 연결도 후속 작업이며, 기존 Assistant의 coordinator-intent 관계와 구분한다.
+표현하는 [후속 source](native-command-flow.md)는 현재 권한을 대조하는 snapshot metadata와
+별도 실선 edge로 연결했다. 기존 Assistant의 coordinator-intent 관계와 구분한다.
 
 운영 반영에는 새 Track private table·입력 보존/삭제와 복구 상태의 release/rollback
 검증이 필요하다. 기존17e5ff0/9f45e6c/f9f78ac 후보를 이번 source로 간주하지 않는다.

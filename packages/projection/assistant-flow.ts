@@ -5,6 +5,7 @@ import { flowGroupKey, type FlowGroupDefinition } from "./flow-groups.ts";
 import { dependencyEntityKey } from "./project-dependencies-flow.ts";
 import { assistantRunAttemptSchema } from "../contracts/index.ts";
 import { withAssistantAttempts } from "./assistant-attempt-flow.ts";
+import { withNativeCommandFlow } from "./native-command-flow.ts";
 
 export const assistantEntityKey = (sourceId: string, kind: string, id: string): string =>
   JSON.stringify([sourceId, kind, id]);
@@ -281,7 +282,7 @@ export function withAssistantExecutions<T extends { nodes: MissionNode[]; edges:
   }
   const selected = [...nodes.values()].slice(0, 240), keys = new Set(selected.map(node => node.key));
   const edges = new Map([...base.edges, ...extra.edges].filter(edge => keys.has(edge.from) && keys.has(edge.to)).map(edge => [edge.key, edge]));
-  return withAssistantAttempts({ ...base, nodes: selected, edges: [...edges.values()], hiddenNodes: base.hiddenNodes + extra.hiddenNodes + nodes.size - selected.length,
+  return withNativeCommandFlow(withAssistantAttempts({ ...base, nodes: selected, edges: [...edges.values()], hiddenNodes: base.hiddenNodes + extra.hiddenNodes + nodes.size - selected.length,
     focusPresent: base.focusPresent || selected.some(node => node.kind === "task" && node.id === scope.focusTaskId),
-    incomplete: base.incomplete || extra.nodes.length > 0 || nodes.size > 240 }, runs);
+    incomplete: base.incomplete || extra.nodes.length > 0 || nodes.size > 240 }, runs), runs);
 }

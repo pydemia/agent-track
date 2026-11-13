@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "mainBaseline": "8a9a8b1cb680413f4f5fd989fc54c3ad583a87fc",
+  "finalFileSha256": {
+    "apps/api/server.ts": "231f2e8d8fad77120071e98c50dd807cede484560fa6f48da037aad5ff172906",
+    "apps/api/run-successor-observation.ts": "836f5a0c18983b9fe3de4e655b31a020ec1d7b4e92e2139aaa4441da79c90dd8",
+    "packages/commands/run-successors.ts": "13ec4d6a1d5fee269bbc33ef14e91c56ed1264fcd7300441eaa8819c7d01a18c",
+    "packages/contracts/index.ts": "55babb653f68c35087dbb8a5f1d563531007de88c2c73fd551d3fc6833258432",
+    "packages/contracts/native-command-observation.ts": "c9b24eacc3e1e44a07e5179baa62dcf16dadff7a442e06715c14271601fe2d2e",
+    "packages/projection/native-command-flow.ts": "ea3a4198e79ba30d518731ac97ffc291313245f1f536b711c3aa5f63c487597f",
+    "packages/projection/mission-flow.ts": "3810629cbc18bf9d89b07b226dfab22e13a4290f398b143e623e87cc208071f6",
+    "packages/projection/assistant-flow.ts": "e8fc672d673bff33e5b962e1c0474847142e9a96b360114219d0b05c09fc4960",
+    "packages/projection/group-workspace-flow.ts": "1f0991abf37b54f223f4853e12330ee0de3c372e6d0cee77d53b71ca2be8d081",
+    "apps/web/src/FlowGrouping.tsx": "75ef3d1d6fc95600d666c6ee32aca5b9fbb459c8a94893b32e94c5af99fa9647",
+    "apps/web/src/mission-flow.css": "3b71c908ad24a1b3bf74480e75e6bd97d9d4a84a569fcc5705fe74cfef8e2ee8",
+    "tests/native-command-flow.test.ts": "90d3391eb1f48981d736edb044067210b6c6dfa566888acc9dcdb27d76febd44",
+    "tests/run-successor-observation.test.ts": "b87b5dec5e93e59aa1af08693b0435a2a9c0be6377d0fa1dfa44bcb539098968",
+    "tests/run-successor-api.test.ts": "04f1a498279079ee7fb34427a9ad74783c6811da3023be217867c8f54015739c",
+    "tests/binding-api.test.ts": "7af1c46bbcfba1661051e18b0f4de29d28b8753846c448d6e77f58e21e8e85ab"
+  },
+  "semantics": {
+    "provenance": "native-command-receipt",
+    "admissionIsExecutionSuccess": false,
+    "syntheticSourceEvents": 0,
+    "runSchemaAndStorageObservationChanged": false,
+    "metadataLocation": "Current authorized RunView only",
+    "source": "Same Track owner accepted+observed successor journal; current configured source identity and both Native/Projects Run grants",
+    "maxOwnerJournalWindow": 1000,
+    "partialNotice": true,
+    "writerGrantRequiredForOwnedHistoryRead": false,
+    "hiddenPredecessor": "Unavailable reason without identifiers",
+    "hiddenRoot": "Nullable root; retain an authorized direct edge",
+    "currentTaskRebinding": "Preserves actual admitted Run causality; never creates Task dependency/binding",
+    "flowModes": [
+      "Mission endpoints",
+      "Task Map",
+      "Group workspace",
+      "Selected Run Trace with outside-view notice"
+    ],
+    "existingTaskSessionRunGroupsPreserved": true,
+    "opaqueInputOrAuthorityPublished": false
+  },
+  "checks": {
+    "full": {
+      "tests": 1108,
+      "pass": 1098,
+      "fail": 0,
+      "skipped": 10
+    },
+    "focused": {
+      "tests": 93,
+      "pass": 93,
+      "fail": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "separateWebBuild": "passed",
+    "noCodeChangesAfterFinalFull": true,
+    "newCases": 15,
+    "httpBoundary": "Actual Track review/dispatch/snapshot + real SQLite and local HTTP; synthetic Native producer",
+    "independentReview": {
+      "worker": "Noether",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "freshContext": true,
+      "actualProviderExecutionObserved": false,
+      "findings": 0,
+      "focusedCasesAtReview": 12,
+      "workerClosed": true,
+      "finalLegacyFixAndCoverageCasesVerifiedByParent": true
+    },
+    "regressions": [
+      "Read grants/source remapping/actor separation",
+      "Hidden predecessor and root IDs withheld",
+      "Duplicate receipt/Run/command identity fails closed",
+      "Repeated projection and current withdrawal",
+      "Native admission distinct from intent and Run/Task success",
+      "Continuation does not inherit Task binding",
+      "93 relevant flow/command/group/saved-view/binding cases",
+      "Original event ledger unchanged",
+      "1000-row recent owner window"
+    ]
+  },
+  "initialFullFailure": {
+    "result": {
+      "tests": 1108,
+      "pass": 1096,
+      "fail": 2,
+      "skipped": 10
+    },
+    "retained": true,
+    "savedFlow": "Projects-only fixture reproduced 503 before no-receipt exact legacy snapshot fast path; passed after fix",
+    "bindingApi": "404/503 difference not reproduced in unchanged-code focused test; allocated port unrecorded, cause not established",
+    "bindingFixtureChange": "Adopt existing Fetch-compatible OS allocation helper before fixture publication",
+    "assertionsTimeoutsOrProductRequestsRelaxed": false
+  },
+  "priorBrokerCi": {
+    "sourceCommit": "8a9a8b1cb680413f4f5fd989fc54c3ad583a87fc",
+    "runId": 43524910177,
+    "conclusion": "success",
+    "coversThisFollowup": false
+  },
+  "operating": {
+    "changedByThisWork": false,
+    "credentialsOrScopesGranted": false,
+    "actualProviderOrProductionDatabaseUsed": false,
+    "currentPcAuthenticatedGuiVerified": false,
+    "originalAgentTrailChanged": false
+  },
+  "remaining": [
+    "Protected Assistant owner writer bridge integration",
+    "Private table release/rollback and source deployment gates",
+    "Operating rollout",
+    "Current-PC authenticated UI and actual provider retry/resume verification"
+  ],
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null,
+    "eta": null,
+    "confidence": "low"
+  }
+}

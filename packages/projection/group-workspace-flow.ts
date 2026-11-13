@@ -5,6 +5,7 @@ import type { GroupTaskRef } from "./group-workspace-scope.ts";
 import { assistantEntityKey, assistantFlow, assistantRoleKey } from "./assistant-flow.ts";
 import { missionEntityKey, missionFlow, type MissionNode, type MissionEdge } from "./mission-flow.ts";
 import { dependencyEntityKey, projectDependenciesFlow } from "./project-dependencies-flow.ts";
+import { withNativeCommandFlow } from "./native-command-flow.ts";
 
 export interface GroupTaskRecord { ref: GroupTaskRef; task: ProjectTaskMetadata }
 export const groupTaskKey = (ref: GroupTaskRef) => JSON.stringify([ref.sourceId, ref.projectId, ref.taskId]);
@@ -84,6 +85,6 @@ export function groupWorkspaceFlow(tasks: GroupTaskRecord[], runs: RunView[], re
     incomplete ||= page.hasMore || !page.supported;
   }
   const output = [...nodes.values()].slice(0, 2000), included = new Set(output.map(node => node.key));
-  return { nodes: output, edges: [...edges.values()].filter(edge => included.has(edge.from) && included.has(edge.to)),
-    incomplete, boundaryDependencies: boundary.size, boundaries: [...boundary.values()], hiddenNodes: nodes.size - output.length };
+  return withNativeCommandFlow({ nodes: output, edges: [...edges.values()].filter(edge => included.has(edge.from) && included.has(edge.to)),
+    incomplete, boundaryDependencies: boundary.size, boundaries: [...boundary.values()], hiddenNodes: nodes.size - output.length }, runs);
 }

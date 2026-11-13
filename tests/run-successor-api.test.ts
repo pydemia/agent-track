@@ -13,6 +13,7 @@ import { externalKey, type SourceView } from "../packages/contracts/index.ts";
 import { nativeCommandWriteSchema, type NativeCommandReceipt, type NativeCommandWrite } from "../packages/contracts/native-run-commands.ts";
 import { successorPanelSchema, successorReceiptSchema, type SuccessorReviewInput } from "../packages/contracts/run-successors.ts";
 import { Store } from "../packages/storage/store.ts";
+import { missionFlow } from "../packages/projection/mission-flow.ts";
 import { listenHttp } from "./helpers/http-listen.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -91,6 +92,7 @@ async function fixture(t: test.TestContext, bound = false) {
     store.close(); assert.equal(dirname(root), realpathSync(tmpdir())); rmSync(root, { recursive: true, force: true });
   });
   return { config, store, headers, request, review, receipts, payloads,
+    snapshot: async () => { const response = await fetch(origin + "/api/snapshot", { headers }); assert.equal(response.status, 200); return response.json() as Promise<import("../packages/contracts/index.ts").Snapshot>; },
     ports: () => new RunSuccessors(store, () => config, sources, user => store.snapshot(user, views())).ports(actor, runKey, () => true),
     useToken: () => { const tokenFile = join(root, "native-token"); writeFileSync(tokenFile, randomBytes(32).toString("base64url")); config.sources[0]!.tokenFile = tokenFile; },
     get nativePost() { return nativePost; }, get contextCalls() { return contextCalls; },
@@ -112,6 +114,11 @@ test("real HTTP review/dispatch binds one Native receipt and successor while pre
   const child = f.store.run(externalKey("native", successorId))!; assert.ok(child);
   assert.equal(JSON.parse(child.binding!).taskId, taskId); assert.equal(JSON.parse(child.binding!).taskRevision, "1");
   assert.equal(JSON.stringify(f.store.events(runKey)), before);
+  const snapshot = await f.snapshot(), observed = snapshot.runs.find(run => run.runId === successorId)!;
+  assert.equal(observed.nativeCommandLink?.state, "observed");
+  const flow = missionFlow(observed, snapshot.runs, snapshot.relations, []);
+  assert.equal(flow.edges.filter(edge => edge.kind === "native-command-retry").length, 1);
+  assert.equal(f.store.events(runKey).events.length, 1);
   assert.equal((await f.request(`/${input.id}/dispatch`, "POST", {})).status, 200); assert.equal(f.nativePost, 1);
 });
 

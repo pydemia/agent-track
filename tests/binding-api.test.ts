@@ -10,12 +10,11 @@ import { Sources } from "../apps/api/runner.ts";
 import type { Config } from "../apps/api/config.ts";
 import type { BindingRequest, SourceView } from "../packages/contracts/index.ts";
 import { Store } from "../packages/storage/store.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 async function listen(server: Server) {
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address(); assert.ok(address && typeof address !== "string");
-  return `http://127.0.0.1:${address.port}`;
+  return listenHttp(server);
 }
 async function close(server: Server) { server.closeAllConnections(); await new Promise<void>((resolve) => server.close(() => resolve())); }
 

@@ -56,6 +56,7 @@
 .mission-flow .mission-edge-record-order .react-flow__edge-path { stroke: #8f9fba; }
 .mission-flow .mission-edge-assistant-retry-intent .react-flow__edge-path, .mission-flow .mission-edge-assistant-resume-intent .react-flow__edge-path { stroke: var(--amber); stroke-dasharray: 7 4; }
 .mission-flow .mission-edge-assistant-attempt-membership .react-flow__edge-path { stroke-dasharray: 3 5; opacity: .65; }
+.mission-flow .mission-edge-native-command-retry .react-flow__edge-path, .mission-flow .mission-edge-native-command-resume .react-flow__edge-path, .mission-flow .mission-edge-native-command-continue .react-flow__edge-path { stroke: var(--amber); stroke-width: 2; }
 .mission-flow .mission-edge-dependency .react-flow__edge-path, .mission-flow .mission-edge-cowork-dependency .react-flow__edge-path { stroke: var(--amber); stroke-width: 2.5; }
 .mission-flow .mission-edge-managed-child .react-flow__edge-path, .mission-flow .mission-edge-invocation .react-flow__edge-path { stroke: var(--lime); }
 .mission-flow .mission-edge-peer .react-flow__edge-path { stroke: #a599d1; stroke-dasharray: 8 4; }
