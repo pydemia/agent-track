@@ -14,6 +14,8 @@ import { externalKey, type Snapshot, type EventView } from "../packages/contract
 import { Store } from "../packages/storage/store.ts";
 import { projectTrace } from "../packages/projection/trace.ts";
 import { sourceIdentity } from "../apps/api/source-identity.ts";
+import { nativeEvidenceFixture } from "./fixtures/native-run-evidence.ts";
+import { nativeRunEvidenceViewSchema } from "../packages/contracts/native-run-evidence.ts";
 
 const user = "owner@example.com", ownerId = "sso-sub:" + "a".repeat(64);
 const uuid = (value: number) => `00000000-0000-4000-8000-${String(value).padStart(12, "0")}`;
@@ -42,6 +44,7 @@ async function fixture(t: test.TestContext, count = 5) {
   const enable = (enabled: boolean) => writeFileSync(paths.producer!, JSON.stringify({ ...grant, enabled })); enable(true);
   let visible = true, projectAllowed = true, missingTask = false;
   let hook = async (_after: string, _limit: number) => {};
+  let evidenceHook = async (_after: string, _limit: number) => {};
   let responseHook = (value: unknown): unknown => value;
   const calls: string[] = [], methods: string[] = [];
   const native = { id: executionId, instructionId: executionId, instructionRevision: 1, revision: 1, state: "completed",
@@ -70,7 +73,17 @@ async function fixture(t: test.TestContext, count = 5) {
   const service = new AssistantReadService({ protocol: 2, configFile: paths.producer!, configuredOwner: () => ownerId,
     port: { scan: () => ({ rows: [{ id: executionId, ordinal: "1" }], through: "1", hasMore: false }),
       execution: () => visible ? native : null, events: () => ({ events: [], hasMore: false }),
-      nativeMetadata: async (_actor, _execution, _role, after, limit) => { await hook(after, limit); return metadata(after, limit); } } });
+      nativeMetadata: async (_actor, _execution, _role, after, limit) => { await hook(after, limit); return metadata(after, limit); },
+      nativeEvidence: async (_actor, _execution, _role, after, limit) => {
+        await evidenceHook(after, limit);
+        const value = nativeEvidenceFixture(after, limit);
+        value.run = { ...value.run, ...metadata("0", 1).run };
+        value.events.data = value.events.data.map(record => ({ ...record, runId }));
+        value.timings = [{ kind: "queue", source: "runs.created_at-to-started_at", startedAt: now, endedAt: now },
+          { kind: "wall", source: "runs.started_at-to-completed_at", startedAt: now, endedAt: now }];
+        value.artifacts = value.artifacts.map(artifact => ({ ...artifact, sourceRunId: runId }));
+        return value;
+      } } });
   const upstream = createServer(async (req, res) => {
     calls.push(req.url!); methods.push(req.method!);
     try {
@@ -113,6 +126,7 @@ async function fixture(t: test.TestContext, count = 5) {
   return { config, store, sources, origin, snapshot, calls, methods, enable, events,
     set visible(value: boolean) { visible = value; }, set projectAllowed(value: boolean) { projectAllowed = value; },
     set missingTask(value: boolean) { missingTask = value; }, set hook(value: typeof hook) { hook = value; },
+    set evidenceHook(value: typeof evidenceHook) { evidenceHook = value; },
     set responseHook(value: typeof responseHook) { responseHook = value; } };
 }
 
@@ -123,7 +137,7 @@ test("protected Assistant HTTP metadata reaches native Run journal, Project bind
   assert.equal(view.runs.length, 1, JSON.stringify({ sources: view.sources, calls: f.calls })); assert.equal(run.key, key); assert.equal(run.runId, runId);
   assert.equal(run.cursor, "5"); assert.equal(run.highWater, "5"); assert.equal(run.incomplete, false);
   assert.equal(run.binding?.taskRevision, "1"); assert.equal(run.binding?.taskId, taskId);
-  assert.deepEqual(run.capabilities, ["run.read", "events.read"]);
+  assert.deepEqual(run.capabilities, ["run.read", "events.read", "run.evidence"]);
   const response = await fetch(`${f.origin}/api/runs/${key}/events`); assert.equal(response.status, 200);
   const page = await response.json() as { events: EventView[] };
   const trace = projectTrace(run, page.events);
@@ -192,4 +206,59 @@ test("protected configuration forbids credentials, control grants, ambiguous map
   assert.notEqual(sourceIdentity(source), sourceIdentity({ ...source, assistantNativeSourceId: "different" }));
   await f.sources.refreshProjectGrants("other@example.com");
   assert.equal(f.store.snapshot("other@example.com", f.sources.views("other@example.com")).runs.length, 0);
+});
+
+test("separate evidence crosses real HTTP reader and current Project authority without writing the journal", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const before = JSON.stringify(f.store.events(key));
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=2`);
+  assert.equal(response.status, 200);
+  const body = await response.json(), value = nativeRunEvidenceViewSchema.parse(body);
+  assert.equal(value.state, "connected"); assert.equal(value.page!.events.data.length, 2);
+  assert.equal(value.page!.events.next_after, "2"); assert.equal(value.page!.events.has_more, true);
+  assert.equal(value.executionRef!.executionId, executionId);
+  assert.doesNotMatch(JSON.stringify(body), /binding_sha256|context_sha256|request_sha256|acting_user_id|service_principal_id|organization_id|PRIVATE_ERROR/);
+  assert.equal(JSON.stringify(f.store.events(key)), before);
+  assert.ok(f.calls.some(path => path.endsWith(`/native-evidence?after=2&limit=1`)));
+  assert.ok(f.calls.every(path => path.startsWith("/api/integrations/")));
+  assert.ok(f.methods.every(method => method === "GET"));
+});
+
+test("evidence late grant, role, source or Project withdrawal cannot expose a prior page", async t => {
+  for (const revoke of ["role", "grant", "project", "source"] as const) {
+    const f = await fixture(t); await f.snapshot();
+    const before = JSON.stringify(f.store.events(key));
+    f.evidenceHook = async () => {
+      if (revoke === "role") f.visible = false;
+      if (revoke === "grant") f.enable(false);
+      if (revoke === "project") f.projectAllowed = false;
+      if (revoke === "source") f.config.sources[2]!.label = "changed source identity";
+    };
+    const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`), body = await response.json();
+    assert.notEqual(body.state, "connected", revoke); assert.equal(body.page ?? null, null, revoke);
+    assert.equal(JSON.stringify(f.store.events(key)), before, revoke);
+  }
+});
+
+test("evidence rejects malformed pages, unsupported queries and writes instead of mutating the Run", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const before = JSON.stringify(f.store.events(key)), path = `${f.origin}/api/runs/${key}/evidence`;
+  const nativeCalls = () => f.calls.filter(url => url.includes("native-evidence")).length;
+  const count = nativeCalls();
+  for (const query of ["?after=01", "?after=9223372036854775808", "?after=0&after=1", "?limit=251", "?extra=1"])
+    assert.equal((await fetch(path + query)).status, 400, query);
+  assert.equal((await fetch(path, { method: "POST" })).status, 405); assert.equal(nativeCalls(), count);
+  f.responseHook = value => value && typeof value === "object" && "page" in value &&
+    (value.page as { object?: string })?.object === "demian.work_runtime.evidence_page" ? { ...value, private: "PRIVATE_OUTPUT" } : value;
+  const response = await fetch(path), body = await response.json();
+  assert.equal(response.status, 404); assert.equal(body.error, "run_not_found"); assert.equal(body.page ?? null, null);
+  assert.doesNotMatch(JSON.stringify(body), /PRIVATE_OUTPUT|binding_sha256/);
+  assert.equal(JSON.stringify(f.store.events(key)), before);
+});
+
+test("Project withdrawal during final signed evidence confirmation also hides the page", async t => {
+  const f = await fixture(t); await f.snapshot();
+  f.evidenceHook = async (_after, limit) => { if (limit === 1) f.projectAllowed = false; };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`), body = await response.json();
+  assert.notEqual(body.state, "connected"); assert.equal(body.page ?? null, null);
 });

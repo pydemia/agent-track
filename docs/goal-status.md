@@ -15,6 +15,15 @@ owner/QA 범위의 누적 증거다. 이번 점검은 모든 완료 기능을 �
 Trace 누락이 남아 전체 업무를 완료로 세지 않는다. 집계가 거친 문제와 실제 통합 미충족을
 구분한다. [현재 실제 업무 근거](workflow-observation-2026-11-14.json)를 따른다.
 
+후속에서는 [별도 native 상세 조회](native-run-evidence.md)를 구현했다. 기존 원장을
+변경하지 않고 모델·범위별 usage·Run 시간·산출물 메타데이터·turn/item 참조를 표시한다.
+Track 로컬 1,022개 통과/9개 POSIX skip, Persona 관련208개 통과, 임시 PostgreSQL의
+Native57개 통과/별도 Assistant 환경1개 skip과 타입·별도 build를 확인했다. source는
+Native9f45e6c/Personaf9f78ac에 고정했으나 세 서비스의 새 evidence 운영 경로와 실제 화면은
+아직 미검증이다. 구현·검사 결과를 AT-12/14의 사용자 수용 완료로 계산하지 않는다.
+새 Persona PR CI43493618449는 네 job 모두 step 시작 전에 실패했다. GitHub annotation의
+사유는 계정 결제 실패 또는 spending limit이다. CI 성공을 주장하거나 반복 재실행하지 않는다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

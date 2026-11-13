@@ -18,10 +18,10 @@ export function withNativeLineage(base: MissionFlow, run: RunView, rows: NativeL
     if (!invocation) {
       if (model.nodes.length >= maxNodes) { omitted.add(row.invocationId); continue; }
       invocation = { key: missionEntityKey(run.sourceId, "invocation", row.invocationId, run.runId), kind: "invocation", id: row.invocationId, label: `Native 호출 ${row.invocationId}`,
-        status: "observed", description: "원본 native lineage에서 확인한 호출", sourceId: run.sourceId, runKey: run.key, details: [], sequences: [] };
+        status: "observed-reference", description: "원본 native lineage의 호출 참조 · 호출 생명주기 미관측", sourceId: run.sourceId, runKey: run.key, details: [], sequences: [] };
       model.nodes.push(invocation);
     }
-    if (["unobserved", "unknown", "observed-reference"].includes(invocation.status)) { invocation.status = "observed"; invocation.description = "원본 native lineage에서 확인한 호출"; }
+    if (["unobserved", "unknown", "observed-reference"].includes(invocation.status)) { invocation.status = "observed-reference"; invocation.description = "원본 native lineage의 호출 참조 · 호출 생명주기 미관측"; }
     invocations.set(row.invocationId, invocation);
     invocation.sequences = ordered([...invocation.sequences, row.sequence]);
     detail(invocation, "Invocation ID", row.invocationId); detail(invocation, "Native thread", row.nativeThreadId); detail(invocation, "Native turn", row.nativeTurnId);

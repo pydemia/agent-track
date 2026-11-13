@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "observedAt": "2026-11-13T19:38:21.000Z",
+  "scope": "Source implementation and isolated validation, not operating evidence acceptance",
+  "track": {
+    "baseCommit": "c0b81106ac753778a0dfbc6c9e95adaea2a7fb26",
+    "normalizedSourceSha256": {
+      "apps/api/assistant-authority.ts": "bf133d3f5296504194df1ad48131f1ed0ee5b851134da18b08eacd98a76f4fb4",
+      "apps/api/assistant-native-collector.ts": "97f08db6b4a768405b2afb0d69b141b32621311f7f06c8b3e1ec272825dcdd3d",
+      "apps/api/server.ts": "5a2414e8bbaf175f2f23ca774bbfe2551ddbf6daa240e7f623e8f82566b55084",
+      "apps/api/native-run-evidence.ts": "8c3483286710e574ff370e55c47b3ca6824363528829682a4ff6f2938b79ef3d",
+      "apps/web/src/MissionFlow.tsx": "f91c08d2ddd02773f1297136ae730c696178d83492290aeba70a131bf7f87089",
+      "apps/web/src/NativeRunEvidence.tsx": "530ab2ed3f1e5920db583a929f6c2050d174157a3e4cf86431df43d1db49a9d1",
+      "apps/web/src/useNativeRunEvidence.ts": "071f735fb8001d162c0597e5c3b0c52ab1c53d86529a621e31130ed88e8e4c77",
+      "deploy/demian/delegated-proxy.mjs": "5bee72a27245c8913caaf039c1ab26a3156fc4b91bd6d8241e09ff75597d0092",
+      "packages/adapters/assistant/index.ts": "63ac02246d23238e01a52a4adb233bd3ac48f14f02d8e63457a126b599008e3a",
+      "packages/assistant-read/service.ts": "a8c064dc4b0f1f8b6518e325a95b4f551f9ed2881c124d50a9344ca6f2d93e1c",
+      "packages/contracts/native-metadata.ts": "e257e0f1b88d8bd6f2d7c4f8a346cbfe9d543e2627304de453a4b79e92e05952",
+      "packages/contracts/native-run-evidence.ts": "45b8dd7f3b2d63a45d16ec3082984d3f66e10742acce45bde023ba5989d56c08",
+      "packages/projection/lineage-flow.ts": "cef6d860215de2ef4075c46b8afd71a8ab81b6f862e235307609abd88782832d",
+      "packages/projection/native-run-evidence.ts": "5dccc588db42376092d7f56ad914dc82d17f6516611e8f1d65cb8f7872be5d8f",
+      "tests/assistant-native-collector.test.ts": "9763f4b5a5067e38c4fcad10d0a9e8f475944b556e86a0906e89140b2ed73712",
+      "tests/demian-delegated-proxy.test.ts": "90cca8dbaffcaff0053fcbc45a0031954fecbb37d527d0a6143ab5b623a05e75",
+      "tests/lineage-flow.test.ts": "85490202a03b84cb83db1157bde6c8e770a4fcf3e7c81713983e13629a7a8d2e",
+      "tests/fixtures/native-run-evidence.ts": "66c4733506a020aba9fa6e661cdc096337157a7210909780fddec40e5c9ed843",
+      "tests/native-run-evidence-contract.test.ts": "9fc2a67f4e6b1f2e483b02271d9e75889f50f5ad86a1333378651e9da88ff289",
+      "tests/native-run-evidence-flow.test.ts": "25e78dfd820aaa62f815fb03307a315109a1391829b9dae0668c9b0caa03491e"
+    },
+    "typecheck": "passed",
+    "build": "passed",
+    "buildOutDir": ".runtime/build/web",
+    "operatingDistReplaced": false,
+    "tests": {
+      "total": 1031,
+      "passed": 1022,
+      "failed": 0,
+      "skipped": 9,
+      "skipReason": "POSIX UID/mode enforcement explicitly unsupported on Windows"
+    },
+    "regressions": [
+      "non-numeric int64 safeParse throws before fix; now validation failure",
+      "Project withdrawal during final signed confirmation exposed a page before fix; now hidden"
+    ],
+    "databaseBoundary": "Real HTTP + synthetic upstream, actual Track Sources and SQLite; evidence read preserves existing event journal"
+  },
+  "persona": {
+    "commit": "f9f78ac0bf242a6300511b686c4bc4c4083478be",
+    "relatedTests": {
+      "passed": 208,
+      "failed": 0,
+      "skipped": 0
+    },
+    "afterInputGuardTestUpdate": {
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    "focusedTypecheck": "passed",
+    "ci": {
+      "pullRequestRun": 43493618449,
+      "pushRun": 43493606606,
+      "status": "failure-before-any-step",
+      "appJob": 132120871187,
+      "annotation": "Recent account payments have failed or spending limit needs to be increased",
+      "rerunRequested": false
+    }
+  },
+  "native": {
+    "commit": "9f45e6c69a1fc8d48cc75f7ece82ffa0e61b1197",
+    "typecheck": "passed",
+    "patchProvenance": "integrations/demian-native-evidence/provenance.json",
+    "syntheticPostgreSQL": {
+      "version": "17.11",
+      "total": 58,
+      "passed": 57,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "TEST_ASSISTANT_GATEWAY_ROOT not provided",
+      "productionDatabaseUsed": false,
+      "containerAbsentAndEnvironmentRemoved": true
+    },
+    "firstCleanupObserver": "failure retained; independent finalization verified absence and environment removal"
+  },
+  "browser": {
+    "projectionAndStaticMarkup": "passed",
+    "renderingAndInteraction": "unverified"
+  },
+  "rollout": {
+    "native": false,
+    "persona": false,
+    "track": false,
+    "originalAgentTrailChanged": false,
+    "realWorkflowReexecuted": false
+  },
+  "overallAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "percentage": 71.4,
+    "weight": "equal top-level; partial zero",
+    "isDevelopmentCompletionPercentage": false,
+    "goalStatus": "active",
+    "eta": "not estimable; confidence low"
+  },
+  "remaining": [
+    "CI actual execution and required gates",
+    "Paired Native/Assistant/Track operating rollout and same real Run evidence readback",
+    "Current Windows authenticated browser group/node/edge interaction",
+    "Recent-50 execution lookup window and full-history navigation",
+    "Other existing partial AT-06/09/12/14/15/20 conditions remain in goal ledger"
+  ]
+}

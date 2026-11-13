@@ -1,0 +1,694 @@
+diff --git a/apps/api/src/work-runtime-evidence.ts b/apps/api/src/work-runtime-evidence.ts
+new file mode 100644
+index 0000000..2a0bbc2
+--- /dev/null
++++ b/apps/api/src/work-runtime-evidence.ts
+@@ -0,0 +1,280 @@
++import { createHash } from "node:crypto"
++import type { DatabaseClient, DelegatedWorkRuntimeActor, RunRow } from "@demian/db"
++import { isDeepStrictEqual } from "node:util"
++import { currentPreparedDeployment } from "../../../packages/db/src/work-runtime-runs.ts"
++import type { WorkRuntimeRunReceipt } from "../../../packages/db/src/work-runtime-runs.ts"
++import { readWorkRuntimeArtifacts } from "./work-runtime-artifacts.ts"
++import { MetadataQueryError, parseMetadataQuery } from "./work-runtime-metadata.ts"
++import { WorkRuntimeSignatureError } from "./work-runtime-delegation.ts"
++
++const MAX_BYTES = 786432
++const tokens = ["inputTokens", "outputTokens", "totalTokens", "cachedInputTokens", "reasoningOutputTokens"] as const
++const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object" && !Array.isArray(v)
++const identifier = (v: unknown): v is string => typeof v === "string" && /^[^\x00-\x1f\x7f-\x9f]{1,512}$/u.test(v)
++const model = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_.:/-]{1,200}$/.test(v)
++const snake = (key: string) => key.replace(/[A-Z]/g, value => `_${value.toLowerCase()}`)
++
++// Invalid presence survives projection as JSON null so aliases cannot hide it.
++function leaves(value: string, keys: readonly string[]) {
++  const fields = keys.map(key => {
++    const isToken = tokens.some(token => key === token || key === snake(token))
++    const isCost = key === "costUsd" || key === "cost_usd"
++    // Check exact PostgreSQL numerics before JSON.parse can round a fractional
++    // token count into a safe integer (or a negative tiny cost into -0).
++    const numeric = isToken || isCost ? `AND CASE WHEN jsonb_typeof(${value}->'${key}')='number' THEN
++      (${value}->>'${key}')::numeric>=0 ${isToken ? `AND (${value}->>'${key}')::numeric<=9007199254740991 AND trunc((${value}->>'${key}')::numeric)=(${value}->>'${key}')::numeric` : ""} ELSE false END` : ""
++    const peers = keys.filter(peer => peer !== key && snake(peer) === snake(key))
++    const consistent = peers.map(peer => `AND (NOT (${value} ? '${peer}') OR ${value}->'${key}'=${value}->'${peer}')`).join(" ")
++    return `'${key}', CASE WHEN jsonb_typeof(${value}->'${key}') IN ('string','number','boolean') AND octet_length((${value}->'${key}')::text)<=4096 ${numeric} ${consistent} THEN ${value}->'${key}' ELSE 'null'::jsonb END`
++  })
++  return `(SELECT COALESCE(jsonb_object_agg(key,value),'{}'::jsonb) FROM jsonb_each(jsonb_build_object(${fields.join(",")})) WHERE ${value} ? key)`
++}
++const observation = (value: string) => `${leaves(value, ["scope", "coverage", "source", "invocationId", "invocation_id", "costUsd", "cost_usd"])} || jsonb_build_object('usage',${leaves(`(${value}->'usage')`, tokens.flatMap(key => [key, snake(key)]))})`
++// Fixed index traversal, never jsonb_array_elements on an unbounded payload.
++const observations = (key: string) => `CASE WHEN data ? '${key}' THEN jsonb_build_object('${key}',
++  CASE WHEN jsonb_typeof(data->'${key}')='array' THEN
++    (SELECT COALESCE(jsonb_agg(CASE WHEN jsonb_typeof(data->'${key}'->i)='object' THEN ${observation(`(data->'${key}'->i)`)} ELSE 'null'::jsonb END ORDER BY i),'[]'::jsonb)
++     FROM generate_series(0,15) i WHERE i<jsonb_array_length(data->'${key}')) ELSE 'null'::jsonb END,
++  '${key}Overflow',CASE WHEN jsonb_typeof(data->'${key}')='array' THEN jsonb_array_length(data->'${key}')>16 ELSE false END) ELSE '{}'::jsonb END`
++
++export const EVIDENCE_EVENTS_SQL = `SELECT run_id,sequence::text AS sequence_text,
++  CASE WHEN octet_length(type)<=128 AND type ~ '^[A-Za-z0-9_.:-]+$' THEN type ELSE 'unknown' END AS type,created_at,
++  CASE WHEN type='run.prepared.selected' THEN ${leaves("data", ["model", "selectedModel", "selected_model"])}
++    WHEN type='response.usage' THEN ${leaves("data", ["invocationId", "invocation_id"])} || ${observations("usageObservations")} || ${observations("usage_observations")}
++      || jsonb_build_object('usageAliasConflict',data ? 'usageObservations' AND data ? 'usage_observations' AND data->'usageObservations' IS DISTINCT FROM data->'usage_observations')
++    ELSE '{}'::jsonb END AS evidence
++  FROM run_events WHERE run_id=$1 AND sequence>$2::bigint AND sequence<=$3::bigint ORDER BY sequence ASC LIMIT $4`
++
++function alias(value: Record<string, unknown>, keys: string[], valid: (v: unknown) => boolean) {
++  const present = keys.filter(key => Object.hasOwn(value, key))
++  if (!present.length) return { present: false, valid: true, value: undefined }
++  const first = value[present[0]]
++  return { present: true, valid: present.every(key => valid(value[key]) && JSON.stringify(value[key]) === JSON.stringify(first)), value: first }
++}
++interface UsageObservation {
++  scope: "invocation" | "latest-model-request" | "native-session" | "unknown"
++  coverage: "complete" | "partial" | "unknown"
++  source: string
++  usage: Partial<Record<typeof tokens[number], number>>
++  invocationId?: string
++  costUsd?: number
++}
++type Lineage = {
++  attempt: number; executor: "codex-app-server"; provider: string; phase: string
++  nativeThreadKey: string; nativeTurnKey: string; nativeItemKey: string | null; invocationId: string | null
++}
++interface EvidenceRecord {
++  runId: string; sequence: string; type: string; occurredAt: string
++  selectedModel: string | null; usageObservations: UsageObservation[]; lineage: Lineage | null
++  issues: ("model-unavailable" | "usage-unavailable" | "lineage-unavailable")[]
++}
++type EventRow = {run_id: string; sequence_text: string; type: string; created_at: Date; evidence: unknown}
++
++export function projectEvidence(row: EventRow): EvidenceRecord {
++  const out: EvidenceRecord = { runId: row.run_id, sequence: row.sequence_text,
++    type: /^[A-Za-z0-9_.:-]{1,128}$/.test(row.type) ? row.type : "unknown", occurredAt: row.created_at.toISOString(),
++    selectedModel: null, usageObservations: [], lineage: null, issues: [] }
++  const data = record(row.evidence) ? row.evidence : {}
++  if (row.type === "run.prepared.selected") {
++    const selected = alias(data, ["model", "selectedModel", "selected_model"], model)
++    if (selected.present && selected.valid) out.selectedModel = selected.value as string
++    else out.issues.push("model-unavailable")
++  }
++  if (row.type === "response.usage") {
++    const list = alias(data, ["usageObservations", "usage_observations"], Array.isArray)
++    const invocation = alias(data, ["invocationId", "invocation_id"], identifier)
++    let invalid = !list.present || !list.valid || !invocation.valid || data.usageAliasConflict === true || data.usageObservationsOverflow === true || data.usage_observationsOverflow === true
++    if (list.valid && invocation.valid && data.usageAliasConflict !== true && Array.isArray(list.value)) {
++      if (list.value.length > 16) invalid = true
++      for (const item of list.value.slice(0, 16)) {
++        if (!record(item) || !record(item.usage) ||
++            !["invocation", "latest-model-request", "native-session", "unknown"].includes(String(item.scope)) ||
++            !["complete", "partial", "unknown"].includes(String(item.coverage)) ||
++            (item.coverage === "complete" && item.scope !== "invocation") ||
++            typeof item.source !== "string" || !/^[A-Za-z0-9_-][A-Za-z0-9._-]{0,159}$/.test(item.source)) { invalid = true; continue }
++        const id = alias(item, ["invocationId", "invocation_id"], identifier)
++        const cost = alias(item, ["costUsd", "cost_usd"], v => typeof v === "number" && Number.isFinite(v) && v >= 0)
++        const usage: UsageObservation["usage"] = {}
++        let bad = !id.valid || !cost.valid
++        for (const key of tokens) {
++          const field = alias(item.usage, [key, snake(key)], v => typeof v === "number" && Number.isSafeInteger(v) && v >= 0)
++          if (!field.valid) bad = true
++          else if (field.present) usage[key] = field.value as number
++        }
++        if (bad || !Object.keys(usage).length) { invalid = true; continue }
++        out.usageObservations.push({ scope: item.scope as UsageObservation["scope"], coverage: item.coverage as UsageObservation["coverage"], source: item.source, usage,
++          ...(id.present ? { invocationId: id.value as string } : invocation.present ? { invocationId: invocation.value as string } : {}),
++          ...(cost.present ? { costUsd: cost.value as number } : {}) })
++      }
++    }
++    if (invalid || !out.usageObservations.length) out.issues.push("usage-unavailable")
++  }
++  return out
++}
++
++interface LineageSource {
++  attempt: number; executor: string; provider: string; phase: string
++  native_thread_id: string; native_turn_id: string; native_item_id: string | null; invocation_id: string | null
++}
++
++export function projectLineage(row: LineageSource, receipt: WorkRuntimeRunReceipt): Lineage | null {
++  if (!Number.isSafeInteger(row.attempt) || row.attempt < 1 || row.executor !== "codex-app-server" ||
++      !/^[A-Za-z0-9_.:-]{1,120}$/.test(row.provider) || !identifier(row.native_thread_id) || !identifier(row.native_turn_id) ||
++      !["turn_started", "message_completed", "tool_started", "tool_completed"].includes(row.phase) ||
++      (row.phase === "turn_started" ? row.native_item_id !== null : !identifier(row.native_item_id)) ||
++      !(row.invocation_id === null || identifier(row.invocation_id))) return null
++  const scope = ["demian.native-evidence.v1", receipt.organizationId, receipt.workspaceId, receipt.servicePrincipalId, row.provider, row.executor]
++  const hash = (kind: string, ids: unknown[]) => createHash("sha256").update(JSON.stringify([...scope, kind, ...ids])).digest("hex")
++  return { attempt: row.attempt, executor: row.executor, provider: row.provider, phase: row.phase,
++    nativeThreadKey: hash("thread", [row.native_thread_id]), nativeTurnKey: hash("turn", [row.native_thread_id, row.native_turn_id]),
++    nativeItemKey: row.native_item_id === null ? null : hash("item", [row.native_thread_id, row.native_turn_id, row.native_item_id]), invocationId: row.invocation_id }
++}
++
++// This is a dedicated delegated reader. It never calls the ordinary lineage
++// reader (which deliberately excludes work-runtime sessions).
++export const EVIDENCE_LINEAGE_AUTHORITY_SQL = `SELECT r.id AS run_id,r.organization_id,r.session_id,s.workspace_id,
++  r.requested_by_user_id AS acting_user_id,wb.service_principal_user_id AS service_principal_id,
++  wb.binding_id AS work_binding_id,wb.binding_sha256,m.deployment_membership_id AS membership_id,
++  s.provider,b.binding_id,p.settings_hash,
++  (SELECT n.authority_hash FROM native_lineage_observations n WHERE n.run_id=r.id ORDER BY n.sequence LIMIT 1) AS first_authority_hash
++  FROM runs r JOIN sessions s ON s.id=r.session_id AND s.organization_id=r.organization_id
++  JOIN workspaces w ON w.id=s.workspace_id AND w.organization_id=s.organization_id
++  JOIN organization_members m ON m.organization_id=r.organization_id AND m.user_id=r.requested_by_user_id
++  JOIN users u ON u.id=m.user_id
++  JOIN work_runtime_runs wr ON wr.run_id=r.id AND wr.organization_id=r.organization_id
++  JOIN work_runtime_bindings wb ON wb.organization_id=r.organization_id AND wb.session_id=s.id AND wb.workspace_id=s.workspace_id
++    AND wb.issuer='assistant' AND wb.binding_id=$7 AND wb.binding_sha256=$8
++    AND wb.service_principal_user_id=$6 AND wb.acting_user_id=$5 AND wb.revoked_at IS NULL
++  JOIN deployment_session_bindings b ON b.organization_id=r.organization_id AND b.session_id=s.id AND b.workspace_id=s.workspace_id
++  JOIN deployment_run_authorities p ON p.run_id=r.id AND p.binding_id=b.binding_id
++    AND p.actor_user_id=m.user_id AND p.membership_id=m.deployment_membership_id
++  WHERE r.id=$1 AND r.organization_id=$2 AND r.session_id=$3 AND s.workspace_id=$4
++    AND r.requested_by_user_id=$5 AND r.requested_actor_scope='user' AND r.provider_auth_id IS NULL
++    AND s.archived_at IS NULL AND w.status='ready' AND u.status='active' AND m.role IN ('owner','admin','member')
++    AND s.provider=$9 AND b.binding_id=$10 AND p.settings_hash=$11
++    AND wr.receipt->>'runId'=$1::text AND wr.receipt->>'organizationId'=$2::text
++    AND wr.receipt->>'sessionId'=$3::text AND wr.receipt->>'workspaceId'=$4::text
++    AND wr.receipt->>'actingUserId'=$5::text AND wr.receipt->>'servicePrincipalId'=$6::text
++    AND wr.receipt->'binding'->>'bindingId'=$7 AND wr.receipt->>'bindingSha256'=$8
++    AND wr.receipt->>'sessionProvider'=$9
++  FOR SHARE OF r,s,w,m,u,wr,wb,b,p`
++
++const lineageKeys = ["executor", "provider", "phase", "native_thread_id", "native_turn_id", "native_item_id", "invocation_id"]
++const lineageAuthority = "n.authority_hash=$3 AND n.child_auth_job_id IS NULL AND n.child_authority_id IS NULL AND n.child_provider IS NULL AND e.data->>'provider'=$4"
++// Even invalid indexed observations transfer no raw object, array or large ID.
++// Only the exact selected page sequences are eligible; no message query exists.
++export const EVIDENCE_LINEAGE_SQL = `SELECT e.run_id,e.sequence::text,n.attempt,n.authority_hash,n.semantic_hash,
++  (${lineageAuthority}) IS TRUE AS authorized,
++  (jsonb_typeof(e.data)='object' AND e.data ?& ARRAY[${lineageKeys.map(key => `'${key}'`).join(",")}]
++    AND e.data - ARRAY[${lineageKeys.map(key => `'${key}'`).join(",")}] = '{}'::jsonb) AS exact_source,
++  ${lineageKeys.map(key => `CASE WHEN (${lineageAuthority}) AND jsonb_typeof(e.data->'${key}')='string'
++    AND octet_length(e.data->>'${key}')<=2048 THEN e.data->>'${key}' ELSE NULL END AS ${key}`).join(",\n")},
++  (e.data->'native_item_id'='null'::jsonb) IS TRUE AS item_is_null,
++  (e.data->'invocation_id'='null'::jsonb) IS TRUE AS invocation_is_null
++  FROM run_events e JOIN native_lineage_observations n ON n.run_id=e.run_id AND n.sequence=e.sequence
++  WHERE e.run_id=$1 AND e.sequence=ANY($2::bigint[]) AND e.type='external.lineage.observed'
++    AND cardinality($2::bigint[]) BETWEEN 1 AND 250
++  ORDER BY e.sequence LIMIT 250 FOR SHARE OF e,n`
++
++async function readProtectedLineage(client: DatabaseClient, actor: DelegatedWorkRuntimeActor, receipt: WorkRuntimeRunReceipt, selected: EvidenceRecord[]) {
++  if (!actor.binding.execution) return
++  if (!isDeepStrictEqual(actor.binding, receipt.binding) || actor.bindingSha256 !== receipt.bindingSha256 ||
++      actor.authenticatedServicePrincipalId !== receipt.servicePrincipalId || actor.sessionProvider !== receipt.sessionProvider) throw new WorkRuntimeSignatureError()
++  // Reuses current prepared-service locks, generation/policy/settings validation.
++  // The outer protectedRunRead also holds these locks and checks the receipt.
++  const deployment = await currentPreparedDeployment(client, actor)
++  const args = [receipt.runId, receipt.organizationId, receipt.sessionId, receipt.workspaceId, receipt.actingUserId,
++    receipt.servicePrincipalId, receipt.binding.bindingId, receipt.bindingSha256, receipt.sessionProvider, deployment.bindingId, deployment.settingsHash]
++  const pins = (await client.query<{
++    run_id: string; organization_id: string; session_id: string; workspace_id: string; acting_user_id: string
++    service_principal_id: string; work_binding_id: string; binding_sha256: string; membership_id: string
++    provider: string; binding_id: string; settings_hash: string; first_authority_hash: string | null
++  }>(EVIDENCE_LINEAGE_AUTHORITY_SQL, args)).rows
++  const pin = pins[0]
++  if (pins.length !== 1 || !isDeepStrictEqual([pin.run_id, pin.organization_id, pin.session_id, pin.workspace_id, pin.acting_user_id,
++    pin.service_principal_id, pin.work_binding_id, pin.binding_sha256, pin.provider, pin.binding_id, pin.settings_hash], args)) throw new WorkRuntimeSignatureError()
++  // Exact native writer authority tuple: prepared execution has no personal
++  // provider_auth_id and therefore cannot carry a personal child generation.
++  const authorityHash = createHash("sha256").update(JSON.stringify([receipt.organizationId, receipt.workspaceId, receipt.sessionId,
++    "user", receipt.actingUserId, pin.membership_id, pin.provider, null, pin.binding_id, pin.settings_hash])).digest("hex")
++  if (pin.first_authority_hash !== null && pin.first_authority_hash !== authorityHash) throw new WorkRuntimeSignatureError()
++  const rows = (await client.query<LineageSource & {run_id: string; sequence: string; authority_hash: string; semantic_hash: string;
++    authorized: boolean; exact_source: boolean; item_is_null: boolean; invocation_is_null: boolean}>(
++    EVIDENCE_LINEAGE_SQL, [receipt.runId, selected.map(row => row.sequence), authorityHash, receipt.sessionProvider])).rows
++  const seen = new Set<string>()
++  for (const row of rows) {
++    const item = selected.find(item => item.sequence === row.sequence)
++    if (!item || row.run_id !== receipt.runId || seen.has(row.sequence) || row.authorized !== true ||
++        row.authority_hash !== authorityHash || row.provider !== receipt.sessionProvider || pin.first_authority_hash !== authorityHash) throw new WorkRuntimeSignatureError()
++    seen.add(row.sequence)
++    if (row.exact_source !== true || (row.native_item_id === null && !row.item_is_null) ||
++        (row.invocation_id === null && !row.invocation_is_null)) continue
++    const projected = projectLineage(row, receipt)
++    const semanticHash = createHash("sha256").update(JSON.stringify([row.executor, row.provider, row.native_thread_id,
++      row.native_turn_id, row.phase, row.native_item_id, row.invocation_id])).digest("hex")
++    if (projected && row.semantic_hash === semanticHash) item.lineage = projected
++  }
++}
++
++/** The caller holds run/actor locks and rechecks authority after serialization. */
++export async function readWorkRuntimeEvidence(client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: RunRow, receipt: WorkRuntimeRunReceipt, query: {after: string; limit: number}) {
++  if (run.id !== receipt.runId || run.organization_id !== receipt.organizationId || run.session_id !== receipt.sessionId ||
++      actor.actingUserId !== receipt.actingUserId || actor.binding.organizationId !== receipt.organizationId ||
++      actor.binding.workspaceId !== receipt.workspaceId || actor.binding.sessionId !== receipt.sessionId ||
++      actor.binding.servicePrincipalId !== receipt.servicePrincipalId) throw new Error("Evidence scope mismatch")
++  const {after, limit} = parseMetadataQuery(`?after=${query.after}&limit=${query.limit}`)
++  const through = (await client.query<{through: string}>("SELECT COALESCE(max(sequence),0)::text AS through FROM run_events WHERE run_id=$1", [run.id])).rows[0].through
++  parseMetadataQuery(`?after=${through}`)
++  if (BigInt(after) > BigInt(through)) throw new MetadataQueryError()
++  const rows = (await client.query<EventRow>(EVIDENCE_EVENTS_SQL, [run.id, after, through, limit + 1])).rows
++  let previous = BigInt(after)
++  for (const row of rows) {
++    parseMetadataQuery(`?after=${row.sequence_text}`)
++    const sequence = BigInt(row.sequence_text)
++    if (row.run_id !== run.id || sequence <= previous || sequence > BigInt(through)) throw new Error("Evidence event scope mismatch")
++    previous = sequence
++  }
++  const records = rows.slice(0, limit).map(projectEvidence)
++  const selected = records.filter(row => row.type === "external.lineage.observed")
++  if (selected.length) {
++    await readProtectedLineage(client, actor, receipt, selected)
++    for (const item of selected) if (!item.lineage) item.issues.push("lineage-unavailable")
++  }
++  const verified = run.status === "succeeded" ? await readWorkRuntimeArtifacts(client, actor, run.id) : []
++  const dates = verified.length ? (await client.query<{id: string; created_at: Date}>(
++    "SELECT id,created_at FROM artifacts WHERE id=ANY($1::uuid[]) AND run_id=$2 ORDER BY id FOR SHARE",
++    [verified.map(value => value.artifact.id), run.id])).rows : []
++  if (dates.length !== verified.length || new Set(dates.map(row => row.id)).size !== dates.length) throw new Error("Evidence artifact scope mismatch")
++  const artifacts = verified.map(({artifact}) => {
++    const date = dates.find(row => row.id === artifact.id)
++    if (!date) throw new Error("Evidence artifact clock missing")
++    return {id: artifact.id, sourceRunId: artifact.source_run_id, sha256: artifact.sha256, filename: artifact.filename,
++      mediaType: artifact.media_type, sizeBytes: artifact.size_bytes, createdAt: date.created_at.toISOString(), bytesVerified: true as const}
++  })
++  const timings: {kind: "queue" | "wall"; source: string; startedAt: string; endedAt: string | null}[] = []
++  if (!run.started_at || run.started_at >= run.created_at) timings.push({kind: "queue", source: "runs.created_at-to-started_at", startedAt: run.created_at.toISOString(), endedAt: run.started_at?.toISOString() ?? null})
++  if (run.started_at && (!run.completed_at || run.completed_at >= run.started_at)) timings.push({kind: "wall", source: "runs.started_at-to-completed_at", startedAt: run.started_at.toISOString(), endedAt: run.completed_at?.toISOString() ?? null})
++  const page = {
++    version: 1 as const, object: "demian.work_runtime.evidence_page" as const, api_version: "2026-09-01" as const, observedAt: new Date().toISOString(),
++    run: {id: run.id, organization_id: run.organization_id, workspace_id: receipt.workspaceId, session_id: run.session_id,
++      acting_user_id: receipt.actingUserId, service_principal_id: receipt.servicePrincipalId, status: run.status,
++      created_at: run.created_at.toISOString(), started_at: run.started_at?.toISOString() ?? null, completed_at: run.completed_at?.toISOString() ?? null,
++      correlation_id: receipt.correlationId, binding_sha256: receipt.bindingSha256, context_sha256: receipt.contextSha256, request_sha256: receipt.requestSha256},
++    events: {after, through_sequence: through, next_after: after, limit, has_more: rows.length > 0, data: [] as EvidenceRecord[]},
++    timings, artifactState: run.status === "succeeded" ? "available" as const : "not-ready" as const, artifacts,
++  }
++  for (const item of records) {
++    page.events.data.push(item)
++    page.events.next_after = item.sequence
++    page.events.has_more = rows.length > page.events.data.length
++    if (Buffer.byteLength(JSON.stringify(page)) >= MAX_BYTES) {
++      page.events.data.pop()
++      page.events.next_after = page.events.data.at(-1)?.sequence ?? after
++      page.events.has_more = true
++      break
++    }
++  }
++  if ((rows.length && !page.events.data.length) || Buffer.byteLength(JSON.stringify(page)) >= MAX_BYTES ||
++      (!page.events.has_more && page.events.next_after !== through)) throw new Error("Evidence page bounds mismatch")
++  return page
++}
+diff --git a/apps/api/src/work-runtime-server.ts b/apps/api/src/work-runtime-server.ts
+index 1841070..fd56ee6 100644
+--- a/apps/api/src/work-runtime-server.ts
++++ b/apps/api/src/work-runtime-server.ts
+@@ -18,0 +19 @@ import { artifactDisposition, readWorkRuntimeArtifacts } from "./work-runtime-ar
++import { readWorkRuntimeEvidence } from "./work-runtime-evidence.ts"
+@@ -143 +144 @@ export function registerWorkRuntimeServer(
+-    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/metadata|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
++    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/metadata|\/evidence|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
+@@ -275,0 +277,13 @@ export function registerWorkRuntimeServer(
++  app.get<{ Params: { runId: string } }>("/api/v1/runs/:runId/evidence", async (request, reply) => {
++    const result = await protectedRunRead(request, request.params.runId, async (client, actor, run, receipt) => {
++      try {
++        const page = await readWorkRuntimeEvidence(client, actor, run, receipt, parseMetadataQuery(request.raw.url ?? request.url))
++        // Serialize before the existing post-action authority/key/role rechecks.
++        return { status: 200, body: JSON.stringify(page) }
++      } catch (error) {
++        if (!(error instanceof MetadataQueryError)) throw error
++        return { status: 400, body: JSON.stringify({ error: { code: error.code, message: error.message } }) }
++      }
++    })
++    return reply.code(result.status).type("application/json").header("cache-control", "no-store").send(result.body)
++  })
+diff --git a/apps/api/test/work-runtime-evidence.test.ts b/apps/api/test/work-runtime-evidence.test.ts
+new file mode 100644
+index 0000000..bd502a7
+--- /dev/null
++++ b/apps/api/test/work-runtime-evidence.test.ts
+@@ -0,0 +1,265 @@
++import assert from "node:assert/strict"
++import { createHash } from "node:crypto"
++import test from "node:test"
++import { pathToFileURL } from "node:url"
++import Fastify from "fastify"
++import type { DatabaseClient, DatabasePool, DelegatedWorkRuntimeActor, RunRow } from "@demian/db"
++import type { WorkRuntimeRunReceipt } from "../../../packages/db/src/work-runtime-runs.ts"
++import { EVIDENCE_EVENTS_SQL, EVIDENCE_LINEAGE_AUTHORITY_SQL, EVIDENCE_LINEAGE_SQL, projectEvidence, projectLineage, readWorkRuntimeEvidence } from "../src/work-runtime-evidence.ts"
++import { parseMetadataQuery } from "../src/work-runtime-metadata.ts"
++import { registerWorkRuntimeServer } from "../src/work-runtime-server.ts"
++
++const at = new Date("2026-09-01T00:00:00Z")
++const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`
++const receipt = {runId: uuid(1), organizationId: uuid(2), workspaceId: uuid(3), sessionId: uuid(4), actingUserId: uuid(5), servicePrincipalId: uuid(6),
++  correlationId: "test", bindingSha256: "a".repeat(64), contextSha256: "b".repeat(64), requestSha256: "c".repeat(64)} as WorkRuntimeRunReceipt
++const actor = {actingUserId: receipt.actingUserId, binding: {...receipt}} as unknown as DelegatedWorkRuntimeActor
++const run = {id: receipt.runId, organization_id: receipt.organizationId, session_id: receipt.sessionId, status: "running", created_at: at, started_at: at, completed_at: null,
++  output_text: "PRIVATE_BODY", input: "PRIVATE_PROMPT"} as unknown as RunRow
++const event = (sequence: string, type = "response.usage", evidence: unknown = {}) => ({run_id: run.id, sequence_text: sequence, type, created_at: at, evidence})
++const observation = {scope: "latest-model-request", coverage: "partial", source: "codex-app-server.tokenUsage.last", usage: {inputTokens: 3014, outputTokens: 186, totalTokens: 3200}}
++function fixture(rows: ReturnType<typeof event>[], through = rows.at(-1)?.sequence_text ?? "0", extra?: (sql: string, args: unknown[]) => unknown[]) {
++  const calls: {sql: string; args: unknown[]}[] = []
++  const client = {query: async (sql: string, args: unknown[] = []) => {
++    calls.push({sql, args})
++    if (sql.includes("max(sequence)")) return {rows: [{through}]}
++    if (sql === EVIDENCE_EVENTS_SQL) return {rows: rows.filter(row => BigInt(row.sequence_text) > BigInt(String(args[1]))).slice(0, Number(args[3]))}
++    if (extra) return {rows: extra(sql, args)}
++    throw new Error(`Unexpected SQL: ${sql}`)
++  }} as unknown as DatabaseClient
++  return {client, calls}
++}
++
++test("producer-only evidence, aliases, safe integers and no raw payload", () => {
++  assert.equal(projectEvidence(event("1", "response.completed", {model: "gpt-6", usageObservations: [observation], body: "PRIVATE"})).selectedModel, null)
++  assert.equal(projectEvidence(event("1", "run.prepared.selected", {model: "gpt-6"})).selectedModel, "gpt-6")
++  for (const bad of [null, "other", "bad model", "x".repeat(201)]) {
++    const row = projectEvidence(event("1", "run.prepared.selected", {model: "gpt-6", selectedModel: bad}))
++    assert.equal(row.selectedModel, null); assert.deepEqual(row.issues, ["model-unavailable"])
++  }
++  for (const bad of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1, Infinity, "3014", null]) {
++    const result = projectEvidence(event("1", "response.usage", {usageObservations: [{...observation, usage: {inputTokens: bad}}]}))
++    assert.deepEqual(result.usageObservations, []); assert.deepEqual(result.issues, ["usage-unavailable"])
++  }
++  for (const data of [
++    {usageObservations: [observation], usage_observations: null},
++    {usageObservations: [observation], usage_observations: [observation], usageAliasConflict: true},
++    {usageObservations: [observation], invocationId: "actual", invocation_id: null},
++    {usageObservations: [{...observation, usage: {inputTokens: 1, input_tokens: 2}}]},
++    {usageObservations: [{...observation, costUsd: 1, cost_usd: null}]},
++    {usageObservations: [{...observation, coverage: "complete"}]},
++  ]) assert.deepEqual(projectEvidence(event("1", "response.usage", data)).usageObservations, [])
++  const result = projectEvidence(event("1", "response.usage", {invocationId: run.id, usageObservations: [observation], text: "PRIVATE", args: "PRIVATE", native_thread_id: "PRIVATE"}))
++  assert.deepEqual(result.usageObservations, [{...observation, invocationId: run.id}])
++  assert.doesNotMatch(JSON.stringify(result), /PRIVATE|native_thread_id|"args"|"text"/)
++  assert.equal(projectEvidence(event("1", "response.usage", {usageObservations: [observation]})).usageObservations[0].invocationId, undefined)
++})
++
++test("SQL positive projection is bounded before driver parsing", () => {
++  assert.match(EVIDENCE_EVENTS_SQL, /generate_series\(0,15\)/)
++  assert.doesNotMatch(EVIDENCE_EVENTS_SQL, /jsonb_array_elements|SELECT \*|data AS|data->'body'|data->'response'/)
++  assert.match(EVIDENCE_EVENTS_SQL, /octet_length/)
++  assert.match(EVIDENCE_EVENTS_SQL, /trunc\(/)
++  assert.match(EVIDENCE_EVENTS_SQL, /::numeric<=9007199254740991/)
++  for (const field of ["inputTokens", "outputTokens", "totalTokens", "cachedInputTokens", "reasoningOutputTokens"]) assert.ok(EVIDENCE_EVENTS_SQL.includes(field))
++  const result = projectEvidence(event("1", "response.usage", {usageObservations: Array.from({length: 17}, () => observation)}))
++  assert.equal(result.usageObservations.length, 16); assert.deepEqual(result.issues, ["usage-unavailable"])
++})
++
++test("all event sequences, first page, tail and int64 through bounds", async () => {
++  const rows = [event("9007199254740993", "response.created"), event("9007199254740994", "run.prepared.selected", {model: "gpt-6"}), event("9223372036854775807", "response.completed")]
++  const f = fixture(rows)
++  const first = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: "0", limit: 2})
++  assert.equal(first.events.through_sequence, "9223372036854775807")
++  assert.equal(first.events.next_after, "9007199254740994"); assert.equal(first.events.has_more, true)
++  assert.deepEqual(first.events.data.map(row => row.sequence), rows.slice(0, 2).map(row => row.sequence_text))
++  const tail = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: first.events.next_after, limit: 2})
++  assert.equal(tail.events.next_after, tail.events.through_sequence); assert.equal(tail.events.has_more, false)
++  const empty = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: tail.events.next_after, limit: 1})
++  assert.deepEqual(empty.events.data, []); assert.equal(empty.events.has_more, false)
++  assert.deepEqual(first.timings.map(value => value.kind), ["queue", "wall"])
++  assert.doesNotMatch(JSON.stringify(first), /PRIVATE|output_text|"input"/)
++  await assert.rejects(readWorkRuntimeEvidence(fixture([], "0").client, actor, run, receipt, {after: "1", limit: 1}))
++  await assert.rejects(readWorkRuntimeEvidence(fixture([event("2")], "1").client, actor, run, receipt, {after: "0", limit: 1}))
++  for (const query of ["after=01", "after=%30", "after=1&after=2", "limit=251", "limit=01", "after=0#x", "other=1"]) assert.throws(() => parseMetadataQuery(`?${query}`))
++})
++
++test("response budget truncates an ordered prefix with a usable continuation", async () => {
++  const big = {...observation, source: "s".repeat(160), invocationId: "i".repeat(512)}
++  const rows = Array.from({length: 250}, (_, index) => event(String(index + 1), "response.usage", {usageObservations: Array.from({length: 16}, () => big)}))
++  const f = fixture(rows)
++  const page = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: "0", limit: 250})
++  assert.ok(Buffer.byteLength(JSON.stringify(page)) < 786432)
++  assert.ok(page.events.data.length > 0 && page.events.data.length < 250)
++  assert.equal(page.events.next_after, String(page.events.data.length)); assert.equal(page.events.has_more, true)
++  const next = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: page.events.next_after, limit: 250})
++  assert.equal(next.events.data[0].sequence, String(page.events.data.length + 1))
++})
++
++test("lineage hashes include authority and full native context; nonprepared stays closed", async () => {
++  const source = {sequence: "1", attempt: 1, executor: "codex-app-server" as const, provider: "openai", phase: "message_completed" as const,
++    native_thread_id: "PRIVATE_THREAD", native_turn_id: "PRIVATE_TURN", native_item_id: "PRIVATE_ITEM", invocation_id: null}
++  const result = projectLineage(source, receipt)!
++  assert.doesNotMatch(JSON.stringify(result), /PRIVATE/)
++  assert.match(result.nativeThreadKey, /^[a-f0-9]{64}$/)
++  assert.notEqual(result.nativeTurnKey, projectLineage({...source, native_thread_id: "other"}, receipt)!.nativeTurnKey)
++  assert.notEqual(result.nativeItemKey, projectLineage({...source, native_turn_id: "other"}, receipt)!.nativeItemKey)
++  assert.notEqual(result.nativeThreadKey, projectLineage(source, {...receipt, servicePrincipalId: uuid(99)})!.nativeThreadKey)
++  const f = fixture([event("1", "external.lineage.observed")], "1", () => [])
++  const page = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after: "0", limit: 1})
++  assert.deepEqual(page.events.data[0].issues, ["lineage-unavailable"])
++  assert.equal(page.events.data[0].lineage, null)
++  assert.equal(f.calls.length, 2)
++})
++
++function preparedLineageFixture(mode = "valid") {
++  const hash = (values: unknown[]) => createHash("sha256").update(JSON.stringify(values)).digest("hex")
++  const binding = {...actor.binding, bindingId: "work-binding", model: "selected-model", execution: {kind: "prepared-codex-text-v1", serviceId: uuid(20), serviceRevision: "rev"}} as DelegatedWorkRuntimeActor["binding"]
++  const preparedReceipt = {...receipt, binding, sessionProvider: "openai"}
++  const preparedActor = {...actor, binding, bindingSha256: receipt.bindingSha256, authenticatedServicePrincipalId: receipt.servicePrincipalId, sessionProvider: "openai"}
++  const scope = [receipt.organizationId, receipt.workspaceId, receipt.sessionId, receipt.actingUserId]
++  const settings = {provider: "openai", model: "selected-model", agent: "build", mode: "single-agent", permissionPolicy: "deny"}
++  const pins = [{serviceId: uuid(20), authorityId: uuid(21)}]
++  const ids = [uuid(21)]
++  const settingsHash = hash([scope, uuid(22), "member", uuid(23), "worker", settings, pins, ids])
++  const authorityHash = hash([receipt.organizationId, receipt.workspaceId, receipt.sessionId, "user", receipt.actingUserId, uuid(22), "openai", null, uuid(23), settingsHash])
++  const source = {sequence: "1", attempt: 1, executor: "codex-app-server", provider: "openai", phase: "turn_started",
++    native_thread_id: "PRIVATE_THREAD", native_turn_id: "PRIVATE_TURN", native_item_id: null, invocation_id: "observed-invocation"}
++  const semanticHash = hash([source.executor, source.provider, source.native_thread_id, source.native_turn_id, source.phase, source.native_item_id, source.invocation_id])
++  const f = fixture([event("1", "external.lineage.observed"), event("2", "response.completed"), event("3", "external.lineage.observed")], "3", (sql, args) => {
++    if (sql.startsWith("SELECT b.binding_id,b.worker_id,b.pins")) {
++      assert.deepEqual(args, scope)
++      return [{binding_id: uuid(23), worker_id: "worker", current_settings: settings, pins, current_ids: ids,
++        deployment_membership_id: uuid(22), role: "member", available: mode !== "deployment-revoked",
++        views: [{...pins[0], policyRevision: "rev", providerType: "codex-app-server", providerProfile: mode === "prepared-provider" ? "other" : "openai", capabilities: {nativeSession: true}}]}]
++    }
++    if (sql === EVIDENCE_LINEAGE_AUTHORITY_SQL) {
++      assert.deepEqual(args, [receipt.runId, receipt.organizationId, receipt.sessionId, receipt.workspaceId, receipt.actingUserId,
++        receipt.servicePrincipalId, binding.bindingId, receipt.bindingSha256, "openai", uuid(23), settingsHash])
++      const pin = {run_id: run.id, organization_id: receipt.organizationId, session_id: receipt.sessionId, workspace_id: receipt.workspaceId,
++        acting_user_id: receipt.actingUserId, service_principal_id: receipt.servicePrincipalId, work_binding_id: binding.bindingId,
++        binding_sha256: receipt.bindingSha256, provider: "openai", membership_id: uuid(22), binding_id: uuid(23), settings_hash: settingsHash,
++        first_authority_hash: authorityHash}
++      if (mode.startsWith("pin:")) return [{...pin, [mode.slice(4)]: uuid(99)}]
++      if (mode === "authority") pin.first_authority_hash = "f".repeat(64)
++      return [pin]
++    }
++    if (sql === EVIDENCE_LINEAGE_SQL) {
++      assert.deepEqual(args, [run.id, ["1", "3"], authorityHash, "openai"])
++      const row = {...source, run_id: run.id, authority_hash: authorityHash, semantic_hash: semanticHash, authorized: true,
++        exact_source: true, item_is_null: true, invocation_is_null: false}
++      if (mode === "child" || mode === "wrong-provider") return [{...row, authorized: false}]
++      if (mode === "unrelated-run") return [{...row, run_id: uuid(99)}]
++      if (mode === "unselected-sequence") return [{...row, sequence: "2"}]
++      if (mode === "observation-authority") return [{...row, authority_hash: "f".repeat(64)}]
++      if (mode === "malformed") return [{...row, exact_source: false}]
++      if (mode === "semantic") return [{...row, semantic_hash: "f".repeat(64)}]
++      return [row]
++    }
++    if (sql.includes("FOR SHARE")) return [] // Existing deployment lock queries.
++    throw new Error(sql)
++  })
++  return {...f, preparedActor, preparedReceipt}
++}
++
++test("protected prepared receipt returns positive lineage for exact selected event sequences", async () => {
++  const f = preparedLineageFixture()
++  const page = await readWorkRuntimeEvidence(f.client, f.preparedActor, run, f.preparedReceipt, {after: "0", limit: 3})
++  assert.equal(page.events.data[0].lineage?.invocationId, "observed-invocation")
++  assert.match(page.events.data[0].lineage!.nativeThreadKey, /^[a-f0-9]{64}$/)
++  assert.deepEqual(page.events.data[0].issues, [])
++  assert.equal(page.events.data[1].lineage, null)
++  assert.equal(page.events.data[2].lineage, null)
++  assert.deepEqual(page.events.data[2].issues, ["lineage-unavailable"])
++  assert.doesNotMatch(JSON.stringify(page), /PRIVATE_/)
++  assert.ok(!f.calls.some(call => /session_messages|NOT EXISTS.*work_runtime_bindings/.test(call.sql)))
++  if (process.env.NATIVE_EVIDENCE_CONTRACT_PATH) {
++    const {nativeRunEvidencePageSchema} = await import(pathToFileURL(process.env.NATIVE_EVIDENCE_CONTRACT_PATH).href)
++    nativeRunEvidencePageSchema.parse(page)
++  }
++})
++
++test("protected lineage rejects unrelated scope, original authority drift and child generation", async () => {
++  for (const mode of ["unrelated-run", "unselected-sequence", "authority", "observation-authority", "child", "wrong-provider", "prepared-provider", "deployment-revoked",
++    ...["run_id", "organization_id", "session_id", "workspace_id", "acting_user_id", "service_principal_id", "work_binding_id", "binding_sha256", "binding_id", "settings_hash", "membership_id"].map(key => `pin:${key}`)]) {
++    const f = preparedLineageFixture(mode)
++    await assert.rejects(readWorkRuntimeEvidence(f.client, f.preparedActor, run, f.preparedReceipt, {after: "0", limit: 3}), Error, mode)
++  }
++  for (const key of ["bindingSha256", "authenticatedServicePrincipalId", "sessionProvider"] as const) {
++    const f = preparedLineageFixture()
++    await assert.rejects(readWorkRuntimeEvidence(f.client, {...f.preparedActor, [key]: "unrelated"}, run, f.preparedReceipt, {after: "0", limit: 3}))
++    assert.equal(f.calls.length, 2)
++  }
++  for (const mode of ["malformed", "semantic"]) {
++    const f = preparedLineageFixture(mode)
++    const page = await readWorkRuntimeEvidence(f.client, f.preparedActor, run, f.preparedReceipt, {after: "0", limit: 3})
++    assert.equal(page.events.data[0].lineage, null)
++    assert.deepEqual(page.events.data[0].issues, ["lineage-unavailable"])
++  }
++})
++
++test("protected lineage SQL bounds projection and requires exact authority, provider and no child", () => {
++  assert.match(EVIDENCE_LINEAGE_SQL, /e.run_id=\$1 AND e.sequence=ANY\(\$2::bigint\[\]\)/)
++  assert.match(EVIDENCE_LINEAGE_SQL, /cardinality\(\$2::bigint\[\]\) BETWEEN 1 AND 250/)
++  assert.match(EVIDENCE_LINEAGE_SQL, /octet_length/)
++  assert.match(EVIDENCE_LINEAGE_SQL, /n.authority_hash=\$3/)
++  for (const column of ["child_auth_job_id", "child_authority_id", "child_provider"]) assert.ok(EVIDENCE_LINEAGE_SQL.includes(`n.${column} IS NULL`))
++  assert.match(EVIDENCE_LINEAGE_AUTHORITY_SQL, /p.membership_id=m.deployment_membership_id/)
++  assert.match(EVIDENCE_LINEAGE_AUTHORITY_SQL, /r.provider_auth_id IS NULL/)
++  assert.doesNotMatch(EVIDENCE_LINEAGE_SQL, /SELECT \*|session_messages|AS data|jsonb_agg/)
++})
++
++test("artifact metadata binds hash-verified locked IDs to actual created_at", async () => {
++  const bytes = Buffer.from("PRIVATE_ANSWER")
++  const artifactId = uuid(7), created = new Date("2026-09-02T00:00:00Z")
++  const digest = createHash("sha256").update(bytes).digest("hex")
++  for (const mode of ["valid", "wrong-id", "bad-hash", "too-large"]) {
++    let blobRead = false
++    const f = fixture([], "0", (sql, args) => {
++      if (sql.includes("JOIN artifact_bytes")) return [{id: artifactId, sha256: digest, media_type: "text/plain", size_bytes: String(mode === "too-large" ? 8388609 : bytes.length), stored_size: bytes.length, filename: "answer.txt"}]
++      if (sql.includes("SELECT artifact_id,content")) { blobRead = true; return [{artifact_id: artifactId, content: mode === "bad-hash" ? Buffer.alloc(bytes.length) : bytes}] }
++      if (sql.includes("SELECT id,created_at")) { assert.deepEqual(args, [[artifactId], run.id]); return [{id: mode === "wrong-id" ? uuid(8) : artifactId, created_at: created}] }
++      throw new Error(sql)
++    })
++    const pending = readWorkRuntimeEvidence(f.client, actor, {...run, status: "succeeded", completed_at: created}, receipt, {after: "0", limit: 1})
++    if (mode !== "valid") await assert.rejects(pending)
++    else {
++      const page = await pending
++      assert.equal(page.artifactState, "available")
++      assert.deepEqual(page.artifacts, [{id: artifactId, sourceRunId: run.id, sha256: digest, filename: "answer.txt", mediaType: "text/plain", sizeBytes: bytes.length, createdAt: created.toISOString(), bytesVerified: true}])
++      assert.equal(page.timings[1].endedAt, page.run.completed_at)
++      assert.doesNotMatch(JSON.stringify(page), /PRIVATE_ANSWER|"bytes"|"content"/)
++      if (process.env.NATIVE_EVIDENCE_CONTRACT_PATH) {
++        const {nativeRunEvidencePageSchema} = await import(pathToFileURL(process.env.NATIVE_EVIDENCE_CONTRACT_PATH).href)
++        nativeRunEvidencePageSchema.parse(page)
++      }
++    }
++    if (mode === "too-large") assert.equal(blobRead, false)
++  }
++})
++
++test("ordinary bearer and unsigned service cannot reach evidence storage", async () => {
++  for (const service of [false, true]) {
++    const app = Fastify()
++    const db = {connect: async () => { throw new Error("Storage must not be reached") }} as unknown as DatabasePool
++    registerWorkRuntimeServer(app, db, {origin: "https://demian.example.invalid", servicePrincipalIds: [receipt.servicePrincipalId], resolveSigningKey: () => null, resolvePolicy: async () => null},
++      () => ({userId: service ? receipt.servicePrincipalId : uuid(99), organizationId: receipt.organizationId, role: "member", email: "", displayName: "", subject: "synthetic", issuer: "synthetic", authMode: "trusted"}))
++    try {
++      const response = await app.inject({method: "GET", url: `/api/v1/runs/${run.id}/evidence`, headers: {authorization: "Bearer synthetic"}})
++      assert.equal(response.statusCode, 403); assert.doesNotMatch(response.body, /Storage must not/)
++    } finally { await app.close() }
++  }
++})
++
++test("authoritative NativeRunEvidencePage accepts first, tail and empty windows", {skip: !process.env.NATIVE_EVIDENCE_CONTRACT_PATH}, async () => {
++  const {nativeRunEvidencePageSchema} = await import(pathToFileURL(process.env.NATIVE_EVIDENCE_CONTRACT_PATH!).href)
++  const rows = [event("1", "response.created"), event("2", "run.started"), event("3", "run.prepared.selected", {model: "gpt-6"}),
++    event("4", "external.lineage.observed"), event("5", "external.lineage.observed"),
++    event("6", "response.usage", {invocationId: run.id, usageObservations: [observation]}),
++    event("7", "response.usage", {usageObservations: [{...observation, scope: "native-session", coverage: "unknown"}]}), event("8", "response.completed")]
++  const f = fixture(rows, "8", () => [])
++  for (const after of ["0", "3", "6", "8"]) {
++    const page = await readWorkRuntimeEvidence(f.client, actor, run, receipt, {after, limit: 3})
++    nativeRunEvidencePageSchema.parse(page)
++  }
++})
+diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/test/work-runtime-server.integration.test.ts
+index 2ac9efa..23bb459 100644
+--- a/apps/api/test/work-runtime-server.integration.test.ts
++++ b/apps/api/test/work-runtime-server.integration.test.ts
+@@ -17,0 +18 @@ import { readWorkRuntimeArtifacts } from "../src/work-runtime-artifacts.ts"
++import { EVIDENCE_EVENTS_SQL, EVIDENCE_LINEAGE_SQL } from "../src/work-runtime-evidence.ts"
+@@ -111,0 +113 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
++    let afterLineageRead: (() => void) | null = null
+@@ -124 +126,2 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
+-          if(args[0]===METADATA_EVENTS_SQL&&afterMetadataRead){const effect=afterMetadataRead;afterMetadataRead=null;effect()}
++          if((args[0]===METADATA_EVENTS_SQL||args[0]===EVIDENCE_EVENTS_SQL)&&afterMetadataRead){const effect=afterMetadataRead;afterMetadataRead=null;effect()}
++          if(args[0]===EVIDENCE_LINEAGE_SQL&&afterLineageRead){const effect=afterLineageRead;afterLineageRead=null;effect()}
+@@ -181,0 +185 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
++      afterLineage:(effect:()=>void)=>{afterLineageRead=effect},
+@@ -254 +258 @@ test("signed metadata projects real PostgreSQL rows with exact int64 pages and p
+-test("signed metadata rejects current binding, role, permission and policy withdrawal", { skip: !databaseUrl }, async () => {
++for (const endpoint of ["metadata", "evidence"]) test(`signed ${endpoint} rejects current binding, role, permission and policy withdrawal`, { skip: !databaseUrl }, async () => {
+@@ -263 +267 @@ test("signed metadata rejects current binding, role, permission and policy withd
+-      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/metadata`))
++      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/${endpoint}`))
+@@ -265 +269 @@ test("signed metadata rejects current binding, role, permission and policy withd
+-      assert.doesNotMatch(response.body, /metadata_page|sequence_text|binding_sha256/)
++      assert.doesNotMatch(response.body, /metadata_page|evidence_page|sequence_text|binding_sha256/)
+@@ -270 +274 @@ test("signed metadata rejects current binding, role, permission and policy withd
+-test("signed metadata rechecks signing key and policy after awaited event SQL", { skip: !databaseUrl }, async () => {
++for (const endpoint of ["metadata", "evidence"]) test(`signed ${endpoint} rechecks signing key and policy after awaited event SQL`, { skip: !databaseUrl }, async () => {
+@@ -276 +280 @@ test("signed metadata rechecks signing key and policy after awaited event SQL",
+-      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/metadata`))
++      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/${endpoint}`))
+@@ -278 +282 @@ test("signed metadata rechecks signing key and policy after awaited event SQL",
+-      assert.doesNotMatch(response.body, /metadata_page|sequence_text|binding_sha256/)
++      assert.doesNotMatch(response.body, /metadata_page|evidence_page|sequence_text|binding_sha256/)
+@@ -282,0 +287,60 @@ test("signed metadata rechecks signing key and policy after awaited event SQL",
++test("signed evidence projects bounded SQL fields, immutable windows and verified artifact clocks", {skip: !databaseUrl}, async () => {
++  const s = await setup()
++  try {
++    await s.worker()
++    const created = await s.app.inject(s.signed("POST", s.runPath, s.body()))
++    assert.equal(created.statusCode, 202, created.body)
++    const bytes = Buffer.from("PRIVATE_EVIDENCE_ANSWER")
++    const done = await completeWithJournal(s, created.json().id, 1, {filename: "answer.txt", mediaType: "text/plain", bytes})
++    const base = `/api/v1/runs/${done.runId}/evidence`
++    const observation = {scope: "latest-model-request", coverage: "partial", source: "codex-app-server.tokenUsage.last", usage: {inputTokens: 3014, outputTokens: 186, totalTokens: 3200, raw: "PRIVATE_NESTED"}}
++    const fixtures = [
++      ["run.prepared.selected", {model: "gpt-6", body: "PRIVATE_BODY"}],
++      ["response.usage", {invocationId: done.runId, usageObservations: [observation], response: "PRIVATE_RESPONSE"}],
++      ["response.usage", {usageObservations: [{...observation, usage: {inputTokens: 9007199254740992}}]}],
++      ["response.usage", {usageObservations: [observation], usage_observations: {private: "PRIVATE_ALIAS"}}],
++      ["run.prepared.selected", {model: "gpt-6", selectedModel: {private: "PRIVATE_MODEL"}}],
++      ["external.lineage.observed", {native_thread_id: "PRIVATE_SDK_THREAD", native_turn_id: "PRIVATE_SDK_TURN"}],
++      ["response.usage", {usageObservations: Array.from({length: 1000}, () => observation)}],
++      ["response.completed", {body: "PRIVATE_COMPLETED"}],
++    ] as const
++    for (const [index, [type, data]] of fixtures.entries()) await s.db.query(
++      "INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,$2,$3,$4::jsonb)", [done.runId, String(9007199254740993n + BigInt(index)), type, JSON.stringify(data)])
++    // Raw JSON preserves the fractional numeric that JS would round to an integer.
++    await s.db.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,9007199254741001,'response.usage',$2::jsonb)",
++      [done.runId, '{"usageObservations":[{"scope":"invocation","coverage":"complete","source":"test","usage":{"inputTokens":9007199254740991.1}}]}'])
++    const snapshot = async () => (await s.db.query("SELECT md5(string_agg(sequence::text||type||data::text,',' ORDER BY sequence)) AS value FROM run_events WHERE run_id=$1", [done.runId])).rows[0].value
++    const before = await snapshot()
++    const first = await s.app.inject(s.signed("GET", base + "?after=9007199254740992&limit=7"))
++    assert.equal(first.statusCode, 200, first.body)
++    const page = first.json()
++    assert.equal(page.object, "demian.work_runtime.evidence_page")
++    assert.equal(page.events.data.length, 7); assert.equal(page.events.has_more, true)
++    assert.equal(page.events.next_after, "9007199254740999"); assert.equal(page.events.through_sequence, "9007199254741001")
++    assert.equal(page.events.data[0].selectedModel, "gpt-6")
++    assert.deepEqual(page.events.data[1].usageObservations, [{scope: observation.scope, coverage: observation.coverage, source: observation.source,
++      invocationId: done.runId, usage: {inputTokens: 3014, outputTokens: 186, totalTokens: 3200}}])
++    for (const index of [2, 3]) { assert.deepEqual(page.events.data[index].usageObservations, []); assert.deepEqual(page.events.data[index].issues, ["usage-unavailable"]) }
++    assert.deepEqual(page.events.data[4].issues, ["model-unavailable"])
++    assert.deepEqual(page.events.data[5].issues, ["lineage-unavailable"])
++    assert.equal(page.events.data[6].usageObservations.length, 16)
++    assert.deepEqual(page.events.data[6].issues, ["usage-unavailable"])
++    const stored = (await s.db.query("SELECT id,created_at FROM artifacts WHERE run_id=$1 AND kind='result'", [done.runId])).rows[0]
++    assert.equal(page.artifactState, "available"); assert.equal(page.artifacts.length, 1)
++    assert.equal(page.artifacts[0].id, stored.id); assert.equal(page.artifacts[0].createdAt, stored.created_at.toISOString())
++    assert.equal(page.artifacts[0].sha256, sha256(bytes)); assert.equal(page.artifacts[0].bytesVerified, true)
++    assert.ok(Buffer.byteLength(first.body) < 786432); assert.doesNotMatch(first.body, /PRIVATE_|native_thread_id|"body"|"response"/)
++    const tail = await s.app.inject(s.signed("GET", base + "?after=9007199254740999&limit=7"))
++    assert.equal(tail.statusCode, 200); assert.equal(tail.json().events.has_more, false)
++    assert.equal(tail.json().events.next_after, page.events.through_sequence)
++    assert.deepEqual(tail.json().events.data[1].usageObservations, [])
++    assert.deepEqual(tail.json().events.data[1].issues, ["usage-unavailable"])
++    assert.equal(await snapshot(), before)
++    assert.equal((await s.app.inject({method: "GET", url: base, headers: {authorization: `Bearer ${apiToken}`}})).statusCode, 403)
++    for (const query of ["?after=01", "?after=%30", "?after=0&after=1", "?limit=251", "?unknown=1"])
++      assert.equal((await s.app.inject(s.signed("GET", base + query))).statusCode, 400, query)
++    for (const claims of [{context_sha256: "f".repeat(64)}, {request_sha256: "f".repeat(64)}, {correlation_id: "unrelated"}])
++      assert.equal((await s.app.inject(s.signed("GET", base, "", claims))).statusCode, 403)
++  } finally { await s.close() }
++})
++
+@@ -922,0 +987,20 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
++      const evidence = await s!.app.inject(s!.signed("GET", path + "/evidence?after=0&limit=250"))
++      assert.equal(evidence.statusCode, 200, evidence.body)
++      const nativeRecords = evidence.json().events.data.filter((row: {type: string}) => row.type === "external.lineage.observed")
++      assert.ok(nativeRecords.length > 0)
++      for (const row of nativeRecords) {
++        assert.deepEqual(row.issues, [])
++        assert.equal(row.lineage.executor, "codex-app-server")
++        assert.equal(row.lineage.provider, "synthetic-provider")
++        assert.match(row.lineage.nativeThreadKey, /^[a-f0-9]{64}$/)
++        assert.match(row.lineage.nativeTurnKey, /^[a-f0-9]{64}$/)
++      }
++      assert.equal(evidence.body.includes(result.json().work_runtime.native_thread_id), false)
++      assert.equal(evidence.body.includes(result.json().work_runtime.native_turn_id), false)
++      assert.doesNotMatch(evidence.body, /Controlled prepared result|native_thread_id|native_turn_id|native_item_id/)
++      s!.afterLineage(() => { s!.policy.maximumOutputTokens = 64 })
++      try {
++        const withdrawn = await s!.app.inject(s!.signed("GET", path + "/evidence"))
++        assert.equal(withdrawn.statusCode, 403, withdrawn.body)
++        assert.doesNotMatch(withdrawn.body, /evidence_page|nativeThreadKey|nativeTurnKey/)
++      } finally { s!.policy.maximumOutputTokens = 0 }

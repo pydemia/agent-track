@@ -14,8 +14,10 @@ import { assistantReady, projectsReady, sourceIdentity } from "./source-identity
 import { AssistantDemianLinks } from "./assistant-demian-links.ts";
 import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type NativeMetadataPage } from "../../packages/contracts/native-metadata.ts";
 import type { RunBinding } from "../../packages/contracts/index.ts";
+import { assistantNativeRunEvidencePageSchema, type NativeRunEvidencePage } from "../../packages/contracts/native-run-evidence.ts";
 
-export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata">>;
+export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence">>;
+export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string }
 export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding }
 export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean }
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
@@ -327,6 +329,62 @@ export class AssistantAuthority {
         try { this.project(scope, item.binding.projectId); return true; }
         catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) return false; throw error; }
       }), partial };
+    });
+  }
+
+  /** Independent evidence read: no event ingestion, binding mutation or lifecycle call. */
+  async nativeEvidence(user: string, sourceId: string, targetSourceId: string, runId: string,
+    after: string, limit: number): Promise<AssistantNativeEvidence> {
+    if (!z.guid().safeParse(runId).success || !nativeMetadataSequenceSchema.safeParse(after).success ||
+        !Number.isInteger(limit) || limit < 1 || limit > 250) throw new AssistantAuthorityError(400);
+    return this.request(user, sourceId, async (scope, client) => {
+      const target = this.config().sources.find(item => item.id === targetSourceId);
+      const mappings = scope.source.assistantDemianMappings?.filter(item => item.sourceId === targetSourceId) ?? [];
+      if (scope.source.assistantProtocol !== 2 || !client.nativeEvidence || !target || target.kind !== "demian" ||
+          target.assistantNativeSourceId !== sourceId || !target.users.includes(user) || mappings.length !== 1 ||
+          target.baseUrl !== mappings[0]!.origin || target.organizationId !== mappings[0]!.organizationId ||
+          !this.store.pinSourceIdentity(target.id, sourceIdentity(target))) throw new AssistantAuthorityError(403);
+      const stamp = JSON.stringify(target), mapping = mappings[0]!;
+      const confirmTarget = () => {
+        this.confirm(scope);
+        if (JSON.stringify(this.config().sources.find(item => item.id === targetSourceId)) !== stamp)
+          throw new AssistantAuthorityError(403);
+      };
+      await this.refreshProjects(scope);
+      const window = assistantExecutionPageV2Schema.parse(await this.guarded(scope, () => client.executions(null)));
+      const matches = window.executions.flatMap(execution => execution.roles.filter(role => role.runtime.demian?.runId === runId)
+        .map(role => ({ execution, role })));
+      if (matches.length !== 1) throw new AssistantAuthorityError(matches.length || window.hasMore ? 503 : 404);
+      const { execution, role } = matches[0]!, ref = role.runtime.demian!;
+      if (!execution.task || !await this.currentTask(scope, execution, new Map()) || ref.origin !== mapping.origin ||
+          ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId)
+        throw new AssistantAuthorityError(404);
+      const read = async (position: string, requested: number) => {
+        const envelope = assistantNativeRunEvidencePageSchema.parse(await this.guarded(scope,
+          () => client.nativeEvidence!(execution.id, role.id, position, requested)));
+        const page = envelope.page, run = page.run;
+        if (envelope.executionId !== execution.id || envelope.roleId !== role.id || page.events.after !== position ||
+            page.events.limit !== requested || run.id !== ref.runId || run.session_id !== ref.sessionId ||
+            run.workspace_id !== ref.workspaceId || run.organization_id !== ref.organizationId || run.correlation_id !== ref.operationId)
+          throw new AssistantAuthorityError(503);
+        confirmTarget(); return envelope;
+      };
+      const first = await read(after, limit);
+      const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
+      if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId ||
+          latest.task.taskId !== execution.task.taskId ||
+          JSON.stringify(latest.roles.find(item => item.id === role.id)?.runtime.demian) !== JSON.stringify(ref) ||
+          !await this.currentTask(scope, latest, new Map())) throw new AssistantAuthorityError(404);
+      await this.finish(scope, client);
+      const final = await read(first.page.events.next_after, 1);
+      for (const field of ["acting_user_id", "service_principal_id", "binding_sha256", "context_sha256", "request_sha256"] as const)
+        if (first.page.run[field] !== final.page.run[field]) throw new AssistantAuthorityError(503);
+      await this.finish(scope, client);
+      if (!await this.currentTask(scope, latest, new Map())) throw new AssistantAuthorityError(404);
+      // Keep the first coherent data snapshot. A final authority check may observe
+      // a later Run status; merging it would forge timing/artifact consistency.
+      confirmTarget();
+      return { page: first.page, executionId: execution.id, roleId: role.id, observedAt: first.observedAt };
     });
   }
 

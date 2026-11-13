@@ -8,6 +8,9 @@ import { withToolEvidence } from "../../../packages/projection/tool-flow.ts";
 import { withModelRequests } from "../../../packages/projection/model-request-flow.ts";
 import { analyseGraph } from "../../../packages/projection/graph.ts";
 import { useNativeLineage } from "./useNativeLineage.ts";
+import { useNativeRunEvidence } from "./useNativeRunEvidence.ts";
+import { NativeRunEvidence } from "./NativeRunEvidence.tsx";
+import { withNativeRunEvidence } from "../../../packages/projection/native-run-evidence.ts";
 import { useToolEvidence } from "./useToolEvidence.ts";
 import { OrchestrationSupport } from "./OrchestrationSupport.tsx";
 import { withSessionRelations } from "../../../packages/projection/session-relations-flow.ts";
@@ -26,7 +29,7 @@ import "./ui/flow-canvas.css";
 import "./mission-flow.css";
 
 const kinds: Record<string, string> = { task: "업무", workspace: "Workspace", session: "Session", run: "Run", invocation: "Agent 호출", "invocation-reference": "호출 참조 · 생명주기 미관측",
-  tool: "도구 호출", "model-request": "모델 요청", permission: "승인", artifact: "산출물", group: "협업 그룹", member: "협업 멤버", lifecycle: "실행 단계", event: "관측", reference: "원본 참조", unknown: "미확인 참조",
+  tool: "도구 호출", "native-turn": "Native turn 참조", "native-item": "Native item 참조", "model-request": "모델 요청", permission: "승인", artifact: "산출물", group: "협업 그룹", member: "협업 멤버", lifecycle: "실행 단계", event: "관측", reference: "원본 참조", unknown: "미확인 참조",
   "managed-parent-reference": "부모 호출 참조 · Run 미확인", "peer-connection": "peer 연결 참조", "peer-conversation": "처리 대화 참조", "peer-message": "처리 메시지 참조", "session-relation-receipt": "관계 영수증" };
 const statuses: Record<string, string> = { bound: "명시 연결", observed: "관측됨", "observed-reference": "관계 참조", unobserved: "미조회 참조", queued: "대기", leasing: "할당 중", running: "실행 중", started: "실행 중", waiting_for_permission: "승인 대기",
   cancelling: "취소 중", succeeded: "성공 종료", completed: "완료 보고", complete: "완료 보고", failed: "실패 보고", cancelled: "취소 종료", expired: "만료",
@@ -47,11 +50,12 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
   const [fitVersion, setFitVersion] = useState(0);
   const [filter, setFilter] = useState("");
   const lineage = useNativeLineage(run, onUnauthorized);
+  const nativeEvidence = useNativeRunEvidence(actor, run, onUnauthorized);
   const tools = useToolEvidence(run, onUnauthorized, actor);
   const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
   const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
-  const fullModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeLineage(withModelRequests(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run, tools.page), run,
-    lineage.observations, lineage.hasMore || lineage.capped), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, sessionRelations.evidence, artifacts.evidence]);
+  const fullModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeRunEvidence(withNativeLineage(withModelRequests(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run, tools.page), run,
+    lineage.observations, lineage.hasMore || lineage.capped), run, nativeEvidence.records, nativeEvidence.hasMore || nativeEvidence.native && nativeEvidence.state !== "connected"), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, nativeEvidence.records, nativeEvidence.hasMore, nativeEvidence.native, nativeEvidence.state, sessionRelations.evidence, artifacts.evidence]);
   const model = useMemo(() => scopeNodeKeys ? groupModelSubset(fullModel, scopeNodeKeys) : fullModel, [fullModel, scopeNodeKeys]);
   const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key }), []);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
@@ -95,6 +99,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
     <ArtifactSupport value={artifacts} />
+    {nativeEvidence.native && <NativeRunEvidence value={nativeEvidence} />}
     {lineage.native && <p className="graph-legend">Native lineage {lineage.observations.length}개 · {lineage.detail}{lineage.hasMore && <button className="text-button" disabled={lineage.capped} onClick={lineage.more}>{lineage.capped ? "1,000개 조회 한도" : "Native 근거 더 불러오기"}</button>}</p>}
     {tools.native && <p className="graph-legend">{tools.page ? `도구 결과 ${tools.page.calls.length}건 · 실패 보고 ${tools.page.calls.filter((call) => call.outcome === "failed").length}건 · 원본 seq ${tools.page.throughSequence}/${tools.page.targetSequence}${tools.page.complete ? "까지 조회" : " · 부분 조회"}` : tools.detail}</p>}
     {tools.native && <ModelRequestSupport evidence={tools.page} windowComplete={tools.page?.complete} />}

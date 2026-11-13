@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /** Portable transport contract. No input, output, tool arguments or artifact bytes. */
 export const nativeMetadataSequenceSchema = z.string().regex(/^(0|[1-9][0-9]{0,18})$/)
-  .refine(value => BigInt(value) <= 9223372036854775807n);
+  .refine(value => /^(0|[1-9][0-9]{0,18})$/.test(value) && BigInt(value) <= 9223372036854775807n);
 const uuid = z.string().regex(/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/);
 const digest = z.string().regex(/^[a-f0-9]{64}$/);
 const timestamp = z.iso.datetime({ offset: true });
@@ -57,6 +57,8 @@ export const nativeMetadataPageSchema = z.strictObject({
   }),
 }).superRefine((page, context) => {
   const events = page.events;
+  if ([events.after, events.through_sequence, events.next_after, ...events.data.map(event => event.sequence_text)]
+    .some(value => !nativeMetadataSequenceSchema.safeParse(value).success)) return;
   let previous = BigInt(events.after);
   if (previous > BigInt(events.through_sequence) || events.data.length > events.limit)
     context.addIssue({ code: "custom", message: "Invalid metadata window" });

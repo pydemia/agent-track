@@ -15,7 +15,7 @@ const row: NativeLineageObservation = { sequence: "7", invocationId: "invocation
 
 test("native lineage joins exact item IDs without inventing invocation lifecycle or changing the journal model", () => {
   const before = structuredClone(base); const result = withNativeLineage(base, run, [row, { ...row, sequence: "11", phase: "tool_completed" }]);
-  assert.equal(result.nodes.find((node) => node.kind === "invocation")?.status, "observed");
+  assert.equal(result.nodes.find((node) => node.kind === "invocation")?.status, "observed-reference");
   assert.equal(result.edges.filter((edge) => edge.kind === "native-tool").length, 1);
   assert.equal(result.edges.some((edge) => edge.key === "orphan"), false);
   assert.ok(result.nodes.find((node) => node.key === "tool")?.details.some((detail) => detail.label === "Native item" && detail.value === "item"));

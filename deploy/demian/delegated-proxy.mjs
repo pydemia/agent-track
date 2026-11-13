@@ -7,7 +7,7 @@ const SESSION = `/api/v1/sessions/${UUID}`;
 const RUN = `/api/v1/runs/${UUID}`;
 const GET_ROUTE = new RegExp(`^(?:/api/v1/(?:capabilities|me)|${SESSION}|${SESSION}/requests/([^/]+)|${RUN}|${RUN}/artifacts/${UUID}/content)$`);
 const POST_ROUTE = new RegExp(`^(?:${SESSION}/runs|${RUN}/cancel)$`);
-const METADATA_ROUTE = new RegExp(`^${RUN}/metadata(?:\\?after=(0|[1-9][0-9]{0,18})&limit=([1-9][0-9]{0,2}))?$`);
+const METADATA_ROUTE = new RegExp(`^${RUN}/(?:metadata|evidence)(?:\\?after=(0|[1-9][0-9]{0,18})&limit=([1-9][0-9]{0,2}))?$`);
 const ENVELOPE = /^DemianWork v1\.[A-Za-z0-9_-]{1,128}\.[A-Za-z0-9_-]{1,16384}\.[A-Za-z0-9_-]{43}$/;
 const RESPONSE_HEADERS = ["content-type", "content-length", "content-encoding", "content-disposition", "content-range", "accept-ranges", "etag", "last-modified", "digest", "content-digest", "x-content-sha256", "x-artifact-sha256"];
 

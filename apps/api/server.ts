@@ -18,6 +18,7 @@ import { authenticateContextReader, contextReaderStamp } from "./context-auth.ts
 import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { projectTaskMetadata } from "./project-task-metadata.ts";
 import { toolEvidence } from "./tools.ts";
+import { nativeRunEvidence } from "./native-run-evidence.ts";
 import { projectDependencies } from "./project-dependencies.ts";
 import { AssistantAuthorityError } from "./assistant-authority.ts";
 import { SessionRelations } from "./session-relations.ts";
@@ -317,6 +318,20 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const interval = setInterval(() => void send(), 3000);
         response.on("close", () => clearInterval(interval));
         return;
+      }
+      const nativeEvidence = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
+      if (nativeEvidence) {
+        if (request.method !== "GET") { response.setHeader("Allow", "GET"); json(response, 405, { error: "read_only_evidence" }); return; }
+        const query = [...url.searchParams.keys()];
+        const after = url.searchParams.get("after") ?? "0", rawLimit = url.searchParams.get("limit") ?? "100";
+        if (request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0 ||
+            query.length !== new Set(query).size || query.some(key => !["after", "limit"].includes(key)) ||
+            !sequenceSchema.safeParse(after).success || !/^[1-9][0-9]{0,2}$/.test(rawLimit) || Number(rawLimit) > 250) {
+          json(response, 400, { error: "invalid_evidence_window" }); return;
+        }
+        const evidence = await nativeRunEvidence(config, snapshot, sources.assistant, user, nativeEvidence[1]!, after, Number(rawLimit));
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, evidence); return;
       }
       const runEvents = /^\/api\/runs\/([A-Za-z0-9_-]+)\/events$/.exec(url.pathname);
       if (runEvents) {

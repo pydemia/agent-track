@@ -36,7 +36,7 @@ export class AssistantNativeCollector {
     return { id: source.id, kind: "demian", label: source.label, device: source.device,
       state: grant ? "connected" : this.failures.get(source.id) === "disconnected" ? "disconnected" : "forbidden",
       authorizedRunIds: grant?.runIds ?? [], lastObservedAt: grant?.observedAt ?? null,
-      capabilities: grant ? ["run.read", "events.read"] : [],
+      capabilities: grant ? ["run.read", "events.read", "run.evidence"] : [],
       detail: grant ? `Assistant에서 현재 인가한 실행 metadata. 최근 업무 50개·실행 64개·실행별 이벤트 250개 조회 창${grant.partial ? "(일부 업무 제외)" : ""}. 전체 이력·도구 입출력·실행 제어와 별개입니다.`
         : "보호된 실행의 현재 Assistant/Projects 인가를 확인하지 못했습니다. 저장된 실행도 숨깁니다." };
   }

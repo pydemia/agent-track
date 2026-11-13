@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "repository": "https://github.com/pydemia/demian",
+  "baselineCommit": "db861e85d72dd59368704dddb089f0615113532d",
+  "targetCommit": "9f45e6c69a1fc8d48cc75f7ece82ffa0e61b1197",
+  "baselineTree": "e98b54113429ecdf2eb649eb2be344df4b7c3223",
+  "targetTree": "19b432d39334ef5285467fa5a13ae6bba903863f",
+  "patchSha256": "092479d394b74ea927324a63e1a4de6abaff3e792f13ab84b0d99f44d77f62e5",
+  "files": [
+    {
+      "path": "apps/api/src/work-runtime-evidence.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "768db5b6fa7a393d774318d710ff8ac26348e5adbc101d2ec3d498027369f54a",
+      "payloadBytes": 22329,
+      "qaWorkingTreeRawSha256": "768db5b6fa7a393d774318d710ff8ac26348e5adbc101d2ec3d498027369f54a",
+      "lineEndingNormalizedPayloadMatches": true
+    },
+    {
+      "path": "apps/api/src/work-runtime-server.ts",
+      "status": "M",
+      "baselineSha256": "80ee4178d707b3702b70c33d6039df0e7e893cda40da2d095cfe280f741af0db",
+      "payloadSha256": "beed4be73cf3dd81a1cd6bcc4ba2356b21cfb7331fb82048108f2f155320d98e",
+      "payloadBytes": 26793,
+      "qaWorkingTreeRawSha256": "beed4be73cf3dd81a1cd6bcc4ba2356b21cfb7331fb82048108f2f155320d98e",
+      "lineEndingNormalizedPayloadMatches": true
+    },
+    {
+      "path": "apps/api/test/work-runtime-evidence.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "528eec5a31cd29db9043ccca174fad14cbd9d71bc818fa58897400b21a87bbea",
+      "payloadBytes": 20664,
+      "qaWorkingTreeRawSha256": "528eec5a31cd29db9043ccca174fad14cbd9d71bc818fa58897400b21a87bbea",
+      "lineEndingNormalizedPayloadMatches": true
+    },
+    {
+      "path": "apps/api/test/work-runtime-server.integration.test.ts",
+      "status": "M",
+      "baselineSha256": "e035912a1db2edbdf03410be60c1b06e187043bd5eb97acd12626886196a0a9a",
+      "payloadSha256": "29cbf57c3547cb48d0728c175c9e075328820e63512f011637e1aaa1d4a4285c",
+      "payloadBytes": 88140,
+      "qaWorkingTreeRawSha256": "bfae399b0a70ef22c236c0b1b360c0b6e3e23a430d7b7e9db3aeeadc67600a3d",
+      "lineEndingNormalizedPayloadMatches": true
+    }
+  ],
+  "verification": {
+    "freshIndexBaselineApplied": true,
+    "exactTargetTreeMatched": true,
+    "nativeWorkingTreeChanged": false,
+    "syntheticPostgreSQL": {
+      "version": "17.11",
+      "tests": 58,
+      "passed": 57,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "TEST_ASSISTANT_GATEWAY_ROOT not provided",
+      "contractSha256": "45b8dd7f3b2d63a45d16ec3082984d3f66e10742acce45bde023ba5989d56c08",
+      "isolatedContainerRemoved": true,
+      "environmentFileRemoved": true,
+      "productionDatabaseUsed": false
+    }
+  },
+  "patchContextLines": 0,
+  "applyOption": "--unidiff-zero",
+  "scope": "Protected native evidence read only; source committed, no operating rollout"
+}
