@@ -268,6 +268,11 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 .graph-node[role="button"] { cursor: pointer; }
 .graph-node[role="button"]:focus-visible { outline: 2px solid var(--lime); outline-offset: 4px; }
 .run-controls { margin-top: 10px; }
+.run-successor-controls { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.run-successor-controls label { display: grid; gap: 6px; margin: 10px 0; }
+.run-successor-controls select, .run-successor-controls textarea { width: 100%; min-width: 0; color: var(--ink); background: var(--surface); border: 1px solid var(--line); padding: 8px; }
+.run-successor-controls textarea { min-height: 96px; resize: vertical; }
+.run-successor-controls pre { max-height: 240px; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; }
 .run-approvals { margin-top: 15px; padding: 12px 0; border-top: 1px solid var(--line); min-width: 0; font-size: 11px; }
 .run-approvals h3, .run-approvals h4 { margin: 0; font-size: 12px; }
 .run-approvals small { display: block; color: var(--muted); overflow-wrap: anywhere; }

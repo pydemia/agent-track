@@ -4,6 +4,8 @@ import { extname, resolve, sep } from "node:path";
 import { authenticate, validMutationOrigin } from "./auth.ts";
 import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
+import { SuccessorCommands } from "../../packages/commands/run-successors.ts";
+import { RunSuccessors } from "./run-successors.ts";
 import { artifactEvidence } from "./evidence.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { RunBindings } from "./bindings.ts";
@@ -39,13 +41,13 @@ function json(response: ServerResponse, status: number, value: unknown): void {
   response.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   response.end(JSON.stringify(value));
 }
-async function jsonBody(request: IncomingMessage): Promise<unknown> {
+async function jsonBody(request: IncomingMessage, maximumBytes = 16_384): Promise<unknown> {
   if (!request.headers["content-type"]?.startsWith("application/json")) throw new CommandError(415, "json_required", "JSON body required.");
   const parts: Buffer[] = [];
   let size = 0;
   for await (const chunk of request) {
     size += Buffer.byteLength(chunk);
-    if (size > 16_384) throw new CommandError(413, "body_too_large", "Command body is too large.");
+    if (size > maximumBytes) throw new CommandError(413, "body_too_large", "Command body is too large.");
     parts.push(Buffer.from(chunk));
   }
   try { return JSON.parse(Buffer.concat(parts).toString("utf8")); }
@@ -65,6 +67,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const taskAssignments = new TaskAssignments(store, config, sources);
   const snapshot = (user: string) => taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user)));
   const commands = new CommandService(store);
+  const successors = new SuccessorCommands(store);
+  const runSuccessors = new RunSuccessors(store, config, sources, snapshot);
   const bindings = new RunBindings(store, config, sources, snapshot);
   const permissions = new RunPermissions(store, config, sources, snapshot);
   const approvals = new ApprovalService(store);
@@ -176,6 +180,56 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
         const receipt = await bindings.apply(user, await jsonBody(request));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
+      const successorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/successor-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);
+      if (successorRoute) {
+        const [, runKey, id, action] = successorRoute;
+        if (url.search || !snapshot(user).runs.some(run => run.key === runKey)) {
+          json(response, url.search ? 400 : 404, { error: url.search ? "invalid_command_query" : "run_not_found" }); return;
+        }
+        const confirm = () => authenticate(request, config()) === user && !request.aborted && !response.destroyed;
+        if (request.method === "GET" && !action && id !== "reviews") {
+          if (request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+            json(response, 400, { error: "invalid_command_query" }); return;
+          }
+          const ports = runSuccessors.ports(user, runKey!, confirm);
+          if (id) {
+            const receipt = await successors.get(user, id, ports);
+            if (!confirm()) { json(response, 401, { error: "authentication_required" }); return; }
+            json(response, 200, { receipt });
+          } else {
+            const availability = await runSuccessors.availability(user, runKey!, confirm);
+            const selected = snapshot(user).runs.find(run => run.key === runKey);
+            const nativeSource = config().sources.find(source => source.id === selected?.sourceId);
+            const historySupported = nativeSource?.kind === "demian" && !nativeSource.assistantNativeSourceId;
+            const page = historySupported ? await successors.list(user, runKey!, ports) : { receipts: [], hasMore: false };
+            if (!confirm()) { json(response, 401, { error: "authentication_required" }); return; }
+            json(response, 200, { ...page, availability });
+          }
+          return;
+        }
+        if (request.method !== "POST" || !id || id === "reviews" && action || id !== "reviews" && !action) {
+          json(response, 405, { error: "unsupported_method" }); return;
+        }
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const confirmMutation = () => confirm() && validMutationOrigin(request, config());
+        const body = await jsonBody(request, id === "reviews" ? 4_194_304 : 16_384);
+        const ports = runSuccessors.ports(user, runKey!, confirmMutation);
+        let receipt;
+        if (id === "reviews") {
+          if (!body || typeof body !== "object" || Array.isArray(body) || !("runKey" in body) || body.runKey !== runKey) {
+            json(response, 400, { error: "invalid_command" }); return;
+          }
+          receipt = await successors.review(user, body, ports);
+        }
+        else {
+          if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) {
+            json(response, 400, { error: "invalid_command" }); return;
+          }
+          receipt = action === "dispatch" ? await successors.dispatch(user, id, ports) : await successors.discard(user, id, ports);
+        }
+        if (!confirmMutation()) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
       if (request.method === "POST" && url.pathname === "/api/commands/cancel") {

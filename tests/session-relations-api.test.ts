@@ -12,13 +12,12 @@ import { CommandError } from "../packages/commands/index.ts";
 import type { Config, SourceConfig } from "../apps/api/config.ts";
 import type { RunView, Snapshot, SourceView } from "../packages/contracts/index.ts";
 import { Store } from "../packages/storage/store.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const user = "owner@example.test", now = new Date().toISOString(), session = id(2);
 async function listen(server: Server) {
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address(); assert(address && typeof address !== "string");
-  return `http://127.0.0.1:${address.port}`;
+  return listenHttp(server);
 }
 async function close(server: Server) {
   server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));

@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "baselineCommit": "0c3ea3bc4f729739ad713d10a80373f615c94bbf",
+  "finalFileSha256": {
+    "apps/api/config.ts": "25238efa024438e47d9a971d40e8be288a0c0a8096110223dc2def27b2aeddfe",
+    "apps/api/runner.ts": "fbb1e98926d537c7f01e5d41108b0271bc327b464e26f84e3a4fc7777c53719b",
+    "apps/api/server.ts": "dbb4924487b082880aeee0e7b9ba2b5828f97976a5ba5c9a366dc3708d24b1bd",
+    "apps/api/run-successors.ts": "6d8fa36747431c03ed285a93afd3e3b5972308e27e6c0b00d17aacd334fb19a1",
+    "packages/adapters/demian/index.ts": "bf29a5e999ed2fc1ea044695a4abad3c9464eb4fdab7eac1e5e67d146f41ec6f",
+    "packages/commands/run-successors.ts": "d7ccc4c64f23d996005a9b070318c7aedfce2a006e69a2238e8f547ed332e5bb",
+    "packages/contracts/run-successors.ts": "79c12d89375af736f3e8386a3a6e931f1865387fb779bb82adf311871904bbe5",
+    "apps/web/src/RunControls.tsx": "4ed0668c1e533c54bfcc1670d00eeb0973320635b3e957b1da1f2e82b82d5223",
+    "apps/web/src/RunSuccessorControls.tsx": "9e209e891726010e69dcbf0d78627f2a6dbf49994dbe4a2dadc75d906aaf455b",
+    "apps/web/src/run-successor-client.ts": "7cff990d2728ecdf3e9f999bbda53b3b6a322faff3ad53ec10a7c8feaa4e433d",
+    "apps/web/src/styles.css": "ba9b35bbbdc4b0fe127bd67d5caac737a683118d0b01aaabd3a8a85d17e120fb",
+    "tests/run-successor-api.test.ts": "98fdb7a79ab1deb908d50d21c540d3c28f14aa70b29a95b37a83e91a35692a3e",
+    "tests/run-successor-client.test.ts": "37d7b6fe47e14ac0cc40b1de975f505068eadaeee79aff530f425cf9bb8fbaed",
+    "tests/run-successors.test.ts": "82a52bd1525d91a1025268eae9728dff2114d14cf68158aa82c63f945398ed45",
+    "tests/helpers/http-listen.ts": "d1917c689fe0c6eb9ed6a4d625c1c34d3d518ff862aa5c223b3913d36321f9ef",
+    "tests/assistant-demian-links.test.ts": "57b6d785259e167bf3700490e3d1d4f272a8509064b87fb39da983e856fb223b",
+    "tests/assistant-http.test.ts": "e5df882a7f70bdef0038b915e3e69b9d3d6ce55f4243a5181de801dad5d0b61e",
+    "tests/session-relations-api.test.ts": "58629481860b50a8fca2bb1c249764a753cc51ae1761acf87498e2c52a17c6eb",
+    "tests/source-availability.test.ts": "97a47835a9627d4b005caff34042332efb27fa00736297e5065bc08188ef7cab"
+  },
+  "sourceScope": {
+    "ordinaryNative": true,
+    "protectedAssistantOwnerBridge": "not implemented",
+    "readOnlyReaderControlsEnabled": false,
+    "configuredGrant": "runCommandUsers; explicit ordinary Native single-owner proxy scope",
+    "inheritsCancelGrant": false,
+    "browserActions": [
+      "review",
+      "confirm dispatch",
+      "discard unsubmitted review",
+      "exact-ID receipt recovery"
+    ],
+    "nativeKinds": [
+      "retry",
+      "resume",
+      "continue"
+    ],
+    "admissionMeansExecutionSuccess": false,
+    "maxReviewLifetimeSeconds": 120,
+    "maxReceiptWindow": 100,
+    "inputBody": "Private staged input until claim; exact original body passed once; staging input_json cleared before dispatch; old SQLite/WAL/backup bytes are not purged",
+    "persistedRecovery": "Descriptor only; same command UUID; no resend on restart/not_found/expiry-after-dispatch",
+    "binding": "Retry/resume retain reviewed historical binding; continue has no automatic Projects binding",
+    "originalEventsChanged": false,
+    "newRunObservation": "Native Run/Session/event ACL then metadata registration; normal collector later reads events"
+  },
+  "checks": {
+    "finalFull": {
+      "tests": 1093,
+      "pass": 1083,
+      "fail": 0,
+      "skipped": 10
+    },
+    "finalFocused": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0
+    },
+    "affectedHttpRegression": {
+      "tests": 66,
+      "pass": 66,
+      "fail": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "separateWebBuild": "passed",
+    "noFurtherCodeChangesAfterFinalFull": true,
+    "fixtureBoundaries": [
+      "real local HTTP",
+      "actual Node credential file I/O",
+      "real SQLite",
+      "actual Track routes/ports/clients"
+    ],
+    "nativeUpstream": "Synthetic; actual provider and production databases not used",
+    "independentReview": {
+      "worker": "Meitner",
+      "recommendedModel": "gpt-6-astra",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "freshContext": true,
+      "actualProviderExecutionObserved": false,
+      "finding": "Credential I/O occurs after the initial final fence",
+      "reproducedBeforeFix": true,
+      "finalFenceNowAfterCredentialIo": true,
+      "verifiedNativePostAfterRevocation": 0,
+      "explicitPreTransmissionWithheldDistinguishedFromUnknown": true,
+      "workerClosed": true
+    },
+    "coreWorker": {
+      "worker": "Ohm",
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "freshContext": true,
+      "actualProviderExecutionObserved": false,
+      "initialFocused": 20,
+      "parentIntegrationAndLaterChecksSeparate": true,
+      "workerClosed": true
+    }
+  },
+  "initialFullFailure": {
+    "result": {
+      "tests": 1092,
+      "pass": 1078,
+      "fail": 4,
+      "skipped": 10
+    },
+    "retained": true,
+    "failures": [
+      "Assistant native missing-receipt fixture initial link disconnected",
+      "Assistant HTTP redirect 503 instead of 502",
+      "Session relations API fetch bad port",
+      "Empty native discovery observation timeout"
+    ],
+    "confirmedBadPortFailures": 1,
+    "otherThreeSpecificAllocatedPortsNotRecorded": true,
+    "windowsDynamicTcpRangeObserved": {
+      "startPort": 1024,
+      "numberOfPorts": 13977
+    },
+    "fixtureFix": "Choose another OS allocation if Fetch explicitly blocks the port, before publishing fixture URL",
+    "standard": "https://fetch.spec.whatwg.org/#port-blocking",
+    "operatingSystemPolicyChanged": false,
+    "assertionOrTimeoutRelaxed": false,
+    "productHttpRequestsRetried": false
+  },
+  "priorFlowCi": {
+    "sourceCommit": "0c3ea3bc4f729739ad713d10a80373f615c94bbf",
+    "runId": 43520193426,
+    "conclusion": "success",
+    "coversThisSource": false
+  },
+  "operating": {
+    "changedByThisWork": false,
+    "credentialsOrScopesGranted": false,
+    "migrationsExecuted": false,
+    "localListenersObserved": {
+      "track": {
+        "port": 14345,
+        "pid": 78884
+      },
+      "dedicatedNativeApi": {
+        "port": 8081,
+        "pid": 16328
+      }
+    },
+    "currentPcAuthenticatedGuiVerified": false,
+    "operatingAgentTrailChanged": false
+  },
+  "remaining": [
+    "Protected Assistant owner authorization/command bridge",
+    "Ordinary Native receipt-derived Flow relations",
+    "New private Track table release/rollback verification",
+    "Source deployment gates and operating rollout",
+    "Authenticated current-PC UI and actual provider retry/resume acceptance"
+  ],
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null,
+    "eta": null,
+    "confidence": "low"
+  }
+}

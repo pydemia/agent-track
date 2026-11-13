@@ -31,7 +31,9 @@ enqueue 경합으로 활성 Run을 둘 만들 수 없다. COMMIT 응답 유실�
 Track에는 서버용 strict contract와 일반 owner용 transport를 추가했다.
 정해진 context/접수/복구 경로, source·Session·명령·kind·기한을 대조하고 긍정
 receipt만 받는다. durable409 거절과 `not_found`를 구분하고 응답 유실 시 자동
-재접수하지 않는다. 이 메서드는 아직 사용자 제어 route나 버튼에 연결하지 않았다.
+재접수하지 않는다. 후속 Track source에는 일반 Native owner의 검토·확인·단일 전송·
+동일 ID 복구 route와 버튼을 연결했다. [제어 경로와 남은 범위](run-successor-controls.md)를 따른다.
+운영 권한은 활성화하지 않았으며 보호된 Assistant 실행은 별도 owner 경로가 남아 있다.
 권한 stamp는 브라우저 receipt로 내보낼 데이터가 아니다.
 기한의 offset 표현은 원본 명령의 canonical UTC 문자열로 정규화한다.
 
@@ -82,7 +84,7 @@ CI43511220100은 네 job 모두 step 시작 전에 실패했다. GitHub annotati
 지원 capability가 없는 원본은 현재 역할만 조회하고 그 한계를 표시한다.
 Flow 시도 node·intent edge·역할 시도 그룹도 후속 source에 연결했다.
 AT-09의 남은 범위는 이 source의 운영 반영과 인증된 사용자 화면,
-현재 권한·capability와 제어 broker/UI 연결,
+보호된 Assistant owner의 권한·capability와 Track 제어 broker/UI 연결,
 receipt 재시작 복구·Flow 이동·사용자 화면과 실제 제공자 실행이다. native Run만
 생성하는 방식의 구현을 수용 완료로 세지 않는다. 명령 접수, 실행
 성공, Projects 업무 수용은 별도 상태다. 전체 수용률은15/21·71.4%(상위 동일

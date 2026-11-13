@@ -16,6 +16,7 @@ import type { Config, SourceConfig } from "../apps/api/config.ts";
 import type { AssistantCapabilitiesV2, AssistantExecutionMetadataV2 } from "../packages/contracts/assistant.ts";
 import type { AssistantExecutionView } from "../packages/contracts/assistant-view.ts";
 import type { SourceView } from "../packages/contracts/index.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const uuid = (n: number) => `${String(n).padStart(8, "0")}-1111-4111-8111-111111111111`;
 const executionId = uuid(1), roleId = uuid(2), projectId = uuid(3), taskId = uuid(4);
@@ -70,9 +71,7 @@ async function fixture(t: TestContext, timeout = 10_000) {
       res.end(JSON.stringify(status === 200 ? body : { error: "private-native-error" }));
     } catch { res.destroy(); }
   });
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address(); assert.ok(address && typeof address !== "string");
-  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const baseUrl = await listenHttp(server);
   writeFileSync(credentialFile, JSON.stringify({ version: 1, audience: "agent-track", sourceId: "assistant", user, ownerId,
     principalId: "reader", revision: 1, notBefore: "2020-01-01T00:00:00.000Z", expiresAt: "2099-01-01T00:00:00.000Z", nativeOrigin: baseUrl, secretFile }));
   t.after(async () => {

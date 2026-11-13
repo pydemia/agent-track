@@ -7,6 +7,7 @@ import { basename, dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { AssistantClient, AssistantSourceError } from "../packages/adapters/assistant/index.ts";
 import { AssistantReadService, AssistantReadError } from "../packages/assistant-read/service.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const instant = "2026-11-12T00:00:00.000Z";
 const owner = "sso-sub:" + "a".repeat(64);
@@ -14,15 +15,13 @@ const id = "00000000-0000-4000-8000-000000000001";
 
 async function listen(t: test.TestContext, handler: RequestListener) {
   const server = createServer(handler);
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+  const origin = await listenHttp(server);
   t.after(async () => {
     const closed = new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     server.closeAllConnections();
     await closed;
   });
-  const address = server.address();
-  assert.ok(address && typeof address !== "string");
-  return `http://127.0.0.1:${address.port}`;
+  return origin;
 }
 
 function files(t: test.TestContext) {

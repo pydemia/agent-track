@@ -29,6 +29,7 @@ export const sourceConfigSchema = z.object({
   device: z.string().min(1).max(120),
   users: z.array(email).min(1),
   cancelUsers: z.array(email).optional(),
+  runCommandUsers: z.array(email).optional(),
   approvalUsers: z.array(email).optional(),
   assignmentUsers: z.array(email).optional(),
   assignmentSessionIds: z.array(z.uuid()).max(100).optional(),
@@ -90,6 +91,12 @@ export const configSchema = z.object({
       }
     }
     for (const source of config.sources) {
+      const commandOwners = config.auth.mode === "proxy" ? config.auth.users : [];
+      if (source.runCommandUsers?.length && (source.kind !== "demian" || !!source.assistantNativeSourceId || !source.baseUrl ||
+          config.auth.mode !== "proxy" || config.auth.users.length !== 1 ||
+          source.runCommandUsers.some(user => !source.users.includes(user) || !commandOwners.includes(user)))) {
+        context.addIssue({ code: "custom", message: "Run commands require an explicit ordinary Native single-owner grant" });
+      }
       if (source.assistantNativeSourceId) {
         const producer = config.sources.find(item => item.id === source.assistantNativeSourceId);
         const mapping = producer?.assistantDemianMappings?.filter(item => item.sourceId === source.id);

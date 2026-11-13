@@ -123,7 +123,7 @@ export class SourceError extends Error {
 export class DemianClient {
   constructor(readonly options: DemianOptions) {}
 
-  private async request(path: string, signal?: AbortSignal, body?: object, acceptedStatuses: readonly number[] = []): Promise<Response> {
+  private async request(path: string, signal?: AbortSignal, body?: object, acceptedStatuses: readonly number[] = [], beforeDispatch?: () => void): Promise<Response> {
     const headers: Record<string, string> = { Accept: "application/json" };
     if (body) headers["Content-Type"] = "application/json";
     if (this.options.tokenFile) {
@@ -134,10 +134,14 @@ export class DemianClient {
       headers.Authorization = `Bearer ${token}`;
     }
     if (this.options.organizationId) headers["X-Demian-Organization-Id"] = this.options.organizationId;
-    const response = await (this.options.fetch ?? fetch)(`${this.options.baseUrl.replace(/\/$/, "")}${path}`, {
+    const requestOptions: RequestInit = {
       headers, redirect: "error", signal: signal ?? this.options.signal ?? AbortSignal.timeout(15_000),
       ...(body ? { method: "POST", body: JSON.stringify(body) } : {}),
-    });
+    };
+    // Credential I/O and serialization finish before the caller's final fence.
+    // The callback is synchronous; no await may separate it from fetch.
+    if (beforeDispatch && beforeDispatch() !== undefined) throw new Error("Dispatch fence must be synchronous");
+    const response = await (this.options.fetch ?? fetch)(`${this.options.baseUrl.replace(/\/$/, "")}${path}`, requestOptions);
     if (!response.ok && !acceptedStatuses.includes(response.status)) { await response.body?.cancel(); throw new SourceError(response.status); }
     return response;
   }
@@ -158,11 +162,11 @@ export class DemianClient {
     return value;
   }
 
-  async command(raw: NativeCommandWrite, sessionId: string): Promise<NativeCommandReceipt> {
+  async command(raw: NativeCommandWrite, sessionId: string, beforeDispatch?: () => void): Promise<NativeCommandReceipt> {
     const input = nativeCommandWriteSchema.parse(raw), session = relationUuidSchema.parse(sessionId);
     const signal = this.options.signal ?? AbortSignal.timeout(15_000);
     // A durable rejection is a receipt. Other 409 bodies fail closed; no retry here.
-    const response = await this.request(`/api/v1/runs/${input.command.sourceRunId}/commands`, signal, input, [409]);
+    const response = await this.request(`/api/v1/runs/${input.command.sourceRunId}/commands`, signal, input, [409], beforeDispatch);
     if (![200, 202, 409].includes(response.status)) { await response.body?.cancel(); throw new Error("Unexpected native command status"); }
     const value = nativeCommandReceiptSchema.parse(await readBoundedNativeJson(response, signal));
     if (value.command_id !== input.command.commandId || value.source_run_id !== input.command.sourceRunId ||

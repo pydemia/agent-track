@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RunView } from "../../../packages/contracts/index.ts";
 import type { Receipt, ReceiptState } from "../../../packages/commands/index.ts";
+import { RunSuccessorControls } from "./RunSuccessorControls.tsx";
 
 const names: Record<ReceiptState, string> = {
   requested: "요청 기록", dispatching: "전송 중", accepted: "원본 접수",
@@ -101,12 +102,13 @@ export function RunControls({ run, onUnauthorized }: { run: RunView; onUnauthori
 
   const blocked = sending || !ready || ambiguous || receipts.some((item) => unresolved.has(item.state));
   return <section className="run-controls" aria-label="실행 제어">
-    <div className="unsupported-actions"><button disabled title="원본의 범용 재개 계약이 없습니다.">재개 · 미지원</button><button disabled title="원본의 범용 재시도 계약이 없습니다.">재시도 · 미지원</button>
+    <div className="unsupported-actions">
       <button disabled={!permitted || !cancellable.has(run.status) || blocked} onClick={() => setConfirming(true)}>{sending ? "취소 전송 중…" : permitted ? "실행 취소" : "취소 · 미지원"}</button></div>
     {confirming && <div className="cancel-confirm"><p>이 Run의 실행을 취소합니다. 원본이 취소를 접수한 뒤 종료 상태를 별도로 확인합니다.</p><code>{run.runId}</code><div><button onClick={() => void cancel()}>취소 요청 보내기</button><button onClick={() => setConfirming(false)}>돌아가기</button></div></div>}
     {error && <p role="alert" className="command-error">{error}</p>}
     {ambiguous && <small>요청 ID: {pendingId.current} · 새 요청은 잠겨 있습니다. 원본 세션에서 상태를 확인할 수 있습니다.</small>}
     {!!receipts.length && <ol className="receipt-list" aria-label="취소 처리 기록" aria-live="polite">{receipts.slice(-5).reverse().map((item) => <li key={item.id}><strong>{names[item.state]}</strong><time>{new Date(item.updatedAt).toLocaleTimeString("ko-KR")}</time><small>{item.state === "accepted" ? "접수됨 · 종료 확인 대기" : item.state === "unknown" ? "원본 재조회 중 · 재전송 없음" : item.state === "succeeded" ? "원본에서 취소 종료 상태 관측" : item.state === "failed" ? "원본 상태·연결을 확인해 주세요." : "요청 처리 상태이며 Run 종료 상태와 별도입니다."}</small></li>)}</ol>}
     {!permitted && <small>이 출처 또는 계정에는 실행 취소 기능이 열려 있지 않습니다.</small>}
+    <RunSuccessorControls key={run.key} run={run} onUnauthorized={onUnauthorized} />
   </section>;
 }

@@ -54,6 +54,7 @@ export class Sources {
         capabilities: [...view.capabilities,
           ...(canBind && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" ? ["binding.write"] : []),
           ...(singleOwner && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" && source.approvalUsers?.includes(user) ? ["permission.decide"] : []),
+          ...(singleOwner && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" && source.runCommandUsers?.includes(user) ? ["run.commands"] : []),
           ...(singleOwner && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
     });
   }

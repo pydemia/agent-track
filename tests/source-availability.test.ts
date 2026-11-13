@@ -5,6 +5,7 @@ import test, { describe } from "node:test";
 import { Sources } from "../apps/api/runner.ts";
 import type { Config } from "../apps/api/config.ts";
 import { Store } from "../packages/storage/store.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const user = "owner@example.com";
 const now = "2026-11-12T01:00:00.000Z";
@@ -21,15 +22,14 @@ async function until(predicate: () => boolean) {
   assert.ok(predicate(), "source observation did not reach the expected condition");
 }
 async function fixture(native: Server, runIds = ["first"], options: { seed?: boolean; discover?: boolean; sessions?: string[] } = {}) {
-  await new Promise<void>(resolve => native.listen(0, "127.0.0.1", resolve));
-  const address = native.address(); assert.ok(address && typeof address !== "string");
+  const nativeOrigin = await listenHttp(native);
   const store = new Store(":memory:");
   if (options.seed !== false) store.observeRun({ sourceId: "native", runId: "first", sessionId: "session", workspaceId: "workspace",
     title: "previous observation", status: "running", createdAt: now, startedAt: now,
     completedAt: null, observedAt: now });
   const config: Config = { port: 14345, database: ":memory:", publicOrigin: "http://localhost",
     auth: { mode: "local", user }, sources: [{ id: "native", kind: "demian", label: "native", device: "test",
-      users: [user], baseUrl: `http://127.0.0.1:${address.port}`, runIds, discoverActive: options.discover ?? false,
+      users: [user], baseUrl: nativeOrigin, runIds, discoverActive: options.discover ?? false,
       ...(options.sessions ? { assignmentSessionIds: options.sessions } : {}),
       repositoryRoots: [], maxFiles: 10, sinceDays: 7 }] };
   const sources = new Sources(store, () => config);
