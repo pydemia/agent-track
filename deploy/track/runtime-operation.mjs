@@ -12,7 +12,7 @@ import {verifyRuntimeRelease} from './runtime-release.mjs';
 import {trackDatabaseFingerprint} from './sqlite-preservation.mjs';
 import {inspectApiProcess, apiListeners} from '../demian/windows-api-process.mjs';
 import {inspectOwnedWeb, stopOwnedWeb} from '../demian/windows-web-process.mjs';
-import {nativeWebDatabaseState} from '../demian/native-web-database.mjs';
+import {nativeWebDatabaseState,assertNativeWebDatabasePreserved} from '../demian/native-web-database.mjs';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const state = join(homedir(), '.local/share/agent-track');
@@ -159,7 +159,7 @@ async function nativePreserved(c) {
   const native = join(homedir(), '.demian/service'), service = await load(join(native, 'service.json')), secrets = await load(join(native, 'secrets.json'));
   const {Client} = createRequire(join(service.repository, 'package.json'))('pg');
   const pg = new Client({host: '127.0.0.1', port: service.databasePort, user: 'demian', database: 'demian', password: secrets.databasePassword, options: '-c default_transaction_read_only=on', connectionTimeoutMillis: 5000, statement_timeout: 10000, application_name: 'track-runtime-preservation'});
-  try { await pg.connect(); const actual = await nativeWebDatabaseState(pg); for (const key of ['dataSha256', 'schemaSha256', 'sequenceSha256']) assert.equal(actual.data[key], c.b.nativeDatabase.data[key]); assert.equal(actual.security.sha256, c.b.nativeDatabase.security.sha256); } finally { await pg.end(); }
+  try { await pg.connect(); const actual = await nativeWebDatabaseState(pg,{workerFreshness:c.b.nativeDatabase.data.workerFreshness?.version===1}); assertNativeWebDatabasePreserved(c.b.nativeDatabase,actual); } finally { await pg.end(); }
   const format = '{"id":{{json .Id}},"image":{{json .Image}},"running":{{json .State.Running}},"started":{{json .State.StartedAt}},"ports":{{json .NetworkSettings.Ports}},"mounts":{{json .Mounts}}}';
   const actual = JSON.parse((await exec('docker.exe', ['inspect', '--format', format, service.containerId], {windowsHide: true, timeout: 15000, maxBuffer: 1048576})).stdout); assert.deepEqual(actual, c.b.container);
 }
