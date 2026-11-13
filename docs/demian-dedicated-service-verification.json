@@ -254,8 +254,22 @@
       "windows": "failure",
       "failingCases": "Two new dedicated-release positive cases; local Windows cases passed",
       "fixtureChange": "Create and clean the fixture under realpath(tmpdir()), as existing strict release fixtures do; production verifier unchanged",
-      "currentRevisionResult": "pending CI confirmation",
-      "operatingServicesChangedByFixtureFix": false
+      "currentRevisionResult": "success",
+      "operatingServicesChangedByFixtureFix": false,
+      "validatedRevision": "cc06da028a0e6367112f2fc6bf0f2abd1a836391",
+      "validatedRun": 43429197842,
+      "validatedRunUrl": "https://github.com/pydemia/agent-track/actions/runs/43429197842",
+      "validatedJobs": [
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "scope": "Current implementation and fixture correction; subsequent evidence-only documents reuse this result"
     }
   },
   "preservation": {
