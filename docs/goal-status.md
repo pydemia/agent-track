@@ -1,5 +1,19 @@
 # Agent Track 구현 goal 기준표
 
+2026-11-13 동결 업그레이드 후속: v2 operator `f73a6d0`의 Windows957개 중
+948통과·9skip, Ubuntu957개 중933통과·24skip, 양쪽 실패0·타입 검사·build를
+확인했다. 실제12테이블 backup·후보/복구18웹 자산의 격리 cold start를 거쳐
+API·웹 `0a6a900`을 함께 전환했다. PID46404의 실제 generation/listener와
+18웹 파일 bytes/MIME, Task 두 개의 저장 보기 생성/조회·revision409·삭제를
+대조했다. 원래 설정 bytes·기존 이력·native45테이블/보안·다른17프로세스와
+bridge를 보존했다. 익명/위조API401·Track/Trail Entra302도 유지된다.
+Assistant는 최초 미인가 상태에서 실제 목록/상세/이벤트200·1실행/1역할/37이력을
+읽은 뒤 connected를 확인했다. 새 모델 요청·원본 업무 생성은 없다.
+SDK/worker·운영 Entra GUI·실제 병렬/peer·교차 앱/추가 기기는 남아 AT-12/18의
+전체 실기 완료로 올리지 않는다. 전체14/21(동일 가중치66.7%)·ETA 산정 불가·
+신뢰도 낮음이며 남은 실제 연동과 운영 GUI를 전제로 한다. 상세는
+`track-runtime-upgrade-verification.json`이다. 아래 단락은 각 시점의 이력이다.
+
 2026-11-13 명시 협업 연결 후속: SDK `8a7f7f2`와 Track `fc87202`의 새 버전
 metadata에서 group/member/invocation ID와 `dependsOn`을 연결했다. 실제 새
 Run1/attempt1·호출3·멤버2·61event·모델 요청4에서 결과 전달과 정확한 ID를
@@ -271,7 +285,8 @@ child/peer·dependency 근거 연결이 남았다.
 `native-flow-verification.json`·`native-task-assignment-verification.json`이다.
 Node group 추가는 AT-12를 확장하며 전체 분모·완료 개수를 바꾸지 않는다.
 네 보기의 공통 화면 선택은 현재 접속 상태다. 별도 계정별 저장 보기의 명시 복원은
-AT-12-G06으로 구현·격리 검증했으며 실제 owner 운영 반영은 후속이다.
+AT-12-G06으로 구현·격리 검증했으며 실제 owner 운영 반영과 실제 Task 두 개의
+저장/조회·revision 충돌·삭제는 위 동결 전환 기록에서 확인했다.
 2026-11-13 native QA 기동 후속 `8afec9e`는 descriptor/release/private pin·현재
 registry·home 설정 부재를 검증하고 claim/idle 한도 후 종료한다. 관련245개 검사와
 실제 compiled entry의 임시 DB/제어 provider 실행을 통과했다. 운영 migration·worker

@@ -30,9 +30,18 @@ Track `fc87202`는 이를 현재 인가된 Run 이벤트로부터 읽어 **협�
 390px 폭도 대조했다. 화면 캡처에 근거한 시각 품질 판정은 하지 않았다.
 Trace·Trail은 Run 미선택 상태에서도 현재 필터의 실행 선택 안내를 제공한다.
 native SDK 변경은 별도 worktree의 로컬 commit이고 운영 전환하지 않았다.
-Track의 새 API·웹도 운영 반영 전이다. 실제 병렬 분기·합류, 교차 앱·추가 기기의
+Track의 새 API·웹은 아래 후속에서 운영 반영했다. 실제 병렬 분기·합류, 교차 앱·추가 기기의
 전체 업무는 후속이다. 실기 경계와 원본 보존은
 [협업 연결 검증 기록](native-cowork-flow-verification.json)에 구분했다.
+
+2026-11-13 운영 후속: API와 웹 `0a6a900`을 같은 동결 release로 전환했다.
+그룹 내부 탐색·명시 멤버 연결·선행 관계 consumer와 edge 유지 수정이 포함된다.
+운영 HTTP18자산의 bytes/MIME, 실제 허용 Task 두 개의 저장 보기·revision409·
+삭제와 기존 이력·원본 서비스를 대조했다. 운영 native SDK/worker는 변경하지
+않았으므로 기존19Run에 없는 새 metadata를 생성하거나 추정하지 않는다.
+격리 실기의12node/21edge·8그룹 검증과 운영 자산 게시를 구별하며, 이번 전환에서
+새 운영 브라우저 상호작용·Entra GUI를 확인했다고 하지 않는다.
+[동결 업그레이드 기록](track-runtime-upgrade-verification.json)에 실제 범위를 남겼다.
 
 ## 화면별 책임
 

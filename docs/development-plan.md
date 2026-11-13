@@ -14,8 +14,14 @@ worker의 운영 교체는 하지 않았다. Track `a56f558`은 그룹 범위 �
 중첩 그룹을 구현했다. 새 실제61event에서 dependency와 명시 호출 join을
 대조했으며, `0a6a900`으로 상태 갱신 때 포트 측정이 초기화되어 edge가 사라지는
 문제도 수정했다. 실제21edge 유지와 접힌 그룹20edge·원본seq16을 확인했다.
-다음 그룹 작업은 현재 동결 운영에 맞는 새 paired rollout과 실제 병렬 분기·합류
-대조다. peer/다른 기기와 전체 업무 수용의 증거로 확대하지 않는다.
+현재 동결 버전의 조건부 교체·독립 복구를 지원하는 v2 operator `f73a6d0`을
+구현하고 Windows·Ubuntu CI를 통과했다. 실제12테이블 backup과 양쪽18자산의
+격리 cold start를 거쳐 `0a6a900` API·웹을 함께 운영 반영했다. Task 두 개의
+계정별 저장 보기·revision409·삭제, 기존 이력과 원본 서비스 보존을 확인했다.
+Assistant의 최초 미인가 표시는 실제 목록/상세/이벤트200을 거친 뒤 connected로
+확인했다. 다음 그룹 작업은 실제 병렬 분기·합류 대조와 소유자 경계에 따른
+SDK/worker 운영 전환이다. peer/다른 기기와 전체 업무 수용의 증거로 확대하지 않는다.
+[운영 업그레이드 증거](track-runtime-upgrade-verification.json)를 따른다.
 [실행·보존 기록](native-cowork-verification.json)을 따른다.
 [후속 명시 관계·renderer 검증](native-cowork-flow-verification.json)에서 새 실제
 실행과 운영 미반영 범위를 구분한다.

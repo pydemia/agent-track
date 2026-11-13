@@ -93,7 +93,7 @@ source·model 요청은0이며 원본 DB 복원은 하지 않았다. 세 복구 
 재현 후 회귀로 확인했고, Windows의 config 읽기/쓰기/교체 lock도 실기로 대조했다.
 이 준비 검증은 운영 전환이나 OS crash 복구 검증을 대신하지 않는다.
 
-## 현재 검증 범위
+## 최초 설치 검증 이력
 
 실제 backup과 두 release의 격리 cold start는 완료했다. 기존11테이블·18웹 파일을
 각각 확인했고 후보에만 저장 보기 테이블·index가 추가됐다. 원본 설정·39보호파일·
@@ -101,6 +101,23 @@ source·model 요청은0이며 원본 DB 복원은 하지 않았다. 세 복구 
 pending 의미 회귀24검사를 통과했다. 배포 도구 `4d7da28`의 Windows·Ubuntu CI가
 통과한 뒤 실제 driver를 수행해 API·웹 `7e98793`을 함께 전환했다. 실제 허용 Task
 두 개의 저장 보기 생성·조회·revision409·임시 보기 삭제와 기존 이력 보존을
-확인했다. 현재 PID21312의 실제 신원·listener와 공개 로그인 보호도 확인했다.
+확인했다. 당시 PID21312의 실제 신원·listener와 공개 로그인 보호도 확인했다.
 Entra GUI와 crash/fault injection은 미검증이다. 실제 결과와 CI923검사·환경별
 skip은 `track-frozen-runtime-verification.json`에 구분해 기록한다.
+
+## 현재 동결 업그레이드 검증
+
+2026-11-13 operation `c27dd37a-983a-4213-8d72-c17e89bc0f18`에서 `7e98793`을
+복구 기준으로 보존하고 API·웹 `0a6a900`을 함께 전환했다. operator `f73a6d0`의
+Windows·Ubuntu CI957검사·타입 검사·build를 확인한 뒤 driver를 한 번 실행했다.
+실제 PID46404·생성 시점·listener·receipt·manifest와 HTTP18파일 bytes/MIME를
+대조했다. 원래 설정·기존 이력·native45테이블 전체 상태/보안/container와 다른
+17프로세스를 보존했다. 허용 Task 두 개의 저장 보기 생성/조회·revision409·삭제,
+익명/위조API401과 Track/Trail302를 확인했다. Assistant의 권한은 실제 목록·
+상세·이벤트200을 거쳐 connected로 확인했다. 원본 Task/Run 생성·모델 요청은0이다.
+
+현재 operation은 committed이며 재실행하지 않는다. 초기 설치 operation도
+이미 소비됐다. 다음 변경은 새 실제 상태에서 별도 operation을 준비한다.
+운영 Entra GUI와 OS crash/fault injection, native SDK/worker 전환은 미검증이다.
+앞선 실제 QA의 그룹/edge 행동 검증을 새 운영 브라우저 검증으로 확대하지 않는다.
+실제 범위와 CI의 환경skip은 `track-runtime-upgrade-verification.json`에 기록한다.
