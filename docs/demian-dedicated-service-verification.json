@@ -246,7 +246,17 @@
     },
     "nativeBuildAndApiWorkerDbTypecheck": true,
     "trackTypecheck": true,
-    "independentSourceReview": "No additional concrete rollout blocker found in migration026, dedicated API and registration configuration; static scope only"
+    "independentSourceReview": "No additional concrete rollout blocker found in migration026, dedicated API and registration configuration; static scope only",
+    "trackCiFollowUp": {
+      "initialRun": 43428781310,
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43428781310",
+      "ubuntu": "success",
+      "windows": "failure",
+      "failingCases": "Two new dedicated-release positive cases; local Windows cases passed",
+      "fixtureChange": "Create and clean the fixture under realpath(tmpdir()), as existing strict release fixtures do; production verifier unchanged",
+      "currentRevisionResult": "pending CI confirmation",
+      "operatingServicesChangedByFixtureFix": false
+    }
   },
   "preservation": {
     "at": "2026-11-13T12:46:46.951Z",

@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
-import {mkdtemp,mkdir,writeFile,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,realpath,rm,symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {dedicatedReleaseHash,verifyDedicatedRelease} from '../deploy/demian/dedicated-release.mjs';
 
 const hash=(bytes:string)=>createHash('sha256').update(bytes).digest('hex');
 async function fixture(run:(root:string,manifest:any,publish:()=>Promise<string>)=>Promise<void>){
- const root=await mkdtemp(path.join(tmpdir(),'demian-dedicated-release-'));
+ const temporary=await realpath(tmpdir());
+ const root=await mkdtemp(path.join(temporary,'demian-dedicated-release-'));
  try{
   const files=[];
   for(const file of ['apps/api/dist/dedicated-work-main.mjs','apps/worker/dist/main.mjs','nodejs/dist/index.mjs']){
@@ -18,7 +19,7 @@ async function fixture(run:(root:string,manifest:any,publish:()=>Promise<string>
   const manifest={version:1,kind:'demian-dedicated-work-release',nativeRevision:'a'.repeat(40),trackRevision:'b'.repeat(40),node:{version:process.version,sha256:await dedicatedReleaseHash(process.execPath)},files,links:[] as {path:string;target:string}[]};
   const publish=async()=>{const bytes=JSON.stringify(manifest);await writeFile(path.join(root,'service-release.json'),bytes);return hash(bytes);};
   await run(root,manifest,publish);
- }finally{assert.equal(path.dirname(root),path.resolve(tmpdir()));await rm(root,{recursive:true,force:true});}
+ }finally{assert.equal(path.dirname(root),temporary);await rm(root,{recursive:true,force:true});}
 }
 
 test('operating manifest verifies closure independently of QA expiry and rejects changed bytes',async()=>fixture(async(root,_manifest,publish)=>{
