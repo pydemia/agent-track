@@ -5,7 +5,7 @@ import type { Store } from "../../packages/storage/store.ts";
 import type { SourceView } from "../../packages/contracts/index.ts";
 import { normalizeEvent } from "../../packages/adapters/demian/index.ts";
 
-interface Grant { stamp: string; observedAt: string; runIds: string[]; partial: boolean }
+interface Grant { stamp: string; observedAt: string; runIds: string[]; partial: boolean; attemptCoverage: "coordinator-history" | "current-role-only" }
 
 /** Protected native observations use only the owner-bound Assistant reader, never executor keys. */
 export class AssistantNativeCollector {
@@ -37,7 +37,7 @@ export class AssistantNativeCollector {
       state: grant ? "connected" : this.failures.get(source.id) === "disconnected" ? "disconnected" : "forbidden",
       authorizedRunIds: grant?.runIds ?? [], lastObservedAt: grant?.observedAt ?? null,
       capabilities: grant ? ["run.read", "events.read", "run.evidence"] : [],
-      detail: grant ? `Assistant에서 현재 인가한 실행 metadata. 최근 업무 50개·실행 64개·실행별 이벤트 250개 조회 창${grant.partial ? "(일부 업무 제외)" : ""}. 전체 이력·도구 입출력·실행 제어와 별개입니다.`
+      detail: grant ? `Assistant에서 현재 인가한 실행 metadata. ${grant.attemptCoverage === "coordinator-history" ? "역할별 보존 시도 포함" : "과거 시도 조회 미지원: 현재 역할의 Run만"}. 최근 업무 50개·실행 64개·실행별 이벤트 250개 조회 창${grant.partial ? "(일부 업무 제외)" : ""}. 전체 이력·도구 입출력·실행 제어와 별개입니다.`
         : "보호된 실행의 현재 Assistant/Projects 인가를 확인하지 못했습니다. 저장된 실행도 숨깁니다." };
   }
 
@@ -80,7 +80,8 @@ export class AssistantNativeCollector {
       }
       if (this.stamp(source, user) !== stamp) throw new AssistantAuthorityError(403);
       this.grants.set(source.id, { stamp, observedAt: new Date().toISOString(),
-        runIds: window.observations.map(item => item.page.run.id), partial: window.partial });
+        runIds: window.observations.map(item => item.page.run.id), partial: window.partial,
+        attemptCoverage: window.attemptCoverage ?? "current-role-only" });
       this.failures.delete(source.id);
     } catch (error) {
       this.grants.delete(source.id);

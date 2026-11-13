@@ -58,8 +58,11 @@ Track 서버용 계약·일반 owner transport도 추가했다. 두 suite의 중
 cancel-only다. 후속 Assistant e9c6f7c에 owner intent·이전 시도 history·새 correlation/ref·
 native 명령 한 번 접수와 같은 ID 복구를 구현했고, 관련241개와 실제 PostgreSQL/
 Assistant schema·signer·gateway 연동3개를 통과했다. 원본의 후속 paired 검사 source는
-2c113bb다. 운영 반영, Track 과거 시도의 보호 reader·제어 broker/UI·Flow와 실제 제공자
-검증은 **미완료**다. [단계별 근거](assistant-run-command-verification.json)를 따른다.
+2c113bb다. 후속 Persona2aefb07·Track에 과거 시도 보호 reader와 시도별 native/evidence
+조회를 구현했다. 원본 Run·이벤트 원장 보존과 현재 인가 재검사를 실제 reader/client 및
+Track HTTP/SQLite 검사로 확인했다. [조회 계약과 다음 Flow 연결](assistant-attempts.md),
+[검사 범위](assistant-attempt-verification.json)를 따른다. 운영 반영, 시도 node/edge/group,
+제어 broker/UI와 실제 제공자 검증은 **미완료**다.
 AT-09를 기존 전체 목표에서 제외하지 않는다. 변경된 모델·역할·입력은 새 요청/revision으로
 검토하며, 실패 전에 이미 발생했을 수 있는 외부 효과를 rollback됐다고 표시하지 않는다.
 

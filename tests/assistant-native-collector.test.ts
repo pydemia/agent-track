@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { createServer, type Server } from "node:http";
 import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -16,6 +16,7 @@ import { projectTrace } from "../packages/projection/trace.ts";
 import { sourceIdentity } from "../apps/api/source-identity.ts";
 import { nativeEvidenceFixture } from "./fixtures/native-run-evidence.ts";
 import { nativeRunEvidenceViewSchema } from "../packages/contracts/native-run-evidence.ts";
+import type { AssistantRoleAttemptsPage } from "../packages/contracts/assistant-attempts.ts";
 
 const user = "owner@example.com", ownerId = "sso-sub:" + "a".repeat(64);
 const uuid = (value: number) => `00000000-0000-4000-8000-${String(value).padStart(12, "0")}`;
@@ -46,6 +47,7 @@ async function fixture(t: test.TestContext, count = 5) {
   let hook = async (_after: string, _limit: number) => {};
   let evidenceHook = async (_after: string, _limit: number) => {};
   let responseHook = (value: unknown): unknown => value;
+  let attemptPage: AssistantRoleAttemptsPage | null = null;
   const calls: string[] = [], methods: string[] = [];
   const native = { id: executionId, instructionId: executionId, instructionRevision: 1, revision: 1, state: "completed",
     errorCode: null, taskRef: { sourceService: "projects", sourceId: taskId, projectId, revision: 1, state: "todo", asOf: now,
@@ -90,7 +92,39 @@ async function fixture(t: test.TestContext, count = 5) {
       assert.equal(req.method, "GET");
       assert.equal(req.headers.cookie, undefined);
       let body: unknown;
-      if (req.url!.startsWith("/api/integrations/track/v2/")) body = responseHook(await service.handle({ method: req.method!, url: req.url!, headers: req.headers }));
+      if (attemptPage && req.url!.startsWith(`/api/integrations/track/v2/executions/${executionId}/roles/${roleId}/attempts`)) {
+        // Synthetic new producer contract. The existing real reader validates
+        // the same credential before any custom history response is released.
+        await service.handle({ method: "GET", url: "/api/integrations/track/v2/capabilities", headers: req.headers });
+        if (!visible) throw new AssistantReadError(404, "track_execution_missing");
+        const url = new URL(req.url!, "http://fixture.invalid"), suffix = url.pathname.split("/attempts")[1]!;
+        if (!suffix) body = structuredClone(attemptPage);
+        else {
+          const match = /^\/([^/]+)\/(native|native-evidence)$/.exec(suffix), selected = attemptPage.attempts.find(row => row.id === match?.[1]);
+          if (!match || !selected?.demian) throw new AssistantReadError(404, "track_execution_missing");
+          const after = url.searchParams.get("after") ?? "0", limit = Number(url.searchParams.get("limit") ?? "100");
+          await (match[2] === "native" ? hook : evidenceHook)(after, limit);
+          const value = structuredClone(metadata(after, limit)), ref = selected.demian;
+          value.run = { ...value.run, id: ref.runId, correlation_id: selected.id,
+            context_sha256: createHash("sha256").update(selected.id).digest("hex"), status: selected.state === "completed" ? "succeeded" : "failed" };
+          value.events.data = value.events.data.map(event => ({ ...event, run_id: ref.runId,
+            ...(event.type === "run.completed" && selected.state !== "completed" ? { type: "run.failed", data: { status: "failed" } } : {}) }));
+          body = { version: 1, executionId, roleId, observedAt: now, page: value };
+          if (match[2] === "native-evidence") {
+            const evidence = nativeEvidenceFixture(after, limit);
+            evidence.run = value.run;
+            evidence.events.data = evidence.events.data.map(event => ({ ...event, runId: ref.runId }));
+            evidence.timings = [{ kind: "wall", source: "runs.started_at-to-completed_at", startedAt: now, endedAt: now }];
+            evidence.artifacts = [];
+            evidence.artifactState = selected.state === "completed" ? "available" : "not-ready";
+            body = { version: 1, executionId, roleId, observedAt: now, page: evidence };
+          }
+        }
+        body = responseHook(body);
+      } else if (req.url!.startsWith("/api/integrations/track/v2/")) {
+        const value = await service.handle({ method: req.method!, url: req.url!, headers: req.headers });
+        body = responseHook(attemptPage && req.url!.endsWith("/capabilities") ? { ...value as object, roleAttemptsSupported: true } : value);
+      }
       else if (req.url === "/api/integrations/assistant/v1/capabilities") body = { version: 1, projectsRead: true, tasksRead: true, tasksCreate: false, tasksUpdate: false, resultsAttach: false };
       else if (req.url === "/api/integrations/assistant/v1/projects") body = projectAllowed ? [{ id: projectId, name: "Project", version: 1, access_revision: 1, archived: false }] : [];
       else if (req.url === `/api/integrations/assistant/v1/tasks/${taskId}`) {
@@ -127,8 +161,67 @@ async function fixture(t: test.TestContext, count = 5) {
     set visible(value: boolean) { visible = value; }, set projectAllowed(value: boolean) { projectAllowed = value; },
     set missingTask(value: boolean) { missingTask = value; }, set hook(value: typeof hook) { hook = value; },
     set evidenceHook(value: typeof evidenceHook) { evidenceHook = value; },
+    set attemptPage(value: AssistantRoleAttemptsPage | null) {
+      attemptPage = value;
+      const current = value?.attempts.find(row => row.current)?.demian;
+      if (current) native.trackDemianReferences = [{ roleId, ...current }];
+      if (value?.attempts.length) { const latest = value.attempts.at(-1)!; native.roles[0]!.state = latest.state; native.state = latest.state === "completed" ? "completed" : "failed"; }
+    },
     set responseHook(value: typeof responseHook) { responseHook = value; } };
 }
+
+const historyAttempt = (current: boolean) => ({ id: uuid(10), ordinal: 1, current, state: "failed" as const,
+  runtimeTaskId: "original-runtime-task", demian: { origin: nativeOrigin, organizationId, workspaceId, sessionId,
+    runId: uuid(9), operationId: uuid(10) }, command: null });
+const attempts = (promoted = false): AssistantRoleAttemptsPage => ({ version: 1, executionId, roleId,
+  coverage: "coordinator-history", observedAt: now, total: promoted ? 2 : 1,
+  attempts: [historyAttempt(!promoted), ...(promoted ? [{ id: uuid(11), ordinal: 2, current: true, state: "completed" as const,
+    runtimeTaskId: "new-runtime-task", demian: { origin: nativeOrigin, organizationId, workspaceId, sessionId, runId, operationId: uuid(11) },
+    command: { id: uuid(11), kind: "retry" as const, predecessorAttemptId: uuid(10), provenance: "coordinator-intent" as const } }] : [])] });
+
+test("protected history keeps the original Run authorized after retry and preserves its exact journal", async t => {
+  const f = await fixture(t); f.attemptPage = attempts();
+  const first = await f.snapshot(), originalKey = externalKey("protected", uuid(9));
+  assert.deepEqual(first.runs.map(run => run.runId), [uuid(9)]);
+  const original = f.store.events(originalKey).events;
+  f.attemptPage = attempts(true);
+  const next = await f.snapshot();
+  assert.deepEqual(next.runs.map(run => run.runId).sort(), [uuid(9), runId].sort());
+  assert.match(next.sources.find(source => source.id === "protected")!.detail, /보존 시도 포함/);
+  assert.deepEqual(f.store.events(originalKey).events, original);
+  assert.equal(next.runs.find(run => run.runId === uuid(9))!.status, "failed");
+  assert.equal(next.runs.find(run => run.runId === runId)!.status, "succeeded");
+  assert.ok(f.calls.some(path => path.includes(`/attempts/${uuid(10)}/native?`)));
+  assert.ok(f.calls.some(path => path.includes(`/attempts/${uuid(11)}/native?`)));
+  assert.equal(f.calls.some(path => /\/roles\/[^/]+\/native\?/.test(path)), false);
+  const detail = await fetch(`${f.origin}/api/runs/${originalKey}/evidence?after=0&limit=250`);
+  assert.equal(detail.status, 200, JSON.stringify({ body: await detail.clone().text(), sources: f.sources.views(user), calls: f.calls.slice(-18) })); const evidence = await detail.json();
+  assert.equal(evidence.runKey, originalKey);
+  assert.doesNotMatch(JSON.stringify(evidence), /context_sha|binding_sha|PRIVATE_ERROR/);
+  assert.ok(f.methods.every(method => method === "GET"));
+});
+
+test("historical Native evidence rechecks the exact attempt and cannot borrow the new current Run", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(true); await f.snapshot();
+  const oldKey = externalKey("protected", uuid(9));
+  let withdrawn = false;
+  f.evidenceHook = async () => { if (!withdrawn) { withdrawn = true; const page = attempts(true); page.attempts[0]!.demian = null; f.attemptPage = page; } };
+  const result = await fetch(`${f.origin}/api/runs/${oldKey}/evidence?after=0&limit=250`);
+  assert.equal(result.status, 200, JSON.stringify({ body: await result.clone().text(), source: f.sources.views(user).find(source => source.id === "protected") })); const denied = await result.json();
+  assert.equal(withdrawn, true); assert.equal(denied.state, "forbidden"); assert.equal(denied.page, null);
+  assert.doesNotMatch(JSON.stringify(denied), /context_sha|PRIVATE_ERROR/);
+  assert.equal(f.calls.some(path => path.includes(`/roles/${roleId}/native-evidence?`)), false);
+  assert.equal(f.store.events(oldKey).events.length, 5);
+});
+
+test("claimed history capability with a malformed attempt page fails closed without fallback", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(true);
+  f.responseHook = value => typeof value === "object" && value && "coverage" in value
+    ? { ...value, attempts: [attempts(true).attempts[0], attempts(true).attempts[0]] } : value;
+  assert.equal((await f.snapshot()).runs.length, 0);
+  assert.equal(f.store.db.prepare("SELECT count(*) n FROM runs").get()!.n, 0);
+  assert.equal(f.calls.some(path => /\/roles\/[^/]+\/native\?/.test(path)), false);
+});
 
 test("protected Assistant HTTP metadata reaches native Run journal, Project binding and Trace without direct credentials", async t => {
   const f = await fixture(t);

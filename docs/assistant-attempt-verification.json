@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "stage": "source-only",
+  "personaCommit": "2aefb0726bda0bf34e0bb4d1c09b7bb20bd1a194",
+  "mainBaselineCommit": "977df5d0ad8b1a808f70d86d0da039fdb59e04c7",
+  "personaFileSha256": {
+    "apps/server/src/track-read/attempts.ts": "99b36f48bac1ace80a5e7da1e8f739edf4850968e3149a0455ef8df0315cdc3d",
+    "apps/server/src/track-read/metadata.ts": "03c5763145ade083789ebb101e986a24715e7f6eb86cc5c77b827bbf7043f3e3",
+    "apps/server/src/track-read/service.ts": "c6f53697fc46b455951b74a79ae6ed2ea97e60cf81f432d59318a9c2f0f26479",
+    "apps/server/src/track-read/routes.ts": "c6386b08d8e21106b5ec696d0ccdb16367b289c07e2d64ab966812fea551293f",
+    "apps/server/src/workbench/executions.ts": "ea0e111f66a2f46e6da3c370cd38c24eca20d1cd8e2a143750c70354890aabd1",
+    "tests/workbench/executions.test.ts": "a3fb5caae3a8b5a1b740c3c8bbb6e7f36174e2557704414c17d4580ac28d82c3",
+    "tests/persona/track-read-attempts.test.ts": "0b90223a09c841f9d0efd44ad264835dbf070cf04f57222f54d7cd16f4f8c3be"
+  },
+  "mainFinalFileSha256": {
+    "apps/api/assistant-authority.ts": "c4590da7a8a8949c44aad2a151afdb7b3e3f14cf5dfdff84428266c280060ff6",
+    "apps/api/assistant-native-collector.ts": "02f6986fba5bd297d6ecdd80c4931d6d1e4144902f14babe37f8e6b2a939c411",
+    "packages/adapters/assistant/index.ts": "bb30745df6831ee80f050f94c28a2867d54e0355a4f979e886d75ab93fbb7cb9",
+    "packages/contracts/assistant.ts": "66204203047e1a2e05f2c53479eb3fd14f5d6f522dbf589fa13a86942f2e7f7b",
+    "packages/contracts/assistant-attempts.ts": "01a6b57e173300495f6b35cab3808cb69f86d180825c768e4bb4f0fe272f2d9f",
+    "tests/assistant-native-collector.test.ts": "238908de91674e77959b4efc4e8c49ce9639c8f54ff00b0841d5ba4d48dda9a7",
+    "tests/assistant-attempt-client.test.ts": "a7f7943a60eeda1293e6750ee7170f5decc27afe772c18452be17a8b856b2ca6"
+  },
+  "contract": {
+    "protocol": 2,
+    "capability": "roleAttemptsSupported",
+    "optional": true,
+    "maximumPerRole": 33,
+    "coverage": "coordinator-history",
+    "controlCapability": false,
+    "currentOnlyFallback": "Only when capability is absent/false",
+    "noFallbackForMalformedClaimedHistory": true
+  },
+  "checks": {
+    "mainCoreFullRegression": {
+      "total": 1041,
+      "passed": 1031,
+      "failed": 0,
+      "skipped": 10,
+      "skipReasons": [
+        "9 existing POSIX-only Windows cases",
+        "1 optional actual Persona source environment case"
+      ],
+      "scope": "Core source before later coverage-description followup"
+    },
+    "mainFinalFocused": {
+      "total": 22,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 1,
+      "typecheck": "passed",
+      "scope": "Collector, metadata, attempt schema/client, coverage description"
+    },
+    "actualProducerConsumerConformance": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "actualPersonaSource": true,
+      "actualDedicatedReaderCredentialValidation": true,
+      "transport": "Controlled in-process fetch; separate collector integration uses real local HTTP"
+    },
+    "personaRelated": {
+      "total": 238,
+      "passed": 238,
+      "failed": 0,
+      "skipped": 0,
+      "typecheck": "passed",
+      "changedFileFormat": "passed"
+    },
+    "regressions": [
+      "Original Run remains authorized after retry with identical SQLite event journal",
+      "Historical evidence repeats exact attempt/ref authorization without current-Run substitution",
+      "Malformed history fails closed without legacy fallback",
+      "Unrelated current execution progress no longer rejects a stable historical reference; reproduced failure before fix",
+      "Owner/role/Note/Projects/ref/producer withdrawal still withholds read",
+      "33 known attempts supported without truncating a complete page"
+    ]
+  },
+  "rollout": {
+    "operatingChanged": false,
+    "credentialsOrScopesChanged": false,
+    "order": [
+      "Track consumer first, verify existing current-only producer",
+      "Persona producer after source/deployment gates"
+    ],
+    "frozenOlderCandidatesRebuilt": false
+  },
+  "priorTrackCi": {
+    "sourceCommit": "977df5d0ad8b1a808f70d86d0da039fdb59e04c7",
+    "runId": 43511814849,
+    "conclusion": "success",
+    "doesNotCoverThisFollowup": true
+  },
+  "personaCi": {
+    "sourceCommit": "2aefb0726bda0bf34e0bb4d1c09b7bb20bd1a194",
+    "prRunId": 43516772403,
+    "pushRunId": 43516763393,
+    "conclusion": "failure",
+    "stepsStartedPerJob": 0,
+    "annotationCheckRunId": 132200599406,
+    "annotationReason": "Recent account payments failed or spending limit needs increase",
+    "rerunRequested": false,
+    "billingChanged": false,
+    "localTestsDoNotReplaceCi": true
+  },
+  "limitations": [
+    "No actual provider/model or production database used",
+    "No current-PC authenticated GUI verification",
+    "Flow node/edge/group attempt projection and command broker/UI remain incomplete",
+    "Native collection still bounded by recent 50 executions and 64 Runs with partial flag",
+    "Persona CI remains a separately observed gate; prior source stopped before steps with billing/limit annotation"
+  ],
+  "fullGoalAcceptance": {
+    "completed": 15,
+    "total": 21,
+    "equalTopLevelWeight": true,
+    "partialCountsAs": 0,
+    "developmentPercent": null,
+    "eta": null,
+    "confidence": "low"
+  }
+}

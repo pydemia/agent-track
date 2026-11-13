@@ -15,15 +15,20 @@ import { AssistantDemianLinks } from "./assistant-demian-links.ts";
 import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type NativeMetadataPage } from "../../packages/contracts/native-metadata.ts";
 import type { RunBinding } from "../../packages/contracts/index.ts";
 import { assistantNativeRunEvidencePageSchema, type NativeRunEvidencePage } from "../../packages/contracts/native-run-evidence.ts";
+import { assistantRoleAttemptsPageSchema } from "../../packages/contracts/assistant-attempts.ts";
 
-export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence">>;
+export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts">>;
 export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string }
 export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding }
-export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean }
+export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean; attemptCoverage?: "coordinator-history" | "current-role-only" }
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
 type CurrentTask = AssistantExecutionView["currentTask"];
 interface Grant { stamp: string; state: SourceView["state"]; observedAt: string }
-interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number; nativeChecks: Array<() => void> }
+interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number; nativeChecks: Array<() => void>; roleAttempts: boolean | null }
+type NativeExecution = z.infer<typeof assistantExecutionMetadataV2Schema>;
+type NativeRole = NativeExecution["roles"][number];
+type NativeReference = NonNullable<NativeRole["runtime"]["demian"]>;
+interface NativeTarget { role: NativeRole; ref: NativeReference; attemptId?: string }
 
 export class AssistantAuthorityError extends Error {
   constructor(readonly status: number) { super("assistant_authority_unavailable"); }
@@ -78,7 +83,7 @@ export class AssistantAuthority {
     if (!this.allowed(source, user) || !this.store.pinSourceIdentity(source.id, sourceIdentity(source))) {
       throw new AssistantAuthorityError(403);
     }
-    return { source: structuredClone(source), user, stamp: this.stamp(source), deadline: performance.now() + this.requestTimeoutMs, nativeChecks: [] };
+    return { source: structuredClone(source), user, stamp: this.stamp(source), deadline: performance.now() + this.requestTimeoutMs, nativeChecks: [], roleAttempts: null };
   }
 
   private confirm(scope: RequestScope): void {
@@ -148,6 +153,10 @@ export class AssistantAuthority {
       if (caps.ownerId !== scope.source.assistantOwnerId || caps.principalId !== scope.source.assistantPrincipalId) {
         throw new AssistantAuthorityError(403);
       }
+      const attempts = caps.version === 2 && "roleAttemptsSupported" in caps && caps.roleAttemptsSupported === true;
+      if (scope.roleAttempts !== null && scope.roleAttempts !== attempts) throw new AssistantAuthorityError(503);
+      if (attempts && !client.roleAttempts) throw new AssistantAuthorityError(503);
+      scope.roleAttempts = attempts;
       this.grants.set(key, { stamp: scope.stamp, state: "connected", observedAt: new Date().toISOString() });
     } catch (error) {
       this.grants.delete(key);
@@ -259,6 +268,24 @@ export class AssistantAuthority {
   }
 
   /** Internal collection port. Never publishes producer receipts or native authority keys. */
+  private async roleNativeTargets(scope: RequestScope, client: AssistantReader, execution: NativeExecution, role: NativeRole): Promise<NativeTarget[]> {
+    if (!scope.roleAttempts) return role.runtime.demian ? [{ role, ref: role.runtime.demian }] : [];
+    if (!client.roleAttempts) throw new AssistantAuthorityError(503);
+    const page = assistantRoleAttemptsPageSchema.parse(await this.guarded(scope, () => client.roleAttempts!(execution.id, role.id)));
+    if (page.executionId !== execution.id || page.roleId !== role.id) throw new AssistantAuthorityError(503);
+    if (role.runtime.demian && !page.attempts.some(attempt =>
+      JSON.stringify(attempt.demian) === JSON.stringify(role.runtime.demian))) throw new AssistantAuthorityError(503);
+    // Explicit attempt IDs survive current -> historical promotion. Each native
+    // request below is pinned to that ID, never to the mutable current-role path.
+    return [...page.attempts].reverse().flatMap(attempt => attempt.demian ? [{ role, ref: attempt.demian, attemptId: attempt.id }] : []);
+  }
+  private async hasNativeTarget(scope: RequestScope, client: AssistantReader, execution: NativeExecution, target: NativeTarget): Promise<boolean> {
+    const role = execution.roles.find(row => row.id === target.role.id);
+    return !!role && (await this.roleNativeTargets(scope, client, execution, role))
+      .some(row => row.attemptId === target.attemptId && JSON.stringify(row.ref) === JSON.stringify(target.ref));
+  }
+
+  /** Internal collection port. Never publishes producer receipts or native authority keys. */
   async nativeWindow(user: string, sourceId: string, targetSourceId: string,
     cursor: (runId: string) => string): Promise<AssistantNativeWindow> {
     return this.request(user, sourceId, async (scope, client) => {
@@ -285,7 +312,9 @@ export class AssistantAuthority {
         catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) continue; throw error; }
         if (!task) continue;
         for (const role of execution.roles) {
-          const ref = role.runtime.demian;
+          if (observations.length >= 64) { partial = true; break; }
+          for (const candidate of await this.roleNativeTargets(scope, client, execution, role)) {
+          const { ref, attemptId } = candidate;
           if (!ref || ref.origin !== mapping.origin || ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId) continue;
           if (observations.length >= 64) { partial = true; break; }
           if (seen.has(ref.runId)) throw new AssistantAuthorityError(503);
@@ -293,7 +322,7 @@ export class AssistantAuthority {
           const after = nativeMetadataSequenceSchema.parse(cursor(ref.runId));
           const read = async (position: string, limit: number) => {
             const result = assistantNativeMetadataPageSchema.parse(await this.guarded(scope,
-              () => client.nativeMetadata!(execution.id, role.id, position, limit)));
+              () => client.nativeMetadata!(execution.id, role.id, position, limit, attemptId)));
             const run = result.page.run;
             if (result.executionId !== execution.id || result.roleId !== role.id || result.page.events.after !== position || result.page.events.limit !== limit ||
                 run.id !== ref.runId || run.session_id !== ref.sessionId || run.workspace_id !== ref.workspaceId ||
@@ -305,7 +334,7 @@ export class AssistantAuthority {
           catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
           const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
           if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId || latest.task.taskId !== execution.task.taskId ||
-              JSON.stringify(latest.roles.find(item => item.id === role.id)?.runtime.demian) !== JSON.stringify(ref)) continue;
+              !await this.hasNativeTarget(scope, client, latest, candidate)) continue;
           const current = await this.currentTask(scope, latest, new Map());
           if (!current) continue;
           // Final signed native read rechecks current binding/key/role authority, not a cached execution row.
@@ -321,6 +350,7 @@ export class AssistantAuthority {
             binding: { sourceId: target.id, runId: ref.runId, projectSourceId: current.projectsSourceId,
               projectId: current.project.id, taskId: current.task.id, taskRevision: execution.task.revision,
               projectTitle: current.project.title, taskTitle: current.task.title, provenance: "source" } });
+          }
         }
       }
       await this.finish(scope, client);
@@ -328,7 +358,7 @@ export class AssistantAuthority {
       return { observations: observations.filter(item => {
         try { this.project(scope, item.binding.projectId); return true; }
         catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) return false; throw error; }
-      }), partial };
+      }), partial, attemptCoverage: scope.roleAttempts ? "coordinator-history" : "current-role-only" };
     });
   }
 
@@ -352,16 +382,20 @@ export class AssistantAuthority {
       };
       await this.refreshProjects(scope);
       const window = assistantExecutionPageV2Schema.parse(await this.guarded(scope, () => client.executions(null)));
-      const matches = window.executions.flatMap(execution => execution.roles.filter(role => role.runtime.demian?.runId === runId)
-        .map(role => ({ execution, role })));
+      const matches: Array<{ execution: NativeExecution; target: NativeTarget }> = [];
+      for (const execution of window.executions) for (const role of execution.roles) {
+        if (!execution.task) continue;
+        for (const target of await this.roleNativeTargets(scope, client, execution, role))
+          if (target.ref.runId === runId) matches.push({ execution, target });
+      }
       if (matches.length !== 1) throw new AssistantAuthorityError(matches.length || window.hasMore ? 503 : 404);
-      const { execution, role } = matches[0]!, ref = role.runtime.demian!;
+      const { execution, target: candidate } = matches[0]!, { role, ref, attemptId } = candidate;
       if (!execution.task || !await this.currentTask(scope, execution, new Map()) || ref.origin !== mapping.origin ||
           ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId)
         throw new AssistantAuthorityError(404);
       const read = async (position: string, requested: number) => {
         const envelope = assistantNativeRunEvidencePageSchema.parse(await this.guarded(scope,
-          () => client.nativeEvidence!(execution.id, role.id, position, requested)));
+          () => client.nativeEvidence!(execution.id, role.id, position, requested, attemptId)));
         const page = envelope.page, run = page.run;
         if (envelope.executionId !== execution.id || envelope.roleId !== role.id || page.events.after !== position ||
             page.events.limit !== requested || run.id !== ref.runId || run.session_id !== ref.sessionId ||
@@ -373,7 +407,7 @@ export class AssistantAuthority {
       const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
       if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId ||
           latest.task.taskId !== execution.task.taskId ||
-          JSON.stringify(latest.roles.find(item => item.id === role.id)?.runtime.demian) !== JSON.stringify(ref) ||
+          !await this.hasNativeTarget(scope, client, latest, candidate) ||
           !await this.currentTask(scope, latest, new Map())) throw new AssistantAuthorityError(404);
       await this.finish(scope, client);
       const final = await read(first.page.events.next_after, 1);

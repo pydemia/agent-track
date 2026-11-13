@@ -361,6 +361,7 @@ export const assistantCapabilitiesV2Schema =
   assistantCapabilitiesSchema.extend({
     version: z.literal(2),
     demianReferencesSupported: z.literal(true),
+    roleAttemptsSupported: z.boolean().optional(),
   });
 export function projectAssistantExecutionV2(raw: unknown) {
   const value = v2InputSchema.parse(raw);

@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { constants, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { z } from "zod";
+import { assistantRoleAttemptsPageSchema, type AssistantRoleAttemptsPage } from "../../contracts/assistant-attempts.ts";
 import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type AssistantNativeMetadataPage } from "../../contracts/native-metadata.ts";
 import { assistantNativeRunEvidencePageSchema, type AssistantNativeRunEvidencePage } from "../../contracts/native-run-evidence.ts";
 import {
@@ -236,20 +237,31 @@ export class AssistantClient {
         page.events.every(event => BigInt(event.sequence) > BigInt(after)))));
   }
 
-  async nativeMetadata(executionId: string, roleId: string, after = "0", limit = 100): Promise<AssistantNativeMetadataPage> {
-    if (this.protocol !== 2 || !z.uuid().safeParse(executionId).success || !z.uuid().safeParse(roleId).success ||
-        !nativeMetadataSequenceSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 250)
+  async roleAttempts(executionId: string, roleId: string): Promise<AssistantRoleAttemptsPage> {
+    if (this.protocol !== 2 || !z.uuid().safeParse(executionId).success || !z.uuid().safeParse(roleId).success)
       throw new AssistantSourceError(400);
-    return this.data(`/executions/${executionId}/roles/${roleId}/native?after=${after}&limit=${limit}`,
+    return this.data(`/executions/${executionId}/roles/${roleId}/attempts`,
+      assistantRoleAttemptsPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId));
+  }
+
+  async nativeMetadata(executionId: string, roleId: string, after = "0", limit = 100, attemptId?: string): Promise<AssistantNativeMetadataPage> {
+    if (this.protocol !== 2 || !z.uuid().safeParse(executionId).success || !z.uuid().safeParse(roleId).success ||
+        !nativeMetadataSequenceSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 250 ||
+        (attemptId !== undefined && !z.uuid().safeParse(attemptId).success))
+      throw new AssistantSourceError(400);
+    return this.data(`/executions/${executionId}/roles/${roleId}${attemptId ? `/attempts/${attemptId}` : ""}/native?after=${after}&limit=${limit}`,
       assistantNativeMetadataPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId &&
+        (attemptId === undefined || value.page.run.correlation_id === attemptId) &&
         value.page.events.after === after && value.page.events.limit === limit));
   }
-  async nativeEvidence(executionId: string, roleId: string, after = "0", limit = 100): Promise<AssistantNativeRunEvidencePage> {
+  async nativeEvidence(executionId: string, roleId: string, after = "0", limit = 100, attemptId?: string): Promise<AssistantNativeRunEvidencePage> {
     if (this.protocol !== 2 || !z.uuid().safeParse(executionId).success || !z.uuid().safeParse(roleId).success ||
-        !nativeMetadataSequenceSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 250)
+        !nativeMetadataSequenceSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 250 ||
+        (attemptId !== undefined && !z.uuid().safeParse(attemptId).success))
       throw new AssistantSourceError(400);
-    return this.data(`/executions/${executionId}/roles/${roleId}/native-evidence?after=${after}&limit=${limit}`,
+    return this.data(`/executions/${executionId}/roles/${roleId}${attemptId ? `/attempts/${attemptId}` : ""}/native-evidence?after=${after}&limit=${limit}`,
       assistantNativeRunEvidencePageSchema.refine(value => value.executionId === executionId && value.roleId === roleId &&
+        (attemptId === undefined || value.page.run.correlation_id === attemptId) &&
         value.page.events.after === after && value.page.events.limit === limit));
   }
 }
