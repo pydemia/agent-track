@@ -53,12 +53,12 @@ export function flowViewAuthorization(config: () => Config, sources: Sources, sn
       for (const ref of anchors.tasks) { await projectTaskMetadata(sources, actor, ref.sourceId, ref.projectId, ref.taskId); confirm(); }
       for (const ref of anchors.runs) {
         const source = initial.selected.find(item => item.id === ref.sourceId)!;
-        if (source.kind === "demian") {
+        if (source.kind === "demian" && !source.assistantNativeSourceId) {
           if (!source.baseUrl) throw unavailable();
           const run = await native(source, AbortSignal.timeout(Math.max(1, Math.ceil(deadline - performance.now())))).observe(ref.runId);
           const original = initial.state.runs.find(item => item.key === ref.key)!;
           if (run.runId !== ref.runId || run.sessionId !== original.sessionId) throw unavailable();
-        } else if (source.kind !== "codex") throw unavailable();
+        } else if (source.kind !== "codex" && !source.assistantNativeSourceId) throw unavailable();
         confirm();
       }
       for (const ref of anchors.assistants) { await sources.assistant.detail(actor, ref.sourceId, ref.executionId); confirm(); }

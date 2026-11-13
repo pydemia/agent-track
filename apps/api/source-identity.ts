@@ -16,5 +16,6 @@ export function sourceIdentity(source: SourceConfig): string {
   if (projectsReady(source)) parts.push(source.projectsUser, source.projectsAccountId, source.projectsPrincipalId);
   if (assistantReady(source)) parts.push(source.assistantUser, source.assistantOwnerId,
     source.assistantPrincipalId, source.assistantProjectsSourceId ?? null);
+  if (source.assistantNativeSourceId) parts.push("assistant-native-metadata-v1", source.assistantNativeSourceId);
   return createHash("sha256").update(JSON.stringify(parts)).digest("hex");
 }

@@ -124,6 +124,8 @@ export interface SourceView {
   detail: string;
   capabilities: string[];
   authorizedProjectIds?: string[];
+  /** Optional per-Run grant; absence preserves existing source authorization. */
+  authorizedRunIds?: string[];
 }
 export interface ProjectMetadata {
   id: string;

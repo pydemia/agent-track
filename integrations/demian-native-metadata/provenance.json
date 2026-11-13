@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "repository": "https://github.com/pydemia/demian",
+  "baselineCommit": "c43934171b89b69da0909b8a93d96cc9b2bfc601",
+  "targetCommit": "db861e85d72dd59368704dddb089f0615113532d",
+  "baselineTree": "e60391c0e59cb6d16cbdf9d44c85a5996f4e13fd",
+  "targetTree": "e98b54113429ecdf2eb649eb2be344df4b7c3223",
+  "patchSha256": "873d8ece4b87938fe68cb25ee27d5de6e4fa721fd140c21d60664c27642cc1d8",
+  "files": [
+    {
+      "path": "apps/api/src/work-runtime-metadata.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "9da24d529a4c1ae5a7dd276c87944e2bf2e03697c25b30552e6e98dc4f217ff9",
+      "payloadBytes": 9476
+    },
+    {
+      "path": "apps/api/src/work-runtime-server.ts",
+      "status": "M",
+      "baselineSha256": "33792cc58a7e61f84e054e281e57e3b00546af535e055b6c9869466f581630ed",
+      "payloadSha256": "80ee4178d707b3702b70c33d6039df0e7e893cda40da2d095cfe280f741af0db",
+      "payloadBytes": 25879
+    },
+    {
+      "path": "apps/api/test/work-runtime-metadata.test.ts",
+      "status": "A",
+      "baselineSha256": null,
+      "payloadSha256": "36f0c1ab2aa75333e7836c8304b80022efaf656871c084932560ab21a8a51e9d",
+      "payloadBytes": 9006
+    },
+    {
+      "path": "apps/api/test/work-runtime-server.integration.test.ts",
+      "status": "M",
+      "baselineSha256": "b3c28dd8cf79424dbe4716038dff62cd0faefc1d27b6c627834d1a163e9e2bd4",
+      "payloadSha256": "e035912a1db2edbdf03410be60c1b06e187043bd5eb97acd12626886196a0a9a",
+      "payloadBytes": 80985
+    }
+  ],
+  "verification": {
+    "freshIndexBaselineApplied": true,
+    "exactTargetTreeMatched": true,
+    "nativeWorkingTreeChanged": false
+  },
+  "patchContextLines": 0,
+  "applyOption": "--unidiff-zero",
+  "scope": "Protected native Run metadata only; baseline dedicated runtime, no upstream merge or operating rollout"
+}

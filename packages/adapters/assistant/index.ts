@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { constants, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { z } from "zod";
+import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type AssistantNativeMetadataPage } from "../../contracts/native-metadata.ts";
 import {
   assistantCapabilitiesSchema, assistantExecutionMetadataSchema,
   assistantExecutionPageSchema, assistantExecutionEventsPageSchema,
@@ -232,5 +233,14 @@ export class AssistantClient {
     return this.data(`/executions/${id}/events?after=${after}`, schema.refine(page =>
       page.executionId === id && (page.events.length === 0 ? page.cursor === after :
         page.events.every(event => BigInt(event.sequence) > BigInt(after)))));
+  }
+
+  async nativeMetadata(executionId: string, roleId: string, after = "0", limit = 100): Promise<AssistantNativeMetadataPage> {
+    if (this.protocol !== 2 || !z.uuid().safeParse(executionId).success || !z.uuid().safeParse(roleId).success ||
+        !nativeMetadataSequenceSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 250)
+      throw new AssistantSourceError(400);
+    return this.data(`/executions/${executionId}/roles/${roleId}/native?after=${after}&limit=${limit}`,
+      assistantNativeMetadataPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId &&
+        value.page.events.after === after && value.page.events.limit === limit));
   }
 }

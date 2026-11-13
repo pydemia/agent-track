@@ -1,0 +1,85 @@
+# Assistant를 통한 보호 Run 관측
+
+기준: 2026-11-14 KST. AT-14의 코드·격리 통합 단계다. 운영 반영과 실제
+WorkCoordinator→Projects→Note→desktop→Track 업무 수용은 아직 미완료다.
+
+## 현재 연결
+
+1. Demian `db861e85d72dd59368704dddb089f0615113532d`의 signed metadata API는
+   원본 실행 receipt와 현재 native 인가로 제한한 JSON page를 제공한다.
+2. Persona `0691e1a1a80f0fa75999fd59f779aacb9921606a`의 Gateway는 기존 durable
+   reference와 현재 async source authorizer를 사용해 해당 GET을 서명한다. 읽기 중
+   lifecycle `get`·재전송·새 실행·관측 결과 DB 저장을 호출하지 않는다.
+3. Persona reader의 v2 `executions/:executionId/roles/:roleId/native`는 현재
+   owner/role reference를 조회 전후 대조한다. 브라우저 쿠키나 Track proxy key를
+   native 실행 credential로 사용하지 않는다.
+4. Track `AssistantAuthority.nativeWindow()`는 현재 같은 actor의 Projects Task와
+   명시 producer mapping을 대조하고, native GET을 마지막에 다시 확인한다.
+   `AssistantNativeCollector`가 Run·이벤트·원본 Task binding을 저장한다.
+5. 원장 snapshot은 새 source의 현재 `authorizedRunIds` 교집합만 내보낸다.
+   기존 Trace projection이 invocation/call ID를 이용해 도구 시작·완료를 연결하고,
+   Assistant 역할 상세에서 같은 Run의 Trace로 이동할 수 있다.
+
+원문·도구 인수/결과·native signing key·binding/context/request hash·native
+principal은 Track 원장과 공개 응답에 포함하지 않는다. private writer가 있는
+원래 Demian source와 별도의 source ID를 사용하며 기존 source를 재해석하지 않는다.
+
+## 명시적 활성화
+
+같은 Track actor와 Projects reader에 고정한 Assistant v2 source에 다음 mapping을
+추가한다. UUID와 origin은 실제 producer receipt/설정으로 확인해야 한다.
+
+```json
+{
+  "assistantProtocol": 2,
+  "assistantProjectsSourceId": "projects-owner",
+  "assistantDemianMappings": [{
+    "origin": "https://demian.pydemia.ai",
+    "organizationId": "<actual-organization-uuid>",
+    "workspaceId": "<actual-workspace-uuid>",
+    "sourceId": "demian-assistant-owner"
+  }]
+}
+```
+
+대상 native source는 `kind: "demian"`,
+`assistantNativeSourceId: "<that-assistant-source-id>"`, 동일 origin의 `baseUrl`,
+동일 `organizationId`, 같은 owner 한 명의 `users`로 구성한다. 별도 native
+bearer/HMAC는 전달하지 않는다. token·credentialFormat·직접 Run/Session 수집·
+discovery·취소·승인·배정 설정이 있으면 config가 거절한다. source identity에
+관측 방식을 포함하므로 기존 source ID를 변경해 캐시 권한을 차용할 수 없다.
+이 예시는 실제 운영 활성화 기록이 아니다.
+
+현재 조회 창은 최근 Assistant 업무50개·해당 source 실행64개·Run별 이벤트250개다.
+이후 이벤트가 남으면 native through boundary를 저장해 미완전 상태를 유지하고
+다음 조회에서 durable cursor부터 이어받는다. 목록 전체/모든 과거 업무의 수집을
+보장하지 않는다. 같은 이벤트는 기존 immutable digest·dedupe를 사용한다.
+인가 실패·철회·source 변경·재시작 시 저장 Run도 숨기고 새 조회로만 복구한다.
+
+이 source의 별도 native lineage·tool evidence/model request·artifact·file page·
+session relations·orchestration·permission/control API는 아직 지원하지 않는다.
+일반 bearer로 재시도하지 않고 unsupported/거부를 반환한다. Trace의 현재 이벤트
+기반 흐름과 구분한다. saved view는 새 현재 source/Run grant를 다시 확인한다.
+
+## 확보한 증거와 다음 단계
+
+- 실제 HTTP producer/client→Track API→SQLite→Trace 검사6개: 시작/완료 연결,
+  Task 역사 revision 유지, 페이지 재개·중복 방지, 철회/잘못된 tuple/actor 차단.
+- 격리 PostgreSQL metadata/기존 runtime44개: 실제 SQL 양성 projection·int64·
+  alias 충돌·scope/서명·일반 bearer 차단·현재/조회 도중 권한 철회, source event 불변.
+- Persona coordinator/gateway184개: 현재 native 결과·원본 reference·늦은 인가
+  철회·관측 DB 불변·lifecycle 무호출. 테스트 upstream/runtime는 합성이다.
+- Track·Persona server·Demian API 타입 검사, Demian API bundle와 별도 Track
+  frontend build 통과. frontend는 운영 `dist/web`를 덮어쓰지 않았다.
+
+전체 Track 회귀의 첫 실행은 다른 actor 거부 경로에서1개 실패해 수정했다.
+해당 API/수집25개는 수정 후 통과했다. 최종 전체 회귀와 원격 CI 상태는
+`assistant-native-observation-verification.json`에 별도로 기록한다. Windows의
+POSIX 백업 전용 skip은 통과로 합산하지 않는다.
+
+다음은 native API·public gate의 metadata 경로·Assistant image/reader와 Track
+source의 운영 반영이다. 현재 운영 release·DB·인증을 확인한 새 계획을 사용하며,
+이전 소비된 cutover/backup runner를 재실행하지 않는다. 그 뒤 한 실제 지속 업무의
+지시·Run·Projects 결과·Note 참조·Track 관측을 같은 ID/receipt로 대조한다.
+desktop 계약도 별도로 확인한다. 수용15/21·71.4%는 유지하며 개발 완료율로
+환산하지 않는다. 전체 ETA 산정 불가·신뢰도 낮음이다.

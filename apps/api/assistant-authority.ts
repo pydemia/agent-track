@@ -12,8 +12,12 @@ import type { Config, SourceConfig } from "./config.ts";
 import type { ProjectsAuthority } from "./projects-authority.ts";
 import { assistantReady, projectsReady, sourceIdentity } from "./source-identity.ts";
 import { AssistantDemianLinks } from "./assistant-demian-links.ts";
+import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type NativeMetadataPage } from "../../packages/contracts/native-metadata.ts";
+import type { RunBinding } from "../../packages/contracts/index.ts";
 
-export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events">;
+export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata">>;
+export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding }
+export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean }
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
 type CurrentTask = AssistantExecutionView["currentTask"];
 interface Grant { stamp: string; state: SourceView["state"]; observedAt: string }
@@ -202,8 +206,8 @@ export class AssistantAuthority {
     return { peer, project };
   }
 
-  private async projectExecution(scope: RequestScope, native: AssistantObservedExecution,
-    tasks: Map<string, Promise<CurrentTask>>): Promise<AssistantExecutionView> {
+  private async currentTask(scope: RequestScope, native: AssistantObservedExecution,
+    tasks: Map<string, Promise<CurrentTask>>): Promise<CurrentTask> {
     let currentTask: CurrentTask = null;
     if (native.task) {
       const ref = native.task;
@@ -228,6 +232,12 @@ export class AssistantAuthority {
       currentTask = await pending;
       this.confirm(scope);
     }
+    return currentTask;
+  }
+
+  private async projectExecution(scope: RequestScope, native: AssistantObservedExecution,
+    tasks: Map<string, Promise<CurrentTask>>): Promise<AssistantExecutionView> {
+    const currentTask = await this.currentTask(scope, native, tasks);
     const projected = await this.guarded(scope, () => this.demianLinks.project(scope.user, scope.source,
       { sourceId: scope.source.id, sourceLabel: scope.source.label, device: scope.source.device, native, currentTask }, scope.deadline));
     if (currentTask && projected.view.demianLinks?.state === "connected") {
@@ -244,6 +254,80 @@ export class AssistantAuthority {
     }
     scope.nativeChecks.push(projected.confirm);
     return projected.view;
+  }
+
+  /** Internal collection port. Never publishes producer receipts or native authority keys. */
+  async nativeWindow(user: string, sourceId: string, targetSourceId: string,
+    cursor: (runId: string) => string): Promise<AssistantNativeWindow> {
+    return this.request(user, sourceId, async (scope, client) => {
+      const target = this.config().sources.find(item => item.id === targetSourceId);
+      const mappings = scope.source.assistantDemianMappings?.filter(item => item.sourceId === targetSourceId) ?? [];
+      if (scope.source.assistantProtocol !== 2 || !client.nativeMetadata || !target || target.kind !== "demian" ||
+          target.assistantNativeSourceId !== sourceId || !target.users.includes(user) || mappings.length !== 1 ||
+          target.baseUrl !== mappings[0]!.origin || target.organizationId !== mappings[0]!.organizationId ||
+          !this.store.pinSourceIdentity(target.id, sourceIdentity(target))) throw new AssistantAuthorityError(403);
+      const targetStamp = JSON.stringify(target), mapping = mappings[0]!;
+      const confirmTarget = () => {
+        this.confirm(scope);
+        if (JSON.stringify(this.config().sources.find(item => item.id === targetSourceId)) !== targetStamp)
+          throw new AssistantAuthorityError(403);
+      };
+      await this.refreshProjects(scope);
+      const window = assistantExecutionPageV2Schema.parse(await this.guarded(scope, () => client.executions(null)));
+      const observations: AssistantNativeObservation[] = [], seen = new Set<string>();
+      let partial = window.hasMore;
+      for (const execution of window.executions) {
+        if (!execution.task) continue;
+        let task: CurrentTask;
+        try { task = await this.currentTask(scope, execution, new Map()); }
+        catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) continue; throw error; }
+        if (!task) continue;
+        for (const role of execution.roles) {
+          const ref = role.runtime.demian;
+          if (!ref || ref.origin !== mapping.origin || ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId) continue;
+          if (observations.length >= 64) { partial = true; break; }
+          if (seen.has(ref.runId)) throw new AssistantAuthorityError(503);
+          seen.add(ref.runId);
+          const after = nativeMetadataSequenceSchema.parse(cursor(ref.runId));
+          const read = async (position: string, limit: number) => {
+            const result = assistantNativeMetadataPageSchema.parse(await this.guarded(scope,
+              () => client.nativeMetadata!(execution.id, role.id, position, limit)));
+            const run = result.page.run;
+            if (result.executionId !== execution.id || result.roleId !== role.id || result.page.events.after !== position || result.page.events.limit !== limit ||
+                run.id !== ref.runId || run.session_id !== ref.sessionId || run.workspace_id !== ref.workspaceId ||
+                run.organization_id !== ref.organizationId || run.correlation_id !== ref.operationId) throw new AssistantAuthorityError(503);
+            confirmTarget(); return result;
+          };
+          let first: Awaited<ReturnType<typeof read>>;
+          try { first = await read(after, 250); }
+          catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
+          const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
+          if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId || latest.task.taskId !== execution.task.taskId ||
+              JSON.stringify(latest.roles.find(item => item.id === role.id)?.runtime.demian) !== JSON.stringify(ref)) continue;
+          const current = await this.currentTask(scope, latest, new Map());
+          if (!current) continue;
+          // Final signed native read rechecks current binding/key/role authority, not a cached execution row.
+          let final: Awaited<ReturnType<typeof read>>;
+          try { final = await read(first.page.events.next_after, 1); }
+          catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
+          for (const pin of ["binding_sha256", "context_sha256", "request_sha256", "acting_user_id", "service_principal_id"] as const)
+            if (first.page.run[pin] !== final.page.run[pin]) throw new AssistantAuthorityError(503);
+          first.page.run = final.page.run;
+          observations.push({ page: first.page, throughSequence: BigInt(final.page.events.through_sequence) > BigInt(first.page.events.through_sequence)
+            ? final.page.events.through_sequence : first.page.events.through_sequence, observedAt: final.observedAt,
+            title: `Assistant · ${role.label}`.slice(0, 240),
+            binding: { sourceId: target.id, runId: ref.runId, projectSourceId: current.projectsSourceId,
+              projectId: current.project.id, taskId: current.task.id, taskRevision: execution.task.revision,
+              projectTitle: current.project.title, taskTitle: current.task.title, provenance: "source" } });
+        }
+      }
+      await this.finish(scope, client);
+      confirmTarget();
+      return { observations: observations.filter(item => {
+        try { this.project(scope, item.binding.projectId); return true; }
+        catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) return false; throw error; }
+      }), partial };
+    });
   }
 
   private async finish(scope: RequestScope, client: AssistantReader): Promise<void> {

@@ -44,7 +44,7 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
       if (source.kind !== "projects" || !projectAllowed(source.id, target.projectId)) throw new CommandError(404, "context_not_found", "현재 문맥 요약에 접근할 수 없습니다.");
     } else {
       const sessionId = target.kind === "session" ? target.sessionId : view.runs.find((run) => run.sourceId === target.sourceId && run.runId === target.runId)?.sessionId;
-      if (source.kind !== "demian" || !source.baseUrl || !sessionId || !sessionScope(reader, source.id, sessionId)) throw new CommandError(404, "context_not_found", "현재 문맥 요약에 접근할 수 없습니다.");
+      if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId || !sessionId || !sessionScope(reader, source.id, sessionId)) throw new CommandError(404, "context_not_found", "현재 문맥 요약에 접근할 수 없습니다.");
       if (!view.sources.some((item) => item.id === source.id && item.state === "connected")) throw new CommandError(503, "context_unavailable", "현재 실행 출처를 확인하지 못했습니다.");
     }
     return { current, reader, view, source, allowedRun };
@@ -68,7 +68,7 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
   for (const run of candidates.slice(0, 50)) {
     access = authorize();
     const source = access.current.sources.find((item) => item.id === run.sourceId && item.kind === "demian" && item.baseUrl && item.users.includes(initial.user));
-    if (!source || !access.allowedRun(run)) { unavailable = true; continue; }
+    if (!source || source.assistantNativeSourceId || !access.allowedRun(run)) { unavailable = true; continue; }
     const stamp = sourceIdentity(source);
     try {
       const native = await new DemianClient(options(source)).observe(run.runId);

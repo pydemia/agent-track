@@ -14,7 +14,7 @@ export class RunPermissions {
     const root = config.auth.mode === "proxy" ? config.auth.users.includes(user) : config.auth.user === user;
     const run = root ? this.snapshot(user).runs.find((item) => item.key === key) : undefined;
     const source = config.sources.find((item) => item.id === run?.sourceId && item.kind === "demian" && item.users.includes(user));
-    if (!run || !source?.baseUrl || run.sourceState !== "connected") throw new CommandError(404, "run_not_found", "현재 접근 가능한 원본 실행이 아닙니다.");
+    if (!run || !source?.baseUrl || source.assistantNativeSourceId || run.sourceState !== "connected") throw new CommandError(404, "run_not_found", "현재 접근 가능한 원본 실행이 아닙니다.");
     if (writing && (config.auth.mode !== "proxy" || config.auth.users.length !== 1 || config.auth.users[0] !== user ||
         !source.approvalUsers?.includes(user) || !run.capabilities.includes("permission.decide"))) {
       throw new CommandError(403, "approval_not_enabled", "현재 소유자에 대한 원본 승인 기능이 열려 있지 않습니다.");

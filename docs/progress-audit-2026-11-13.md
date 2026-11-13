@@ -1,5 +1,70 @@
 # 진행률 판정 감사
 
+## 2026-11-14 보호 Run 수집 구현 후속
+
+아래 감사에서 확인한 수집 경로 미연결을 실제로 수정했다. 새 Assistant metadata
+route를 현재 소유자/Projects/원본 receipt와 대조하고, 별도 읽기 source의 Run별
+허용 범위로 수집해 Track 원장·업무 연결·Trace를 구성한다. 합성 upstream을 쓰는
+실제 HTTP/SQLite 검사6개에서 도구 호출의 시작/완료·pagination·철회·재시작을 확인했다.
+실제 Demian SQL 조회와 portable 계약을 대조한 격리 PostgreSQL44개도 통과했다.
+Persona coordinator/gateway184개는 lifecycle 호출/dispatch/관측 DB 쓰기 없이 현재
+metadata를 읽는 경계와 늦은 철회를 검사했다. 각 검사에 skip은 없다.
+
+전체 회귀 검사에서는 다른 actor의403을503으로 바꾸는 사전 조회 회귀1개를 찾아
+연결된 Assistant 소유자만 조회하도록 수정했다. 해당 API/수집25개가 통과했고 최종 전체 회귀는990통과·실패0·Windows POSIX 검사9skip이다. 원본 운영 서비스·DB와 AgentTrail은 이번 작업에서 변경하지 않았다.
+
+수용15/21·71.4%(동일 가중치·부분0), 직전 대비0%p를 유지한다. 이번 진전은
+AT-14의 **코드와 격리 통합 경로 확보**이며 운영 업무 수용이 아니다. 다음 조건은
+새 경로 운영 반영 후 실제 WorkCoordinator/Projects/Note→Track 업무 대조다.
+desktop 계약 확인도 남는다. ETA 산정 불가·신뢰도 낮음이며 첫 전체 업무 결과와
+desktop 경로가 다음 재산정 근거다. [구조·근거](assistant-native-observation.md)를 따른다.
+
+아래는 수집 구현 전의 감사 기록이다.
+
+## 2026-11-14 KST 현재 작업본 재점검
+
+기준 revision `bc4d262`와 미커밋 작업본을 대조했다. `goal-status.md`의 현재
+요구 행은21개, 고유 ID21개, 완료15개·부분6개다. 기존 동일 가중치·부분0 기준의
+수용률71.4%는 산술상 맞고 직전 대비0%p다. **제품 전체 개발 완료율로는 부적절하다.**
+서로 크기가 다른 요구를 모두 닫을 때만 숫자가 변한다. 마지막 집계 상승도 새
+기능 완료가 아닌 AT-18 판정 정정이었다. 기존15개 완료는 기록된 owner/QA 범위의
+누적 판정이며, 이번에 전체 운영 기능을 재실행해 인증한 것이 아니다.
+
+정체 원인은 집계 단위와 실제 미연결 기능 양쪽에 있다. 현재 단계를 구분한다.
+
+| 경로 | 확인된 상태 | 아직 필요한 결과 |
+| --- | --- | --- |
+| Assistant/native 실행 전제 | 직전 운영 전환·DB 보존·현재 인가 조회의 증거 확보 | 해당 전제를 전체 업무 성공으로 확대하지 않음 |
+| 보호된 Run metadata 조회 | Demian·Persona·Track의 미커밋 계약/조회 코드 존재. 이번 Track 관련 테스트12개·타입 검사 통과 | 실제 PostgreSQL/서비스 통합, 코드 반영과 운영 배포 |
+| Track 수집·Trace 표시 | 새 `AssistantClient.nativeMetadata()`는 있으나 `apps`의 수집/authority 경로에서 호출하지 않음 | 현재 인가된 수집→원장→Trace 표시 연결. 보통 bearer의 보호 Run 차단은 유지 |
+| 지속 업무 | 전체 WorkCoordinator→Projects 결과→Note→Track 성공 증거 없음 | 한 실제 업무의 지시·실행·결과·참조·관측을 같은 ID/receipt로 대조 |
+| desktop | 독립 앱/접속 경로 계약 미확정 | 실제 대상 확인과 동일 업무 접속. Linux peer를 대체 증거로 사용하지 않음 |
+| 다른 잔여 요구 | AT-06/09/12/15/20은 현재 기준표의 부분 상태 유지 | 원본 재개/재시도 구현, 동일 선택 이동·그룹 사용자 동작·여러 장치 대시보드·문맥 요약 실기 |
+
+현재 작업본에 이전 타입 검사 성공을 그대로 재사용할 수 없었다. 이번 실행에서
+`tests/assistant-native-metadata.test.ts`의 `{ nativeMetadata: undefined }`가
+`exactOptionalPropertyTypes`와 충돌했다. fixture에서 optional method를 실제로
+생략하는 최소 수정 후 `npm run typecheck`를 다시 통과했다. 아래 세 파일의
+테스트는12개 통과·실패0·skip0이다.
+
+- `tests/assistant-native-metadata.test.ts`
+- `tests/assistant-v2-http.test.ts`
+- `tests/assistant-v2-client.test.ts`
+
+새 metadata 테스트는 합성 service/client 검사이며 실제 PostgreSQL·새 운영
+endpoint·수집/Trace 통합을 증명하지 않는다. 이번 점검에서 운영 배포나 원격
+서비스 재시작은 수행하지 않았다. 운영 전환 상태는 직전 증거
+`assistant-native-promotion-verification.json`(2026-11-13T14:41:36.863Z)에 근거한다.
+
+이후 보고는 **수용률 / 직전 대비 실제 변화 / 미연결 기능 / 다음 완료 조건**을
+함께 적는다. 커밋·테스트 개수나 부분 구현에 사후 점수를 주지 않는다. 같은 검사를
+새 변경·실패 없이 반복한 것을 진전으로 세지 않는다. 다음 완료 조건은 현재 인가된
+보호 Run metadata를 실제 Track 원장과 Trace까지 연결해 대조하는 것이다.
+전체 ETA는 산정 불가·신뢰도 낮음이며, 첫 전체 업무 결과와 desktop 계약이 확보될
+때 재산정한다. 수용15/21·71.4%의 분모/가중치와 원래 goal 범위는 유지한다.
+
+아래는 이전 시점의 기록이다.
+
 ## 23:42 KST 실행 후속
 
 이후 실제 goal 작업에서 Assistant 후보 f79a5b1을 운영 반영했다. 복원본 검사의

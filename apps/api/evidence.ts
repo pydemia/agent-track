@@ -35,7 +35,7 @@ export async function artifactEvidence(config: () => Config, snapshot: (user: st
   const empty = (state: ArtifactEvidence["state"], detail: string): ArtifactEvidence => ({
     state, runKey, observedAt: new Date().toISOString(), detail, artifacts: [], scanned: 0, limit: 100, complete: false,
   });
-  if (source.kind !== "demian" || !source.baseUrl) return empty("unsupported", "이 출처의 산출물 metadata 조회는 지원하지 않습니다.");
+  if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) return empty("unsupported", "이 출처의 산출물 metadata 조회는 지원하지 않습니다.");
   if (!initial.connected) return empty("disconnected", "원본의 현재 접근을 확인한 후 산출물을 다시 조회합니다.");
   const controller = new AbortController(), signal = options.signal ? AbortSignal.any([controller.signal, options.signal]) : controller.signal;
   const timer = setTimeout(() => controller.abort(), Math.max(1, deadline - performance.now()));

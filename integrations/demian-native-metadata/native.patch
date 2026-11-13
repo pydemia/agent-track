@@ -1,0 +1,381 @@
+diff --git a/apps/api/src/work-runtime-metadata.ts b/apps/api/src/work-runtime-metadata.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..b074021a4c98cc3ab4f2595039c9b7f895f29f55
+--- /dev/null
++++ b/apps/api/src/work-runtime-metadata.ts
+@@ -0,0 +1,137 @@
++import type { DatabaseClient, RunRow } from "@demian/db"
++import type { WorkRuntimeRunReceipt } from "../../../packages/db/src/work-runtime-runs.ts"
++
++const API_VERSION = "2026-09-01" as const
++const MAX_SEQUENCE = 9223372036854775807n
++const FLOW_BYTES = 163840
++const aliases = [
++  ["invocationId", "invocation_id"], ["parentInvocationId", "parent_invocation_id"],
++  ["agentSessionId", "agent_session_id"], ["groupId", "group_id"],
++  ["memberId", "member_id"], ["callId", "call_id"],
++] as const
++const identifiers = [...aliases.flat(), "permission_id", "sessionId"]
++const leafKeys = [...identifiers, "tool", "name", "status", "ok", "provider", "model", "durationMs", "expires_at"]
++const identifier = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/
++const memberId = /^[a-z0-9_-]{1,32}$/
++const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value)
++const safeId = (value: unknown): value is string => typeof value === "string" && identifier.test(value)
++
++export class MetadataQueryError extends Error {
++  readonly statusCode = 400
++  readonly code = "invalid_metadata_query"
++  constructor() { super("Invalid metadata query") }
++}
++
++function cursor(value: string): string {
++  if (!/^(0|[1-9][0-9]{0,18})$/.test(value) || BigInt(value) > MAX_SEQUENCE) throw new MetadataQueryError()
++  return value
++}
++
++/** Parse the signed wire URL, not Fastify's potentially normalized query object. */
++export function parseMetadataQuery(url: string): { after: string; limit: number } {
++  const wire = url.includes("?") ? url.slice(url.indexOf("?") + 1) : ""
++  if (/[%#\\]/.test(wire)) throw new MetadataQueryError()
++  const query = new URLSearchParams(wire)
++  const seen = new Set<string>()
++  for (const [key] of query) {
++    if (!["after", "limit"].includes(key) || seen.has(key)) throw new MetadataQueryError()
++    seen.add(key)
++  }
++  const after = cursor(query.get("after") ?? "0")
++  const rawLimit = query.get("limit") ?? "100"
++  if (!/^[1-9][0-9]{0,2}$/.test(rawLimit) || Number(rawLimit) > 250) throw new MetadataQueryError()
++  return { after, limit: Number(rawLimit) }
++}
++
++function redactFlow(value: unknown): Record<string, unknown> {
++  const version = record(value) && typeof value.version === "number" && Number.isSafeInteger(value.version) ? value.version : null
++  const stub = { version }
++  if (!record(value) || version !== 1 || Object.keys(value).some(key => !["version", "members"].includes(key)) ||
++      !Array.isArray(value.members) || value.members.length < 2 || value.members.length > 64) return stub
++  const members: { memberId: string; dependsOn: string[] }[] = []
++  for (const item of value.members) {
++    if (!record(item) || Object.keys(item).some(key => !["memberId", "dependsOn"].includes(key)) ||
++        typeof item.memberId !== "string" || !memberId.test(item.memberId) || !Array.isArray(item.dependsOn) ||
++        item.dependsOn.length > 64 || !item.dependsOn.every(id => typeof id === "string" && memberId.test(id))) return stub
++    members.push({ memberId: item.memberId, dependsOn: [...item.dependsOn] })
++  }
++  const ids = new Set(members.map(member => member.memberId))
++  if (ids.size !== members.length || members.some(member => member.dependsOn.some(id => !ids.has(id)))) return stub
++  return { version: 1, members }
++}
++
++/** Positive projection only. Conflicting or invalid aliases suppress the entire pair. */
++export function redactMetadataData(value: unknown): Record<string, unknown> {
++  if (!record(value)) return {}
++  const out: Record<string, unknown> = {}
++  for (const key of identifiers) if (safeId(value[key])) out[key] = value[key]
++  for (const pair of aliases) {
++    const present = pair.filter(key => Object.hasOwn(value, key))
++    if (present.some(key => !safeId(value[key])) || (present.length === 2 && value[present[0]] !== value[present[1]])) {
++      for (const key of pair) delete out[key]
++    }
++  }
++  for (const key of ["tool", "name", "provider", "model"]) {
++    const grammar = key === "model" ? /^[A-Za-z0-9_.:/-]{1,200}$/ : /^[A-Za-z0-9_.:-]{1,120}$/
++    if (typeof value[key] === "string" && grammar.test(value[key])) out[key] = value[key]
++  }
++  if (typeof value.status === "string" && /^[a-z][a-z0-9_-]{0,31}$/.test(value.status)) out.status = value.status
++  if (typeof value.ok === "boolean") out.ok = value.ok
++  if (typeof value.durationMs === "number" && Number.isFinite(value.durationMs) && value.durationMs >= 0 && value.durationMs <= Number.MAX_SAFE_INTEGER) out.durationMs = value.durationMs
++  if (typeof value.expires_at === "string" && value.expires_at.length <= 40 && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(value.expires_at) && Number.isFinite(Date.parse(value.expires_at))) out.expires_at = value.expires_at
++  if (record(value.change) && typeof value.change.path === "string" && value.change.path.length > 0 && value.change.path.length <= 2048 && !/[\x00-\x1f\x7f]/.test(value.change.path)) out.change = { path: value.change.path }
++  // SQL sends bounded JSON text, never an unbounded flow object for driver parsing.
++  if (Object.hasOwn(value, "flow")) {
++    const flow = value.flow
++    if (typeof flow === "string" && Buffer.byteLength(flow) <= FLOW_BYTES) {
++      try { out.flow = redactFlow(JSON.parse(flow)) } catch { out.flow = { version: null } }
++    } else out.flow = { version: null }
++  }
++  return out
++}
++
++// Keep invalid leaf presence as null: dropping it could hide an alias conflict.
++const leaves = leafKeys.map(key => `'${key}', CASE WHEN data ? '${key}' THEN
++  CASE WHEN jsonb_typeof(data->'${key}') IN ('string','number','boolean') AND octet_length((data->'${key}')::text)<=512
++  THEN data->'${key}' ELSE 'null'::jsonb END END`).join(",\n")
++export const METADATA_EVENTS_SQL = `SELECT run_id,sequence::text AS sequence_text,
++  CASE WHEN octet_length(type)<=128 AND type ~ '^[A-Za-z0-9_.:-]+$' THEN type ELSE 'unknown' END AS type,created_at,
++  (SELECT COALESCE(jsonb_object_agg(key,value),'{}'::jsonb) FROM jsonb_each(jsonb_build_object(${leaves})) WHERE data ? key)
++  || CASE WHEN data ? 'change' THEN jsonb_build_object('change',jsonb_build_object('path',
++    CASE WHEN jsonb_typeof(data->'change'->'path')='string' AND octet_length((data->'change'->'path')::text)<=8192 THEN data->'change'->'path' ELSE 'null'::jsonb END)) ELSE '{}'::jsonb END
++  || CASE WHEN data ? 'flow' THEN jsonb_build_object('flow',CASE WHEN octet_length((data->'flow')::text)<=${FLOW_BYTES} THEN (data->'flow')::text
++    ELSE jsonb_build_object('version',CASE WHEN jsonb_typeof(data->'flow'->'version')='number' AND octet_length((data->'flow'->'version')::text)<=16 THEN data->'flow'->'version' ELSE 'null'::jsonb END)::text END) ELSE '{}'::jsonb END AS data
++  FROM run_events WHERE run_id=$1 AND sequence>$2::bigint AND sequence<=$3::bigint ORDER BY sequence ASC LIMIT $4`
++
++export async function readWorkRuntimeMetadata(client: DatabaseClient, run: RunRow, receipt: WorkRuntimeRunReceipt, query: { after: string; limit: number }) {
++  if (run.id !== receipt.runId || run.organization_id !== receipt.organizationId || run.session_id !== receipt.sessionId) throw new Error("Metadata scope mismatch")
++  const { after, limit } = parseMetadataQuery(`?after=${query.after}&limit=${query.limit}`)
++  const through = cursor((await client.query<{ through: string }>("SELECT COALESCE(max(sequence),0)::text AS through FROM run_events WHERE run_id=$1", [run.id])).rows[0].through)
++  if (BigInt(after) > BigInt(through)) throw new MetadataQueryError()
++  const rows = (await client.query<{ run_id: string; sequence_text: string; type: string; created_at: Date; data: unknown }>(METADATA_EVENTS_SQL, [run.id, after, through, limit + 1])).rows
++  let previous = BigInt(after)
++  for (const row of rows) {
++    const sequence = BigInt(cursor(row.sequence_text))
++    if (row.run_id !== run.id || sequence <= previous || sequence > BigInt(through)) throw new Error("Metadata event scope mismatch")
++    previous = sequence
++  }
++  const data: Array<{api_version: typeof API_VERSION; run_id: string; sequence_text: string; type: string; created_at: string; data: Record<string, unknown>}> = []
++  let bytes = 0
++  for (const row of rows.slice(0, limit)) {
++    const event = { api_version: API_VERSION, run_id: run.id, sequence_text: row.sequence_text,
++      type: /^[A-Za-z0-9_.:-]{1,128}$/.test(row.type) ? row.type : "unknown", created_at: row.created_at.toISOString(), data: redactMetadataData(row.data) }
++    const size = Buffer.byteLength(JSON.stringify(event))
++    if (bytes + size > 786432) break
++    bytes += size; data.push(event)
++  }
++  if (rows.length && !data.length) throw new Error("Metadata event exceeds page budget")
++  return {
++    version: 1 as const, object: "demian.work_runtime.metadata_page" as const, api_version: API_VERSION,
++    run: { id: run.id, organization_id: run.organization_id, workspace_id: receipt.workspaceId, session_id: run.session_id,
++      acting_user_id: receipt.actingUserId, service_principal_id: receipt.servicePrincipalId,
++      status: run.status, created_at: run.created_at.toISOString(), started_at: run.started_at?.toISOString() ?? null,
++      completed_at: run.completed_at?.toISOString() ?? null, correlation_id: receipt.correlationId,
++      binding_sha256: receipt.bindingSha256, context_sha256: receipt.contextSha256, request_sha256: receipt.requestSha256 },
++    events: { after, through_sequence: through, next_after: data.at(-1)?.sequence_text ?? after, limit, has_more: rows.length > data.length, data },
++  }
++}
+diff --git a/apps/api/src/work-runtime-server.ts b/apps/api/src/work-runtime-server.ts
+index dfa506d8fdded8360a05c75878e3a12e31c6ccff..1841070ea728b80eeceb15f26ba86e898354337f 100644
+--- a/apps/api/src/work-runtime-server.ts
++++ b/apps/api/src/work-runtime-server.ts
+@@ -18,0 +19 @@ import { artifactDisposition, readWorkRuntimeArtifacts } from "./work-runtime-ar
++import { MetadataQueryError, parseMetadataQuery, readWorkRuntimeMetadata } from "./work-runtime-metadata.ts"
+@@ -142 +143 @@ export function registerWorkRuntimeServer(
+-    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
++    const runMatch = /^\/api\/v1\/runs\/([a-f0-9-]{36})(\/cancel|\/metadata|\/artifacts\/[a-f0-9-]{36}\/content)?$/.exec(path)
+@@ -182 +183 @@ export function registerWorkRuntimeServer(
+-    action: (client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: Parameters<typeof runResource>[0]) => Promise<T>, mutation = false) {
++    action: (client: DatabaseClient, actor: DelegatedWorkRuntimeActor, run: Parameters<typeof runResource>[0], receipt: WorkRuntimeRunReceipt) => Promise<T>, mutation = false) {
+@@ -215 +216 @@ export function registerWorkRuntimeServer(
+-      const result = await action(client, actor, run)
++      const result = await action(client, actor, run, receipt)
+@@ -261,0 +263,13 @@ export function registerWorkRuntimeServer(
++  app.get<{ Params: { runId: string } }>("/api/v1/runs/:runId/metadata", async (request, reply) => {
++    const result = await protectedRunRead(request, request.params.runId, async (client, _actor, run, receipt) => {
++      try {
++        const page = await readWorkRuntimeMetadata(client, run, receipt, parseMetadataQuery(request.raw.url ?? request.url))
++        // Serialize before the existing post-action authority/key/role rechecks.
++        return { status: 200, body: JSON.stringify(page) }
++      } catch (error) {
++        if (!(error instanceof MetadataQueryError)) throw error
++        return { status: 400, body: JSON.stringify({ error: { code: error.code, message: error.message } }) }
++      }
++    })
++    return reply.code(result.status).type("application/json").header("cache-control", "no-store").send(result.body)
++  })
+diff --git a/apps/api/test/work-runtime-metadata.test.ts b/apps/api/test/work-runtime-metadata.test.ts
+new file mode 100644
+index 0000000000000000000000000000000000000000..3df71ac07381aa4705d7f1481e143fe841f2c46b
+--- /dev/null
++++ b/apps/api/test/work-runtime-metadata.test.ts
+@@ -0,0 +1,118 @@
++import assert from "node:assert/strict"
++import test from "node:test"
++import Fastify from "fastify"
++import type { DatabaseClient, DatabasePool, RunRow } from "@demian/db"
++import type { WorkRuntimeRunReceipt } from "../../../packages/db/src/work-runtime-runs.ts"
++import { METADATA_EVENTS_SQL, MetadataQueryError, parseMetadataQuery, readWorkRuntimeMetadata, redactMetadataData } from "../src/work-runtime-metadata.ts"
++import { registerWorkRuntimeServer } from "../src/work-runtime-server.ts"
++
++const at = new Date("2026-09-01T00:00:00Z")
++const run = { id: "run", organization_id: "org", session_id: "session", status: "running", created_at: at,
++  started_at: at, completed_at: null, input: "SECRET", output_text: "SECRET", error: "SECRET", usage: { secret: true } } as unknown as RunRow
++const receipt = { runId: "run", organizationId: "org", sessionId: "session", workspaceId: "workspace", correlationId: "correlation",
++  actingUserId: "00000000-0000-0000-0000-000000000011", servicePrincipalId: "00000000-0000-0000-0000-000000000010", bindingSha256: "binding", contextSha256: "context", requestSha256: "request" } as WorkRuntimeRunReceipt
++function fixture(rows: unknown[], through = "9223372036854775807") {
++  const calls: { sql: string; params: unknown[] }[] = []
++  const client = { query: async (sql: string, params: unknown[]) => {
++    calls.push({ sql, params })
++    return { rows: calls.length === 1 ? [{ through }] : rows }
++  } } as unknown as DatabaseClient
++  return { client, calls }
++}
++const event = (sequence_text: string, data: unknown = {}) => ({ run_id: "run", sequence_text, type: "future.event", created_at: at, data })
++
++test("strict signed wire query defaults, bigint and invalid aliases", () => {
++  assert.deepEqual(parseMetadataQuery("/metadata"), { after: "0", limit: 100 })
++  assert.deepEqual(parseMetadataQuery("?after=9223372036854775807&limit=250"), { after: "9223372036854775807", limit: 250 })
++  for (const query of ["after=-1", "after=01", "after=1.0", "after=1e3", "after=9223372036854775808", "after=", "limit=0", "limit=251", "limit=01", "after[]=0", "AFTER=0", "after=0&%61fter=1", "limit=1&limit=2", "unknown=x"]) {
++    assert.throws(() => parseMetadataQuery(`?${query}`), MetadataQueryError, query)
++  }
++})
++
++test("positive redaction keeps trace fields and no nested/private payload", () => {
++  const data = { invocationId: "inv-1", sessionId: "model-session", provider: "openai", model: "gpt-6", durationMs: 12.5,
++    tool: "read_file", ok: false, status: "running", expires_at: "2026-09-01T00:00:00Z",
++    change: { path: "src/main.ts", patch: "SECRET", text: "SECRET" }, input: "SECRET", output: "SECRET", args: "SECRET", results: "SECRET", logs: "SECRET", body: "SECRET", usage: { token: 1 } }
++  const projected = redactMetadataData(data)
++  assert.deepEqual(projected, { invocationId: "inv-1", sessionId: "model-session", provider: "openai", model: "gpt-6", durationMs: 12.5,
++    tool: "read_file", ok: false, status: "running", expires_at: "2026-09-01T00:00:00Z", change: { path: "src/main.ts" } })
++  assert.equal(JSON.stringify(projected).includes("SECRET"), false)
++  assert.deepEqual(redactMetadataData({ model: "free text", provider: "x\nsecret", ok: "true", durationMs: Infinity, tool: "x".repeat(121), change: { path: "a\nb" } }), {})
++})
++
++test("alias conflicts including invalid SQL sentinel cannot create positive relationships", () => {
++  for (const snake of ["other", null, "bad value", "x".repeat(129)]) {
++    assert.deepEqual(redactMetadataData({ invocationId: "good", invocation_id: snake }), {})
++  }
++  assert.deepEqual(redactMetadataData({ invocationId: "same", invocation_id: "same" }), { invocationId: "same", invocation_id: "same" })
++})
++
++test("cowork explicit v1 semantics preserved; invalid/unsupported/oversized flow gets only version stub", () => {
++  const flow = { version: 1, members: [{ memberId: "a", dependsOn: [] }, { memberId: "b", dependsOn: ["a"] }] }
++  assert.deepEqual(redactMetadataData({ flow: JSON.stringify(flow) }), { flow })
++  for (const bad of [ { ...flow, body: "SECRET" }, { version: 1, members: [{ memberId: "a", dependsOn: ["missing"] }, { memberId: "b", dependsOn: [] }] },
++    { version: 1, members: [{ memberId: "a", dependsOn: [] }, { memberId: "a", dependsOn: [] }] } ]) {
++    assert.deepEqual(redactMetadataData({ flow: JSON.stringify(bad) }), { flow: { version: 1 } })
++  }
++  assert.deepEqual(redactMetadataData({ flow: '{"version":2,"body":"SECRET"}' }), { flow: { version: 2 } })
++  assert.deepEqual(redactMetadataData({ flow: "x".repeat(163841) }), { flow: { version: null } })
++})
++
++test("bounded snapshot pagination uses bigint strings, exact DTO and max-first SQL", async () => {
++  const f = fixture([event("9007199254740993", { ok: true, output: "SECRET" }), event("9223372036854775807")])
++  const page = await readWorkRuntimeMetadata(f.client, run, receipt, { after: "9007199254740992", limit: 1 })
++  assert.deepEqual(page, { version: 1, object: "demian.work_runtime.metadata_page", api_version: "2026-09-01",
++    run: { id: "run", organization_id: "org", workspace_id: "workspace", session_id: "session", status: "running",
++      acting_user_id: "00000000-0000-0000-0000-000000000011", service_principal_id: "00000000-0000-0000-0000-000000000010",
++      created_at: at.toISOString(), started_at: at.toISOString(), completed_at: null, correlation_id: "correlation", binding_sha256: "binding", context_sha256: "context", request_sha256: "request" },
++    events: { after: "9007199254740992", through_sequence: "9223372036854775807", next_after: "9007199254740993", limit: 1, has_more: true,
++      data: [{ api_version: "2026-09-01", run_id: "run", sequence_text: "9007199254740993", type: "future.event", created_at: at.toISOString(), data: { ok: true } }] } })
++  assert.match(f.calls[0].sql, /max\(sequence\)/)
++  assert.equal(f.calls[1].sql, METADATA_EVENTS_SQL)
++  assert.deepEqual(f.calls[1].params, ["run", "9007199254740992", "9223372036854775807", 2])
++  assert.match(METADATA_EVENTS_SQL, /octet_length/)
++  assert.match(METADATA_EVENTS_SQL, /sequence<=\$3::bigint/)
++})
++
++test("empty/reset cursor and scope fail closed", async () => {
++  const f = fixture([], "0")
++  const page = await readWorkRuntimeMetadata(f.client, run, receipt, { after: "0", limit: 100 })
++  assert.deepEqual(page.events, { after: "0", through_sequence: "0", next_after: "0", limit: 100, has_more: false, data: [] })
++  await assert.rejects(readWorkRuntimeMetadata(fixture([], "0").client, run, receipt, { after: "1", limit: 1 }), MetadataQueryError)
++  await assert.rejects(readWorkRuntimeMetadata(fixture([]).client, run, { ...receipt, sessionId: "other" }, { after: "0", limit: 1 }), /scope/)
++  for (const row of [{ ...event("1"), run_id: "other" }, event("3"), event("0")]) {
++    await assert.rejects(readWorkRuntimeMetadata(fixture([row], "2").client, run, receipt, { after: "0", limit: 1 }), /scope/)
++  }
++})
++
++test("ordinary bearer and unsigned dedicated service cannot reach metadata storage", async () => {
++  for (const service of [false, true]) {
++    const app = Fastify()
++    const serviceId = "00000000-0000-0000-0000-000000000010"
++    const db = { connect: async () => { throw new Error("Storage must not be reached") } } as unknown as DatabasePool
++    registerWorkRuntimeServer(app, db, { origin: "https://demian.example.invalid", servicePrincipalIds: [serviceId], resolveSigningKey: () => null, resolvePolicy: async () => null },
++      () => ({ userId: service ? serviceId : "ordinary", organizationId: "org", role: "member", email: "", displayName: "", subject: "synthetic", issuer: "synthetic", authMode: "trusted" }))
++    try {
++      const response = await app.inject({ method: "GET", url: "/api/v1/runs/00000000-0000-0000-0000-000000000001/metadata", headers: { authorization: "Bearer synthetic" } })
++      assert.equal(response.statusCode, 403)
++      assert.equal(response.body.includes("Storage must not"), false)
++    } finally { await app.close() }
++  }
++})
++
++test("metadata pages honor a byte budget without losing the continuation cursor", async () => {
++  const ids = Array.from({length:64},(_,index)=>`member_${String(index).padStart(25,"0")}`)
++  const flow = JSON.stringify({version:1,members:ids.map(memberId=>({memberId,dependsOn:ids}))})
++  assert.ok(Buffer.byteLength(flow)<163840)
++  const rows = Array.from({length:10},(_,index)=>event(String(index+1),{flow}))
++  const page = await readWorkRuntimeMetadata(fixture(rows,"10").client,run,receipt,{after:"0",limit:100})
++  assert.ok(page.events.data.length>0&&page.events.data.length<rows.length)
++  assert.equal(page.events.has_more,true)
++  assert.equal(page.events.next_after,String(page.events.data.length))
++  assert.ok(Buffer.byteLength(JSON.stringify(page))<1048576)
++})
++
++test("metadata tool/provider grammars cannot widen the portable contract", () => {
++  assert.deepEqual(redactMetadataData({tool:"tool/path",name:"bad/name",provider:"bad/provider",model:"vendor/model-v1"}),{model:"vendor/model-v1"})
++  assert.throws(()=>parseMetadataQuery("?%61fter=0"),MetadataQueryError)
++})
+diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/test/work-runtime-server.integration.test.ts
+index bdcc635865b4c83c50e5692681739682ad7943a0..2ac9efa88e5b54295f01907a8abd6046756ee1e0 100644
+--- a/apps/api/test/work-runtime-server.integration.test.ts
++++ b/apps/api/test/work-runtime-server.integration.test.ts
+@@ -17,0 +18 @@ import { readWorkRuntimeArtifacts } from "../src/work-runtime-artifacts.ts"
++import { METADATA_EVENTS_SQL } from "../src/work-runtime-metadata.ts"
+@@ -109,0 +111 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
++    let afterMetadataRead: (() => void) | null = null
+@@ -121,0 +124 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
++          if(args[0]===METADATA_EVENTS_SQL&&afterMetadataRead){const effect=afterMetadataRead;afterMetadataRead=null;effect()}
+@@ -177,0 +181 @@ async function setup(withPeerDelegation = false, roleLifetimeMs?: number, prepar
++      afterMetadata:(effect:()=>void)=>{afterMetadataRead=effect},
+@@ -206,0 +211,72 @@ async function completeWithJournal(s:Awaited<ReturnType<typeof setup>>,runId:str
++test("signed metadata projects real PostgreSQL rows with exact int64 pages and portable redaction", { skip: !databaseUrl }, async () => {
++  const s = await setup()
++  try {
++    const done = await finishedWithJournal(s)
++    const base = `/api/v1/runs/${done.runId}/metadata`
++    const raw = { invocation_id: "invocation", group_id: "group", tool: "workspace.read", input: "PRIVATE_METADATA_INPUT",
++      output_text: "PRIVATE_METADATA_OUTPUT", flow: { version: 1, members: [{ memberId: "a", dependsOn: [] }, { memberId: "b", dependsOn: ["a"] }] },
++      change: { path: "result.txt", diff: "PRIVATE_METADATA_DIFF" } }
++    await s.db.query("INSERT INTO run_events(run_id,sequence,type,data) VALUES($1,9007199254740993,'cowork.group.started',$2::jsonb),($1,9007199254740994,'PRIVATE TYPE',$3::jsonb)",
++      [done.runId, JSON.stringify(raw), JSON.stringify({ groupId: "x".repeat(2048), group_id: "group", body: "PRIVATE_METADATA_BODY" })])
++    const digest = async () => (await s.db.query("SELECT md5(string_agg(sequence::text||type||data::text,',' ORDER BY sequence)) AS value FROM run_events WHERE run_id=$1", [done.runId])).rows[0].value
++    const before = await digest(), counts = await s.counts()
++    const first = await s.app.inject(s.signed("GET", base + "?after=9007199254740992&limit=1"))
++    assert.equal(first.statusCode, 200, first.body); noSecrets(first)
++    const page = first.json()
++    assert.equal(page.run.id, done.runId); assert.equal(page.run.acting_user_id, s.actingUserId)
++    assert.equal(page.run.service_principal_id, servicePrincipalId)
++    assert.equal(page.events.through_sequence, "9007199254740994"); assert.equal(page.events.next_after, "9007199254740993")
++    assert.equal(page.events.has_more, true); assert.equal(page.events.data.length, 1)
++    assert.deepEqual(page.events.data[0].data.change, { path: "result.txt" })
++    assert.deepEqual(page.events.data[0].data.flow, raw.flow)
++    const second = await s.app.inject(s.signed("GET", base + "?after=9007199254740993&limit=1"))
++    assert.equal(second.statusCode, 200, second.body)
++    assert.equal(second.json().events.has_more, false); assert.equal(second.json().events.next_after, "9007199254740994")
++    assert.equal(second.json().events.data[0].type, "unknown"); assert.deepEqual(second.json().events.data[0].data, {})
++    for (const response of [first, second]) {
++      assert.doesNotMatch(response.body, /PRIVATE_|input|output_text|"body"|"diff"/)
++      assert.equal(response.headers["cache-control"], "no-store")
++      if (assistantRoot) {
++        const { nativeMetadataPageSchema } = await import(pathToFileURL(join(assistantRoot, "packages/contracts/src/work-native-metadata.ts")).href)
++        nativeMetadataPageSchema.parse(response.json())
++      }
++    }
++    assert.equal(await digest(), before); assert.deepEqual(await s.counts(), counts)
++    assert.equal((await s.app.inject({ method: "GET", url: base, headers: { authorization: `Bearer ${apiToken}` } })).statusCode, 403)
++    assert.equal((await s.legacy.inject({ method: "GET", url: base, headers: { authorization: `Bearer ${apiToken}` } })).statusCode, 404)
++    for (const query of ["?after=01", "?after=9223372036854775808", "?after=0&after=1", "?limit=251", "?unknown=1"])
++      assert.equal((await s.app.inject(s.signed("GET", base + query))).statusCode, 400, query)
++    for (const claims of [{ context_sha256: "f".repeat(64) }, { request_sha256: "f".repeat(64) }, { correlation_id: "unrelated-operation" }])
++      assert.equal((await s.app.inject(s.signed("GET", base, "", claims))).statusCode, 403)
++  } finally { await s.close() }
++})
++
++test("signed metadata rejects current binding, role, permission and policy withdrawal", { skip: !databaseUrl }, async () => {
++  for (const mode of ["binding", "role", "permission", "policy"]) {
++    const s = await setup()
++    try {
++      const done = await finishedWithJournal(s)
++      if (mode === "binding") await revokeWorkRuntimeBinding(s.db, { organizationId, bindingId: s.binding.bindingId, expectedRevision: 1 })
++      if (mode === "role") await s.db.query("UPDATE organization_members SET role='viewer' WHERE organization_id=$1 AND user_id=$2", [organizationId, s.actingUserId])
++      if (mode === "permission") await s.db.query("UPDATE sessions SET permission_policy='ask' WHERE id=$1", [s.sessionId])
++      if (mode === "policy") s.policy.maximumOutputTokens = 64
++      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/metadata`))
++      assert.equal(response.statusCode, 403, `${mode}: ${response.body}`); noSecrets(response)
++      assert.doesNotMatch(response.body, /metadata_page|sequence_text|binding_sha256/)
++    } finally { await s.close() }
++  }
++})
++
++test("signed metadata rechecks signing key and policy after awaited event SQL", { skip: !databaseUrl }, async () => {
++  for (const mode of ["key", "policy"]) {
++    const s = await setup()
++    try {
++      const done = await finishedWithJournal(s)
++      s.afterMetadata(() => { if (mode === "key") s.withdrawKey(); else s.policy.maximumOutputTokens = 64 })
++      const response = await s.app.inject(s.signed("GET", `/api/v1/runs/${done.runId}/metadata`))
++      assert.equal(response.statusCode, 403, response.body); noSecrets(response)
++      assert.doesNotMatch(response.body, /metadata_page|sequence_text|binding_sha256/)
++    } finally { await s.close() }
++  }
++})
++

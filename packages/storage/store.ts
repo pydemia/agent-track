@@ -1,7 +1,7 @@
 import { DatabaseSync } from "node:sqlite";
 import { createHash, randomUUID } from "node:crypto";
 import {
-  bindingSchema, compareSequence, eventSchema, externalKey, runSchema,
+  bindingSchema, compareSequence, eventSchema, externalKey, runSchema, sequenceSchema,
   terminalStatuses,
   type EventView, type ObservationEvent, type RelationView, type RunBinding,
   type RunObservation, type RunStatus, type RunView, type Snapshot, type SourceView,
@@ -156,6 +156,14 @@ export class Store {
     return this.run(externalKey(sourceId, runId))?.cursor ?? "0";
   }
 
+  observeEventBoundary(sourceId: string, runId: string, through: string): void {
+    const boundary = sequenceSchema.parse(through);
+    const key = externalKey(sourceId, runId), row = this.run(key);
+    if (!row) throw new Error("Observe the authorized Run before its event boundary");
+    if (compareSequence(row.high_water, boundary) < 0)
+      this.db.prepare("UPDATE runs SET high_water=? WHERE key=?").run(boundary, key);
+  }
+
   events(key: string, after = "0", limit = 200): { events: EventView[]; nextCursor: string; hasMore: boolean } {
     // This cursor is Track's local paging ordinal, not the source SSE sequence.
     if (!/^(0|[1-9][0-9]{0,14})$/.test(after)) throw new Error("Invalid local page cursor");
@@ -178,6 +186,7 @@ export class Store {
       const observation = JSON.parse(row.observation) as RunObservation;
       const source = allowed.get(observation.sourceId);
       if (!source || source.state === "forbidden" || source.state === "unsupported") continue;
+      if (source.authorizedRunIds && !source.authorizedRunIds.includes(observation.runId)) continue;
       const binding = row.binding ? JSON.parse(row.binding) as RunBinding : null;
       // Attached Project visibility is a second independent grant.
       if (binding) {

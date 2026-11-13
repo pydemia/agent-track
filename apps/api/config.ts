@@ -50,6 +50,7 @@ export const sourceConfigSchema = z.object({
   assistantProjectsSourceId: sourceId.optional(),
   assistantProtocol: z.union([z.literal(1), z.literal(2)]).optional(),
   assistantDemianMappings: z.array(assistantDemianMappingSchema).max(20).optional(),
+  assistantNativeSourceId: sourceId.optional(),
   taskCreateUsers: z.array(email).optional(),
   organizationId: z.string().max(512).optional(),
   runIds: z.array(z.string().min(1).max(512)).default([]),
@@ -89,6 +90,17 @@ export const configSchema = z.object({
       }
     }
     for (const source of config.sources) {
+      if (source.assistantNativeSourceId) {
+        const producer = config.sources.find(item => item.id === source.assistantNativeSourceId);
+        const mapping = producer?.assistantDemianMappings?.filter(item => item.sourceId === source.id);
+        if (source.kind !== "demian" || !producer || producer.kind !== "assistant" || producer.assistantProtocol !== 2 ||
+            !producer.assistantProjectsSourceId || mapping?.length !== 1 || source.baseUrl !== mapping[0]?.origin ||
+            source.organizationId !== mapping[0]?.organizationId || source.users.length !== 1 || source.users[0] !== producer.assistantUser ||
+            source.tokenFile || source.credentialFormat || source.runIds.length || source.discoverActive || source.discoverHistory ||
+            source.cancelUsers?.length || source.approvalUsers?.length || source.assignmentUsers?.length || source.assignmentSessionIds?.length) {
+          context.addIssue({ code: "custom", message: "Protected native metadata requires one exact Assistant v2 mapping, owner and read-only source" });
+        }
+      }
       const fields = [source.assistantCredentialFile, source.assistantUser, source.assistantOwnerId, source.assistantPrincipalId];
       if (!fields.some(Boolean) && !source.assistantProjectsSourceId && !source.assistantProtocol && !source.assistantDemianMappings) continue;
       const rootUsers = config.auth.mode === "proxy" ? config.auth.users : [config.auth.user];

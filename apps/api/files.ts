@@ -18,7 +18,7 @@ export async function fileEvidence(config: () => Config, snapshot: (user: string
   const empty = (state: FileChangeEvidence["state"], detail: string): FileChangeEvidence => ({ state, runKey: key,
     changes: [], scanned: 0, limit: 2000, targetSequence: run.highWater, throughSequence: "0", omittedChanges: 0, complete: false,
     observedAt: new Date().toISOString(), detail });
-  if (source.kind !== "demian" || !source.baseUrl) return empty("unsupported", "이 출처의 변경 파일 근거 조회는 지원하지 않습니다.");
+  if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) return empty("unsupported", "이 출처의 변경 파일 근거 조회는 지원하지 않습니다.");
   if (run.sourceState !== "connected") return empty("disconnected", "현재 원본 연결을 확인한 뒤 파일 근거를 조회합니다.");
   const client = new DemianClient({ sourceId: source.id, baseUrl: source.baseUrl,
     ...(source.tokenFile ? { tokenFile: source.tokenFile } : {}),

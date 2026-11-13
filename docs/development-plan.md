@@ -1,5 +1,16 @@
 # Agent Track 개발계획
 
+2026-11-14 KST 재점검: 수용률15/21·71.4%(상위 동일 가중치·부분0)는
+직전 대비0%p이며 전체 개발 완료율로 사용하지 않는다. 후속 구현에서 보호
+metadata 수집→원장→Trace를 연결했다. 격리 PostgreSQL44개와 Persona184개,
+실제 HTTP/SQLite 수집6개가 통과했으나 운영 배포·전체 업무 성공은 남는다.
+다음 완료 조건은 새 native API/Assistant reader/Track source의 운영 반영이다. 이후 실제
+WorkCoordinator/Projects/Note 업무와 desktop 접속을 검증한다. 전체 ETA 산정 불가·
+신뢰도 낮음이며 첫 전체 업무 결과와 desktop 계약 확보 시 재산정한다.
+[최신 기준표](goal-status.md)와 [재점검](progress-audit-2026-11-13.md#2026-11-14-kst-현재-작업본-재점검)을
+우선하며 아래 운영 전환 기록은 당시 증거로 유지한다.
+[새 연결의 적용·검증 범위](assistant-native-observation.md)를 따른다.
+
 2026-11-13 23:42 KST 후속: **Assistant f79a5b1 운영 전환과 보존 검증 완료**.
 기존13개 app guard layer를 유지하고 새 guard를 구성했다. Docker의 후보 OOM
 설정 false/null 표현 차이로 멈춘 후속 검사는 후보에 한정한 기존 정규화 계약으로

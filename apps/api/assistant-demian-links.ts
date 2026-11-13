@@ -108,6 +108,18 @@ export class AssistantDemianLinks {
         await Promise.all(references.slice(offset, offset + 4).map(async ({ roleId, reference }) => {
           try {
             const initial = this.authorized(user, assistant, execution, reference), source = initial.source;
+            if (source.assistantNativeSourceId) {
+              if (source.assistantNativeSourceId !== assistant.id || source.baseUrl !== reference.origin)
+                throw new LinkUnavailable("forbidden");
+              const confirm = () => {
+                if (this.authorized(user, assistant, execution, reference).stamp !== initial.stamp) throw new LinkUnavailable("forbidden");
+              };
+              confirm();
+              results.push({ link: { roleId, sourceId: source.id, runKey: initial.run.key, runId: reference.runId,
+                sessionId: reference.sessionId, workspaceId: reference.workspaceId, operationId: reference.operationId,
+                status: initial.run.status, observedAt: initial.run.observedAt }, confirm });
+              return;
+            }
             const client = this.factory({ sourceId: source.id, baseUrl: source.baseUrl!,
               ...(source.tokenFile ? { tokenFile: source.tokenFile } : {}),
               ...(source.credentialFormat ? { credentialFormat: source.credentialFormat } : {}),

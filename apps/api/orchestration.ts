@@ -33,7 +33,7 @@ export async function orchestrationEvidence(config: () => Config, snapshot: (use
   const empty = (state: OrchestrationEvidence["state"], detail: string): OrchestrationEvidence => ({
     state, runKey: key, support: null, sessionMode: null, observedAt: new Date().toISOString(), detail,
   });
-  if (source.kind !== "demian" || !source.baseUrl) return empty("unsupported", "이 출처의 실행 조직화 계약 조회는 지원하지 않습니다.");
+  if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) return empty("unsupported", "이 출처의 실행 조직화 계약 조회는 지원하지 않습니다.");
   if (run.sourceState !== "connected") return empty("disconnected", "현재 원본 연결을 확인한 뒤 실행 조직화 지원을 조회합니다.");
   const options = { sourceId: source.id, baseUrl: source.baseUrl,
     ...(source.tokenFile ? { tokenFile: source.tokenFile } : {}),

@@ -2,6 +2,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { isAbsolute } from "node:path";
 import { z } from "zod";
+import { nativeMetadataPageSchema, assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type NativeMetadataPage } from "../contracts/native-metadata.ts";
 import {
   assistantCapabilitiesSchema,
   assistantExecutionPageSchema,
@@ -10,6 +11,7 @@ import {
   projectAssistantEvent,
   projectAssistantExecutionV2,
   assistantCapabilitiesV2Schema,
+  assistantExecutionMetadataV2Schema,
   assistantExecutionPageV2Schema,
   assistantExecutionEventsPageV2Schema,
   isAssistantV1Unsupported,
@@ -62,6 +64,10 @@ export interface AssistantReadRequest {
   headers: Record<string, string | string[] | undefined>;
 }
 export interface AssistantReadPort {
+  /** Explicit native metadata bridge; must never advance a runtime or return cached authorization. */
+  nativeMetadata?(
+    owner: string, executionId: string, roleId: string, after: string, limit: number,
+  ): Promise<NativeMetadataPage | null>;
   /** Native SQL must filter owner before ordering/limiting. Ordinals are decimal row IDs. */
   scan(
     owner: string,
@@ -102,7 +108,8 @@ type Route =
   | { kind: "capabilities" }
   | { kind: "list"; cursor: string | null }
   | { kind: "execution"; id: string }
-  | { kind: "events"; id: string; after: string };
+  | { kind: "events"; id: string; after: string }
+  | { kind: "native"; id: string; roleId: string; after: string; limit: number };
 const scanSchema = z.strictObject({
   rows: z.array(z.strictObject({ id: z.uuid(), ordinal })).max(50),
   through: ordinal,
@@ -177,6 +184,16 @@ function route(request: AssistantReadRequest, protocol: 1 | 2): Route {
       .safeParse(query);
     if (!parsed.success) throw invalidCursor();
     return { kind: "list", cursor: parsed.data.cursor ?? null };
+  }
+  const native = /^\/executions\/([0-9a-f-]{36})\/roles\/([0-9a-f-]{36})\/native$/.exec(parts);
+  if (protocol === 2 && native && z.uuid().safeParse(native[1]).success && z.uuid().safeParse(native[2]).success) {
+    if (url.pathname !== request.url.split("?")[0] || /[%\\#]/.test(request.url))
+      throw new AssistantReadError(404, "track_read_missing");
+    const parsed = z.strictObject({ after: nativeMetadataSequenceSchema.optional(),
+      limit: z.string().regex(/^[1-9][0-9]{0,2}$/).transform(Number).refine(value => value <= 250).optional(),
+    }).safeParse(query);
+    if (!parsed.success) throw invalidCursor();
+    return { kind: "native", id: native[1]!, roleId: native[2]!, after: parsed.data.after ?? "0", limit: parsed.data.limit ?? 100 };
   }
   const match = /^\/executions\/([0-9a-f-]{36})(\/events)?$/.exec(parts);
   if (!match || !z.uuid().safeParse(match[1]).success)
@@ -467,6 +484,25 @@ export class AssistantReadService {
         value = await this.execution(reader, target.id);
         if (!value)
           throw new AssistantReadError(404, "track_execution_missing");
+      } else if (target.kind === "native") {
+        if (!this.options.port.nativeMetadata) throw unavailable();
+        const before = await this.execution(reader, target.id);
+        const reference = before
+          ? assistantExecutionMetadataV2Schema.parse(before).roles.find(role => role.id === target.roleId)?.runtime.demian : null;
+        if (!reference) throw new AssistantReadError(404, "track_execution_missing");
+        const raw = await this.options.port.nativeMetadata(reader.config.ownerId, target.id, target.roleId, target.after, target.limit);
+        if (!raw) throw new AssistantReadError(404, "track_execution_missing");
+        const page = nativeMetadataPageSchema.parse(raw), run = page.run;
+        if (run.id !== reference.runId || run.session_id !== reference.sessionId || run.workspace_id !== reference.workspaceId ||
+            run.organization_id !== reference.organizationId || run.correlation_id !== reference.operationId ||
+            page.events.after !== target.after || page.events.limit !== target.limit) throw unavailable();
+        const after = await this.execution(reader, target.id);
+        const current = after
+          ? assistantExecutionMetadataV2Schema.parse(after).roles.find(role => role.id === target.roleId)?.runtime.demian : null;
+        if (!current || JSON.stringify(current) !== JSON.stringify(reference))
+          throw new AssistantReadError(404, "track_execution_missing");
+        value = assistantNativeMetadataPageSchema.parse({ version: 1, executionId: target.id, roleId: target.roleId,
+          observedAt: new Date(this.now()).toISOString(), page });
       } else value = await this.events(reader, target.id, target.after);
       this.confirm(request, reader);
       return value;

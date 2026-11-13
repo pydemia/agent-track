@@ -215,6 +215,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
             request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
           json(response, 400, { error: "invalid_assistant_query" }); return;
         }
+        if (config().sources.some(source => source.id === sourceId && source.kind === "assistant" &&
+            source.assistantUser === user && source.users.includes(user))) await sources.assistantNative?.refresh(user);
         const result = executionId ? events
           ? await sources.assistant.events(user, sourceId!, executionId, url.searchParams.get("after") ?? "0")
           : await sources.assistant.detail(user, sourceId!, executionId)

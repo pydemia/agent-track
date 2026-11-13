@@ -1,0 +1,187 @@
+{
+  "verifiedAt": "2026-11-13T15:40:59.591Z",
+  "requirements": [
+    "AT-14"
+  ],
+  "phase": "source-and-isolated-integration-verified-not-operating",
+  "source": {
+    "trackBaseline": "bc4d2624e913d3d99f54ae495306d3b7766ee195",
+    "trackFiles": [
+      {
+        "path": "apps/api/assistant-authority.ts",
+        "sha256": "69e90dfc7d1626a7d8d1931bcc59b7b37a9c6a1d00c13f7a66a2bac27c734559"
+      },
+      {
+        "path": "apps/api/assistant-demian-links.ts",
+        "sha256": "2a91d3e905e2c7a2d79e185b8304b8cecb2b49b2298a0de10c42f471689907ac"
+      },
+      {
+        "path": "apps/api/assistant-native-collector.ts",
+        "sha256": "a929584fe2fcb5fb7c74fe954dc14d94de4ed29e4432978fd26c72d4f91aa4b9"
+      },
+      {
+        "path": "apps/api/commands.ts",
+        "sha256": "4c7f4f280fed85c15ffa8412eed48f58380a4989875e026b953861100034571d"
+      },
+      {
+        "path": "apps/api/config.ts",
+        "sha256": "1ad98c195b6696480458703893f624458d08b5fcde374cbb9c6c738a303be266"
+      },
+      {
+        "path": "apps/api/context-summary.ts",
+        "sha256": "32b4510ff3a9f6c671c9262cedeffd30cf960d7ad311f1ef48d1a31c723b48e9"
+      },
+      {
+        "path": "apps/api/evidence.ts",
+        "sha256": "e8bdf48d98575b729036a812157d51c798fd6ad13eae544ecdd3607ea3b0d267"
+      },
+      {
+        "path": "apps/api/files.ts",
+        "sha256": "258ab1584b94bc5830171e9f351d24ffa105c36ee083eeb9aa5b5079336d467b"
+      },
+      {
+        "path": "apps/api/flow-view-authority.ts",
+        "sha256": "02dfaeb6a3f968414fcf146dfdc0c3279d0b6a4a94b26c0aa440761a2f31e8a4"
+      },
+      {
+        "path": "apps/api/lineage.ts",
+        "sha256": "9089ccd9677b72138efbd44752f9ec91fa596c599d9d8dfe906a7175b5559cdd"
+      },
+      {
+        "path": "apps/api/orchestration.ts",
+        "sha256": "ae78b915db63ac6f80e11d40570454f23158b1e3d0f8401001d61838b75fe1de"
+      },
+      {
+        "path": "apps/api/permissions.ts",
+        "sha256": "aac66cb7523d8a9f3782c91ac6d899ebad7c3c57f2e4ed514a3488849cbbd98e"
+      },
+      {
+        "path": "apps/api/runner.ts",
+        "sha256": "1167968f18c8967ca9c5bae2b387640ba958143718dbfdd315d7400afdf5b0bf"
+      },
+      {
+        "path": "apps/api/server.ts",
+        "sha256": "3334fca925ada3381da48c1ef2626d8912d2e466357eec212d6ceebea053a02f"
+      },
+      {
+        "path": "apps/api/session-relations.ts",
+        "sha256": "d312f47fbeb72a0d1c34a590ab116f26126ab4e046a71858f6feedea25bda233"
+      },
+      {
+        "path": "apps/api/source-identity.ts",
+        "sha256": "cbce89493ec0b3fefe00972f553ff18f185a50212e86e647f5174174689c3b8c"
+      },
+      {
+        "path": "apps/api/tools.ts",
+        "sha256": "bed355789bec8080c4479a4857962d1d159bb5e1e42e708a2ce90e5d87a99ab8"
+      },
+      {
+        "path": "packages/adapters/assistant/index.ts",
+        "sha256": "205af29585b08c48c54312b6368a70bfce6b48a3dd07fd63b25b43c0a36c88d0"
+      },
+      {
+        "path": "packages/assistant-read/service.ts",
+        "sha256": "9358aa8b33cf25e244d9db5cd7ce3d97f62264edde441066cf2832f1d1ddb6b0"
+      },
+      {
+        "path": "packages/contracts/index.ts",
+        "sha256": "37c8a03b4717cf7ce8a552d4b13a5f0b813ba6f9a649f1ad8094202e1ea1d3b8"
+      },
+      {
+        "path": "packages/contracts/native-metadata.ts",
+        "sha256": "ec0ec07e78a06a62ebc4afc9a4d474e5f99ebaec4954df4d4fffb7c847745abf"
+      },
+      {
+        "path": "packages/storage/store.ts",
+        "sha256": "1350ed84641cb15e4e7325706f7befc6911235da648821a381b1d75b23875d06"
+      },
+      {
+        "path": "tests/assistant-native-collector.test.ts",
+        "sha256": "ffd27e0c47c61d9bc78338d4bf7f902a378777d62cd10fa85f699d1d92d58991"
+      },
+      {
+        "path": "tests/assistant-native-metadata.test.ts",
+        "sha256": "31ad3a86d0c9de1a6221bf435dc79e7f5e11a130c10ed281d631d1783c8a3787"
+      }
+    ],
+    "personaRevision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
+    "demianRevision": "db861e85d72dd59368704dddb089f0615113532d",
+    "nativePatchSha256": "873d8ece4b87938fe68cb25ee27d5de6e4fa721fd140c21d60664c27642cc1d8"
+  },
+  "checks": {
+    "trackTypecheck": true,
+    "trackSeparateFrontendBuild": true,
+    "demianApiTypecheck": true,
+    "demianApiBundleBuild": true,
+    "personaServerTypecheck": true,
+    "trackAll": {
+      "tests": 999,
+      "pass": 990,
+      "fail": 0,
+      "skipped": 9,
+      "skipReason": "Existing POSIX UID/mode backup tests explicitly unsupported on Windows",
+      "logSha256": "7b41a2b6790da025d1131cdce2088d8fdd1da57e6f2be40c3993bff981c098a8"
+    },
+    "trackNewCollector": {
+      "tests": 6,
+      "pass": 6,
+      "skipped": 0,
+      "includedInTrackAll": true,
+      "scope": "Synthetic upstream over real HTTP; production readers, Sources, Track API, SQLite, Project binding and Trace projection"
+    },
+    "persona": {
+      "tests": 184,
+      "pass": 184,
+      "skipped": 0,
+      "scope": "Coordinator/gateway with synthetic runtime and transports; observational DB read-only, original references and current authority withdrawal",
+      "logSha256": "c3728bf1229c7446022a8969ec9c0f558a875a81ef8f1496854b42cac9ec0e3d"
+    },
+    "demian": {
+      "tests": 44,
+      "pass": 44,
+      "skipped": 0,
+      "scope": "Isolated real PostgreSQL signed metadata and runtime regressions; portable contract parse",
+      "operation": "86fc11bd-6248-4d44-9cdb-6996cb635352",
+      "containerRemoved": true,
+      "networkRemoved": true
+    },
+    "initialRegression": {
+      "trackActorDenialReturned503InsteadOf403": true,
+      "fixedBy": "Start protected collection only for the matching configured Assistant actor",
+      "relatedAfterFix": {
+        "pass": 25,
+        "fail": 0,
+        "skipped": 0
+      },
+      "finalWholeSuitePassed": true
+    },
+    "nativePatchExactTargetTreeMatched": true
+  },
+  "operating": {
+    "newMetadataRolloutPerformed": false,
+    "originalDemianDatabaseChanged": false,
+    "originalAgentTrailChanged": false,
+    "productionTaskNoteRunCreated": false,
+    "productionModelRequests": 0,
+    "fullWorkCoordinatorProjectsNoteDesktopTrackAccepted": false,
+    "desktopContractConfirmed": false
+  },
+  "next": [
+    "Deploy matching native API and public gate metadata route with a fresh current-state plan",
+    "Deploy Persona reader and Track source together with existing Entra/owner restrictions",
+    "Run one actual durable WorkCoordinator/Projects/Note flow and compare receipts in Track",
+    "Confirm actual desktop contract and same-work access"
+  ],
+  "progress": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal top-level requirements; partial zero",
+    "deltaPercentagePoints": 0,
+    "meaning": "Acceptance coverage only; not effort or operating readiness",
+    "eta": null,
+    "confidence": "low",
+    "etaPremises": "First full operating workflow and confirmed desktop contract"
+  },
+  "remoteCI": "pending after commit/push"
+}

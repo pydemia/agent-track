@@ -9,6 +9,7 @@ import { ProjectsAuthority } from "./projects-authority.ts";
 import { projectsReady, sourceIdentity } from "./source-identity.ts";
 import { AssistantAuthority } from "./assistant-authority.ts";
 import { AssistantDemianLinks } from "./assistant-demian-links.ts";
+import { AssistantNativeCollector } from "./assistant-native-collector.ts";
 import { filterAssignmentSnapshot } from "./task-assignment.ts";
 
 export class Sources {
@@ -24,16 +25,21 @@ export class Sources {
   private identities = new Map<string, string>();
   readonly projects: ProjectsAuthority;
   readonly assistant: AssistantAuthority;
+  readonly assistantNative: AssistantNativeCollector;
 
   constructor(private store: Store, private config: () => Config) {
     this.codex = new CodexCollector(store);
     this.projects = new ProjectsAuthority(store, config);
     this.assistant = new AssistantAuthority(store, config, this.projects, undefined, 10_000,
       new AssistantDemianLinks(config, user => filterAssignmentSnapshot(store, store.snapshot(user, this.views(user))),
-        user => this.refreshProjectGrants(user)));
+        user => this.projects.refresh(user)));
+    this.assistantNative = new AssistantNativeCollector(store, config, this.assistant);
   }
 
-  async refreshProjectGrants(user: string): Promise<void> { await this.projects.refresh(user); }
+  async refreshProjectGrants(user: string): Promise<void> {
+    await this.projects.refresh(user);
+    await this.assistantNative.refresh(user);
+  }
 
   views(user: string): Array<SourceView & { uiBaseUrl?: string }> {
     const config = this.config();
@@ -41,13 +47,14 @@ export class Sources {
     const canBind = singleOwner && config.sources.some((source) => projectsReady(source) &&
       source.users.includes(user) && this.projects.view(source, user).state === "connected");
     return config.sources.filter((source) => source.users.includes(user)).map((source) => {
-      const view = source.kind === "assistant" ? this.assistant.view(source, user)
+      const view = source.assistantNativeSourceId ? this.assistantNative.view(source, user)
+        : source.kind === "assistant" ? this.assistant.view(source, user)
         : projectsReady(source) ? this.projects.view(source, user) : this.state(source);
       return { ...view, ...(source.uiBaseUrl ? { uiBaseUrl: source.uiBaseUrl } : {}),
         capabilities: [...view.capabilities,
-          ...(canBind && source.kind === "demian" && view.state === "connected" ? ["binding.write"] : []),
-          ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.approvalUsers?.includes(user) ? ["permission.decide"] : []),
-          ...(singleOwner && source.kind === "demian" && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
+          ...(canBind && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" ? ["binding.write"] : []),
+          ...(singleOwner && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" && source.approvalUsers?.includes(user) ? ["permission.decide"] : []),
+          ...(singleOwner && source.kind === "demian" && !source.assistantNativeSourceId && view.state === "connected" && source.cancelUsers?.includes(user) ? ["run.cancel"] : [])] };
     });
   }
 
@@ -109,6 +116,10 @@ export class Sources {
                 capabilities: ["run.read", "events.read"],
                 detail: `로컬 metadata ${report.files}개 파일, 최근 ${source.sinceDays}일. 제한/크기로 제외 ${report.skipped}개. 대화·도구 입출력 제외. desktop/Demian native 연동과 별개입니다.` });
             } catch { this.states.set(source.id, { ...this.state(source), state: "disconnected", detail: "로컬 metadata 수집 실패. 원본을 변경하지 않고 다시 확인합니다." }); }
+            continue;
+          }
+          if (source.assistantNativeSourceId) {
+            for (const user of source.users) await this.assistantNative.refresh(user, source.id);
             continue;
           }
           if (source.kind !== "demian" || !source.baseUrl) continue;

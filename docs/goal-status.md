@@ -1,9 +1,27 @@
 # Agent Track 구현 goal 기준표
 
-현재 기준: **2026-11-13 23:42 KST**. 수용 항목 **15/21·71.4%**
+현재 기준: **2026-11-14 KST 진척 재점검**. 수용 항목 **15/21·71.4%**
 (상위 요구 동일 가중치, 부분0). 이 수치는 개발 작업량·운영 준비도·남은 시간의
 비율이 아니다. 기존 완료15개는 명시한 owner/QA 범위의 누적 증거이며 이번에
 모든 기능의 운영 동작을 새로 실행한 결과가 아니다.
+
+이번 점검에서 요구 행21개·고유 ID21개·완료15/부분6을 다시 집계했다. 상위
+수용률 변화는 **0%p**다. 전체 개발 완료율은 산정하지 않는다. 마지막 상위 집계
+증가는 AT-18 판정 정정이었고, 이후 Assistant 운영 전환은 AT-14의 하위 진전이다.
+후속 구현에서 Track 수집기가 새 `nativeMetadata()`를 호출하도록 연결했다.
+실제 HTTP/SQLite를 거쳐 보호 Run·현재 Projects 업무 연결·Trace 도구 시작/완료
+표시까지 검사했다. upstream 업무 데이터는 합성 fixture이며 실제 운영 업무는 아니다.
+Demian `db861e8`의 격리 PostgreSQL44개와 Persona `0691e1a`의 coordinator/gateway184개가
+통과했다(skip0). 새 코드의 운영 배포·현재 운영 업무 수용은 아직 미완료다.
+[연결 구조와 검증 범위](assistant-native-observation.md)를 따른다.
+
+직전 점검에서 관련 테스트12개 통과/실패0/skip0을 재확인했다. 타입 검사는 새
+테스트 fixture의 optional 속성에 `undefined`를 명시해 실패했으며, 미지원 port를
+실제로 생략하도록 고친 뒤 다시 통과했다. 이 검사는 로컬 계약·권한 경계 검사다.
+그 뒤 새 metadata 경로의 실제 PostgreSQL 통합을 확인했다. 운영 배포·전체 업무
+실기는 아직 미검증이다. 전체 회귀에서는 새 사전 조회가 다른 actor의403을503으로
+바꾸는 회귀1개를 발견해 수정했으며, 해당 API/수집25개가 통과했다.
+[재점검 상세](progress-audit-2026-11-13.md#2026-11-14-kst-현재-작업본-재점검)를 따른다.
 
 이번에 닫힌 조건은 **Assistant 운영 전환과 보존 검증**이다. 실제 f79a5b1 이미지가
 운영 중이며 같은 현재 역할로 공개 native API의 서명 GET3개를200으로 확인했다.
@@ -18,7 +36,7 @@ adopt했다. 원본·다른 역할의 계약을 완화하거나 DB·인증을 �
 실제 power reboot/crash 복구나 새로운 인증 GUI 실기를 수행한 것은 아니다.
 [운영 근거](assistant-native-promotion-verification.json)를 따른다.
 
-**남은 핵심 경로:** protected Run의 현재 인가된 metadata 조회 → 실제 지속
+**남은 핵심 경로:** 새 protected metadata API·Assistant reader·Track source 운영 반영 → 실제 지속
 WorkCoordinator 업무 → Projects 결과 선연결·Note 참조 → desktop 접속·Track 검토.
 재개/재시도는 원본 실행 기능부터 미지원이며 나머지 사용자 동작 실기도 아래에서
 추적한다. 새 모델/운영 Task·Note·Run은 이번 전환에서 생성하지 않았다.
@@ -35,7 +53,7 @@ WorkCoordinator 업무 → Projects 결과 선연결·Note 참조 → desktop �
 | AT-06 앱 간 이동 | 원본 웹 교체·Session URL/미지원 안내·인증 HTTP200 | 허용 인증으로 동일 Session/Task 선택 이동. 무인증401만으로 새 인증 구현 필요를 단정하지 않음 |
 | AT-09 실행 제어 | 실제 취소·receipt/중복 방어 | 원본 재개/재시도 계약·실행 지원 |
 | AT-12 그룹 탐색 | 실제 child/병렬 합류/peer·네 보기 범위·저장/복원·운영 배포 | 배포된 공통 범위·저장 복원의 사용자 동작 대조, peer 대표선 포인터 선택. 특정 Entra 재로그인·스크린샷 확보 자체는 추가 게이트가 아님 |
-| AT-14 전체 업무 | Projects·전용 native API/worker 운영, Assistant f79a5b1 운영 전환·DB 보존·실제 환경의 현재 인가 조회 통과 | protected Run metadata 인가 연결 → 실제 WorkCoordinator/Projects/Note 업무 → desktop/Track 검토 |
+| AT-14 전체 업무 | Projects·전용 native API/worker·Assistant 운영, 새 보호 metadata의 실제 SQL/HTTP/Track 원장·Trace 연결 검사 | 새 metadata 경로 운영 반영 → 실제 WorkCoordinator/Projects/Note 업무 → desktop/Track 검토 |
 | AT-15 전체 대시보드 | 여러 프로젝트·실제 두 호스트 처리 | 한 기본 대시보드에 여러 장치 세션 함께 표시·필터 해제/선택 보존. 여러 클라이언트 동시 접속 요구가 아님 |
 | AT-20 문맥 요약 | Projects 운영, Demian 분리 실기·원본 웹 HTTP 반영 | 원본 인증 GUI·동일 선택·공개 웹 장애 격리 |
 
@@ -58,7 +76,7 @@ WorkCoordinator 업무 → Projects 결과 선연결·Note 참조 → desktop �
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 배포된 네 보기 공통 범위/저장 복원의 사용자 동작 대조와 peer 대표선 포인터 선택 성공 확인이 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 Assistant 관측과 별도 실제 위임 Run1/attempt1/전송1/8event·응답/receipt DB 대조에 더해, Demian `c439341`의 전용 API/worker·현재 역할 binding·공개 서명 경계를 운영 가동했다. 실제 Persona `f79a5b1` 후보 이미지의 현재 native 인가 조회3개200. Assistant f79a5b1의 실제 운영 전환·DB 보존·현재 환경의 native 인가 조회와 boot guard adoption도 확인했다. protected Run metadata 인가 연결과 WorkCoordinator/Projects/Note·desktop/Track 전체 업무는 미검증이다 (`assistant-native-delegation-verification.json`, `projects-results-verification.json`, `demian-dedicated-service-verification.json`, `assistant-native-promotion-verification.json`) |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 Assistant 관측과 별도 실제 위임 Run1/attempt1/전송1/8event·응답/receipt DB 대조에 더해, Demian `c439341`의 전용 API/worker·현재 역할 binding·공개 서명 경계를 운영 가동했다. 실제 Persona `f79a5b1` 후보 이미지의 현재 native 인가 조회3개200. Assistant f79a5b1의 실제 운영 전환·DB 보존·현재 환경의 native 인가 조회와 boot guard adoption도 확인했다. 새 보호 metadata 경로의 운영 반영과 WorkCoordinator/Projects/Note·desktop/Track 전체 업무는 미검증이다 (`assistant-native-delegation-verification.json`, `projects-results-verification.json`, `demian-dedicated-service-verification.json`, `assistant-native-promotion-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

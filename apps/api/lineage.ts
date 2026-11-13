@@ -47,7 +47,7 @@ export async function lineageEvidence(
     state, runKey: key, observations: [], nextCursor: after, hasMore: false,
     observedAt: new Date().toISOString(), detail,
   });
-  if (source.kind !== "demian" || !source.baseUrl) {
+  if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) {
     return empty("unsupported", "이 출처의 native lineage 조회는 지원하지 않습니다.");
   }
   if (run.sourceState !== "connected") {

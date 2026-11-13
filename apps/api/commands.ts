@@ -14,7 +14,7 @@ export function commandPorts(store: Store, config: () => Config, snapshot: (user
     }
     const run = snapshot(user).runs.find((item) => item.key === runKey);
     const source = current.sources.find((item) => item.id === run?.sourceId);
-    if (!run || !source || source.kind !== "demian" || !source.baseUrl || !source.users.includes(user) || run.sourceState !== "connected") {
+    if (!run || !source || source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId || !source.users.includes(user) || run.sourceState !== "connected") {
       throw new CommandError(403, "source_forbidden", "Current source access is unavailable.");
     }
     if (writing && (current.auth.mode !== "proxy" || current.auth.users.length !== 1 || current.auth.users[0] !== user ||

@@ -44,7 +44,7 @@ export async function toolEvidence(
     observedAt: new Date().toISOString(), detail,
     ...(includeModels ? { modelRequestCoverage: "native-model-lifecycle" as const, modelRequests: [], unidentifiedModelEvents: 0, omittedModelRequests: 0 } : {}),
   });
-  if (source.kind !== "demian" || !source.baseUrl) {
+  if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) {
     return empty("unsupported", "이 출처의 도구 실행 근거 조회는 지원하지 않습니다.");
   }
   if (run.sourceState !== "connected") {

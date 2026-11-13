@@ -79,7 +79,7 @@ export class SessionRelations {
       hasMore: false, omitted: 0, coverage: kind === "managed-children" ? "managed-child-receipts" : "peer-processing-receipts",
       observedAt: new Date().toISOString(), detail,
     });
-    if (source.kind !== "demian" || !source.baseUrl) return empty("unsupported", "이 출처의 세션 관계 조회는 지원하지 않습니다.");
+    if (source.kind !== "demian" || !source.baseUrl || source.assistantNativeSourceId) return empty("unsupported", "이 출처의 세션 관계 조회는 지원하지 않습니다.");
     if (run.sourceState !== "connected" || run.stale) return empty("disconnected", "원본의 현재 접근을 확인한 뒤 세션 관계를 조회합니다.");
     const controller = new AbortController();
     const signal = external ? AbortSignal.any([external, controller.signal]) : controller.signal;
