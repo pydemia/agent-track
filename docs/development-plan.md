@@ -1,5 +1,11 @@
 # Agent Track 개발계획
 
+2026-11-14 운영 후속: native API와 공개 gate 반영을 완료했다. 기존 worker와
+원본 API는 유지했고, Assistant 새0691e1a 이미지의 env·13개 mount·네트워크를
+보존한 정지 후보를 대조했다. 다음은 현재 DB 복구/preview → 새 Assistant guard와
+운영 교체 → Track source 활성화 → 실제 업무 대조다. 수용15/21·71.4%와 전체
+ETA 산정 불가·신뢰도 낮음은 유지한다. [운영 근거](assistant-native-observation-operating.json)를 따른다.
+
 2026-11-14 KST 재점검: 수용률15/21·71.4%(상위 동일 가중치·부분0)는
 직전 대비0%p이며 전체 개발 완료율로 사용하지 않는다. 후속 구현에서 보호
 metadata 수집→원장→Trace를 연결했다. 격리 PostgreSQL44개와 Persona184개,

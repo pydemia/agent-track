@@ -5,6 +5,12 @@
 비율이 아니다. 기존 완료15개는 명시한 owner/QA 범위의 누적 증거이며 이번에
 모든 기능의 운영 동작을 새로 실행한 결과가 아니다.
 
+후속 운영 반영: 새 native API8081과 공개 gate를 전환했다. 원본 API8080과
+worker는 같은 PID로 유지했고 새 API의 공통 시작 guard adoption과 공개 metadata
+전달·무서명/비정상 query 거부를 확인했다. Assistant0691e1a는 기존 env/mount/
+네트워크를 보존한 정지 후보이며 아직 운영 교체 전이다. Track 새 source 활성화와
+실제 통합 업무도 남는다. [운영·후보 근거](assistant-native-observation-operating.json)를 따른다.
+
 이번 점검에서 요구 행21개·고유 ID21개·완료15/부분6을 다시 집계했다. 상위
 수용률 변화는 **0%p**다. 전체 개발 완료율은 산정하지 않는다. 마지막 상위 집계
 증가는 AT-18 판정 정정이었고, 이후 Assistant 운영 전환은 AT-14의 하위 진전이다.

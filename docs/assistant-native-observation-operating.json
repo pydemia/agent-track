@@ -1,0 +1,152 @@
+{
+  "verifiedAt": "2026-11-13T16:26:44.026Z",
+  "requirements": [
+    "AT-14"
+  ],
+  "phase": "native-api-and-public-gate-operating-assistant-candidate-inactive",
+  "native": {
+    "revision": "db861e85d72dd59368704dddb089f0615113532d",
+    "manifestSha256": "2c9589f2fbf3520fc30caeec2fba7d9068008e4b0c44259b9f794d217874508f",
+    "apiSha256": "b4b6d3551319c776f751642c908a92df4b12f2f73029d94f49a4b9a7c6bae9b4",
+    "pid": 16328,
+    "canary": {
+      "capabilities": 200,
+      "actor": 200,
+      "session": 200,
+      "unsignedBearer": 403
+    },
+    "canaryStopped": true,
+    "operatingProbe": {
+      "capabilities": 200,
+      "actor": 200,
+      "session": 200,
+      "unsignedBearer": 403
+    },
+    "primaryApiPid": 15940,
+    "primaryApiPreserved": true,
+    "workerPid": 42184,
+    "workerAdoptedWithoutRestart": true,
+    "workerReleasePointerUnchanged": true,
+    "apiOnlyReleaseOverride": true,
+    "commonStartWrapperAdoptedActualApiPid": 16328,
+    "targetSessionCountsBefore": {
+      "runs": 0,
+      "events": 0,
+      "receipts": 0,
+      "active": 0
+    },
+    "targetSessionCountsAfter": {
+      "runs": 0,
+      "events": 0,
+      "receipts": 0,
+      "active": 0
+    },
+    "nativeAuthNonceMayAdvance": true,
+    "newModelRequests": 0,
+    "databaseRestore": false
+  },
+  "gate": {
+    "pid": 22040,
+    "candidateSha256": "b4431c2d348494c12c82b59585d0e184d94e4f8fd5b251a5b112b434dc66e100",
+    "public": {
+      "tlsVerification": true,
+      "anonymous": 401,
+      "existingBrowser": 200,
+      "signedCapabilities": 200,
+      "preparedCodex": true,
+      "roleMetadata": true,
+      "unsignedBearer": 403,
+      "metadataForwardedToNativeBoundary": 403,
+      "metadataProblemJson": true,
+      "noncanonicalMetadataQuery": 403,
+      "actualProtectedRunBodyRead": false
+    },
+    "configAndLoginPreserved": true,
+    "cloudflaredUnchanged": true
+  },
+  "assistant": {
+    "revision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
+    "tree": "3d03ce2b22c4bb0c887d193af2f4eb8c24ca2f49",
+    "archiveSha256": "3d7c53aaa2f01c9a2830f7491ce8e05703fe8a7e2f3a2518c612cb8a8ec74f31",
+    "candidateId": "fb3ba489e1bea8e99cc54376d694afe6a8eba68810a7665eca4fabe999662ebc",
+    "candidateImage": "sha256:272bcdcc040cd069c3395795108e7ae85342d9a7ccd3bf969237897dbfe31541",
+    "cloneModuleSha256": "47038a132b5f90d0aa975b252776135d11a0da47e7d51c2e5a24899a6303989b",
+    "stage": "strict-inactive-candidate-verified",
+    "originalContainerUnchanged": true,
+    "operatingContainerId": "b94103c44ffea0c32de2ddb1a61f76c3ae90726b53bdf081521f0a3f0e2b9da3",
+    "operatingSource": "f79a5b13c53b5c12765aa59b6a2b5302c4fa3913",
+    "imageOnly": true,
+    "envPreserved": true,
+    "mountCount": 13,
+    "mountFieldsPreserved": true,
+    "hostConfigPreserved": true,
+    "networksPreserved": true,
+    "newCredentials": 0,
+    "newMounts": 0,
+    "candidateStarted": false,
+    "freshBackupRestorePreviewAndCutover": false,
+    "wholeWorkCoordinatorWorkflow": false,
+    "revalidatedCloneModuleSha256": "68a9d8515de90b662022cc800d33e4f0792a7b40e5ce6e73e531b7355a099645",
+    "currentModuleReverifiedExistingInactiveCandidate": true
+  },
+  "checks": {
+    "pythonNativeSuites": {
+      "tests": 37,
+      "pass": 37,
+      "fail": 0,
+      "skip": 0
+    },
+    "independentDeploymentReview": {
+      "requestedModel": "gpt-6-astra",
+      "requestedEffort": "low",
+      "actualProviderExecutionObserved": false,
+      "writeAccess": false,
+      "findingsHandled": [
+        "API-only override",
+        "transition lock",
+        "expected environment pins",
+        "retained process stop",
+        "explicit canary cleanup",
+        "stale-record recovery",
+        "saved startup verified before stop"
+      ]
+    },
+    "currentPersonaCI": {
+      "revision": "0691e1a1a80f0fa75999fd59f779aacb9921606a",
+      "pushRun": 43455162968,
+      "pullRequestRun": 43455173734,
+      "pullRequestAttempt": 2,
+      "conclusion": "success"
+    },
+    "linuxClone": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skip": 0,
+      "scope": "Current module plus same real inactive Docker candidate; no new create/start"
+    }
+  },
+  "corrections": {
+    "firstPreflight": "Read-only preservation query used a nonexistent receipt session column; joined runs instead; no canary/operating action before failure",
+    "firstGateCanary": "Expected application/json instead of native RFC problem+json; direct and proxy responses matched; corrected assertion",
+    "firstGateActivation": "Expected entry used forward slash while Windows command used canonical backslash; identity refused before stop; canonical path matched existing process"
+  },
+  "limitations": [
+    "Protected metadata public route has only been probed with an unknown Run; actual protected Run body observation remains unverified",
+    "Assistant candidate remains stopped; operating Assistant source is f79a5b1",
+    "Track operating source remains a3bb446; new collector/source is not activated",
+    "Fresh current-state backup/restore/preview and Assistant cutover remain",
+    "Actual WorkCoordinator/Projects/Note/Track/same Windows PC workflow remains"
+  ],
+  "progress": {
+    "complete": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal top-level; partial zero",
+    "meaning": "Acceptance coverage, not effort or operating readiness",
+    "eta": null,
+    "confidence": "low",
+    "premises": "First full operating workflow and remaining resume/retry implementation"
+  },
+  "originalAgentTrailPreserved": true
+}

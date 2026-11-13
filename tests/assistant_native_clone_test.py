@@ -292,5 +292,74 @@ class NativeCloneTest(unittest.TestCase):
             self.reject(native.clone_request, bad, self.plan, self.credentials)
 
 
+class ImageCloneTest(unittest.TestCase):
+    def setUp(self):
+        current, plan, credentials = fixture()
+        self.current = inspection(current, plan, credentials)
+        self.candidate = {"image": "sha256:" + "e" * 64,
+                          "sourceCommit": "f" * 40,
+                          "sourceArchiveSha256": "1" * 64,
+                          "sourceTree": "2" * 40}
+        self.actual = deepcopy(self.current)
+        self.actual["Image"] = self.actual["Config"]["Image"] = self.candidate["image"]
+        for label, value in (("org.opencontainers.image.revision", "f" * 40),
+                             ("com.pydemia.source.archive", "1" * 64),
+                             ("com.pydemia.source.tree", "2" * 40),
+                             ("io.pydemia.agent-track-reader.archive-sha256", "1" * 64),
+                             ("io.pydemia.agent-track-reader.source-tree", "2" * 40)):
+            self.actual["Config"]["Labels"][label] = value
+
+    def test_preserves_already_installed_native_config_and_opaque_credentials(self):
+        before = deepcopy(self.current)
+        request = native.image_clone_request(self.current, self.candidate)
+        self.assertEqual(request["Env"], self.current["Config"]["Env"])
+        self.assertEqual(request["HostConfig"], self.current["HostConfig"])
+        self.assertEqual(len(self.actual["Mounts"]), 13)
+        native.verify_image_clone(self.actual, self.current, self.candidate)
+        self.assertEqual(self.current, before)
+        request["Env"].clear()
+        self.assertEqual(self.current, before)
+
+    def test_rejects_environment_host_mount_and_source_stamp_drift(self):
+        mutations = [lambda v: v["Config"]["Env"].append("EXTRA=secret"),
+                     lambda v: v["HostConfig"].update(Privileged=True),
+                     lambda v: v["HostConfig"].update(UnknownOrdinary=False),
+                     lambda v: v["Mounts"][-1].update(RW=True),
+                     lambda v: v["Config"]["Labels"].update(custom="changed"),
+                     lambda v: v["Config"].update(Image="unexpected"),
+                     lambda v: v["NetworkSettings"]["Networks"]["app"].update(Aliases=[])]
+        for mutate in mutations:
+            actual = deepcopy(self.actual)
+            mutate(actual)
+            with self.assertRaises(native.CloneError):
+                native.verify_image_clone(actual, self.current, self.candidate)
+
+    def test_only_false_null_oom_representation_and_mount_order_are_equivalent(self):
+        self.actual["Mounts"].reverse()
+        self.actual["HostConfig"]["OomKillDisable"] = None
+        native.verify_image_clone(self.actual, self.current, self.candidate)
+        self.actual["HostConfig"]["OomKillDisable"] = True
+        with self.assertRaises(native.CloneError):
+            native.verify_image_clone(self.actual, self.current, self.candidate)
+
+    def test_rejects_duplicate_env_invalid_candidate_and_unbounded_json(self):
+        current = deepcopy(self.current)
+        current["Config"]["Env"].append(current["Config"]["Env"][0])
+        with self.assertRaises(native.CloneError):
+            native.image_clone_request(current, self.candidate)
+        current = deepcopy(self.current)
+        current["HostConfig"]["OomKillDisable"] = True
+        with self.assertRaises(native.CloneError):
+            native.image_clone_request(current, self.candidate)
+        for candidate in [{**self.candidate, "extra": True},
+                          {**self.candidate, "image": "unverified-tag"}]:
+            with self.assertRaises(native.CloneError):
+                native.image_clone_request(self.current, candidate)
+        current = deepcopy(self.current)
+        current["Config"]["unknown"] = "x" * 1048577
+        with self.assertRaises(native.CloneError):
+            native.image_clone_request(current, self.candidate)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -6,7 +6,8 @@ import math
 import posixpath
 import re
 
-__all__ = ["CloneError", "clone_request", "verify_clone"]
+__all__ = ["CloneError", "clone_request", "verify_clone",
+           "image_clone_request", "verify_image_clone"]
 
 DESTINATION = "/run/secrets/agent-track-demian"
 ENV_KEY = "PERSONA_DEMIAN_RUNTIME_CONFIG_FILE"
@@ -311,3 +312,85 @@ def verify_clone(
         sorted(mounts, key=lambda mount: mount["Destination"]),
         sorted(expected, key=lambda mount: mount["Destination"]),
     ))
+
+
+def image_clone_request(current: dict, candidate: dict) -> dict:
+    """Update only image/source stamps on an already configured native app.
+
+    Existing credentials and mounts are opaque preserved values. The request
+    contains them and must never be logged or persisted by callers.
+    """
+    _json(current)
+    _json(candidate)
+    _require(type(current) is dict and type(candidate) is dict)
+    _require(set(candidate) == {"image", "sourceCommit",
+                               "sourceArchiveSha256", "sourceTree"})
+    for key, pattern in (("image", r"sha256:[a-f0-9]{64}"),
+                         ("sourceCommit", r"[a-f0-9]{40}"),
+                         ("sourceArchiveSha256", r"[a-f0-9]{64}"),
+                         ("sourceTree", r"[a-f0-9]{40}")):
+        _require(type(candidate.get(key)) is str
+                 and re.fullmatch(pattern, candidate[key]) is not None)
+    _require(type(current.get("Config")) is dict
+             and type(current.get("HostConfig")) is dict)
+    if "OomKillDisable" in current["HostConfig"]:
+        _require(current["HostConfig"]["OomKillDisable"] is False
+                 or current["HostConfig"]["OomKillDisable"] is None)
+    env = current["Config"].get("Env")
+    _require(type(env) is list)
+    keys = []
+    for entry in env:
+        _require(type(entry) is str and "=" in entry
+                 and not any(char in entry for char in "\r\n\x00"))
+        keys.append(entry.split("=", 1)[0])
+    _require(all(keys) and len(set(keys)) == len(keys))
+    labels = current["Config"].get("Labels")
+    _require(labels is None or type(labels) is dict)
+    _require(labels is None or all(type(value) is str
+                                  for value in labels.values()))
+    mounts = current.get("Mounts")
+    _require(type(mounts) is list
+             and all(type(mount) is dict for mount in mounts))
+    destinations = [_path(mount.get("Destination")) for mount in mounts]
+    _require(len(set(destinations)) == len(destinations))
+    request = deepcopy(current["Config"])
+    request["Image"] = candidate["image"]
+    request["Labels"] = dict(labels or {})
+    for label, key in (
+        ("org.opencontainers.image.revision", "sourceCommit"),
+        ("com.pydemia.source.archive", "sourceArchiveSha256"),
+        ("com.pydemia.source.tree", "sourceTree"),
+        ("io.pydemia.agent-track-reader.archive-sha256", "sourceArchiveSha256"),
+        ("io.pydemia.agent-track-reader.source-tree", "sourceTree"),
+    ):
+        request["Labels"][label] = candidate[key]
+    request["HostConfig"] = deepcopy(current["HostConfig"])
+    request["NetworkingConfig"] = {"EndpointsConfig": _networks(current)}
+    return request
+
+
+def verify_image_clone(actual: dict, current: dict, candidate: dict) -> None:
+    """Check an image-only clone without re-adding native credentials or mounts."""
+    request = image_clone_request(current, candidate)
+    _json(actual)
+    _require(type(actual) is dict)
+    host = request.pop("HostConfig")
+    endpoints = request.pop("NetworkingConfig")["EndpointsConfig"]
+    _require(_same(actual.get("Image"), request["Image"]))
+    _require(_same(actual.get("Config"), request))
+    actual_host = deepcopy(actual.get("HostConfig"))
+    _require(type(actual_host) is dict)
+    for value in (host, actual_host):
+        if "OomKillDisable" in value:
+            _require(value["OomKillDisable"] is False
+                     or value["OomKillDisable"] is None)
+            value["OomKillDisable"] = None
+    _require(_same(actual_host, host))
+    _require(_same(_networks(actual), endpoints))
+    mounts = actual.get("Mounts")
+    _require(type(mounts) is list
+             and all(type(mount) is dict for mount in mounts))
+    destinations = [_path(mount.get("Destination")) for mount in mounts]
+    _require(len(set(destinations)) == len(destinations))
+    _require(_same(sorted(mounts, key=lambda item: item["Destination"]),
+                   sorted(current["Mounts"], key=lambda item: item["Destination"])))

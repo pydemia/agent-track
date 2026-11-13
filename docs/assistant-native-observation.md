@@ -1,7 +1,35 @@
 # Assistant를 통한 보호 Run 관측
 
-기준: 2026-11-14 KST. AT-14의 코드·격리 통합 단계다. 운영 반영과 실제
-WorkCoordinator→Projects→Note→desktop→Track 업무 수용은 아직 미완료다.
+기준: 2026-11-14 KST. **native API·공개 gate는 운영 반영했고 Assistant는
+정지된 새 이미지 후보까지 검증했다.** Track 새 collector와 Assistant 교체,
+WorkCoordinator→Projects→Note→desktop→Track 실제 업무 수용은 아직 미완료다.
+[현재 운영·후보 근거](assistant-native-observation-operating.json)를 따른다.
+
+## 운영 전환 후속
+
+Dedicated API8081은 `db861e8`의 동결 후보로 교체했다. 원래 API8080과 worker는
+같은 PID로 유지했다. 공통 시작 도구는 API에만 별도 release pointer를 사용하고
+기존 worker pointer를 유지한다. 전환 lock·설정 hash·현재 process 생성 신원·
+retained handle 종료와 복구 경로를 검토했고, 실제 canary를 종료한 뒤 전환했다.
+전환 후 공통 PowerShell 시작 명령이 같은 API PID를 adopt하는 것도 확인했다.
+
+공개 gate는 현재 process/파일 신원을 검증한 뒤 교체했다. TLS·기존 브라우저
+인증/설정·cloudflared를 유지했고, 서명 capability200/무서명403과 metadata query
+전달·비정상 query403을 대조했다. metadata는 존재하지 않는 Run으로 native
+`application/problem+json` 응답까지 확인했다. 실제 보호 Run 본문200은 아직 아니다.
+
+Assistant `0691e1a` 이미지와 정지된 후보를 생성했다. 기존 native 설정이 이미
+설치된 앱이므로 env/mount를 다시 추가하는 기존 clone 함수를 사용하지 않는다.
+새 `image_clone_request`/`verify_image_clone`은 image와 source label5개만 변경하고
+기존 환경·HostConfig·13개 mount·네트워크를 그대로 대조한다. 새 credential이나
+mount는0개다. 기존 clone/lifecycle 회귀를 포함한 Python37개와 Linux 후보
+검사를 통과했다. 운영 Assistant는 아직 `f79a5b1`이다. 새 source의 push·PR CI는
+모두 통과했다. 다음은 현재 DB의 새 복구/preview 증거와 새 운영 guard·cutover다.
+
+첫 사전 검사의 receipt 컬럼 이름 오류는 readonly 쿼리를 고쳤고 운영 action 전
+중단됐다. gate 검사의 RFC problem media type 가정과 Windows 경로 표기 차이도
+각각 원본 응답/실행 신원으로 확인해 고쳤다. 실패한 canary·전환 기록을 덮어쓰거나
+소비된 runner를 재실행하지 않았다. 새 모델/Task/Note/Run과 DB 복원은 수행하지 않았다.
 
 ## 현재 연결
 
@@ -22,7 +50,7 @@ WorkCoordinator→Projects→Note→desktop→Track 업무 수용은 아직 미�
 6. 공개 `delegated-proxy`에도 metadata GET 경로를 추가했다. query는 생략하거나
    정확한 `?after=<canonical-int64>&limit=<1..250>` 순서만 허용하고, HMAC envelope와
    bearer·Host·organization을 기존대로 대조한 뒤 원래 URL 그대로 전달한다.
-   query alias·추가 key·POST·무서명 요청은 거부한다. 운영 gate 교체는 아직 수행하지 않았다.
+   query alias·추가 key·POST·무서명 요청은 거부한다. 위 운영 gate 전환 후속을 따른다.
 
 원문·도구 인수/결과·native signing key·binding/context/request hash·native
 principal은 Track 원장과 공개 응답에 포함하지 않는다. private writer가 있는
