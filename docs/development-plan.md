@@ -1,5 +1,21 @@
 # Agent Track 개발계획
 
+2026-11-13 23:42 KST 후속: **Assistant f79a5b1 운영 전환과 보존 검증 완료**.
+기존13개 app guard layer를 유지하고 새 guard를 구성했다. Docker의 후보 OOM
+설정 false/null 표현 차이로 멈춘 후속 검사는 후보에 한정한 기존 정규화 계약으로
+수정했고,33개 회귀·Windows/Ubuntu CI와 실제 같은 PID의 guard adoption을 확인했다.
+운영4개 새 빈 테이블/9개 schema object와 기존 업무 행·보고서·파일68개, 다른12개
+서비스·renderer를 보존했다. 실제 현재 환경/metadata로 native 서명 GET3개도200이다.
+운영 Task/Note/Run·모델 요청은 이 전환에서 생성하지 않았다.
+
+다음 임계 작업은 **protected Run metadata 인가 연결 → 실제 지속 WorkCoordinator
+업무·Projects 결과 선연결/Note 참조 → desktop 접속·Track 검토**다. 완료한 후보 기동·
+백업·운영 전환을 반복하지 않는다. 현재 private 실행 근거는 native-lifecycle-v3이며
+실패한 v2 전환 runner를 재실행하지 않는다. 일반 bearer의 보호 Session 차단도 유지한다.
+[운영 근거](assistant-native-promotion-verification.json)와 [현재 수용표](goal-status.md)를
+우선한다. 수용15/21·71.4%는 유지하며 전체 ETA 산정 불가·신뢰도 낮음이다.
+아래는 이전 시점의 기록이다.
+
 2026-11-13 22:51 KST 재점검: 상위 수용15/21·71.4%의 산술은 확인했으나
 전체 개발 완료율로 해석할 수 없다. 실제 두 DB 백업/복원과 전체 후보 기동은
 확보했지만 후속 복원본 DB 검사가 실패해 Assistant 운영 전환은 미완료다.

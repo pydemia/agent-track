@@ -1,5 +1,29 @@
 # 진행률 판정 감사
 
+## 23:42 KST 실행 후속
+
+이후 실제 goal 작업에서 Assistant 후보 f79a5b1을 운영 반영했다. 복원본 검사의
+WAL 보조 파일 접근 문제를 재현·수정하고, 같은 복원본의 정확한 DDL/행 검사를
+통과했다. 기존 업무 행·보고서의 최신 baseline을 새로 확인한 뒤 전환했다.
+새 백업이나 후보 앱 기동을 관찰 timeout만으로 반복하지 않았다.
+
+운영 기동 후에는 Docker가 후보 OomKillDisable만 false→null로 반환해 검증이
+실패했다. HostConfig 전체 hash·clone verifier로 다른 변화가 없음을 대조했고,
+e6ceacf에서 후보 전용의 기존 정규화 계약을 사용하도록 수정했다. 회귀는 수정 전
+실패·수정 후33개 통과, 두 CI 플랫폼 성공을 확인했다. 실행 중인 후보/renderer/
+budget/avatar는 재시작 없이 같은 PID로 adopt했다. 운영 DB의4개 새 빈 테이블,
+9개 schema object·기존 업무 행/시작 delta·보고서·선택 파일68개와 다른12개
+서비스를 대조했다. 현재 역할과 실제 운영 환경으로 native 서명 GET3개도200이다.
+원본 앱은 보존 이름으로 중지 상태다. DB·인증을 복원하거나 전체 업무를 실행한
+것은 아니다. 실제 power reboot/crash 복구·새 인증 GUI도 미검증이다.
+
+이는 AT-14의 **운영 Assistant 전환 조건 폐쇄**다. protected metadata 조회와
+실제 WorkCoordinator/Projects/Note·desktop/Track 전체 흐름이 남아 상위15/21·
+71.4%는 유지한다. 수치가 같아도 이번에는 새 운영 상태가 확보됐음을 분리해
+기록한다. 전체 ETA는 산정 불가·신뢰도 낮음이며 다음 예측 근거는 첫 지속 업무와
+desktop 계약이다. [운영 증거](assistant-native-promotion-verification.json),
+[현재 수용 기준표](goal-status.md)를 따른다.
+
 ## 22:51 KST 실제 상태 재확인
 
 이번 사용자의 진척 정체 점검에 대해 HEAD `a59e89b`의21개 요구 행을 직접 집계했다.

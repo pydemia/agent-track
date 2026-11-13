@@ -1,14 +1,18 @@
 {
-  "verifiedAt": "2026-11-13T14:19:15Z",
-  "requirements": ["AT-14"],
-  "phase": "native-preview-and-lifecycle-preflight-verified",
-  "scope": "Actual server candidate image, restored current databases and inert operating transition preflight. Does not establish operating Assistant promotion or whole cross-app acceptance.",
+  "verifiedAt": "2026-11-13T14:41:36.863Z",
+  "requirements": [
+    "AT-14"
+  ],
+  "phase": "operating-native-assistant-and-guard-verified",
+  "scope": "Operating Assistant native configuration, exact image/guard and database preservation/readiness. Does not establish protected Run observation or whole WorkCoordinator/Projects/Note/desktop/Track acceptance.",
   "source": {
     "personaRevision": "f79a5b13c53b5c12765aa59b6a2b5302c4fa3913",
     "candidateImage": "sha256:cb3df22a1f01a9c37e46dfa2111bb4c1bf56d196b16e8fae3b142565c6690478",
-    "operatingAssistantImage": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712",
-    "nativeLifecycleSha256": "6382389ad16e10f033b1e05b9fded67ac3920435280f736a6ac9f4be35f117f0",
-    "nativeCloneSha256": "6fe94236f51b33861f4ff5dca7ec62b36b25ef3dea8a932253d7e33164805e94"
+    "operatingAssistantImage": "sha256:cb3df22a1f01a9c37e46dfa2111bb4c1bf56d196b16e8fae3b142565c6690478",
+    "nativeLifecycleSha256": "c64acff9e12c9058bb064587d3713eac10cf91fe77d50765a532811178598317",
+    "nativeCloneSha256": "6fe94236f51b33861f4ff5dca7ec62b36b25ef3dea8a932253d7e33164805e94",
+    "originalRetainedImage": "sha256:92ee2a2b3a4e16a382dd20f6b61ce8c02439484d8f14ca712d44a83d244cf712",
+    "nativeLifecycleRevision": "e6ceacf40b80225c38564a833376f3d598ab7b87"
   },
   "recovery": {
     "actualEncryptedBackupAndRestoreVerified": true,
@@ -26,8 +30,14 @@
     "originalStateNotMounted": true,
     "originalOtherMountsReadonly": true,
     "newEmptyTables": {
-      "work": ["work_instruction_project_sources", "work_note_feedback_replies"],
-      "runtime": ["work_demian_result_artifacts", "work_demian_runtime_links"]
+      "work": [
+        "work_instruction_project_sources",
+        "work_note_feedback_replies"
+      ],
+      "runtime": [
+        "work_demian_result_artifacts",
+        "work_demian_runtime_links"
+      ]
     },
     "newSchemaObjectsExactSourceDdl": 9,
     "oldSchemasPreserved": true,
@@ -37,7 +47,12 @@
       "appendedUiEvents": 6,
       "oldTaskRowsEventPrefixAndSequenceInverseHashesMatched": true
     },
-    "operationalLeaseExceptions": ["work_execution_lease", "work_report_lease", "runtime_leases", "import_leases"],
+    "operationalLeaseExceptions": [
+      "work_execution_lease",
+      "work_report_lease",
+      "runtime_leases",
+      "import_leases"
+    ],
     "measuringConnectionsTotalChanges": 0,
     "originalProtectedProcessesAndContractsPreserved": 13,
     "ownedPreviewContainersRemoved": true,
@@ -52,7 +67,7 @@
     }
   },
   "latestSourceBaseline": {
-    "capturedAt": "2026-11-13T14:06:31.143Z",
+    "capturedAt": "2026-11-13T14:23:30.450Z",
     "oldBusinessRowsMatchVerifiedBackup": true,
     "reportPinsPreserved": true,
     "activeTasksExecutionsReportsImports": 0,
@@ -64,20 +79,61 @@
     "readonlyMetadataVolumesAdded": 1,
     "actualCurrentPreflightPassed": true,
     "originalProtectedComponentsPreserved": 13,
-    "selectedFileFingerprints": {"assistant": 33, "avatar": 32, "budget": 3},
+    "selectedFileFingerprints": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
     "oldGuardFilesRetained": 13,
-    "newGuardsInstalled": false,
-    "operatingCandidateStarted": false,
+    "newGuardsInstalled": true,
+    "operatingCandidateStarted": true,
     "automaticDatabaseOrCredentialRestore": false,
     "automaticOldImageFallback": false,
-    "requiredBootOrder": ["renderer", "budget", "avatar", "assistant"],
+    "requiredBootOrder": [
+      "renderer",
+      "budget",
+      "avatar",
+      "assistant"
+    ],
     "rendererReadinessScope": "HTTP listener and request handler, not a render workload",
-    "writerScope": "Docker-visible mounts on both engines, not general host process isolation"
+    "writerScope": "Docker-visible mounts on both engines, not general host process isolation",
+    "candidateProcess": {
+      "id": "b94103c44ffea0c32de2ddb1a61f76c3ae90726b53bdf081521f0a3f0e2b9da3",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:cb3df22a1f01a9c37e46dfa2111bb4c1bf56d196b16e8fae3b142565c6690478",
+      "running": true,
+      "pid": 4133080,
+      "startedAt": "2026-11-13T14:26:17.929094906Z"
+    },
+    "currentGuardPlanSha256": "aba07ad04aac7672c31586027721a02b971daa02cbebeec6748e78a65a3f858f",
+    "candidateContractKind": "oom-kill-disable-false-null-equivalent-v1",
+    "guardAdoption": {
+      "candidateRestarted": false,
+      "bootRolesRestarted": false,
+      "rendererRestarted": false,
+      "originalRetainedStopped": true,
+      "execStopAndRestartPreserved": true,
+      "enabledExistingUnits": {
+        "persona-apps.service": "enabled",
+        "persona-report-renderer-aed3229-20261108.service": "enabled"
+      },
+      "physicalBootOrCrashRecoveryPerformed": false
+    },
+    "initialPostStartValidation": {
+      "outcome": "failed and preserved",
+      "candidateHealthStatus": 200,
+      "reason": "Docker changed only OomKillDisable false to null after start",
+      "fullCloneAfterStartVerified": true,
+      "onlyHostRepresentationChanged": true,
+      "correctedUsingExistingFrozenCandidateContract": true,
+      "originalOrOtherRoleContractsNormalized": false,
+      "subsequentCandidateRestarted": false
+    }
   },
   "verification": {
-    "syntheticPythonTests": 32,
+    "syntheticPythonTests": 33,
     "failures": 0,
-    "newRemoteCiVerified": false,
+    "newRemoteCiVerified": true,
     "independentReviewMustFixesApplied": [
       "effective guards and no pending start job before stop",
       "host-root bind writer detection",
@@ -85,16 +141,27 @@
       "raw protected network preservation including existing static IPAM",
       "bounded dependency listener probes",
       "required hashed evidence references and source identifiers"
-    ]
+    ],
+    "ci": {
+      "run": 43443590655,
+      "revision": "e6ceacf40b80225c38564a833376f3d598ab7b87",
+      "windows": "success",
+      "ubuntu": "success",
+      "steps": [
+        "typecheck",
+        "python native clone/lifecycle",
+        "npm test",
+        "build"
+      ]
+    }
   },
   "productionTaskNoteRunCreates": 0,
   "modelRequests": 0,
   "remaining": [
-    "current-revision remote CI",
-    "guard installation and operating Assistant transition/readback",
     "protected native Run metadata authorization path",
     "durable WorkCoordinator/Projects result/Note workflow",
-    "desktop access and Track review of the same real work"
+    "desktop access and Track review of the same real work",
+    "authenticated public GUI acceptance in remaining requirements"
   ],
   "goal": {
     "acceptanceCompleted": 15,
@@ -104,5 +171,96 @@
     "developmentCompletionPercent": null,
     "eta": null,
     "scheduleConfidence": "low"
+  },
+  "operatingDatabase": {
+    "phase": "operating-native-database-readback-verified",
+    "verifiedAt": "2026-11-13T14:35:48.717Z",
+    "differences": {
+      "work": {
+        "oldTables": 29,
+        "newTables": [
+          "work_instruction_project_sources",
+          "work_note_feedback_replies"
+        ],
+        "newSchemaObjects": 4,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [],
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ],
+        "totalChanges": 0
+      },
+      "runtime": {
+        "oldTables": 62,
+        "newTables": [
+          "work_demian_result_artifacts",
+          "work_demian_runtime_links"
+        ],
+        "newSchemaObjects": 5,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "operationalLeaseExceptions": [
+          "runtime_leases",
+          "import_leases"
+        ],
+        "totalChanges": 0
+      }
+    },
+    "reportPinsPreserved": true,
+    "selectedFileFingerprintsPreserved": 68,
+    "otherProtectedComponentsPreserved": 12,
+    "rendererPreserved": true,
+    "sourceVolumeReadonly": true,
+    "verificationCredentialMounts": 0,
+    "verificationNetwork": "none",
+    "helperRemoved": true,
+    "databaseRestored": false
+  },
+  "operatingNativeReadiness": {
+    "verifiedAt": "2026-11-13T14:39:45.823Z",
+    "actualOperatingEnvironmentAndMetadataUsed": true,
+    "currentOwnerRoleContextMatched": true,
+    "roleMetadataCount": 2,
+    "skillRefs": 1,
+    "capability": {
+      "configured": true,
+      "reachable": true,
+      "authorized": true,
+      "compatible": true,
+      "read": true,
+      "register": true
+    },
+    "signedCurrentAuthorityGetStatuses": [
+      200,
+      200,
+      200
+    ],
+    "gatewayProbeDatabase": "memory only; does not execute WorkCoordinator",
+    "workSqlWrites": 0,
+    "nativeAuthorizationNonceMayAdvance": true,
+    "newRuns": 0,
+    "modelRequests": 0
+  },
+  "publicAnonymousHttp": {
+    "track": 302,
+    "trail": 302,
+    "assistant": 403,
+    "scope": "anonymous reachability/auth boundary only; no new authenticated GUI test"
+  },
+  "modelRequestScope": "Requests sent by rollout and readiness verification, not a claim about all unrelated provider traffic",
+  "privateEvidenceSha256": {
+    "readback": "76697d0a364fc87c99ddfd4944d5ae2914b896dca403909da987fdfcff06c24e",
+    "adoption": "75a77d9e1318353d7f09723c2ad738b62a78bb9c542902b1e3035d919859fda9",
+    "readiness": "78ffeb9b3ad5dcf09539282058122d642b497944a013f3d37ca1bb29546c8a73",
+    "baseline": "4cb43448613277f5babb3eb15357032f9c2cf8891bae544d676cf4bb723366f4",
+    "oomRepresentation": "eb3a018572d3d024d9f6e83288cb639b09e820b1e876d8bd4f1671b50d4fd09e",
+    "guardPreflight": "ffb1c9f62f8e551626a554d3ad6cd5840a3b813bb64d05433772b6da8b34231d"
   }
 }
