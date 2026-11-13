@@ -63,6 +63,7 @@ def plan_fixture():
     candidate = row("b" * 64, "candidate-stage")
     candidate["stagedName"] = "candidate-stage"
     candidate["sourceCommit"] = "c" * 40
+    candidate["contractKind"] = native.CANDIDATE_MODE
     renderer = row("7" * 64, "renderer", running=True)
     renderer["unitName"] = "persona-report-renderer-test.service"
     renderer["process"] = {"id": renderer["id"], "name": "/renderer",
@@ -207,6 +208,10 @@ class FakeBase:
         return value["Contract"]
 
     @staticmethod
+    def candidate_contract(value):
+        return value.get("CanonicalCandidateContract", value["Contract"])
+
+    @staticmethod
     def process_projection(value):
         return {"id": value["Id"], "name": value["Name"], "image": value["Image"],
                 "running": value["State"]["Running"], "pid": value["State"]["Pid"],
@@ -335,6 +340,28 @@ class NativeLifecycleTest(LifecycleHarness):
         actual = self.engines["rootless"].rows[protected["id"]]
         actual["RejectContract"] = True
         self.assertEqual(self.lifecycle.preflight()["phase"], "native-preflight")
+
+    def test_candidate_uses_reviewed_oom_contract_without_normalizing_other_roles(self):
+        row = self.lifecycle.plan["candidate"]
+        actual = self.engines["rootless"].rows[row["id"]]
+        canonical = deepcopy(actual["Contract"])
+        actual["CanonicalCandidateContract"] = canonical
+        # Docker reports false while staged, null after start. The immutable
+        # reviewed helper supplies one candidate contract for both wire forms.
+        actual["Contract"]["host"] = "staged-false-wire-hash"
+        actual["HostConfig"]["OomKillDisable"] = False
+        self.lifecycle.container(row)
+        actual["Contract"]["host"] = "started-null-wire-hash"
+        actual["HostConfig"]["OomKillDisable"] = None
+        self.lifecycle.container(row)
+        actual["CanonicalCandidateContract"]["host"] = "other-host-change"
+        self.reject("container_contract_changed", lambda: self.lifecycle.container(row))
+
+        other = self.lifecycle.plan["assistant"]
+        original = self.engines["rootless"].rows[other["id"]]
+        original["CanonicalCandidateContract"] = deepcopy(original["Contract"])
+        original["Contract"]["host"] = "original-host-change"
+        self.reject("container_contract_changed", lambda: self.lifecycle.container(other))
 
     def test_evidence_candidate_backup_and_revision_mismatches_reject(self):
         proofs = evidence_fixture(self.plan)

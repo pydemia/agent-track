@@ -11,6 +11,11 @@ bearer는 host loader와 같은 형식으로 검증한다. 반환 request에는 
 기능은 없다. 실제 서비스의 현재 상태로 작성한 private plan과 그 SHA-256을
 사용한다. 이전 배포의 plan/receipt를 이 작업에 재사용하지 않는다.
 
+Candidate만 동결 Docker primitive의 `candidate_contract`를 사용해
+`OomKillDisable=false/null`의 같은 의미를 정규화한다. 실제 daemon은 생성 때
+false, 기동 후 null을 반환했다. 다른 HostConfig 필드와 원본·다른 역할의
+계약은 정규화하지 않는다. Plan에도 해당 candidate contract kind를 명시한다.
+
 전환 전제는 현재 candidate/source/state에 대응하는 암호화 백업·복원 검사,
 전체 앱의 복원본 기동·정확한 schema/행 대조, 최신 idle baseline이다. 이 증거를
 생성하는 integration owner가 신뢰 경계이며, operator는 지정한 evidence 파일의

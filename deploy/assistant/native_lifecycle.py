@@ -19,6 +19,7 @@ from urllib.parse import quote
 
 
 SCHEMA = "assistant-native-lifecycle-v1"
+CANDIDATE_MODE = "oom-kill-disable-false-null-equivalent-v1"
 APP_NAME = "pydemia-persona-assistant-public-428cb10"
 UNIT = "persona-apps.service"
 LIBRARY_SHA = "659ae788e62ec621c496f5aec48e4e6aed0d1d2e3e4c1b3c183331f16f99d914"
@@ -56,6 +57,8 @@ def validate(plan):
     require(all(HEX.fullmatch(row["rawContractSha256"])
                 for row in plan["protectedComponents"]), "protected_raw_binding")
     require(plan["assistant"]["id"] != plan["candidate"]["id"], "same_candidate")
+    require(plan["candidate"].get("contractKind") == CANDIDATE_MODE,
+            "candidate_contract_kind")
     for row in [plan["assistant"], plan["candidate"], plan["renderer"],
                 *plan["bootRoles"]]:
         require(IDENTIFIER.fullmatch(row["id"]) is not None, "container_identity")
@@ -165,8 +168,11 @@ class NativeLifecycle:
 
     def container(self, row, *, name=None):
         actual = self.engine.inspect(row["id"])
+        contract = (self.base.candidate_contract(actual)
+                    if row["id"] == self.plan["candidate"]["id"]
+                    else self.base.contract(actual))
         require(actual["Id"] == row["id"] and actual["Image"] == row["image"]
-                and self.base.contract(actual) == row["contract"],
+                and contract == row["contract"],
                 "container_contract_changed")
         if name is not None:
             require(actual["Name"] == "/" + name, "container_name_changed")
