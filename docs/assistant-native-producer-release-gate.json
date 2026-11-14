@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "phase": "source-ci-unavailable-exception-decision-pending",
+  "sourceRevision": "32176e985b38317b4d39fcaf558393045f964232",
+  "candidateImage": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+  "candidateId": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+  "preparedPlanSha256": "f2acb0a8bc83fa88a843b43c6ae7c06f801f1dcf70a547b91ac5187ec025c3dd",
+  "originalAssistantStillOperating": true,
+  "candidateStartedInProduction": false,
+  "sourceCi": {
+    "runId": 43534552527,
+    "url": "https://github.com/pydemia/persona/actions/runs/43534552527",
+    "headSha": "32176e985b38317b4d39fcaf558393045f964232",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {"id": 132260276824, "name": "code-worker", "steps": 0, "conclusion": "failure"},
+      {"id": 132260277168, "name": "collection", "steps": 0, "conclusion": "failure"},
+      {"id": 132260277180, "name": "app", "steps": 0, "conclusion": "failure"},
+      {"id": 132260277297, "name": "container", "steps": 0, "conclusion": "failure"}
+    ],
+    "annotationCheckRun": 132260276824,
+    "annotationReason": "Job was not started: recent account payments failed or spending limit needs to be increased.",
+    "codeCheckExecuted": false,
+    "rerunRequested": false,
+    "billingSettingsChanged": false
+  },
+  "availableEvidence": {
+    "producerLocalRelated": {"total": 674, "pass": 662, "fail": 0, "existingPrivateBundleSkips": 12},
+    "producerFullSuiteGreen": false,
+    "actualBothDatabaseCopyCandidateAndOldBinaryHealthy": true,
+    "existingBusinessRowsPreservedUnderExactStartupProjection": true,
+    "newTablesEmpty": true,
+    "originalReadOnlyBaselineVerified": true,
+    "baselineCapturedAt": 1794630033.130241,
+    "baselineMaximumAgeSeconds": 900,
+    "operatingReadbackPrepared": true,
+    "operatingReadbackExecuted": false,
+    "operatorCiRun": 43554880409,
+    "operatorCiHead": "8aec0c0e2e012d88438933cdca83b513c8695976",
+    "operatorCiSuccess": true,
+    "operatorCiIsNotProducerCi": true
+  },
+  "decision": {
+    "existingDeploymentRunnerRequiresSourceCiSuccess": true,
+    "exceptionApprovalRequested": true,
+    "exceptionApproved": false,
+    "ciSuccessNotFabricated": true,
+    "dependentActivationNotExecuted": true,
+    "freshBaselineAndPlanMustBeRevalidatedBeforeActivation": true,
+    "requestedScope": "Image-only promotion of this exact verified candidate; existing environment/mounts/networks retained, writer disabled, no new grants or model requests."
+  },
+  "ui": {
+    "trackBrowser": "Existing Chrome3 tab remains at Entra Enter password; previous handoff retained.",
+    "demianBrowser": "Direct requested origin returned ERR_INVALID_AUTH_CREDENTIALS; no supported browser authentication capability was exposed.",
+    "authenticatedProductionGuiVerified": false
+  },
+  "acceptance": {"completed": 15, "total": 21, "percent": 71.4, "weights": "equal-top-level; partial=0", "eta": "unestimable", "confidence": "low"}
+}

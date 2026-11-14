@@ -129,6 +129,16 @@ Assistant 후속은 [같은 실데이터 사본의 후보·이전 버전 기동]
 Native 전환 뒤 Track의 기존 보호 Run connected·8event/hash 보존도 확인했지만
 상세 Trace는steps0이므로 사용자 요구 충족으로 세지 않는다. 전체15/21·71.4% 유지다.
 
+후속 [배포 진입 조건](assistant-native-producer-release-gate.json) 점검에서 Persona32176e9의
+CI43534552527은 네 job 모두 steps0·failure로 확인됐다. annotation은 결제 실패 또는
+spending limit을 사유로 명시한다. 기존 실행기의 source CI 성공 조건을 임의로 바꾸거나
+Track/operator CI 성공을 Persona CI 성공으로 대체하지 않았다. 검증한 동일 이미지의
+예외 배포 여부를 사용자에게 요청했고, 응답 전 Assistant 운영 전환은 수행하지 않는다.
+원본 DB readback 검사기는 준비했으나 미실행이다. 대기 후에는900초 baseline 유효성과
+불변 plan을 다시 대조해야 하며 원본 backup이나 후보 검사를 무조건 재실행하지 않는다.
+현재 Chrome은 Track의 Entra 비밀번호 단계이며 Demian 직접 브라우저 이동도 인증
+오류로 멈췄다. 공개 인증을 완화하거나 인증된 GUI 검증으로 계산하지 않는다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |
