@@ -84,7 +84,21 @@ Native/Assistant/Track의 운영 반영과 같은 실제 업무의 화면 대조
 Native source와 재현 가능한 patch는 [provenance](../integrations/demian-native-evidence/provenance.json)에
 고정했다. 기존 source·이벤트 ABI와 운영 AgentTrail은 유지한다.
 
-## 최신 제공자 준비 — 2026-11-14, 운영 전환 전
+## 최신 제공자 운영 — 2026-11-14
+
+전용 Native API8081은2c113bb/PID75264, 공개 게이트3100은PID3732로 전환했다.
+원본과 같은 DB에027 migration을 적용했고, 기존45table의 업무 행·역할·설정·
+권한을 보존했다. 같은 실제 Run의 evidence를 운영 API와 공개 HTTPS에서200으로
+조회했다. 이벤트8개·모델 관측1개·usage 관측4개·lineage2개·산출물1개이며,
+새 모델 실행·worker 재시작·writer grant 생성은0이다.
+[운영 전환과 복구 경계](native-command-upgrade.md)와
+[실제 근거](native-producer-operating.json)를 따른다.
+
+Assistant9382c9c와 workerc439341은 그대로다. 최신 Assistant32176e9 후보의 두 DB
+startup·복귀와 운영 적용, Track의 전체 상세 조회와 현재 PC의 Entra 화면 대조가
+남는다. 전체15/21·71.4% 유지다. 아래는 운영 전환 전의 준비 이력이다.
+
+## 제공자 준비 이력 — 2026-11-14, 운영 전환 전
 
 Track 소비자 API·웹은27e00a8로 운영 중이다. Native API는 아직db861e8,
 전용 worker는c439341, Assistant는9382c9c이며 최신 제공자 후보와 구분한다.

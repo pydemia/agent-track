@@ -1,0 +1,134 @@
+{
+  "version": 1,
+  "phase": "native-production-migration-api-and-gate-committed",
+  "verifiedAt": "2026-11-14T03:58:52.964Z",
+  "native": {
+    "revision": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+    "manifestSha256": "924c187e85328d40a3a1dcc41fca6ff37676706b51e794b1cc0eddaab647c5e4",
+    "apiPid": 75264,
+    "gatePid": 3732,
+    "workerPid": 42184,
+    "workerRevision": "c43934171b89b69da0909b8a93d96cc9b2bfc601",
+    "originalApiPid": 15940
+  },
+  "migration": {
+    "name": "027_run_commands.sql",
+    "sha256": "9a3c95dfbba95772b346855de86c8a4ce6e85d1b3600349bfc568c075b35e3ec",
+    "oldTables": 45,
+    "newTables": [
+      "run_commands"
+    ],
+    "newTableRows": 0,
+    "existingMigrationRowsExact": true,
+    "exactCopyCatalogDelta": true,
+    "existingGrantsAndViewsExact": true,
+    "existingRoleSettingsAndPoliciesExact": true,
+    "existingDataAndSequencesPreserved": true,
+    "declaredLiveExceptions": [
+      "normal signed-request nonce append",
+      "worker checked_at advance"
+    ]
+  },
+  "api": {
+    "operation": "aba8256d-a47d-46dd-90f1-cdf5688dbfb2",
+    "committed": true,
+    "base": {
+      "capabilities": 200,
+      "actor": 200,
+      "session": 200,
+      "unsignedBearer": 403
+    },
+    "evidence": {
+      "status": 200,
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "hasMore": false,
+      "artifacts": 1
+    },
+    "canary": {
+      "base": {
+        "capabilities": 200,
+        "actor": 200,
+        "session": 200,
+        "unsignedBearer": 403
+      },
+      "evidence": {
+        "status": 200,
+        "events": 8,
+        "models": 1,
+        "usage": 4,
+        "lineage": 2,
+        "hasMore": false,
+        "artifacts": 1
+      }
+    },
+    "resultSha256": "823474e740427ac92621059848ebc3b1a8c9b8202cb176e15d44b643855e7f63",
+    "journalSha256": "4bc92992ea665d74f3c310b381a0457658a25c86f7655466cf3d74706fc5721b"
+  },
+  "gate": {
+    "operation": "aa6dd478-6681-42cf-aa85-78a1309e4d0e",
+    "committed": true,
+    "browser": {
+      "anonymous": 401,
+      "existingBrowser": 200
+    },
+    "base": {
+      "capabilities": 200,
+      "actor": 200,
+      "session": 200,
+      "unsignedBearer": 403
+    },
+    "evidence": {
+      "status": 200,
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "artifacts": 1,
+      "unsigned": 403,
+      "noncanonicalQuery": 403
+    },
+    "publicEvidence": {
+      "status": 200,
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "artifacts": 1,
+      "unsigned": 403,
+      "noncanonicalQuery": 403
+    },
+    "resultSha256": "90df3b81b492dd4dfcbcccd2e0a2d33750330005889b6bd3cf98c20f3947ce31",
+    "journalSha256": "9a806109ffcfa5785d9bbee5639cadde399e996b5adf10f1b1a4b1c0b182262b",
+    "tlsVerification": true
+  },
+  "recovery": {
+    "policyCasesBefore": "3 failed",
+    "policyCasesAfter": "3 passed",
+    "preservationAndRecoveryTests": 65,
+    "gateAndTransitionTests": 61,
+    "typecheck": "passed",
+    "apiReview": "Two recovery findings reproduced and fixed; callback recovery runs despite failed journal or unknown stop outcome.",
+    "gateReview": "No concrete activation/recovery finding in bounded static review; not runtime proof."
+  },
+  "limits": {
+    "assistantProducerOperating": false,
+    "trackEvidenceEndToEnd": false,
+    "entraGuiVerified": false,
+    "newModelRequests": 0,
+    "workerRestarted": false,
+    "newWriterGrantCreated": false,
+    "databaseRestored": false,
+    "wholeWorkflowAcceptance": false
+  },
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weight": "equal-top-level; partial=0",
+    "eta": "unestimable",
+    "confidence": "low"
+  }
+}

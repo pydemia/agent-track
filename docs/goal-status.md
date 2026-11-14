@@ -110,6 +110,16 @@ evidence200·이전 API의 기본 조회200과 unsigned403을 확인했다. 복�
 아니다. Native 원본 migration/API/gate 전환과 Assistant 두 DB의 실제 startup·복귀
 검사가 다음 단계다. 전체15/21·71.4%, ETA 산정 불가·신뢰도 낮음을 유지한다.
 
+Native 제공자 후속은 [운영 전환](native-command-upgrade.md)을 완료했다. 같은 원본
+DB에027 migration을 적용하고 전용 API2c113bb/PID75264·게이트PID3732를 운영 중이다.
+같은 실제 완료 Run의 evidence가 API·게이트·공개 HTTPS에서200이며 이벤트8·모델
+관측1·usage 관측4·lineage2·산출물1을 반환한다. 기존45table의 업무 행·역할·설정·
+권한·sequence, 원본API15940과 worker42184를 보존했고 모델 요청·writer grant·worker
+재시작은0이다. 원본 DB schema 변경과 기존 행 보존을 구분한다. Assistant의 두 DB
+startup·복귀·운영 전환과 Track/Entra 화면은 아직 남아 상위15/21·71.4%를 유지한다.
+아래 단계표의 이전PID/source는 당시 관측 이력이며 최신 제공자 상태는
+[운영 근거](native-producer-operating.json)를 우선한다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |
