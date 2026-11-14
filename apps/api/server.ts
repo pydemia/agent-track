@@ -437,7 +437,9 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
             !sequenceSchema.safeParse(after).success || !/^[1-9][0-9]{0,2}$/.test(rawLimit) || Number(rawLimit) > 250) {
           json(response, 400, { error: "invalid_evidence_window" }); return;
         }
-        const evidence = await nativeRunEvidence(config, snapshot, sources.assistant, user, nativeEvidence[1]!, after, Number(rawLimit));
+        const evidence = await nativeRunEvidence(config,
+          actor => sources.assistantNative.afterRefresh(actor, () => snapshot(actor)),
+          sources.assistant, user, nativeEvidence[1]!, after, Number(rawLimit));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

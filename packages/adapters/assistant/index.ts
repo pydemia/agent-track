@@ -125,6 +125,12 @@ export class AssistantClient {
     if (this.credential().fingerprint !== credential.fingerprint) throw new AssistantSourceError(401);
   }
 
+  /** Internal read fence; retains no public credential or fingerprint. */
+  credentialFence(): () => void {
+    const credential = this.credential();
+    return () => this.confirm(credential);
+  }
+
   private async request<T>(path: string, schema: z.ZodType<T>, credential: Credential): Promise<T> {
     this.confirm(credential);
     const controller = new AbortController();

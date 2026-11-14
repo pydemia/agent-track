@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
 import { createServer, type Server } from "node:http";
-import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import test from "node:test";
@@ -17,6 +17,7 @@ import { sourceIdentity } from "../apps/api/source-identity.ts";
 import { nativeEvidenceFixture } from "./fixtures/native-run-evidence.ts";
 import { nativeRunEvidenceViewSchema } from "../packages/contracts/native-run-evidence.ts";
 import type { AssistantRoleAttemptsPage } from "../packages/contracts/assistant-attempts.ts";
+import { AssistantAuthorityError } from "../apps/api/assistant-authority.ts";
 
 const user = "owner@example.com", ownerId = "sso-sub:" + "a".repeat(64);
 const uuid = (value: number) => `00000000-0000-4000-8000-${String(value).padStart(12, "0")}`;
@@ -370,6 +371,87 @@ test("separate evidence crosses real HTTP reader and current Project authority w
   assert.ok(f.calls.some(path => path.endsWith(`/native-evidence?after=2&limit=1`)));
   assert.ok(f.calls.every(path => path.startsWith("/api/integrations/")));
   assert.ok(f.methods.every(method => method === "GET"));
+});
+
+test("a concurrent native refresh settles before evidence performs its final Run visibility check", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const before = JSON.stringify(f.store.events(key));
+  let refresh: Promise<void> | undefined;
+  f.evidenceHook = async () => {
+    if (refresh) return;
+    refresh = f.sources.refreshProjectGrants(user);
+    const deadline = performance.now() + 1000;
+    while (f.sources.views(user).find(source => source.id === "protected")?.state === "connected") {
+      assert.ok(performance.now() < deadline, "the concurrent refresh must enter its pending authority check");
+      await new Promise<void>(resolve => setImmediate(resolve));
+    }
+  };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  await refresh;
+  assert.equal(response.status, 200);
+  const value = nativeRunEvidenceViewSchema.parse(await response.json());
+  assert.equal(value.state, "connected"); assert.ok(value.page);
+  assert.equal(JSON.stringify(f.store.events(key)), before);
+});
+
+test("a concurrent native refresh that confirms Project withdrawal still releases no evidence", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const before = JSON.stringify(f.store.events(key));
+  let refresh: Promise<void> | undefined;
+  f.evidenceHook = async () => {
+    if (refresh) return;
+    refresh = f.sources.refreshProjectGrants(user);
+    const deadline = performance.now() + 1000;
+    while (f.sources.views(user).find(source => source.id === "protected")?.state === "connected") {
+      assert.ok(performance.now() < deadline);
+      await new Promise<void>(resolve => setImmediate(resolve));
+    }
+    f.projectAllowed = false;
+  };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  await refresh;
+  const value = await response.json();
+  assert.equal(value.page ?? null, null); assert.notEqual(value.state, "connected");
+  assert.equal(JSON.stringify(f.store.events(key)), before);
+});
+
+test("an unfinished native refresh has a bounded wait and cannot publish the previous snapshot", async t => {
+  const f = await fixture(t); await f.snapshot();
+  let enter!: () => void, release!: () => void;
+  const entered = new Promise<void>(resolve => { enter = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.hook = async () => { enter(); await gate; };
+  const refresh = f.sources.refreshProjectGrants(user);
+  await entered;
+  let read = false;
+  try {
+    await assert.rejects(f.sources.assistantNative.afterRefresh(user, () => { read = true; }, performance.now() + 5),
+      error => error instanceof AssistantAuthorityError && error.status === 503);
+    assert.equal(read, false);
+  } finally { release(); await refresh; }
+});
+
+for (const rotation of ["assistant-path", "assistant-file", "projects-path"] as const) test(`reauthorizing the same Run after ${rotation} rotation cannot release its previous evidence`, async t => {
+  const f = await fixture(t); await f.snapshot();
+  const source = f.config.sources.find(row => row.kind === (rotation === "projects-path" ? "projects" : "assistant"))!;
+  const path = (rotation === "projects-path" ? source.projectsCredentialFile : source.assistantCredentialFile)!;
+  const replacement = join(dirname(path), "rotated-reader.json");
+  copyFileSync(path, replacement);
+  const original = f.sources.assistantNative.afterRefresh.bind(f.sources.assistantNative);
+  let reads = 0;
+  f.sources.assistantNative.afterRefresh = async (actor, read, deadline) => {
+    if (++reads === 2) {
+      if (rotation === "assistant-path") source.assistantCredentialFile = replacement;
+      else if (rotation === "projects-path") source.projectsCredentialFile = replacement;
+      else writeFileSync(path, readFileSync(path, "utf8") + "\n");
+      await f.sources.refreshProjectGrants(user);
+      assert.equal(f.sources.views(user).find(row => row.id === "protected")!.state, "connected");
+    }
+    return original(actor, read, deadline);
+  };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  const value = await response.json();
+  assert.equal(value.page ?? null, null); assert.notEqual(value.state, "connected");
 });
 
 test("evidence late grant, role, source or Project withdrawal cannot expose a prior page", async t => {

@@ -17,8 +17,8 @@ import type { AssistantRunAttempt, RunBinding } from "../../packages/contracts/i
 import { assistantNativeRunEvidencePageSchema, type NativeRunEvidencePage } from "../../packages/contracts/native-run-evidence.ts";
 import { assistantRoleAttemptsPageSchema, type AssistantRoleAttempt } from "../../packages/contracts/assistant-attempts.ts";
 
-export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts">>;
-export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string }
+export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts" | "credentialFence">>;
+export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string; confirmAuthority: () => void }
 export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding; assistantAttempt?: AssistantRunAttempt }
 export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean; attemptCoverage?: "coordinator-history" | "current-role-only" }
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
@@ -391,6 +391,8 @@ export class AssistantAuthority {
           target.assistantNativeSourceId !== sourceId || !target.users.includes(user) || mappings.length !== 1 ||
           target.baseUrl !== mappings[0]!.origin || target.organizationId !== mappings[0]!.organizationId ||
           !this.store.pinSourceIdentity(target.id, sourceIdentity(target))) throw new AssistantAuthorityError(403);
+      if (!client.credentialFence) throw new AssistantAuthorityError(503);
+      const confirmCredential = client.credentialFence();
       const stamp = JSON.stringify(target), mapping = mappings[0]!;
       const confirmTarget = () => {
         this.confirm(scope);
@@ -441,7 +443,8 @@ export class AssistantAuthority {
       // Keep the first coherent data snapshot. A final authority check may observe
       // a later Run status; merging it would forge timing/artifact consistency.
       confirmTarget();
-      return { page: first.page, executionId: execution.id, roleId: role.id, observedAt: first.observedAt };
+      return { page: first.page, executionId: execution.id, roleId: role.id, observedAt: first.observedAt,
+        confirmAuthority: () => { this.confirm(scope); try { confirmCredential(); } catch (error) { throw safeError(error); } } };
     });
   }
 

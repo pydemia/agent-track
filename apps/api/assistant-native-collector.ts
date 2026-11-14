@@ -52,6 +52,26 @@ export class AssistantNativeCollector {
     }
   }
 
+  /** Capture a fresh view after pending collection, never a revoked or in-flight grant. */
+  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000): Promise<T> {
+    for (;;) {
+      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && source.users.includes(user))
+        .flatMap(source => { const job = this.jobs.get(source.id); return job ? [job] : []; }))];
+      if (!pending.length) return read();
+      const remaining = deadline - performance.now();
+      if (remaining <= 0) throw new AssistantAuthorityError(503);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          Promise.all(pending),
+          new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new AssistantAuthorityError(503)), remaining); }),
+        ]);
+      } finally { clearTimeout(timer); }
+      // A second refresh may have started while the previous one settled.
+      // Read synchronously only once no currently relevant check is pending.
+    }
+  }
+
   private async collect(source: SourceConfig, user: string): Promise<void> {
     // Refresh cannot expose a previous grant while a current check is in flight.
     this.grants.delete(source.id);
