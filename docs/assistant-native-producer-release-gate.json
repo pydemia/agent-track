@@ -80,8 +80,10 @@
     "sourceCiExceptionScopePreserved": true
   },
   "ui": {
-    "trackBrowser": "Track login was reopened and the account identifier entered. Chrome subsequently became unavailable; requested user choice to reopen in Edge.",
-    "authenticatedProductionGuiVerified": false
+    "trackBrowser": "Edge Entra account verified; same actual Run retained through Map, Trace and Run group internal/detail exploration after API fix.",
+    "demianBrowser": "Known original public Demian URL still returns ERR_INVALID_AUTH_CREDENTIALS; read-only authentication entry-point information requested from the user-authorized Demian development chat.",
+    "authenticatedProductionGuiVerified": true,
+    "guiScope": "Track login and actual existing Run navigation only; no whole workflow or original Demian GUI acceptance."
   },
   "acceptance": {
     "completed": 15,
@@ -104,14 +106,18 @@
       "pid": 1395329,
       "startedAt": "2026-11-14T07:41:32.079775172Z"
     },
-    "trackSource": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+    "trackSource": "80cfbb0110037e352b765edf7f65e4e305f8a500",
     "databaseRestored": false,
     "credentialsRestored": false,
     "writerEnabled": false,
     "newModelRequests": 0,
     "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
     "eventsPreserved": 8,
-    "evidenceState": "forbidden"
+    "evidenceState": "forbidden",
+    "trackWebSource": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+    "trackPid": 72348,
+    "trackManifestSha256": "0f97a762ea7d7d43e1dc5a04088bea94951a1c8a587554e30d80f566b49c05ea"
   },
-  "outcomeDocument": "docs/assistant-native-producer-promotion-2026-11-14.md"
+  "outcomeDocument": "docs/assistant-native-producer-promotion-2026-11-14.md",
+  "followupReport": "docs/track-native-refresh-operating.json"
 }

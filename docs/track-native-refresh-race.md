@@ -25,3 +25,13 @@
 운영 반영 전에는 source CI, 동결 API release와 기존 검증된 web 자산, 현재 환경·DB·프로세스 보존을 확인한다. 반영 후 동일 Entra 계정의 Map·Trace·그룹 탐색과 새로고침을 확인한다. producer `32176e9`는 이번 변경으로 재배포하지 않는다.
 
 전체 수용률은 15/21·71.4%(상위 동일 가중치·부분0)를 유지한다. 전체 완료 예상은 미산정·신뢰도 낮음이다. 이 경합 수정과 인증된 화면 확인을 전체 교차 앱 업무 완료로 확대하지 않는다.
+
+## 운영 반영 결과
+
+API `80cfbb0110037e352b765edf7f65e4e305f8a500`의 [Windows·Ubuntu CI](https://github.com/pydemia/agent-track/actions/runs/43587566685)가 모두 통과했다. 동결 release는 기존 검증된 `27e00a8a`의 웹 18개 파일을 그대로 사용한다. 격리 복원본에서 후보와 rollback API의 기동·종료·기존 DB 행/schema·저장 보기와 자산 형식을 검증한 뒤 Track API를 교체했다. 현재 PID는 72348, manifest SHA-256은 `0f97a762ea7d7d43e1dc5a04088bea94951a1c8a587554e30d80f566b49c05ea`다.
+
+원래 설정과 48개 파일·19개 다른 프로세스·Native DB·이벤트 이력을 보존했다. 익명 및 위조 인증은 401이었다. 같은 운영 reader로 Run `60cca68d-95d1-4d99-963a-c2554e0df347`의 8 events와 역사적 Task binding을 대조했고 원래 metadata hash가 일치했다.
+
+Edge의 Entra 계정으로 같은 업무의 Map → Trace → Run 그룹 내부 흐름·상세 패널을 검증했다. 자동 갱신 후에도 Run 선택과 대시보드가 유지됐다. 원본 evidence는 여전히 forbidden으로 표시되며, 상세 데이터 지원 성공으로 세지 않는다. 별도 원본 Demian 공개 웹은 `ERR_INVALID_AUTH_CREDENTIALS`로 열리지 않아 기존 개발 대화에 정상 인증 진입 경로를 읽기 전용으로 문의했다.
+
+단계별 실제 기록은 [운영 검증 결과](track-native-refresh-operating.json)를 따른다. 전체 수용률·잔여 요구와 완료 예상은 위 판단을 유지한다.

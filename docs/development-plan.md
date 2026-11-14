@@ -435,3 +435,5 @@ Agent metadata 읽기 계약으로 보강하며 기존 immutable event digest를
 사용자 승인으로 상세 evidence·attempt 이력 producer `32176e9`를 운영 전환하고 두 운영 DB readback을 통과했지만, 새 attempt 고정 조회와 Track 전체 10초 deadline의 조합이 실제 연동에서 실패했다. 이전 바이너리만 복구했고 기존 데이터·인증·다른 서비스와 이벤트를 보존했다. 상세 Trace는 아직 forbidden이다. 권한 확인을 병렬화한 소비자 후보는 관련 검사와 typecheck를 통과했으나 실제 새 producer의 deadline 실패를 해결하지 못해 배포하지 않았다. 상세 경위와 단계별 판정은 [예외 배포와 운영 복구](assistant-native-producer-promotion-2026-11-14.md), 실제 기록은 [운영 검증 결과](assistant-native-producer-promotion-verification.json)를 따른다.
 
 다음은 producer/consumer 관측 계약의 중복 원격 확인과 page 경계를 고쳐 실제 지연 조건에서도 철회·이력 고정 검사를 유지하는 일이다. 이어 재배포된 상세 Trace와 같은 업무의 Entra GUI·그룹 왕복을 검증한다. AT-06·09·12·14·15·20은 미완료이며 상위 수용 수는 올리지 않는다. 새 계약의 실제 통합과 GUI 결과를 확보한 뒤 전체 완료 예상을 재산정한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.
+
+후속에서는 실제 Entra Edge 화면에서 동시 수집 갱신과 evidence 최종 확인이 경합해 전체 화면을 비우는 문제를 재현·수정했다. API `80cfbb0`를 CI·격리 후보/rollback 검사 후 운영 반영했고, 동일 업무 Map·Trace·Run 그룹 내부 상세에서 선택과 8 events가 유지되는 것을 확인했다. 현재 Track 웹은 동일 자산의 `27e00a8a`이며 Assistant는 복구한 `9382c9c`를 유지한다. [경합 수정과 운영 결과](track-native-refresh-race.md)의 수용 범위를 따른다. 상세 evidence 및 원본 공개 Demian 웹의 인증된 전체 업무 확인은 여전히 남는다. 이 후속으로 15/21 수용 수를 올리지 않는다.

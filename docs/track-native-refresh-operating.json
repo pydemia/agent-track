@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "phase": "track-native-refresh-race-fixed-operating-and-entra-gui-verified",
+  "verifiedAt": "2026-11-14T11:21:17.510Z",
+  "operationId": "43bdd851-9050-4e0e-abd0-e98039a8bcd5",
+  "apiRevision": "80cfbb0110037e352b765edf7f65e4e305f8a500",
+  "webRevision": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+  "pid": 72348,
+  "manifestSha256": "0f97a762ea7d7d43e1dc5a04088bea94951a1c8a587554e30d80f566b49c05ea",
+  "checks": {
+    "ci": {
+      "runId": 43587566685,
+      "url": "https://github.com/pydemia/agent-track/actions/runs/43587566685",
+      "headSha": "80cfbb0110037e352b765edf7f65e4e305f8a500",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success",
+          "steps": 13
+        },
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": 13
+        }
+      ]
+    },
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 48,
+    "preservedProcesses": 19,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "nativeDatabasePreserved": true,
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "reader": {
+      "phase": "track-refresh-operating-observation-verified",
+      "at": "2026-11-14T11:19:30.077Z",
+      "newModelRequests": 0,
+      "browserGuiVerified": false,
+      "statuses": [
+        {
+          "route": "snapshot",
+          "status": 200
+        },
+        {
+          "route": "events",
+          "status": 200
+        },
+        {
+          "route": "evidence",
+          "status": 200
+        },
+        {
+          "route": "events",
+          "status": 200
+        }
+      ],
+      "evidenceState": "forbidden",
+      "detail": "현재 원본 상세 조회가 허용되지 않았습니다. 저장된 상세 근거는 표시하지 않습니다.",
+      "evidenceSupported": false,
+      "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+      "events": 8,
+      "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+      "eventMetadataPreserved": true,
+      "historicalBindingPreserved": true,
+      "evidence": null
+    }
+  },
+  "gui": {
+    "browser": "Edge",
+    "authenticatedAccount": "pydemia@pydemia.ai",
+    "actualEntraGuiVerified": true,
+    "scope": [
+      "Track task list",
+      "same WorkExecution Task to protected Run Map",
+      "Map to Trace with same Run selection",
+      "Run group internal flow and detail panel"
+    ],
+    "publicUrl": "https://track.pydemia.ai/?view=trace&run=WyJkZW1pYW4tYXNzaXN0YW50LW93bmVyIiwiNjBjY2E2OGQtOTVkMS00ZDk5LTk2M2EtYzI1NTRlMGRmMzQ3Il0",
+    "observedRunId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "regularEvents": 8,
+    "selectionAndDashboardRetained": true,
+    "evidenceState": "forbidden",
+    "groupSummary": "Run 1; actual source membership; partial observation",
+    "nativeScreenshotDisplayedInChat": true,
+    "standaloneScreenshotFileCreated": false
+  },
+  "limits": {
+    "wholeWorkflowAcceptance": false,
+    "originalDemianWebGuiVerified": false,
+    "originalDemianWebFailure": "ERR_INVALID_AUTH_CREDENTIALS",
+    "producerCandidateRepromoted": false,
+    "operatingAssistantSource": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+    "originalDatabaseRestored": false,
+    "newWriterGrantCreated": false,
+    "newModelRequests": 0,
+    "detailedEvidenceAvailable": false
+  },
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weights": "equal-top-level; partial=0",
+    "eta": "unestimable",
+    "confidence": "low"
+  },
+  "postProofSha256": "1d5a66be02192012d71cfdb7831326a45d858b9623fc6df95a425a4105e4da72"
+}
