@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "phase": "source-ci-unavailable-exception-decision-pending",
+  "phase": "approved-exception-promoted-then-rolled-back-after-track-deadline-failure",
   "sourceRevision": "32176e985b38317b4d39fcaf558393045f964232",
   "candidateImage": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
   "candidateId": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
-  "preparedPlanSha256": "f2acb0a8bc83fa88a843b43c6ae7c06f801f1dcf70a547b91ac5187ec025c3dd",
+  "preparedPlanSha256": "ede0407dd7e51abef35224cec20148de2332a1443659ede5ccdc02611ad8f5d8",
   "originalAssistantStillOperating": true,
-  "candidateStartedInProduction": false,
+  "candidateStartedInProduction": true,
   "sourceCi": {
     "runId": 43534552527,
     "url": "https://github.com/pydemia/persona/actions/runs/43534552527",
@@ -14,10 +14,30 @@
     "status": "completed",
     "conclusion": "failure",
     "jobs": [
-      {"id": 132260276824, "name": "code-worker", "steps": 0, "conclusion": "failure"},
-      {"id": 132260277168, "name": "collection", "steps": 0, "conclusion": "failure"},
-      {"id": 132260277180, "name": "app", "steps": 0, "conclusion": "failure"},
-      {"id": 132260277297, "name": "container", "steps": 0, "conclusion": "failure"}
+      {
+        "id": 132260276824,
+        "name": "code-worker",
+        "steps": 0,
+        "conclusion": "failure"
+      },
+      {
+        "id": 132260277168,
+        "name": "collection",
+        "steps": 0,
+        "conclusion": "failure"
+      },
+      {
+        "id": 132260277180,
+        "name": "app",
+        "steps": 0,
+        "conclusion": "failure"
+      },
+      {
+        "id": 132260277297,
+        "name": "container",
+        "steps": 0,
+        "conclusion": "failure"
+      }
     ],
     "annotationCheckRun": 132260276824,
     "annotationReason": "Job was not started: recent account payments failed or spending limit needs to be increased.",
@@ -26,7 +46,12 @@
     "billingSettingsChanged": false
   },
   "availableEvidence": {
-    "producerLocalRelated": {"total": 674, "pass": 662, "fail": 0, "existingPrivateBundleSkips": 12},
+    "producerLocalRelated": {
+      "total": 674,
+      "pass": 662,
+      "fail": 0,
+      "existingPrivateBundleSkips": 12
+    },
     "producerFullSuiteGreen": false,
     "actualBothDatabaseCopyCandidateAndOldBinaryHealthy": true,
     "existingBusinessRowsPreservedUnderExactStartupProjection": true,
@@ -35,25 +60,58 @@
     "baselineCapturedAt": 1794630033.130241,
     "baselineMaximumAgeSeconds": 900,
     "operatingReadbackPrepared": true,
-    "operatingReadbackExecuted": false,
+    "operatingReadbackExecuted": true,
     "operatorCiRun": 43554880409,
     "operatorCiHead": "8aec0c0e2e012d88438933cdca83b513c8695976",
     "operatorCiSuccess": true,
-    "operatorCiIsNotProducerCi": true
+    "operatorCiIsNotProducerCi": true,
+    "operatingReadbackPassed": true,
+    "realTrackWindowPassed": false,
+    "codeOnlyRecoveryPassed": true
   },
   "decision": {
     "existingDeploymentRunnerRequiresSourceCiSuccess": true,
     "exceptionApprovalRequested": true,
-    "exceptionApproved": false,
+    "exceptionApproved": true,
     "ciSuccessNotFabricated": true,
-    "dependentActivationNotExecuted": true,
+    "dependentActivationNotExecuted": false,
     "freshBaselineAndPlanMustBeRevalidatedBeforeActivation": true,
-    "requestedScope": "Image-only promotion of this exact verified candidate; existing environment/mounts/networks retained, writer disabled, no new grants or model requests."
+    "requestedScope": "Image-only promotion of this exact verified candidate; existing environment/mounts/networks retained, writer disabled, no new grants or model requests.",
+    "sourceCiExceptionScopePreserved": true
   },
   "ui": {
-    "trackBrowser": "Existing Chrome3 tab remains at Entra Enter password; previous handoff retained.",
-    "demianBrowser": "Direct requested origin returned ERR_INVALID_AUTH_CREDENTIALS; no supported browser authentication capability was exposed.",
+    "trackBrowser": "Track login was reopened and the account identifier entered. Chrome subsequently became unavailable; requested user choice to reopen in Edge.",
     "authenticatedProductionGuiVerified": false
   },
-  "acceptance": {"completed": 15, "total": 21, "percent": 71.4, "weights": "equal-top-level; partial=0", "eta": "unestimable", "confidence": "low"}
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weights": "equal-top-level; partial=0",
+    "eta": "unestimable",
+    "confidence": "low"
+  },
+  "originalAssistantRestored": true,
+  "candidateCurrentlyRunning": false,
+  "latestObservationAt": "2026-11-14T07:42:26.380Z",
+  "currentOperating": {
+    "assistantSource": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+    "assistant": {
+      "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+      "running": true,
+      "pid": 1395329,
+      "startedAt": "2026-11-14T07:41:32.079775172Z"
+    },
+    "trackSource": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+    "databaseRestored": false,
+    "credentialsRestored": false,
+    "writerEnabled": false,
+    "newModelRequests": 0,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventsPreserved": 8,
+    "evidenceState": "forbidden"
+  },
+  "outcomeDocument": "docs/assistant-native-producer-promotion-2026-11-14.md"
 }

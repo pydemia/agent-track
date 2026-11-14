@@ -46,6 +46,7 @@ async function fixture(t: test.TestContext, count = 5) {
   let visible = true, projectAllowed = true, missingTask = false;
   let hook = async (_after: string, _limit: number) => {};
   let evidenceHook = async (_after: string, _limit: number) => {};
+  let attemptsHook = async () => {};
   let responseHook = (value: unknown): unknown => value;
   let attemptPage: AssistantRoleAttemptsPage | null = null;
   const calls: string[] = [], methods: string[] = [];
@@ -98,7 +99,7 @@ async function fixture(t: test.TestContext, count = 5) {
         await service.handle({ method: "GET", url: "/api/integrations/track/v2/capabilities", headers: req.headers });
         if (!visible) throw new AssistantReadError(404, "track_execution_missing");
         const url = new URL(req.url!, "http://fixture.invalid"), suffix = url.pathname.split("/attempts")[1]!;
-        if (!suffix) body = structuredClone(attemptPage);
+        if (!suffix) { await attemptsHook(); body = structuredClone(attemptPage); }
         else {
           const match = /^\/([^/]+)\/(native|native-evidence)$/.exec(suffix), selected = attemptPage.attempts.find(row => row.id === match?.[1]);
           if (!match || !selected?.demian) throw new AssistantReadError(404, "track_execution_missing");
@@ -161,6 +162,7 @@ async function fixture(t: test.TestContext, count = 5) {
     set visible(value: boolean) { visible = value; }, set projectAllowed(value: boolean) { projectAllowed = value; },
     set missingTask(value: boolean) { missingTask = value; }, set hook(value: typeof hook) { hook = value; },
     set evidenceHook(value: typeof evidenceHook) { evidenceHook = value; },
+    set attemptsHook(value: typeof attemptsHook) { attemptsHook = value; },
     set attemptPage(value: AssistantRoleAttemptsPage | null) {
       attemptPage = value;
       const current = value?.attempts.find(row => row.current)?.demian;
@@ -178,6 +180,38 @@ const attempts = (promoted = false): AssistantRoleAttemptsPage => ({ version: 1,
   attempts: [historyAttempt(!promoted), ...(promoted ? [{ id: uuid(11), ordinal: 2, current: true, state: "completed" as const,
     runtimeTaskId: "new-runtime-task", demian: { origin: nativeOrigin, organizationId, workspaceId, sessionId, runId, operationId: uuid(11) },
     command: { id: uuid(11), kind: "retry" as const, predecessorAttemptId: uuid(10), provenance: "coordinator-intent" as const } }] : [])] });
+
+test("attempt confirmation and final signed metadata read overlap while both remain mandatory", async t => {
+  const f = await fixture(t); f.attemptPage = attempts();
+  let attemptReads = 0, finalRead = false, release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.attemptsHook = async () => {
+    if (++attemptReads !== 2) return;
+    const timer = setTimeout(release, 1000);
+    try { await gate; assert.equal(finalRead, true, "final Native read must start before attempt confirmation completes"); }
+    finally { clearTimeout(timer); }
+  };
+  f.hook = async (_after, limit) => { if (limit === 1) { finalRead = true; release(); } };
+  const snapshot = await f.snapshot();
+  assert.equal(snapshot.runs.length, 1); assert.equal(finalRead, true); assert.equal(attemptReads, 2);
+});
+
+test("attempt confirmation and final evidence read overlap without mutating event history", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(); await f.snapshot();
+  const before = JSON.stringify(f.store.events(externalKey("protected", uuid(9))));
+  let attemptReads = 0, finalRead = false, release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.attemptsHook = async () => {
+    if (++attemptReads !== 2) return;
+    const timer = setTimeout(release, 1000);
+    try { await gate; assert.equal(finalRead, true, "final evidence read must start before attempt confirmation completes"); }
+    finally { clearTimeout(timer); }
+  };
+  f.evidenceHook = async (_after, limit) => { if (limit === 1) { finalRead = true; release(); } };
+  const value = await f.sources.assistant.nativeEvidence(user, "assistant", "protected", uuid(9), "0", 250);
+  assert.equal(value.page.run.id, uuid(9)); assert.equal(finalRead, true); assert.equal(attemptReads, 2);
+  assert.equal(JSON.stringify(f.store.events(externalKey("protected", uuid(9)))), before);
+});
 
 test("protected history keeps the original Run authorized after retry and preserves its exact journal", async t => {
   const f = await fixture(t); f.attemptPage = attempts();

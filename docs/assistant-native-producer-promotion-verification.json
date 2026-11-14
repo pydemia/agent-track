@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "phase": "approved-exception-promoted-then-rolled-back-after-track-deadline-failure",
+  "approval": {
+    "sourceRevision": "32176e985b38317b4d39fcaf558393045f964232",
+    "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+    "approved": true,
+    "sourceCiPassed": false
+  },
+  "activation": {
+    "sameProcessLive": false,
+    "pid": 1332987,
+    "resultPresent": true,
+    "currentStage": "candidate-running",
+    "phase": "operating-native-assistant-started",
+    "candidateId": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+    "candidateImage": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+    "candidateProcess": {
+      "id": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+      "running": true,
+      "pid": 1333839,
+      "startedAt": "2026-11-14T07:05:59.839494934Z"
+    },
+    "oldOriginalStopped": true,
+    "otherProtectedComponentsPreserved": 12,
+    "rendererPreserved": true,
+    "selectedFileFingerprintsPreserved": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
+    "operatingDatabaseReadbackPending": true,
+    "errorType": null,
+    "observedStates": null
+  },
+  "databaseReadback": {
+    "sameProcessLive": false,
+    "pid": 1335396,
+    "resultPresent": true,
+    "phase": "operating-native-database-readback-verified",
+    "helperRemoved": true,
+    "candidateProcess": {
+      "id": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+      "running": true,
+      "pid": 1333839,
+      "startedAt": "2026-11-14T07:05:59.839494934Z"
+    },
+    "reportPinsPreserved": true,
+    "selectedFileFingerprintsPreserved": 68,
+    "otherProtectedComponentsPreserved": 12,
+    "rendererPreserved": true,
+    "newSchemaAndRows": {
+      "work": {
+        "oldTables": 31,
+        "newTables": [
+          "work_execution_role_command_audits",
+          "work_execution_role_commands"
+        ],
+        "newSchemaObjects": 4,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [],
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ],
+        "totalChanges": 0
+      },
+      "runtime": {
+        "oldTables": 64,
+        "newTables": [
+          "work_demian_successor_plans"
+        ],
+        "newSchemaObjects": 3,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "operationalLeaseExceptions": [
+          "runtime_leases",
+          "import_leases"
+        ],
+        "totalChanges": 0
+      }
+    },
+    "errorType": null
+  },
+  "recovery": {
+    "phase": "previous-assistant-binary-restored",
+    "startedAt": 1794642084.0831153,
+    "databaseRestored": false,
+    "credentialsRestored": false,
+    "newModelRequests": 0,
+    "reason": "Approved producer exposes attempt-scoped reads exceeding existing consumer deadline; restore previously verified binary on current migrated databases.",
+    "originalId": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "candidateId": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+    "protectedComponentsPreserved": 12,
+    "selectedFileCount": 68,
+    "restoredImage": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+    "restoredProcess": {
+      "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+      "running": true,
+      "pid": 1395329,
+      "startedAt": "2026-11-14T07:41:32.079775172Z"
+    },
+    "retainedRegressedCandidateId": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+    "priorAppAndRendererBootGuardsRestored": true,
+    "currentMigratedDatabasesRetained": true,
+    "trackReadbackPending": true,
+    "finishedAt": 1794642095.2440157
+  },
+  "trackReadback": {
+    "phase": "restored-track-native-observation-verified",
+    "at": "2026-11-14T07:42:26.380Z",
+    "newModelRequests": 0,
+    "browserGuiVerified": false,
+    "statuses": [
+      {
+        "route": "snapshot",
+        "status": 200
+      },
+      {
+        "route": "events",
+        "status": 200
+      },
+      {
+        "route": "evidence",
+        "status": 200
+      },
+      {
+        "route": "events",
+        "status": 200
+      }
+    ],
+    "evidenceState": "forbidden",
+    "detail": "현재 원본 상세 조회가 허용되지 않았습니다. 저장된 상세 근거는 표시하지 않습니다.",
+    "evidenceSupported": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "evidence": null
+  },
+  "consumerCandidate": {
+    "operating": false,
+    "relatedTests": {
+      "total": 93,
+      "pass": 92,
+      "fail": 0,
+      "skip": 1
+    },
+    "typecheck": "pass",
+    "newConcurrencyRegressions": {
+      "before": {
+        "pass": 0,
+        "fail": 2
+      },
+      "after": {
+        "pass": 2,
+        "fail": 0
+      }
+    },
+    "realProducerDeadlineResolved": false
+  },
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weights": "equal-top-level; partial=0",
+    "eta": "unestimable",
+    "confidence": "low"
+  }
+}

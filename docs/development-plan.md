@@ -358,7 +358,7 @@ DEV-02~04는 현재 착수했다. 실제 Run 관측 경로를 먼저 완성하�
 
 ## 검증과 완료 예상
 
-현재 제품 수용 완료는 동일 가중치14/21 (66.7%)이다. 312개 deterministic test는 ID·재수신·int64·
+현재 제품 수용 완료는 동일 가중치15/21 (71.4%, 부분 충족 0)이다. 초기 312개 deterministic test는 ID·재수신·int64·
 민감 원문 제외·권한 거부·binding 이력·backup 복원의 기반 증거다. 브라우저,
 native 실행, Entra, 교차 앱 실기 증거가 필요한 요구는 미완료로 유지한다.
 
@@ -428,6 +428,10 @@ coordinator의 두 specialist 위임과 최종 종합까지 성공했다. Track�
 잔여 조건이다. 호출 이름은 UUID를 이름으로 추정하지 않고 별도 인가된 configured
 Agent metadata 읽기 계약으로 보강하며 기존 immutable event digest를 변경하지 않는다.
 
-전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 원본 Web 적용은 보류 중이다. Demian API-only는 보존 검증 후 재가동했고 worker는 중단 상태다. Assistant v1 native reader·전용 credential·Track UI는 운영 확인했고, v2 소비자의 명시적 출처 mapping·현재 권한/receipt 대조와 역할→Run 관계도 구현했다. v2 원본 전환·실제 producer/실행 준비, desktop 의미·위치·다른 장치 연결은 남았다. 다음
-재집계는 실제 child/peer·원본 앱 문맥 요약 연결 후이며, 확인 가능한 잔여 작업과 외부
-대기를 분리해 기록한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.
+전체 완료 예상은 아직 신뢰 있게 산정할 수 없으며 신뢰도는 낮다. Projects 원본 업무 생성·기존 Session 배정은 실제 접수와 성공까지 대조했다. 문맥 요약의 Track API·서버 client·host component와 Projects BFF·개요/목록/상세 연결을 소유자 QA 범위에서 운영 확인했다. 같은 실행의 Map 이동·실제 연결 장애 중 업무 생성/수정·자동 복구도 대조했다. 실제 Projects dependency 조회·Map과 철회 시 그래프/URL 제거도 운영 확인했다. Demian 대화 요약·장애 격리는 분리 native web에서 확인했으나 원본 Web 적용은 보류 중이다.
+
+2026-11-14 16:42 KST 기준, 전용 Native API는 `2c113bb`이며 기존 worker는 `c439341`로 운영 중이다. Assistant `9382c9c`의 실제 WorkCoordinator 업무는 Demian Run 종료·Projects 결과·Note 참조와 Track 8 events까지 연결했다. 현재 Windows PC가 사용자가 지정한 pydemia-desktop임을 확인했으므로 별도 앱/bridge 계약을 대기 조건으로 두지 않는다. 동일 업무의 인증된 GUI 확인은 남았다.
+
+사용자 승인으로 상세 evidence·attempt 이력 producer `32176e9`를 운영 전환하고 두 운영 DB readback을 통과했지만, 새 attempt 고정 조회와 Track 전체 10초 deadline의 조합이 실제 연동에서 실패했다. 이전 바이너리만 복구했고 기존 데이터·인증·다른 서비스와 이벤트를 보존했다. 상세 Trace는 아직 forbidden이다. 권한 확인을 병렬화한 소비자 후보는 관련 검사와 typecheck를 통과했으나 실제 새 producer의 deadline 실패를 해결하지 못해 배포하지 않았다. 상세 경위와 단계별 판정은 [예외 배포와 운영 복구](assistant-native-producer-promotion-2026-11-14.md), 실제 기록은 [운영 검증 결과](assistant-native-producer-promotion-verification.json)를 따른다.
+
+다음은 producer/consumer 관측 계약의 중복 원격 확인과 page 경계를 고쳐 실제 지연 조건에서도 철회·이력 고정 검사를 유지하는 일이다. 이어 재배포된 상세 Trace와 같은 업무의 Entra GUI·그룹 왕복을 검증한다. AT-06·09·12·14·15·20은 미완료이며 상위 수용 수는 올리지 않는다. 새 계약의 실제 통합과 GUI 결과를 확보한 뒤 전체 완료 예상을 재산정한다. 날짜나 fixtures를 실기 성공 대신 사용하지 않는다.

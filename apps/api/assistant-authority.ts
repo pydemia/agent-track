@@ -337,14 +337,24 @@ export class AssistantAuthority {
           try { first = await read(after, 250); }
           catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
           const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
-          if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId || latest.task.taskId !== execution.task.taskId ||
-              !await this.hasNativeTarget(scope, client, latest, candidate)) continue;
+          if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId || latest.task.taskId !== execution.task.taskId) continue;
+          // Final signed native read rechecks current binding/key/role authority, not a cached execution row.
+          // These two reads use the same already-pinned attempt. Neither depends
+          // on the other's response; await both before publishing or releasing
+          // the actor/source queue, then recheck current Projects authority.
+          const [membership, native] = await Promise.allSettled([
+            this.hasNativeTarget(scope, client, latest, candidate),
+            read(first.page.events.next_after, 1),
+          ]);
+          if (membership.status === "rejected") throw membership.reason;
+          if (!membership.value) continue;
+          if (native.status === "rejected") {
+            if (native.reason instanceof AssistantSourceError && [401, 403, 404].includes(native.reason.status)) continue;
+            throw native.reason;
+          }
+          const final = native.value;
           const current = await this.currentTask(scope, latest, new Map());
           if (!current) continue;
-          // Final signed native read rechecks current binding/key/role authority, not a cached execution row.
-          let final: Awaited<ReturnType<typeof read>>;
-          try { final = await read(first.page.events.next_after, 1); }
-          catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
           for (const pin of ["binding_sha256", "context_sha256", "request_sha256", "acting_user_id", "service_principal_id"] as const)
             if (first.page.run[pin] !== final.page.run[pin]) throw new AssistantAuthorityError(503);
           first.page.run = final.page.run;
@@ -414,10 +424,16 @@ export class AssistantAuthority {
       const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
       if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId ||
           latest.task.taskId !== execution.task.taskId ||
-          !await this.hasNativeTarget(scope, client, latest, candidate) ||
           !await this.currentTask(scope, latest, new Map())) throw new AssistantAuthorityError(404);
       await this.finish(scope, client);
-      const final = await read(first.page.events.next_after, 1);
+      const [membership, native] = await Promise.allSettled([
+        this.hasNativeTarget(scope, client, latest, candidate),
+        read(first.page.events.next_after, 1),
+      ]);
+      if (membership.status === "rejected") throw membership.reason;
+      if (!membership.value) throw new AssistantAuthorityError(404);
+      if (native.status === "rejected") throw native.reason;
+      const final = native.value;
       for (const field of ["acting_user_id", "service_principal_id", "binding_sha256", "context_sha256", "request_sha256"] as const)
         if (first.page.run[field] !== final.page.run[field]) throw new AssistantAuthorityError(503);
       await this.finish(scope, client);
