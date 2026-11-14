@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "stage": "operator-source-and-readonly-native-preservation",
+  "appRevision": "88b2557a41e1a41144293be76e7f425940134b75",
+  "operationId": "865676f4-54de-4fb0-a7b5-6dd52b8678ac",
+  "verifiedAt": "2026-11-14T01:51:34.064Z",
+  "files": {
+    "deploy/demian/native-web-database.mjs": "9bd370a380c338e337358aee2fad5ed45b197a976ddeb73dc6fec098927595e1",
+    "deploy/demian/native-web-database.d.mts": "9ee03b2bc0e4bc2cc7e506c6872fda58571962d220dc0bcf6b88e742f271408a",
+    "deploy/track/runtime-operation.mjs": "f2dc33b4e3b8f316044ee8c7d97d1801af4baf6fdb288109bf5edd8779e73929",
+    "tests/native-nonce-preservation.test.ts": "c41cf35251c939f46fe2bd9d19bb28fd4069511f84ee805c40b9436a5b35a1ab"
+  },
+  "checks": {
+    "focused": {
+      "total": 93,
+      "pass": 93,
+      "fail": 0,
+      "skip": 0
+    },
+    "typecheck": "pass",
+    "priorFullBeforeFinalSpecialXidNormalization": {
+      "total": 1206,
+      "pass": 1196,
+      "fail": 0,
+      "skip": 10,
+      "limitation": "Final special-XID normalization and two collection-wrap regressions checked in final focused93 only; current-revision CI pending."
+    },
+    "regressions": {
+      "legitimateAppendFailedBeforeFix": true,
+      "mvccConcurrentCommitRejectedByTimeOnlyObservedLive": true,
+      "specialXidWrapFailedBeforeFix": true
+    },
+    "liveReadOnly": {
+      "at": "2026-11-14T01:47:53.507Z",
+      "rawWholeDataChanged": true,
+      "actualReadOnlyProjectionPassed": true,
+      "other41TablesAndAllSchemaSequencesSecurityUnchanged": true,
+      "originalNonceRowsByteExact": 4477,
+      "beforeNonceRows": 4678,
+      "afterNonceRows": 4683,
+      "workerStableRows": 5,
+      "trackBackupReused": true,
+      "operatingChanges": 0
+    },
+    "independentReview": {
+      "first": "No concrete findings before MVCC correction; read-only source review, no independent tests",
+      "final": "Special frozen-XID epoch-wrap false rejection identified; parent reproduced and fixed with failing-then-passing collection regression; no other concrete findings",
+      "workersClosed": true
+    },
+    "currentRevisionCi": "pending"
+  },
+  "limits": {
+    "operatingAppChanged": false,
+    "originalDatabaseWrites": 0,
+    "originalDatabaseRestored": false,
+    "writerGrantCreated": false,
+    "nativeModelRequests": 0,
+    "wholeWorkflowAcceptance": false,
+    "subtransactionWriters": "Current writers use direct transactions; savepoint writer would require policy review."
+  }
+}

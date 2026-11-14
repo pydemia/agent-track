@@ -3,14 +3,24 @@ import {createHash} from 'node:crypto';
 const sha=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const freshnessTables=['deployment_services','managed_child_catalogs','worker_runtime_capabilities'];
 const digestPattern=/^[a-f0-9]{64}$/;
+const nonceTable='work_runtime_delegation_nonces',nonceLimit=100000;
 const micros=value=>{assert(typeof value==='string'&&/^(0|[1-9][0-9]{0,18})$/.test(value));const n=BigInt(value);assert(n<=9223372036854775807n);return n;};
-async function databaseFingerprint(pg,manageTransaction=true,workerFreshness=false){
+function transactionSnapshot(value){
+ assert(typeof value==='string'&&value.length<=2000000);
+ const parts=value.split(':');assert.equal(parts.length,3);const min=micros(parts[0]),max=micros(parts[1]);assert(min<=max);
+ const active=parts[2]===''?[]:parts[2].split(',').map(micros);assert(active.length<=nonceLimit&&new Set(active).size===active.length);
+ for(const id of active)assert(id>=min&&id<max);
+ return {min,max,active:new Set(active)};
+}
+const visible=(id,snapshot)=>id<snapshot.max&&!snapshot.active.has(id);
+async function databaseFingerprint(pg,manageTransaction=true,workerFreshness=false,delegationNonces=false){
  if(manageTransaction)await pg.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
  try {
   assert.equal((await pg.query("SELECT current_setting('transaction_read_only') AS transaction_read_only")).rows[0].transaction_read_only,'on');
+  const nonceSnapshot=delegationNonces?(await pg.query('SELECT pg_current_snapshot()::text AS value')).rows[0].value:undefined;
   const names=(await pg.query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname='public' ORDER BY tablename COLLATE \"C\"")).rows.map(r=>r.tablename);
   assert(names.length>0&&names.length<=100);
-  const tables=[],freshness=[];
+  const tables=[],freshness=[];let nonceRows;
   for(const table of names){
    assert.match(table,/^[a-z_][a-z0-9_]{0,62}$/);
    const row=(await pg.query(`SELECT count(*)::text AS count,encode(sha256(convert_to(coalesce(string_agg(to_jsonb(t)::text,E'\\n' ORDER BY to_jsonb(t)::text COLLATE "C"),''),'UTF8')),'hex') AS sha256 FROM public."${table}" t`)).rows[0];
@@ -23,6 +33,15 @@ async function databaseFingerprint(pg,manageTransaction=true,workerFreshness=fal
     const rows=(await pg.query(`SELECT encode(sha256(convert_to((to_jsonb(t)-'checked_at')::text,'UTF8')),'hex') AS sha256,floor(extract(epoch FROM checked_at)*1000000)::text AS "checkedAtMicros" FROM public."${table}" t ORDER BY 1`)).rows;
     assert(rows.length<=10000&&String(rows.length)===row.count);
     freshness.push({table,column:'checked_at',rows});
+   }
+   if(delegationNonces&&table===nonceTable){
+    assert(BigInt(row.count)<=BigInt(nonceLimit));
+    nonceRows=(await pg.query(`SELECT encode(sha256(convert_to(jsonb_build_array(issuer,nonce)::text,'UTF8')),'hex') AS "keySha256",encode(sha256(convert_to(to_jsonb(t)::text,'UTF8')),'hex') AS "rowSha256",floor(extract(epoch FROM accepted_at)*1000000)::text AS "acceptedAtMicros",floor(extract(epoch FROM expires_at)*1000000)::text AS "expiresAtMicros",floor(extract(epoch FROM retain_until)*1000000)::text AS "retainUntilMicros",xmin::text AS "transactionId" FROM public."${table}" t ORDER BY 1`)).rows;
+    // Resolve PostgreSQL's 32-bit tuple xmin against the same snapshot's xid8 epoch.
+    // Special bootstrap/frozen IDs keep their identity across every epoch.
+    const {max}=transactionSnapshot(nonceSnapshot),wrap=4294967296n;
+    nonceRows=nonceRows.map(row=>{const low=micros(row.transactionId);assert(low<wrap);const id=low<3n?low:max-((max%wrap-low+wrap)%wrap);assert(id>=0n);return {...row,transactionId:String(id)};});
+    assert.equal(String(nonceRows.length),row.count);
    }
   }
   const columns=(await pg.query("SELECT table_name,column_name,ordinal_position,column_default,is_nullable,data_type,udt_name,character_maximum_length FROM information_schema.columns WHERE table_schema='public' ORDER BY table_name,ordinal_position")).rows;
@@ -39,6 +58,7 @@ async function databaseFingerprint(pg,manageTransaction=true,workerFreshness=fal
   }
   const value={tables,schemaSha256:sha({columns,constraints,indexes,views,grants}),schemaComponents:Object.fromEntries(Object.entries({columns,constraints,indexes,views,grants}).map(([name,rows])=>[name,{count:rows.length,sha256:sha(rows)}])),dataSha256:sha(tables),sequenceSha256:sha(sequences),sequenceCount:sequences.length,readOnly:true};
   if(workerFreshness){assert.deepEqual(freshness.map(t=>t.table),freshnessTables);value.workerFreshness={version:1,observedAtMicros:(await pg.query('SELECT floor(extract(epoch FROM clock_timestamp())*1000000)::text AS value')).rows[0].value,tables:freshness};}
+  if(delegationNonces){assert(nonceRows);value.delegationNonces={version:1,snapshot:nonceSnapshot,observedAtMicros:(await pg.query('SELECT floor(extract(epoch FROM clock_timestamp())*1000000)::text AS value')).rows[0].value,rows:nonceRows};validateNonceProjection(value);}
   return value;
  } finally {if(manageTransaction)await pg.query('ROLLBACK');}
 }
@@ -78,26 +98,53 @@ async function databaseSecurityFingerprint(pg){
 
 /** Compare data, DDL, sequences and security without exposing row or credential contents. */
 export async function nativeWebDatabaseState(pg,options={}) {
-  assert(options&&Object.keys(options).every(k=>k==='workerFreshness'));
+  assert(options&&Object.keys(options).every(k=>['workerFreshness','delegationNonces'].includes(k)));
   assert(options.workerFreshness===undefined||typeof options.workerFreshness==='boolean');
-  return { data: await databaseFingerprint(pg,true,options.workerFreshness===true), security: await databaseSecurityFingerprint(pg) };
+  assert(options.delegationNonces===undefined||typeof options.delegationNonces==='boolean');
+  return { data: await databaseFingerprint(pg,true,options.workerFreshness===true,options.delegationNonces===true), security: await databaseSecurityFingerprint(pg) };
 }
 
-/** Full equality by default; the explicit live-worker mode permits clock advance only. */
+function validateNonceProjection(data){
+ const value=data.delegationNonces;assert(value&&value.version===1&&Array.isArray(value.rows)&&value.rows.length<=nonceLimit);
+ const observed=micros(value.observedAtMicros),snapshot=transactionSnapshot(value.snapshot),table=data.tables.filter(t=>t.table===nonceTable);assert.equal(table.length,1);assert.equal(table[0].count,String(value.rows.length));
+ const rows=new Map();
+ for(const row of value.rows){
+  assert(digestPattern.test(row.keySha256)&&digestPattern.test(row.rowSha256)&&!rows.has(row.keySha256));
+  const accepted=micros(row.acceptedAtMicros),expires=micros(row.expiresAtMicros),retain=micros(row.retainUntilMicros);
+  assert(accepted<=observed&&expires>accepted&&expires<=accepted+60000000n&&retain===expires+120000000n);
+  assert(visible(micros(row.transactionId),snapshot));
+  rows.set(row.keySha256,row);
+ }
+ return {observed,rows,snapshot};
+}
+
+/** Exact equality by default. Explicit modes permit worker clocks and immutable nonce appends only. */
 export function assertNativeWebDatabasePreserved(before,after){
  assert.equal(after.data.schemaSha256,before.data.schemaSha256);assert.equal(after.data.sequenceSha256,before.data.sequenceSha256);assert.equal(after.security.sha256,before.security.sha256);
  const left=before.data.workerFreshness,right=after.data.workerFreshness;
- if(!left&&!right){assert.equal(after.data.dataSha256,before.data.dataSha256);return true;}
+ const nonces=before.data.delegationNonces||after.data.delegationNonces;
+ if(!left&&!right&&!nonces){assert.equal(after.data.dataSha256,before.data.dataSha256);return true;}
+ if(nonces){
+  const a=validateNonceProjection(before.data),b=validateNonceProjection(after.data);assert(b.observed>=a.observed&&b.snapshot.max>=a.snapshot.max);
+  for(const [key,row]of a.rows)assert.deepEqual(b.rows.get(key),row);
+  // Concurrent transactions can accept before the first clock observation and
+  // commit later. Only an insertion invisible to the old MVCC snapshot may appear.
+  for(const [key,row]of b.rows)if(!a.rows.has(key))assert(!visible(micros(row.transactionId),a.snapshot));
+ }
+ if(left||right){
  assert(left&&right&&left.version===1&&right.version===1);
  const observeA=micros(left.observedAtMicros),observeB=micros(right.observedAtMicros);assert(observeB>=observeA);
  for(const value of [left,right]){
   assert.deepEqual(value.tables.map(t=>t.table),freshnessTables);
   for(const table of value.tables){assert.equal(table.column,'checked_at');assert(table.rows.length<=10000);assert.equal(new Set(table.rows.map(r=>r.sha256)).size,table.rows.length);for(const row of table.rows){assert(digestPattern.test(row.sha256));assert(micros(row.checkedAtMicros)<=micros(value.observedAtMicros));}}
  }
+ }
  assert.deepEqual(after.data.tables.map(t=>t.table),before.data.tables.map(t=>t.table));
  for(let i=0;i<before.data.tables.length;i++){
-  const a=before.data.tables[i],b=after.data.tables[i];assert.equal(a.count,b.count);
-  if(!freshnessTables.includes(a.table)){assert.deepEqual(b,a);continue;}
+  const a=before.data.tables[i],b=after.data.tables[i];
+  if(nonces&&a.table===nonceTable)continue;
+  assert.equal(a.count,b.count);
+  if(!left||!freshnessTables.includes(a.table)){assert.deepEqual(b,a);continue;}
   const old=left.tables.find(t=>t.table===a.table),current=right.tables.find(t=>t.table===a.table);
   assert.equal(String(old.rows.length),a.count);assert.equal(String(current.rows.length),b.count);
   const rows=new Map(old.rows.map(row=>[row.sha256,micros(row.checkedAtMicros)]));

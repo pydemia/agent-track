@@ -74,6 +74,16 @@ Persona32176e9는 원본 writer와 이전 버전 호환 감사 side table을 PR2
 전용 client sourcec8734db CI43533521387은 Windows·Ubuntu 모두13단계 성공했다.
 운영 writer·새 세 서비스 전환·실제 provider/인증 화면 수용은 남아 AT-09는 부분이다.
 
+Track 후속 후보88b2557과 전환기9e5dfac의 Windows·Ubuntu CI는 각각 모두 성공했다.
+현재 원본 SQLite 백업 한 개로 후보·이전 버전의 cold QA를 완료했고, 정확한 명령 원장
+객체6개·기존 행·WAL 포함 복귀와18개 웹 자산을 대조했다. 실제 전환 전 검사가 정상
+서명 조회의 nonce 추가를 전체 DB 변경으로 거부해, 명시적인 MVCC 기반 nonce 추가
+보존 검사를 보완했다. 기존 nonce4,477개와 나머지 업무 table41개·schema·sequence·
+security 일치를 확인했다. 관련93개·타입 검사가 통과했다. 운영 변경 전의 새 원본
+관측 기준만 고정했으며, 업무 DB·runtime·권한은 변경하지 않았다.
+[전환 검사와 범위](track-command-schema-rollout.md)를 따른다. 전체15/21·71.4% 유지,
+전체 ETA 산정 불가·신뢰도 낮음이며 실제 소비자 전환·인증 화면이 다음 수용 검사다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |
