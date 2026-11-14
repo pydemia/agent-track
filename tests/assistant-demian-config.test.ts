@@ -50,3 +50,39 @@ for (const invalid of ["http", "credentials", "path", "slash", "duplicate", "v1"
     if (invalid === "Projects") assistant.assistantProjectsSourceId = "missing-projects";
     assert.equal(configSchema.safeParse(config).success, false);
   });
+
+function writerConfiguration() {
+  const config = configSchema.parse(configuration());
+  const user = config.sources[0]!.assistantUser!;
+  config.auth = { mode: "proxy", secretFile: resolve(".runtime", "unused-proxy.key"), users: [user] };
+  Object.assign(config.sources[0]!, { assistantCommandCredentialFile: resolve(".runtime", "unused-writer.json"),
+    assistantCommandPrincipalId: "writer", assistantCommandUsers: [user] });
+  return config;
+}
+
+test("Assistant writer is explicit and separate without changing reader source identity", () => {
+  const before = configSchema.parse(configuration()).sources[0]!;
+  const config = configSchema.parse(writerConfiguration());
+  assert.equal(sourceIdentity(config.sources[0]!), sourceIdentity(before));
+  assert.deepEqual(config.sources[0]!.assistantCommandUsers, [before.assistantUser]);
+  assert.equal(before.assistantCommandUsers, undefined);
+});
+
+for (const invalid of ["missing-principal", "missing-credential", "missing-users", "reader-path", "proxy-path",
+  "reader-principal", "local-auth", "multiple-owners", "foreign-actor", "v1", "no-mapping", "wrong-kind"] as const)
+  test(`Assistant writer rejects ${invalid}`, () => {
+    const config = writerConfiguration(), source = config.sources[0]!;
+    if (invalid === "missing-principal") delete source.assistantCommandPrincipalId;
+    if (invalid === "missing-credential") delete source.assistantCommandCredentialFile;
+    if (invalid === "missing-users") delete source.assistantCommandUsers;
+    if (invalid === "reader-path") source.assistantCommandCredentialFile = source.assistantCredentialFile;
+    if (invalid === "proxy-path" && config.auth.mode === "proxy") source.assistantCommandCredentialFile = config.auth.secretFile;
+    if (invalid === "reader-principal") source.assistantCommandPrincipalId = source.assistantPrincipalId;
+    if (invalid === "local-auth") config.auth = { mode: "local", user: source.assistantUser! };
+    if (invalid === "multiple-owners" && config.auth.mode === "proxy") config.auth.users.push("another@example.test");
+    if (invalid === "foreign-actor") source.assistantCommandUsers = ["another@example.test"];
+    if (invalid === "v1") source.assistantProtocol = 1;
+    if (invalid === "no-mapping") source.assistantDemianMappings = [];
+    if (invalid === "wrong-kind") source.kind = "demian";
+    assert.equal(configSchema.safeParse(config).success, false);
+  });

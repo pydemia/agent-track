@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "stage": "source-contract-adapter-config-only",
+  "baseline": "95c1ed6365b5d59fc055d06b376a9354378761c9",
+  "verifiedAt": "2026-11-14T00:20:13.843Z",
+  "files": {
+    "apps/api/config.ts": "9ddd2df056524d8008ecb9d6c2ce368ee18bcf2f5175c8612bc7dd7068f43f0f",
+    "packages/adapters/assistant/commands.ts": "df34270d3311ec49f01798d329dc933ddddd6f7b9cccff60cbb5db1a5c84789d",
+    "packages/contracts/assistant-commands.ts": "c3601dd5051b92f507e042ddf238fb8e1c6f38b40dd422d0611605236a46756e",
+    "tests/assistant-command-client.test.ts": "6103535414326f0ebc1a473237c25c56e618058bbf1e74abeef89170c6b687f6",
+    "tests/assistant-demian-config.test.ts": "ee050e4964c529bd4da08a1edd48bc1f9c20b1c8b3b5627fbb1df8f8d6d3783f"
+  },
+  "checks": {
+    "typecheck": "pass",
+    "full": {
+      "total": 1130,
+      "pass": 1120,
+      "fail": 0,
+      "skip": 10,
+      "concurrency": 4,
+      "log": ".runtime/assistant-writer-client-full.log"
+    },
+    "newCases": {
+      "adapter": 9,
+      "config": 13
+    },
+    "actualLocalhostHttp": true
+  },
+  "limits": {
+    "durableBroker": false,
+    "browserControls": false,
+    "productionActivation": false,
+    "actualProvider": false,
+    "wholeWorkflowAcceptance": false
+  },
+  "previousFlowCi": {
+    "sha": "95c1ed6365b5d59fc055d06b376a9354378761c9",
+    "run": 43530889791,
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (windows-latest)",
+        "steps": 13,
+        "conclusion": "success"
+      },
+      {
+        "name": "verify (ubuntu-latest)",
+        "steps": 13,
+        "conclusion": "success"
+      }
+    ]
+  }
+}

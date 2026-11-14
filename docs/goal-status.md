@@ -55,6 +55,14 @@ CI43506947505는 Windows·Ubuntu의 실제 검사 단계 모두 성공했다. �
 배포 검증을 대신하지 않는다.
 [현재 구현 단계](native-run-commands.md)와 [검증 근거](native-run-commands-verification.json)를 따른다.
 
+보호 명령 후속은 [전용 조정자 writer](assistant-command-bridge.md)의 strict 계약,
+HTTP adapter와 명시적 설정 검증을 추가했다. reader/proxy credential과 별도로
+현재 owner·principal·grant revision을 확인하고, 전송 전 중단과 전송 후 불확실성을
+구분한다. 같은 operationId 조회 외 자동 POST 재전송은 없다. 실제 localhost HTTP와
+전체 1,130개 검사 중1,120통과·실패0·기존skip10, 타입 검사를 확인했다. 영속 검토/
+확인/복구 broker·화면·운영 writer 활성화는 아직 없으며 AT-09 수용으로 계산하지 않는다.
+직전 접수 Flow source95c1ed6의 CI43530889791은 Windows·Ubuntu 모두13단계 성공했다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

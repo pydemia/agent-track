@@ -48,6 +48,9 @@ export const sourceConfigSchema = z.object({
   assistantUser: email.optional(),
   assistantOwnerId: z.string().regex(/^sso-sub:[a-f0-9]{64}$/).optional(),
   assistantPrincipalId: sourceId.optional(),
+  assistantCommandCredentialFile: z.string().refine(isAbsolute).optional(),
+  assistantCommandPrincipalId: sourceId.optional(),
+  assistantCommandUsers: z.array(email).min(1).optional(),
   assistantProjectsSourceId: sourceId.optional(),
   assistantProtocol: z.union([z.literal(1), z.literal(2)]).optional(),
   assistantDemianMappings: z.array(assistantDemianMappingSchema).max(20).optional(),
@@ -92,6 +95,19 @@ export const configSchema = z.object({
     }
     for (const source of config.sources) {
       const commandOwners = config.auth.mode === "proxy" ? config.auth.users : [];
+      const writerFields = [source.assistantCommandCredentialFile,
+        source.assistantCommandPrincipalId, source.assistantCommandUsers];
+      if (writerFields.some(Boolean) && (source.kind !== "assistant" || !writerFields.every(Boolean) ||
+          !source.assistantCredentialFile || !source.assistantOwnerId || !source.assistantPrincipalId ||
+          source.assistantProtocol !== 2 || !source.assistantProjectsSourceId || !source.assistantDemianMappings?.length ||
+          config.auth.mode !== "proxy" || config.auth.users.length !== 1 ||
+          source.assistantCommandUsers?.length !== 1 || source.assistantCommandUsers[0] !== source.assistantUser ||
+          !commandOwners.includes(source.assistantUser!) ||
+          source.assistantCommandPrincipalId === source.assistantPrincipalId ||
+          pathKey(source.assistantCommandCredentialFile!) === pathKey(source.assistantCredentialFile) ||
+          (config.auth.mode === "proxy" && pathKey(source.assistantCommandCredentialFile!) === pathKey(config.auth.secretFile)))) {
+        context.addIssue({ code: "custom", message: "Assistant commands require a separate writer and an explicit v2 single-owner coordinator grant" });
+      }
       if (source.runCommandUsers?.length && (source.kind !== "demian" || !!source.assistantNativeSourceId || !source.baseUrl ||
           config.auth.mode !== "proxy" || config.auth.users.length !== 1 ||
           source.runCommandUsers.some(user => !source.users.includes(user) || !commandOwners.includes(user)))) {
