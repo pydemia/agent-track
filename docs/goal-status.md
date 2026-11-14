@@ -120,6 +120,15 @@ startup·복귀·운영 전환과 Track/Entra 화면은 아직 남아 상위15/2
 아래 단계표의 이전PID/source는 당시 관측 이력이며 최신 제공자 상태는
 [운영 근거](native-producer-operating.json)를 우선한다.
 
+Assistant 후속은 [같은 실데이터 사본의 후보·이전 버전 기동](assistant-native-producer-copy.json)을
+검증했다. Work31table/runtime64table의 기존 정의·행과 새 table3개의 빈 상태를 대조했고,
+두 cold boot의 고정 task3revision/UI6event를 각각 역산했다. 최초 엄격 비교·로그 조회
+실패는 보존했으며, 후보를 다시 시작하거나 원본 백업을 다시 만들지 않고 같은 사본에서
+검사를 이어갔다. 임시 container·volume을 제거하고 원본 baseline·불변 lifecycle preflight를
+확인했다. Assistant 운영 교체·guard 설치·writer 활성화·Entra 화면은 아직 없다.
+Native 전환 뒤 Track의 기존 보호 Run connected·8event/hash 보존도 확인했지만
+상세 Trace는steps0이므로 사용자 요구 충족으로 세지 않는다. 전체15/21·71.4% 유지다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

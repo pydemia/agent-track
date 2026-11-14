@@ -113,6 +113,17 @@
     "apiReview": "Two recovery findings reproduced and fixed; callback recovery runs despite failed journal or unknown stop outcome.",
     "gateReview": "No concrete activation/recovery finding in bounded static review; not runtime proof."
   },
+  "sourceCi": {
+    "headSha": "8aec0c0e2e012d88438933cdca83b513c8695976",
+    "runId": 43554880409,
+    "url": "https://github.com/pydemia/agent-track/actions/runs/43554880409",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {"name": "verify (ubuntu-latest)", "id": 132325365372, "steps": 13, "conclusion": "success"},
+      {"name": "verify (windows-latest)", "id": 132325365633, "steps": 13, "conclusion": "success"}
+    ]
+  },
   "limits": {
     "assistantProducerOperating": false,
     "trackEvidenceEndToEnd": false,

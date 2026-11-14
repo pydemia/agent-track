@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "phase": "actual-copy-candidate-and-old-binary-verified-not-promoted",
+  "verifiedAt": "2026-11-14T04:24:40.026Z",
+  "source": {
+    "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+    "sourceCommit": "32176e985b38317b4d39fcaf558393045f964232",
+    "sourceArchiveSha256": "f1cb916bb2c5e078fa1ed512e04b9babed4ca9db6fd74c7b2b1af6f8879408d2",
+    "sourceTree": "cf7c166a0b204f87d66958dc5fad65953677d511"
+  },
+  "original": {
+    "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "pid": 266620,
+    "revision": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+    "lifecycleChanged": false,
+    "protectedComponents": 13
+  },
+  "staged": {
+    "id": "594d6996a71452e91cd66a41f9b5c2f262073abf8e1ef05a8b19fa9c75eae0a3",
+    "started": false,
+    "imageOnly": true,
+    "existingEnvironmentAndMountsAndNetworksExact": true,
+    "newCredentials": 0,
+    "newMounts": 0
+  },
+  "backup": {
+    "databases": [
+      {
+        "database": "work",
+        "bytes": 45719552,
+        "sha256": "4f2186a146566431fc8f7bc7a4b8d6bb401677f3ff30c23cd280b388e6957bd7",
+        "measurementSha256": "108756c65a0829988264ce4a916ce92ff91ab40ff53a351a8b70ae89bfb4331d",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      },
+      {
+        "database": "runtime",
+        "bytes": 5203615744,
+        "sha256": "a69c1120a3f612356f0e01c4dc042b8c5fcf343ad18ad6211bc9191f212918de",
+        "measurementSha256": "3da2ca4448358cd7ed4ed7e7791b98609a4c8c8e797a9fb4aaf789cf274bf82c",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      }
+    ],
+    "sourceMountReadOnly": true,
+    "perDatabaseConsistent": true,
+    "crossDatabaseAtomic": false,
+    "helperRemoved": true,
+    "encryptedBackupRetained": true
+  },
+  "copy": {
+    "network": "none",
+    "sourceStateNotMounted": true,
+    "otherMountsReadOnly": true,
+    "candidateHealth": 200,
+    "oldBinaryHealth": 200,
+    "sameUpgradedCopy": true,
+    "newTablesEmpty": true,
+    "existingSchemaExact": true,
+    "differences": {
+      "work": {
+        "nonLeaseChanges": [],
+        "startupInverseVerified": false,
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ],
+        "oldTables": 31,
+        "newTables": [
+          "work_execution_role_command_audits",
+          "work_execution_role_commands"
+        ],
+        "exactSourceDdl": true,
+        "newTablesEmpty": true
+      },
+      "runtime": {
+        "nonLeaseChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "startupInverseVerified": true,
+        "operationalLeaseExceptions": [
+          "import_leases",
+          "runtime_leases"
+        ],
+        "oldTables": 64,
+        "newTables": [
+          "work_demian_successor_plans"
+        ],
+        "exactSourceDdl": true,
+        "newTablesEmpty": true
+      }
+    },
+    "rollbackDifferences": {
+      "work": {
+        "nonLeaseChanges": [],
+        "startupInverseVerified": false,
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ]
+      },
+      "runtime": {
+        "nonLeaseChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "startupInverseVerified": true,
+        "operationalLeaseExceptions": [
+          "import_leases",
+          "runtime_leases"
+        ]
+      }
+    },
+    "declaredStartupPerBoot": {
+      "fixedHistoricalTaskRevisions": 3,
+      "uiEvents": 6,
+      "inverseTypedHashesExact": true
+    },
+    "containersRemoved": true,
+    "volumeRemoved": true,
+    "candidateRerun": false,
+    "originalFailurePreserved": true,
+    "initialFailure": "Strict non-lease comparison rejected the already-declared fixed startup projection. Docker logs returned1 and interrupted the first cleanup; the exited owned candidate was subsequently removed. No source lifecycle or database change.",
+    "applicationLogReadExitCode": 1
+  },
+  "baseline": {
+    "capturedAt": 1794630033.130241,
+    "originalBusinessRowsMatchBackup": true,
+    "reportPinsPreserved": true,
+    "protectedComponents": 13,
+    "helperRemoved": true
+  },
+  "lifecyclePreflight": {
+    "operation": "83ad42efc6fe4bb09600bba0f0431ba9",
+    "planSha256": "f2acb0a8bc83fa88a843b43c6ae7c06f801f1dcf70a547b91ac5187ec025c3dd",
+    "operatorSha256": "c6cfdc12174285babde3b114552be6c2b26ae438ef1b1ef01c31db0ba50a1e86",
+    "oldGuardFiles": 21,
+    "selectedFileCounts": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
+    "guardsInstalled": false,
+    "lifecycleMutations": 0
+  },
+  "sourceCi": "Persona32176e9 runs43534552527/43534551223 previously failed before all4 jobs executed steps, with billing/spending-limit annotation; not rerun or counted as pass.",
+  "limits": {
+    "productionPromotion": false,
+    "productionDatabaseDdlApplied": false,
+    "databaseRestored": false,
+    "newWriterGrantCreated": false,
+    "newModelRequests": 0,
+    "trackDetailedEvidenceEndToEnd": false,
+    "entraGuiVerified": false,
+    "wholeWorkflowAcceptance": false
+  },
+  "inputHashes": {
+    "backup-detail-5.json": "1d41ace8d3ecd4b0e6becdebd96e897326a05ad9ea770d861f2e92dff5a9ac66",
+    "continuation-status-1.json": "dbb0ad5ee69c23a9b14efe3517400e8283dd8224eeafc1baaf0790ad975fe1c0",
+    "preview-volume-cleanup.json": "ba0585c5f7fdc74004b547556ef906173a85e31800a1941bc5033f897ab6119c",
+    "baseline-status-2.json": "f04fd4a0d75fe3514da80c26b2beb0cd574b4a24bc9482e8de0c4b5c74dbf288",
+    "native-plan-preflight.json": "a3eaa8f2f57461c476a048499ffdb38672f81980bd9bdfb6c95e851445e19ebf"
+  }
+}

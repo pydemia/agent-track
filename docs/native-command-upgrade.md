@@ -42,6 +42,9 @@ DB·credential·authority의 과거 사본을 복원하는 경로는 없다.
 검사가 통과했다. 게이트의 별도 정적 검토에는 구체적 결함 지적이 없었으며,
 정적 검토와 실제 운영 조회를 구분한다.
 
+위 보존·복구 source8aec0c0의 CI43554880409는 Windows·Ubuntu 모두13단계
+성공으로 종료됐다. 후속 문서와 Assistant 후보 검사는 이 source CI와 구분한다.
+
 ## 남은 수용 조건
 
 Track API·웹은27e00a8, Assistant는9382c9c 운영이다. 최신 Assistant32176e9의
@@ -49,6 +52,19 @@ Track API·웹은27e00a8, Assistant는9382c9c 운영이다. 최신 Assistant3217
 Work DB와 로컬 runtime DB의 실제 사본에서 startup·추가 table·기존 행과 코드 복귀를
 확인한 뒤 운영 반영해야 한다. 현재 PC의 Entra 로그인 이후 같은 업무의 상세 Trace와
 그룹 탐색을 대조하는 검사도 남는다.
+
+후속 [Assistant 사본 검사](assistant-native-producer-copy.json)는 완료됐다. 실제 Work
+45,719,552B·runtime5,203,615,744B를 각각 암호화·복원하고, 같은 사본에서 후보와 이전
+운영 버전의 정상 기동을 확인했다. Work의 새 table2개·runtime의 새 table1개는 원본
+선언과 일치하고 비어 있다. 두 버전의 시작 처리에 한해 고정된 역사 task3개의 revision과
+UI6event를 역산해 기존 행 hash 일치를 확인했다. 임시 container·volume은 제거했고
+암호화 backup은 보존했다. 원본의 읽기 전용 baseline과 lifecycle preflight도 통과했지만
+새 guard 설치·Assistant 교체는 아직 수행하지 않았다. Persona CI의 실행 전 실패는
+이 사본 검사나 Track8aec0c0 CI 성공으로 바꾸어 표시하지 않는다.
+
+Native 전환 뒤 기존 Track 수집도 별도로 확인했다. 같은 보호 Run은connected·succeeded,
+cursor=highWater=8이고 기존 이벤트 metadata SHA는dc8f4af8…18f15로 일치한다.
+이전 Assistant 경유의 상세 Trace는 여전히steps0이며, 새 Assistant 적용 전의 한계다.
 
 상위 수용은15/21·71.4%(동일 가중치·부분0)다. 이번 제공자 전환만으로 AT-09/14를
 완료로 올리지 않는다. 전체 ETA는 산정 불가·신뢰도 낮음이다.
