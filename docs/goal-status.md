@@ -91,6 +91,16 @@ security 일치를 확인했다. 관련93개·타입 검사가 통과했다. 운
 반환했다. 이 결과는 운영 수용이 아니며 새 후보 전환이 남아 있다. 현재 Chrome의
 새 Entra 화면은 비밀번호 입력 단계로 확인했고 사용자 로그인 응답은 아직 없다.
 
+후속 수정27e00a8은 전체1,209개 중1,199통과·실패0·기존10skip, 관련60개·타입·별도
+build와 Windows·Ubuntu CI43545121612를 통과했다. 새 operation8f3f7eca의 실제 전환도
+완료됐다. 현재 Track API·웹은 모두27e00a8이며 manifest는b1982cf5…18df8, PID38948이다.
+운영에서 실제 두 Task의 저장200·조회200·충돌409·삭제200·삭제 후 조회200을 확인했다.
+웹18개 자산 MIME/SHA, 보호 파일48개·다른 프로세스19개·Track 이력·원본 Native 보존,
+SQLite integrity·익명/위조401과 공개 Track/Trail의 Entra 경계를 대조했다.
+[운영 근거](track-flow-view-operating.json)를 따른다. 원본 API·Assistant의 새 기능 배포,
+writer 활성화·실제 provider 실행과 Entra 로그인 이후 화면은 여전히 남는다.
+전체15/21·71.4%(상위 동일 가중치·부분0), 전체 ETA 산정 불가·신뢰도 낮음 유지다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

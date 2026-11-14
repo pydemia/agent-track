@@ -96,3 +96,9 @@ credential stamp·source scope를 확인한다. 마지막 원본 확인이 끝�
 전환 원장에는 저장·조회·충돌·삭제·삭제 후 조회의 고정 단계와 HTTP status만 기록해
 후속 실패 위치를 구분한다. ID·원문·인증 header는 기록하지 않는다. 수정된 앱의 새
 동결 release·운영 전환과 Entra 화면 확인은 별도 단계다.
+
+후속27e00a8의 전체 검사·Windows/Ubuntu CI 통과 후 새 operation
+`8f3f7eca-b958-4134-b5c7-6f1bd1cdfaa2`로 전환했다. 이번에는 모든 owner probe와
+최종 보존 검사가 통과해 committed 기록을 생성했다. API·웹27e00a8, 18개 웹 자산,
+공개 인증 경계와 원본 이력·DB·다른 프로세스 보존을 후속 대조했다.
+[운영 근거](track-flow-view-operating.json)를 따른다. Entra 사용자 화면은 미검증이다.

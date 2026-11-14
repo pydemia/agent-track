@@ -47,7 +47,23 @@
     "regressionBeforeFix": "two-Task authorization performed6 full refreshes instead of2; failing test retained",
     "deadlineRegression": "existing late-completion test failed after batch change; fractional timer delay normalized with Math.ceil; passes after fix",
     "independentReview": "No concrete auth/data publication/deadline regression in final app changes; static read-only review, no independent tests. In-flight refresh cancellation/hard wall-clock scheduling not implemented.",
-    "ci": "pending"
+    "ci": {
+      "runId": 43545121612,
+      "headSha": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": 13
+        },
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success",
+          "steps": 13
+        }
+      ]
+    }
   },
   "actualSourceIsolated": {
     "before": {
@@ -138,11 +154,24 @@
     "snapshotStatus": 200
   },
   "limits": {
-    "fixedAppOperating": false,
+    "fixedAppOperating": true,
     "newWriterGrantCreated": false,
     "originalDatabaseRestored": false,
     "nativeModelRequests": 0,
     "entraGuiVerified": false,
     "wholeWorkflowAcceptance": false
+  },
+  "operatingPromotion": {
+    "operationId": "8f3f7eca-b958-4134-b5c7-6f1bd1cdfaa2",
+    "revision": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+    "committed": true,
+    "manifestSha256": "b1982cf5782ac7fab9b760c10ab20df0329ef05e699bef8e346e54dd47b18df8",
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    }
   }
 }

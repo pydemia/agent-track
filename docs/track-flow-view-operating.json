@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "phase": "committed-and-readback-verified",
+  "observedAt": "2026-11-14T02:23:14.873Z",
+  "operationId": "8f3f7eca-b958-4134-b5c7-6f1bd1cdfaa2",
+  "pid": 38948,
+  "apiRevision": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+  "webRevision": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+  "manifestSha256": "b1982cf5782ac7fab9b760c10ab20df0329ef05e699bef8e346e54dd47b18df8",
+  "checks": {
+    "ci": {
+      "runId": 43545121612,
+      "headSha": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success",
+          "steps": 13
+        },
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success",
+          "steps": 13
+        }
+      ]
+    },
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 48,
+    "preservedProcesses": 19,
+    "historyPreserved": true,
+    "nativeDatabasePreserved": true,
+    "sqliteIntegrity": "ok",
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    }
+  },
+  "limits": {
+    "originalDatabaseRestored": false,
+    "newWriterGrantCreated": false,
+    "sourceOrModelDispatchPerformed": false,
+    "actualEntraGuiVerified": false,
+    "wholeWorkflowAcceptance": false
+  },
+  "postProofSha256": "b934c5854e42a01bcb47123651309e56abdb02866dfed8b37f6bb946b803d384"
+}
