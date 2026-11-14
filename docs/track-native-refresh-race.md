@@ -35,3 +35,9 @@ API `80cfbb0110037e352b765edf7f65e4e305f8a500`의 [Windows·Ubuntu CI](https://g
 Edge의 Entra 계정으로 같은 업무의 Map → Trace → Run 그룹 내부 흐름·상세 패널을 검증했다. 자동 갱신 후에도 Run 선택과 대시보드가 유지됐다. 원본 evidence는 여전히 forbidden으로 표시되며, 상세 데이터 지원 성공으로 세지 않는다. 별도 원본 Demian 공개 웹은 `ERR_INVALID_AUTH_CREDENTIALS`로 열리지 않아 기존 개발 대화에 정상 인증 진입 경로를 읽기 전용으로 문의했다.
 
 단계별 실제 기록은 [운영 검증 결과](track-native-refresh-operating.json)를 따른다. 전체 수용률·잔여 요구와 완료 예상은 위 판단을 유지한다.
+
+## 원본 웹 진입 확인과 다음 검사
+
+사용자가 연결 정보 확인을 위임한 Demian 개발 대화 `01a1c901-2cea-7a21-9b38-8d12445f0a49`에서 20:19 KST에 원본 공개 웹의 HTTP401·`WWW-Authenticate: Basic`을 읽기 전용으로 확인했다. 정상 진입 주소는 `https://demian.pydemia.ai/`이며 원본 gate 설정은 `C:/Users/pydemia/.demian/service/domain/config.json`, 로그인 보관 파일은 같은 디렉터리의 `domain-login.json`이다. 비밀값은 읽거나 대화로 전달하지 않았고 원본 인증을 변경하지 않았다. Track Entra 로그인은 별도로 완료된 상태다. 기본 인증 창의 정상 진입을 위해 사용자에게 Edge InPrivate 직접 로그인을 요청했다.
+
+독립적인 상세 Trace 후속은 우선 같은 reader·현재 10초 budget·SSE 동시 갱신 조건으로 새 producer의 metadata와 evidence 왕복을 격리 검증하는 일이다. 현재 안정 이미지에서의 forbidden과 새 이미지에서의 deadline 실패를 섞지 않는다. 원본 지원 선언, attempt 고정, 현재 소유자·Projects·Note·Native 권한과 credential 변경 검사를 유지하고, 선택한 시도 이력을 현재 역할 경로로 대체하지 않는다. 실제 성공 전에는 중지한 producer 후보를 다시 운영에 올리거나 원본 업무를 모델 재실행해 증거를 덮어쓰지 않는다.
