@@ -101,6 +101,15 @@ SQLite integrity·익명/위조401과 공개 Track/Trail의 Entra 경계를 대�
 writer 활성화·실제 provider 실행과 Entra 로그인 이후 화면은 여전히 남는다.
 전체15/21·71.4%(상위 동일 가중치·부분0), 전체 ETA 산정 불가·신뢰도 낮음 유지다.
 
+상세 관측 제공자는 [최신 준비 근거](native-producer-preparation-verification.json)에 따라
+Native2c113bb를19,632files/5links로 동결하고 Assistant32176e9 image320474cd를 빌드했다.
+원본45table 백업과 일치하는 사본에서027 migration·기존 행/역할·현재 실제 Run의
+evidence200·이전 API의 기본 조회200과 unsigned403을 확인했다. 복사본의 worker
+시각은 실제 원본의 같은 identity/hash 행에서만 가져왔고 새 worker/모델은 실행하지 않았다.
+두 child·port와 clone/network 정리를 확인했다. 이는 운영 제공자 전환이나 AT-14 완료가
+아니다. Native 원본 migration/API/gate 전환과 Assistant 두 DB의 실제 startup·복귀
+검사가 다음 단계다. 전체15/21·71.4%, ETA 산정 불가·신뢰도 낮음을 유지한다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "phase": "frozen-producers-and-native-copy-preview-verified-not-promoted",
+  "verifiedAt": "2026-11-14T03:17:31.625Z",
+  "native": {
+    "revision": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+    "manifestSha256": "924c187e85328d40a3a1dcc41fca6ff37676706b51e794b1cc0eddaab647c5e4",
+    "files": 19632,
+    "links": 5,
+    "apiSha256": "9c9f18190c7538388c3f851ce9360aa1b54602dec752e2782c399a38c62568e1",
+    "workerSha256": "2e2bcf4b146c79ddcc9d3eb0870164532adda711f0a4d975a404b60926b09aa1",
+    "build": "core/worker pass; API two-build input/output hashes matched"
+  },
+  "nativeCopyPreview": {
+    "originalBackupSha256": "48bf3e004389da61523faa60ab32a7b05d08cf73ee6eb97b914f2ad0d6be22ed",
+    "all45TablesMatchedOriginalBackup": true,
+    "migrationSha256": "9a3c95dfbba95772b346855de86c8a4ce6e85d1b3600349bfc568c075b35e3ec",
+    "schemaAdditionCounts": {
+      "columns": 21,
+      "constraints": 18,
+      "indexes": 4,
+      "functions": 2,
+      "triggers": 2
+    },
+    "oldTables": 45,
+    "rolesAndMembershipsAndExistingPoliciesUnchanged": true,
+    "allRowsPreservedExceptDeclaredMigrationMarkerNonceAppendsAndMirroredLiveWorkerClocks": true,
+    "releases": {
+      "candidate": {
+        "pid": 76524,
+        "base": {
+          "capabilities": 200,
+          "actor": 200,
+          "session": 200,
+          "unsignedBearer": 403
+        },
+        "evidenceStatus": 200,
+        "evidenceFields": [
+          "version",
+          "object",
+          "api_version",
+          "observedAt",
+          "run",
+          "events",
+          "timings",
+          "artifactState",
+          "artifacts"
+        ],
+        "liveWorkerClockRowsMirrored": 5,
+        "modelRequests": 0,
+        "childStopped": true,
+        "portReleased": true
+      },
+      "rollback": {
+        "pid": 28756,
+        "base": {
+          "capabilities": 200,
+          "actor": 200,
+          "session": 200,
+          "unsignedBearer": 403
+        },
+        "evidenceStatus": 403,
+        "evidenceFields": [],
+        "liveWorkerClockRowsMirrored": 5,
+        "modelRequests": 0,
+        "childStopped": true,
+        "portReleased": true
+      }
+    },
+    "cloneRemoved": true,
+    "networkRemoved": true,
+    "proofSha256": "e22bfff91cb5cb8ab9acd7bf79a94f36f473d1a5ba5e3077a5978226f729ad43"
+  },
+  "assistant": {
+    "revision": "32176e985b38317b4d39fcaf558393045f964232",
+    "tree": "cf7c166a0b204f87d66958dc5fad65953677d511",
+    "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+    "archiveSha256": "f1cb916bb2c5e078fa1ed512e04b9babed4ca9db6fd74c7b2b1af6f8879408d2",
+    "archiveBytes": 177898740,
+    "localArchiveCreated": false,
+    "compiledHashes": {
+      "main.js": "343ad943e7fe760e18ece0130c162c5b44f9a800259536831858053541e07483",
+      "workbench/note-publication.js": "feb45659eb17d53405e54c8f240a1ddc395c03c922ea829fc2d8cd16692ea6bc",
+      "workbench/connected.js": "16779e0dfb30ca7dd2cabacd929341d23aa999c4492e19cd4a3a5fe22db2d0e3",
+      "workbench/demian-runtime-gateway.js": "4bc58e2f9fdd21fa58bcf9cf372abaf2996ec337cdc46a3559fa36ba0b0c6255",
+      "workbench/demian-runtime-config.js": "a1d0b17a87eacca95ceff23245719bbda7eb4a14f5659746ada7356ccfdfdaf9",
+      "workbench/demian-runtime-auth.js": "e47ad55105de7cdea32d0f6c5b4106ed677b69d35c5e8d80e28e14cc4b4af443",
+      "workbench/executions.js": "ea7bff8f761259f2ce065155b3b1179c25a78696e87e4283f031fa82634b1151",
+      "track-read/service.js": "30fcb07022f9b11b03907f583bc0c11f4e82f5a6ac015aa6e1d1c1ceae3f57f8",
+      "track-read/attempts.js": "b3420707713cce6405a433f1f9ce1f4880e2098d55b26cdf49afe9f2d69f8732",
+      "track-read/metadata.js": "bfd6a373c4e52e5f1bdb6964448a01d01a3d96569bcc976ee8c09500ea220aa2",
+      "track-command/routes.js": "a3ac44300d5a2e67693d55688f9239d3bb54d7d06d6d5c524ad6761acd695ae9",
+      "track-command/service.js": "0796b3c190f3579576240b8d05dd8b79db84850984fd3d5942d92701efd5b723"
+    },
+    "candidateCheckNetwork": "none",
+    "candidateCheckCredentialMounts": 0,
+    "originalContainerUnchanged": true,
+    "sourceCi": "Previously failed before all4 jobs executed steps; billing/spending-limit annotation, not rerun or counted as pass."
+  },
+  "artifactPrune": {
+    "retiredNonoperatingRevision": "9f45e6c69a1fc8d48cc75f7ece82ffa0e61b1197",
+    "dependencyBytes": 760820298,
+    "sourceAndEntriesAndManifestsRetained": true,
+    "oldCandidateActivatable": false,
+    "operatingAndRollbackReleaseChanged": false
+  },
+  "limits": {
+    "nativeProducerOperating": false,
+    "assistantProducerOperating": false,
+    "originalDatabaseDdlApplied": false,
+    "originalDatabaseRestored": false,
+    "originalBusinessWrites": 0,
+    "modelRequests": 0,
+    "newWriterGrantCreated": false,
+    "wholeWorkflowAcceptance": false,
+    "entraGuiVerified": false
+  }
+}

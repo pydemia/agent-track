@@ -83,3 +83,51 @@ Native/Assistant/Track의 운영 반영과 같은 실제 업무의 화면 대조
 
 Native source와 재현 가능한 patch는 [provenance](../integrations/demian-native-evidence/provenance.json)에
 고정했다. 기존 source·이벤트 ABI와 운영 AgentTrail은 유지한다.
+
+## 최신 제공자 준비 — 2026-11-14, 운영 전환 전
+
+Track 소비자 API·웹은27e00a8로 운영 중이다. Native API는 아직db861e8,
+전용 worker는c439341, Assistant는9382c9c이며 최신 제공자 후보와 구분한다.
+
+최신 Native2c113bb의 core·worker 빌드와 API 두 번의 일치 빌드를 확인했다.
+19,632개 파일·내부 link5개를 새 release로 동결했고 manifest SHA는
+`924c187e85328d40a3a1dcc41fca6ff37676706b51e794b1cc0eddaab647c5e4`다.
+공간 확보에는 사용 중이 아닌 이전9f45e6c 후보의 복제 의존성만 정리했다.
+그 후보의 소스·실행 파일·manifest는 남아 있지만 의존성이 없으므로 동결 release로
+실행할 수 없다. 운영·복귀 release는 그대로다.
+
+원본 PostgreSQL의 읽기 전용 snapshot 백업을 별도 tmpfs DB에 복원했고45개 table의
+typed row hash가 일치했다. 원본에서는 아직 미적용인027 migration을 사본에만 적용해
+기존 행·schema·역할·멤버십·정책 보존을 대조했다. 새 table은 빈 `run_commands` 하나이며,
+기존 `runs`에는 unique constraint와 index가 추가된다. 새 함수2개·trigger2개를 포함한
+전체 schema 차이는 사본의 실제 catalog 정의로 고정했다.
+
+최신 API와 이전 API를 같은 사본에서 차례로 기동했다. 두 API의 기존 capability·actor·
+Session 조회는200, 서명 없는 bearer는403이었다. 최신 API는 기존 실제 완료 Run의
+evidence를200으로 반환했고 이전 API는 해당 새 경로를403으로 거부했다. 복사본에는
+원본에서 현재 관측한 worker의 `checked_at`만 같은 identity/hash 행에 반영했다.
+새 worker를 실행하거나 현재 시각을 임의로 만들어 넣지 않았다. 실제 운영 검증으로
+확대하지 않으며, 두 child 종료·port 해제와 clone DB·network 정리를 확인했다.
+
+첫 검사기의 중복 process 기록과 detached child 수명 관리 오류는 앱 오류와 구분했다.
+한 번 생성한 원본 백업을 재사용해 수정한 검사를 수행했다. 원본 DB 복원·DDL 적용,
+업무 변경·모델 실행은 없었다. 정상 서명 조회의 nonce 추가와 실제 worker 시각 갱신은
+기존 보존 정책으로 계속 대조한다.
+
+Assistant32176e9도 새 후보 image
+`320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9`로 빌드했다.
+177,898,740 bytes의 Git archive를 기존 SSH로 직접 전송하고 양쪽 SHA·source tree를
+대조해 로컬 archive 생성은 피했다. network none·credential mount0에서 컴파일된
+모듈12개 hash를 확인했고 기존 운영 container frame도 보존했다. 이 결과를 기존의
+실행 전 실패한 Persona CI 성공이나 운영 배포로 표시하지 않는다.
+
+Assistant는 Work DB의 명령 receipt·audit table2개와 로컬 runtime DB의 successor
+plan table1개를 추가한다. writer가 꺼져 있어도 constructor DDL과 기존 background
+recovery는 실행되므로 두 DB 사본에서 startup 행 변화를 검사해야 한다. 8열 receipt
+writer 호환성은 기존9382c9c 전체 binary의 새 명령 journal 읽기 호환성과 다른 조건이다.
+명령·writer는 계속 비활성 상태이며 새 권한을 만들지 않았다.
+
+[최신 준비 근거](native-producer-preparation-verification.json)를 따른다. 원본 Native의
+027 적용·API와 공개 gate 전환, Assistant의 두 DB 보존·코드 복귀 검증과 운영 반영,
+현재 PC의 Entra 화면에서 같은 업무를 보는 단계가 남는다. 상위 수용률15/21·71.4%
+(동일 가중치·부분0), 전체 ETA 산정 불가·신뢰도 낮음을 유지한다.
