@@ -50,7 +50,12 @@ export function flowViewAuthorization(config: () => Config, sources: Sources, sn
       await sources.refreshProjectGrants(actor);
       const initial = check();
       const confirm = () => { if (check().stamp !== initial.stamp) throw unavailable(); };
-      for (const ref of anchors.tasks) { await projectTaskMetadata(sources, actor, ref.sourceId, ref.projectId, ref.taskId); confirm(); }
+      // The enclosing request refreshes remotely before and after the entire
+      // batch. Per-task awaits still check local actor/config/credential fences;
+      // no task result is published until the final remote refresh succeeds.
+      const taskScope = { projects: sources.projects, views: (user: string) => sources.views(user),
+        refreshProjectGrants: async () => { confirm(); } };
+      for (const ref of anchors.tasks) { await projectTaskMetadata(taskScope, actor, ref.sourceId, ref.projectId, ref.taskId); confirm(); }
       for (const ref of anchors.runs) {
         const source = initial.selected.find(item => item.id === ref.sourceId)!;
         if (source.kind === "demian" && !source.assistantNativeSourceId) {

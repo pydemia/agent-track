@@ -69,3 +69,30 @@ MVCC 판정은 [PostgreSQL snapshot 문서](https://www.postgresql.org/docs/curr
 snapshot visibility 계산과 의미가 다르므로 새 writer가 savepoint 내부 삽입을
 도입하면 이 정책을 재검토해야 한다. 특수 bootstrap/frozen XID는 epoch를 붙이지
 않으며, 32-bit wrap 전후의 일반 XID·특수 XID 수집 회귀 검사를 포함한다.
+
+## 첫 운영 전환의 복귀와 저장 보기 timeout 수정
+
+전환기331f7db의 CI는 Windows·Ubuntu 모두 통과했다. 운영에서는 후보 기동,
+웹 자산·보존 검사와 원래 설정 복구까지 성공했으나 마지막 저장 보기 검사에서
+실패해 이전9639375로 복귀했다. committed 기록은 없다. 복귀한 새 Track PID는
+74952이며 config·원래 pointer·다른 보호 파일·프로세스·Track 이력·원본 Native
+보존, SQLite integrity와 인증된 snapshot200을 확인했다. QA 저장 보기는 남지 않았다.
+
+운영 DB와 분리한 후보88b2557에서 실제 기존 원본의 조회 권한으로 같은 두 Task
+저장 요청을 재현했다. POST는10,029ms 뒤503 `flow_view_source_unavailable`이었다.
+모델·원본 업무 쓰기는 없었고 child 종료·port 해제를 확인했다.
+
+Task 묶음의 권한 검사에서 전체 원본 갱신을6번 반복하는 경로를 수정했다. 요청
+시작과 끝의 실제 원본 갱신은 유지하고, 각 Task 조회 전후에는 현재 actor·config·
+credential stamp·source scope를 확인한다. 마지막 원본 확인이 끝날 때까지 저장하지
+않으며 다른 요청과 cache를 공유하지 않는다. 독립 Task metadata API는 변경하지 않는다.
+
+수정 후 같은 실제 원본 연결을 사용하는 격리 API의 POST는5,792ms에200, DELETE는
+9ms에200이었다. 이는 한 번의 before/after 관찰이며 성능 보장이나 운영 성공은 아니다.
+관련 회귀 검사는 최종 grant 철회와 Task 조회 중 config 철회 때 DB 저장이 없는지도
+확인한다. deadline timer의 소수 밀리초 절삭으로 실제 deadline보다 먼저 응답하던
+경합은 delay를 올림해 보완했다. 절대 deadline·최대10초 정책은 그대로다.
+
+전환 원장에는 저장·조회·충돌·삭제·삭제 후 조회의 고정 단계와 HTTP status만 기록해
+후속 실패 위치를 구분한다. ID·원문·인증 header는 기록하지 않는다. 수정된 앱의 새
+동결 release·운영 전환과 Entra 화면 확인은 별도 단계다.

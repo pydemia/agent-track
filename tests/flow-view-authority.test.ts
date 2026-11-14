@@ -61,3 +61,28 @@ test("a later saved-view read cannot publish earlier labels after a grant change
   assert.equal(repo.get(actor, uuid(8)), undefined);
   assert.equal(repo.get(actor, uuid(6))?.revision, 1);
 });
+
+test("one saved task bundle shares fresh boundary checks and still rejects final grant withdrawal before commit", async t => {
+  const store = new Store(":memory:"); t.after(() => store.close());
+  const projectId=uuid(20),tasks=[uuid(21),uuid(22)];
+  const config: Config={port:14345,database:":memory:",publicOrigin:"http://localhost",auth:{mode:"local",user:actor},sources:[
+    {id:"projects",kind:"projects",label:"Projects",device:"test",users:[actor],repositoryRoots:[],runIds:[],discoverActive:false,maxFiles:10,sinceDays:7},
+  ]};
+  let refreshes=0,reads=0,granted=true,revokeAtFinal=false,changeDuringTask=false;
+  const sources={
+    refreshProjectGrants:async()=>{refreshes++;if(revokeAtFinal&&refreshes===2)granted=false;},
+    views:()=>[{id:"projects",kind:"projects",state:"connected",authorizedProjectIds:granted?[projectId]:[]}],
+    projects:{client:()=>({task:async(id:string)=>{reads++;if(changeDuringTask)config.sources[0]!.users=[];return {id,projectId,title:"Task",revision:"1",state:"todo",requiresTest:false};}})},
+  }as unknown as Sources;
+  const authorize=flowViewAuthorization(()=>config,sources,user=>store.snapshot(user,[]));
+  const content:FlowViewContent={version:1,contextId:"b".repeat(64),name:"Task bundle",anchors:{tasks:tasks.map(taskId=>({sourceId:"projects",projectId,taskId})),runs:[],assistants:[]},state:{by:"task",depth:"structure",bundles:[],overrides:[],focus:null}};
+  const repo=new FlowViewRepository(store.db),service=new FlowViews(repo,authorize);
+  const saved=await service.save(actor,{id:uuid(23),expectedRevision:0,content});
+  assert.equal(saved.revision,1);assert.equal(reads,2);assert.equal(refreshes,2);
+  refreshes=0;reads=0;revokeAtFinal=true;
+  await assert.rejects(service.save(actor,{id:uuid(24),expectedRevision:0,content}),failure(404));
+  assert.equal(reads,2);assert.equal(refreshes,2);assert.equal(repo.get(actor,uuid(24)),undefined);
+  granted=true;revokeAtFinal=false;refreshes=0;reads=0;changeDuringTask=true;
+  await assert.rejects(service.save(actor,{id:uuid(25),expectedRevision:0,content}),failure(404));
+  assert.equal(reads,1);assert.equal(repo.get(actor,uuid(25)),undefined);
+});

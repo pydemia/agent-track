@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "stage": "source-fix-after-rolled-back-consumer-promotion",
+  "sourceBaseRevision": "331f7db5fc5d89a165b0b9f04596034ad60d9886",
+  "verifiedAt": "2026-11-14T02:13:43.835Z",
+  "files": {
+    "apps/api/flow-view-authority.ts": "bd57131b923f43a7acead8fffe6d2dc05c795e24d23803dc3cc287a3b44fa07c",
+    "apps/api/flow-views.ts": "b0675bd42e8d3e58663eb20c4e47cbf3fe7d790340b447a251a495fa4d4faa29",
+    "deploy/track/runtime-operation.mjs": "757e3b6803b5eb298317700821dcfc0cbd3bc17de4df2de3e78dc5fa7bb753fd",
+    "tests/flow-view-authority.test.ts": "bedb86386862f56d5415d9d9bdf855477b31ed411936f7ddd38df8c74700c685"
+  },
+  "checks": {
+    "full": {
+      "total": 1209,
+      "pass": 1199,
+      "fail": 0,
+      "skip": 10
+    },
+    "focused": {
+      "total": 60,
+      "pass": 60,
+      "fail": 0,
+      "skip": 0
+    },
+    "typecheck": "pass",
+    "buildCheck": "pass",
+    "webFiles": {
+      "assets/AssistantWorkspace-CdXnU2QZ.js": "ba4f3a79dc1a8e3466784c61cc6124afbaea127ced4773c4e6df8c24375a50e5",
+      "assets/AssistantWorkspace-CEU7cE7p.css": "7ec67f52935ebc2d7c6027272533cab7295f714a9374a0b53decc0d60693acc1",
+      "assets/favicon-juS3qOhu.svg": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b",
+      "assets/flow-canvas-Cf8WJ73o.js": "766b1641335f869c14402324643dc3fa6fd53535d68616b6c8d32e66fe3930ec",
+      "assets/flow-canvas-CX6pU-OG.css": "5bbac80d25cd9900957fb4c83c396abba6d0bb0e338dc45f42b78ce7f426933b",
+      "assets/group-workspace-flow-U86u_0y0.js": "26d1415d320a7b30d3f2621d7467a5a67a3955c3e38a6320b3043ffde645f84f",
+      "assets/GroupWorkspace-ChsxqCqG.css": "f26015ea41637a4568aa47eec437e210b5121d5cae2a4cf3a88804546ffd0ce4",
+      "assets/GroupWorkspace-vXvK6M4f.js": "1ae310da4582252d3e0d931c1b2a88b267c7647f478c151e40afa780553fe48a",
+      "assets/GroupWorkspaceMap-BUbA5Swa.js": "5b4e3cab50b616b7be0fbd75274e490f838c973d513985a787c7ff1c2a58c1fc",
+      "assets/index-BMOfpLqN.js": "b4ac093e9ebfd97289e7959b42070e2a34a35563fae218195e41d6f27606d726",
+      "assets/index-BWt7YPX-.css": "3e2b2d0066f1c136e55414e5ca4b44d7826e889f3e962f73393fb086e66742a1",
+      "assets/MissionFlow-BvFJWIMx.js": "8f38ea56e66fd275d9ac36beea6d510367980ed68f97d5aafd53ffe763d431a2",
+      "assets/task-dependencies-client-DWIRq4Gc.js": "08659a307f1fba7e92675bab831447a566f9285b81775b821e73c6298a081dda",
+      "assets/TaskDependencyMap-BzaaHQlm.js": "9170b98191e2c5ee846918e4439277c709f1d6f431a44c5fca8fd81a3bb898a4",
+      "favicon-16.png": "e7bce1f7148c3c70e80a2fdccfe52faf73401851d4c209470ab4a3c77ba614d5",
+      "favicon-32.png": "936d3c9122dc776b520c99adeac1daf01adcb98e6de11b5b1ce9513ff6dc5228",
+      "favicon.ico": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb",
+      "index.html": "d446c68130b9c1632b01df690575d5ed633bde3bdc05edecf563d80d52625c7e"
+    },
+    "regressionBeforeFix": "two-Task authorization performed6 full refreshes instead of2; failing test retained",
+    "deadlineRegression": "existing late-completion test failed after batch change; fractional timer delay normalized with Math.ceil; passes after fix",
+    "independentReview": "No concrete auth/data publication/deadline regression in final app changes; static read-only review, no independent tests. In-flight refresh cancellation/hard wall-clock scheduling not implemented.",
+    "ci": "pending"
+  },
+  "actualSourceIsolated": {
+    "before": {
+      "appRevision": "88b2557a41e1a41144293be76e7f425940134b75",
+      "isolatedLocalDatabase": true,
+      "realSourceReads": true,
+      "sourceOrModelDispatch": 0,
+      "originalTrackDatabaseWrites": 0,
+      "saveStatus": 503,
+      "error": "flow_view_source_unavailable",
+      "timings": [
+        {
+          "path": "snapshot",
+          "method": "GET",
+          "status": 200,
+          "ms": 832
+        },
+        {
+          "path": "task-page",
+          "method": "GET",
+          "status": 200,
+          "ms": 4526
+        },
+        {
+          "path": "saved-view",
+          "method": "POST",
+          "status": 503,
+          "ms": 10029
+        }
+      ],
+      "childPid": 67124,
+      "childStopped": true,
+      "portReleased": true
+    },
+    "after": {
+      "appRevision": "working-tree-flow-batch-fix",
+      "isolatedLocalDatabase": true,
+      "realSourceReads": true,
+      "sourceOrModelDispatch": 0,
+      "originalTrackDatabaseWrites": 0,
+      "saveStatus": 200,
+      "error": null,
+      "timings": [
+        {
+          "path": "snapshot",
+          "method": "GET",
+          "status": 200,
+          "ms": 2538
+        },
+        {
+          "path": "task-page",
+          "method": "GET",
+          "status": 200,
+          "ms": 4540
+        },
+        {
+          "path": "saved-view",
+          "method": "POST",
+          "status": 200,
+          "ms": 5792
+        },
+        {
+          "path": "saved-view",
+          "method": "DELETE",
+          "status": 200,
+          "ms": 9
+        }
+      ],
+      "childPid": 40944,
+      "isolatedProbeDeleted": true,
+      "childStopped": true,
+      "portReleased": true
+    }
+  },
+  "operatingAttempt": {
+    "operationId": "865676f4-54de-4fb0-a7b5-6dd52b8678ac",
+    "candidateRevision": "88b2557a41e1a41144293be76e7f425940134b75",
+    "committed": false,
+    "rolledBack": true,
+    "rollbackPid": 74952,
+    "configRestored": true,
+    "pointerRestored": true,
+    "filesAndOtherProcessesUnchanged": true,
+    "trackHistoryPreserved": true,
+    "nativePreserved": true,
+    "sqliteIntegrity": "ok",
+    "ownedProbeRows": 0,
+    "snapshotStatus": 200
+  },
+  "limits": {
+    "fixedAppOperating": false,
+    "newWriterGrantCreated": false,
+    "originalDatabaseRestored": false,
+    "nativeModelRequests": 0,
+    "entraGuiVerified": false,
+    "wholeWorkflowAcceptance": false
+  }
+}

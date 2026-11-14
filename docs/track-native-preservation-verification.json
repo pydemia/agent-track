@@ -23,7 +23,7 @@
       "pass": 1196,
       "fail": 0,
       "skip": 10,
-      "limitation": "Final special-XID normalization and two collection-wrap regressions checked in final focused93 only; current-revision CI pending."
+      "limitation": "Local full preceded special-XID normalization and two collection-wrap regressions. Final focused93 and both CI jobs at revision331f7db passed."
     },
     "regressions": {
       "legitimateAppendFailedBeforeFix": true,
@@ -47,7 +47,22 @@
       "final": "Special frozen-XID epoch-wrap false rejection identified; parent reproduced and fixed with failing-then-passing collection regression; no other concrete findings",
       "workersClosed": true
     },
-    "currentRevisionCi": "pending"
+    "currentRevisionCi": {
+      "runId": 43543067060,
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (ubuntu-latest)",
+          "steps": 13,
+          "conclusion": "success"
+        },
+        {
+          "name": "verify (windows-latest)",
+          "steps": 13,
+          "conclusion": "success"
+        }
+      ]
+    }
   },
   "limits": {
     "operatingAppChanged": false,
@@ -57,5 +72,6 @@
     "nativeModelRequests": 0,
     "wholeWorkflowAcceptance": false,
     "subtransactionWriters": "Current writers use direct transactions; savepoint writer would require policy review."
-  }
+  },
+  "revision": "331f7db5fc5d89a165b0b9f04596034ad60d9886"
 }

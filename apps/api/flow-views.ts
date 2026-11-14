@@ -17,7 +17,7 @@ export class FlowViews {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
       return await Promise.race([this.authorize(actor, anchors, deadline), new Promise<never>((_, reject) => {
-        timer = setTimeout(() => reject(new CommandError(503, "flow_view_source_unavailable", "저장 보기의 원본 접근을 확인하지 못했습니다.")), Math.max(0, deadline - performance.now()));
+        timer = setTimeout(() => reject(new CommandError(503, "flow_view_source_unavailable", "저장 보기의 원본 접근을 확인하지 못했습니다.")), Math.max(0, Math.ceil(deadline - performance.now())));
       })]);
     } finally { clearTimeout(timer); }
   }
