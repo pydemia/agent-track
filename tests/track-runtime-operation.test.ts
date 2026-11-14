@@ -109,3 +109,21 @@ test('accepted task assignments are delivered, accepted cancellation receipts re
   db.exec("DELETE FROM receipts WHERE state='accepted'; DELETE FROM task_creation_receipts WHERE state='dispatching'; DELETE FROM task_assignment_receipts WHERE state='requested'; DELETE FROM approval_receipts WHERE json_extract(payload,'$.receipt.state')='dispatching'");
   assert.deepEqual(trackPendingCommands(path), { receipts: 0, task_creation_receipts: 0, task_assignment_receipts: 0, approval_receipts: 0 });
 });
+
+test('runtime drain counts active successor transmissions while preserving prepared and unknown recovery rows', t => {
+  const root = realpathSync(tmpdir()), dir = mkdtempSync(join(root, 'track-pending-successors-'));
+  const path = join(dir, 'commands.sqlite'), db = new DatabaseSync(path);
+  t.after(() => { db.close(); assert(!relative(root, dir).startsWith('..')); rmSync(dir, { recursive: true, force: true }); });
+  db.exec(`CREATE TABLE receipts(state TEXT); CREATE TABLE task_creation_receipts(state TEXT);
+    CREATE TABLE task_assignment_receipts(state TEXT); CREATE TABLE approval_receipts(payload TEXT);
+    CREATE TABLE successor_intents(state TEXT); CREATE TABLE coordinator_command_intents(state TEXT);
+    INSERT INTO successor_intents VALUES('prepared'),('dispatching'),('unknown'),('accepted');
+    INSERT INTO coordinator_command_intents VALUES('prepared'),('dispatching'),('unknown'),('intent_saved');`);
+  const before = trackPendingCommands(path);
+  assert.equal(before.successor_intents, 1); assert.equal(before.coordinator_command_intents, 1);
+  db.exec("UPDATE successor_intents SET state='unknown' WHERE state='dispatching'; UPDATE coordinator_command_intents SET state='unknown' WHERE state='dispatching'");
+  const after = trackPendingCommands(path);
+  assert.equal(after.successor_intents, 0); assert.equal(after.coordinator_command_intents, 0);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM successor_intents').get()!.n, 4);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM coordinator_command_intents').get()!.n, 4);
+});

@@ -6,9 +6,10 @@
 새 역할 시도를 저장하도록 요청해야 한다. Track 읽기 credential은 이 권한을
 갖지 않는다. 일반 Native의 `runCommandUsers`와 별개의 명령 경로다.
 
-이 단계는 전용 writer 계약·HTTP adapter·설정 검증을 구현한다. API의 영속
-검토/확인/복구와 화면 연결은 후속 단계이며, 현재 운영에 writer를 활성화한
-것은 아니다. 기존 보호 Run 명령 화면은 계속 미지원 상태를 표시한다.
+전용 writer 계약·HTTP adapter·설정 검증에 이어
+[영속 검토·확인·복구와 화면](coordinator-command-controls.md)을 소스로 연결했다.
+현재 운영에 writer를 활성화한 것은 아니다. 기존 운영의 보호 Run 명령 화면과
+새 소스의 검증 결과를 구분한다.
 
 ## 명시적 설정
 
@@ -16,7 +17,7 @@ Assistant v2 source에 다음 세 항목을 함께 지정해야 한다.
 
 - `assistantCommandCredentialFile`: 전용 writer credential의 절대 경로
 - `assistantCommandPrincipalId`: reader와 다른 writer principal
-- `assistantCommandUsers`: 현재 단일 소유자 한 명
+- `assistantCommandUsers`: 현재 단일 소유자 한 명, 빈 배열은 새 전송 비활성
 
 현재 proxy 인증의 단일 소유자, Assistant reader의 고정 사용자·불변 owner,
 Projects source와 명시적 Demian producer mapping이 모두 필요하다. writer

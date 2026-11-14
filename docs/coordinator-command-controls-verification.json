@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "stage": "source-protected-coordinator-controls",
+  "baseline": "c8734db390d9434e7c212f4f318c467f098acdc6",
+  "producer": "32176e985b38317b4d39fcaf558393045f964232",
+  "verifiedAt": "2026-11-14T01:05:20.983Z",
+  "files": {
+    "apps/api/assistant-role-commands.ts": "7bf8a6ab6c23d3af4e2e87919fda88289e6096119e3a5cac5147a9bdc173f510",
+    "apps/api/config.ts": "31c35d61169db5b2522434168519531c8b93bb08794f6f612daf8a3bc95e9ab7",
+    "apps/api/server.ts": "8abf949638fff295896332817e6e92aa59c95becf2bf7019c346396b8fe4d70d",
+    "apps/web/src/CoordinatorCommandControls.tsx": "12c00cbbf09c6204f996596393b73ebe97f64d39cd33cdd8ac034cd22e54540e",
+    "apps/web/src/RunControls.tsx": "0b139fa9e461aee1a9e5fb1325815c6e8500ecba4f2626c3098f536ebfcfc00b",
+    "apps/web/src/coordinator-command-client.ts": "348c26619500b965bbd0d1a2648afe6c97ea14e16bef2dbff82dfb20c091cb14",
+    "deploy/track/runtime-operation.mjs": "ed72bba2920da11424ff56ea7d3ef3b0386f9451d847f76170159eef2a55c4c9",
+    "packages/commands/coordinator-commands.ts": "6abfe896603406f032f7f64ae4d99388d56b7f03c1aae609a3ad713656739df5",
+    "packages/contracts/coordinator-commands.ts": "db5acba6d53e309ad10534248a4ddea53913110ca3dae53fe3bab812b9870d5b",
+    "packages/contracts/coordinator-panel.ts": "424126874f9418e4fe04804027fbea04bbed6dd024cf9e72506e13248068cb22",
+    "tests/assistant-demian-config.test.ts": "56f6d476ffbe38fd67783dc333c366c864c0586d3cca8eb8df5ca4df5df8d1f2",
+    "tests/coordinator-api.test.ts": "aa1c4b78a0a81d7d937e95a03e5e90193e7aae913ba853cbbb47957f90f2f70c",
+    "tests/coordinator-commands.test.ts": "ebb98831543c27fb6ca7257d12610ad762c2a8cbcda16467edafd9f277cf6655",
+    "tests/coordinator-web-client.test.ts": "e86ae680fbb54febd9c1b51b607287ad1549daac001ed0980bf05604e3c23fd6",
+    "tests/track-runtime-operation.test.ts": "b704e51c2d2289395bdaada1d6d55f3d06d5feee4a0b7d162ea329abdb799e99"
+  },
+  "checks": {
+    "full": {
+      "total": 1167,
+      "pass": 1157,
+      "fail": 0,
+      "skip": 10,
+      "concurrency": 4,
+      "log": ".runtime/coordinator-controls-full-final.log"
+    },
+    "focused": {
+      "total": 36,
+      "pass": 36,
+      "fail": 0,
+      "skip": 0,
+      "log": ".runtime/coordinator-controls-final-focused.log"
+    },
+    "typecheck": "pass",
+    "separateWebBuild": "pass",
+    "webAssets": {
+      "assets/AssistantWorkspace-CdXnU2QZ.js": "ba4f3a79dc1a8e3466784c61cc6124afbaea127ced4773c4e6df8c24375a50e5",
+      "assets/AssistantWorkspace-CEU7cE7p.css": "7ec67f52935ebc2d7c6027272533cab7295f714a9374a0b53decc0d60693acc1",
+      "assets/favicon-juS3qOhu.svg": "9e6594d22414ea84947650774617834839413db9c4104f70ada9c0c90161751b",
+      "assets/flow-canvas-Cf8WJ73o.js": "766b1641335f869c14402324643dc3fa6fd53535d68616b6c8d32e66fe3930ec",
+      "assets/flow-canvas-CX6pU-OG.css": "5bbac80d25cd9900957fb4c83c396abba6d0bb0e338dc45f42b78ce7f426933b",
+      "assets/group-workspace-flow-U86u_0y0.js": "26d1415d320a7b30d3f2621d7467a5a67a3955c3e38a6320b3043ffde645f84f",
+      "assets/GroupWorkspace-ChsxqCqG.css": "f26015ea41637a4568aa47eec437e210b5121d5cae2a4cf3a88804546ffd0ce4",
+      "assets/GroupWorkspace-vXvK6M4f.js": "1ae310da4582252d3e0d931c1b2a88b267c7647f478c151e40afa780553fe48a",
+      "assets/GroupWorkspaceMap-BUbA5Swa.js": "5b4e3cab50b616b7be0fbd75274e490f838c973d513985a787c7ff1c2a58c1fc",
+      "assets/index-BMOfpLqN.js": "b4ac093e9ebfd97289e7959b42070e2a34a35563fae218195e41d6f27606d726",
+      "assets/index-BWt7YPX-.css": "3e2b2d0066f1c136e55414e5ca4b44d7826e889f3e962f73393fb086e66742a1",
+      "assets/MissionFlow-BvFJWIMx.js": "8f38ea56e66fd275d9ac36beea6d510367980ed68f97d5aafd53ffe763d431a2",
+      "assets/task-dependencies-client-DWIRq4Gc.js": "08659a307f1fba7e92675bab831447a566f9285b81775b821e73c6298a081dda",
+      "assets/TaskDependencyMap-BzaaHQlm.js": "9170b98191e2c5ee846918e4439277c709f1d6f431a44c5fca8fd81a3bb898a4",
+      "favicon-16.png": "e7bce1f7148c3c70e80a2fdccfe52faf73401851d4c209470ab4a3c77ba614d5",
+      "favicon-32.png": "936d3c9122dc776b520c99adeac1daf01adcb98e6de11b5b1ce9513ff6dc5228",
+      "favicon.ico": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb",
+      "index.html": "d446c68130b9c1632b01df690575d5ed633bde3bdc05edecf563d80d52625c7e"
+    },
+    "diffCheck": "pass",
+    "httpBoundary": "Real localhost HTTP, SQLite journal and dedicated synthetic credential files; upstream coordinator/reader are synthetic ports",
+    "ui": {
+      "browser": "Chrome",
+      "scope": "Isolated synthetic preview, no operating credentials or source/model traffic",
+      "domVerified": [
+        "Review stores without transmission: zero POST",
+        "Explicit confirmation: one POST and coordinator request saved",
+        "Lost ACK: same-ID read recovery, one POST total",
+        "Expired authentication: records cleared and command disabled"
+      ],
+      "screenshot": "CDP Page.captureScreenshot timed out; visual layout not verified",
+      "previewStopped": true,
+      "oldLoginHandoffTab": "missing, not treated as completed login"
+    }
+  },
+  "regressions": {
+    "concurrentGetLosingZeroPostEvidence": "reproduced before fix; rejected/expired claim can close unknown without overwriting saved evidence",
+    "settledListRepeatedReads": {
+      "reproducedBeforeFix": 18,
+      "afterFix": 3,
+      "receipts": 5,
+      "freshFinalAuthorization": true,
+      "crossRequestCache": false
+    },
+    "staleUnsentReviewCannotBeDiscarded": "reproduced before fix; current read scope suffices for local discard"
+  },
+  "review": {
+    "requestedModel": "gpt-6-astra",
+    "requestedEffort": "low",
+    "freshContext": true,
+    "providerExecutionObserved": false,
+    "findings": 2,
+    "reproducedAndFixed": 2
+  },
+  "limits": {
+    "productionActivation": false,
+    "writerGrantCreated": false,
+    "currentPcProductionAuthenticatedUiVerified": false,
+    "actualProviderRun": false,
+    "productionDatabaseMigrationOrRollbackVerified": false,
+    "wholeWorkflowAcceptance": false,
+    "originalAgentTrailChanged": false
+  }
+}

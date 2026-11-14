@@ -63,6 +63,17 @@ HTTP adapter와 명시적 설정 검증을 추가했다. reader/proxy credential
 확인/복구 broker·화면·운영 writer 활성화는 아직 없으며 AT-09 수용으로 계산하지 않는다.
 직전 접수 Flow source95c1ed6의 CI43530889791은 Windows·Ubuntu 모두13단계 성공했다.
 
+후속 [조정자 명령 UI·복구](coordinator-command-controls.md)는 영속 검토·CAS 한 번
+전송·같은 ID 조회·현재 역할/선택 Run/revision 대조를 구현했다. 동시 GET이 전송 전
+차단 근거를 없애던 경합과 목록의 반복 원본 조회를 재현·수정했다. 합성 브라우저에서
+검토/확인·응답 유실·권한 만료 동작을 확인했으며 화면 screenshot은 실패했다.
+최종 전체1,167개 중1,157통과·실패0·기존10skip, 관련36개·타입·별도 build를 확인했다.
+Persona32176e9는 원본 writer와 이전 버전 호환 감사 side table을 PR22에 게시했고
+관련674개 중662통과·기존12skip, build/타입/format을 확인했다. 새 Persona CI 두 실행은
+모든 job이 검사 step 전에 실패했으므로 코드 검사 통과로 계산하지 않는다. Track의
+전용 client sourcec8734db CI43533521387은 Windows·Ubuntu 모두13단계 성공했다.
+운영 writer·새 세 서비스 전환·실제 provider/인증 화면 수용은 남아 AT-09는 부분이다.
+
 | 전체 업무 AT-14의 단계 | 현재 확인된 상태 | 다음에 닫을 조건 |
 | --- | --- | --- |
 | 전용 native 실행 환경 | API8081·worker·현재 binding 운영. API16328/gate22040. 원본 API15940·worker42184 유지 | 기존 운영 근거 재사용. 기동 확인만 반복하지 않음 |

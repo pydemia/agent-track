@@ -62,8 +62,10 @@ Assistant schema·signer·gateway 연동3개를 통과했다. 원본의 후속 p
 조회를 구현했다. 원본 Run·이벤트 원장 보존과 현재 인가 재검사를 실제 reader/client 및
 Track HTTP/SQLite 검사로 확인했다. [조회 계약과 다음 Flow 연결](assistant-attempts.md),
 [검사 범위](assistant-attempt-verification.json)를 따른다. 후속 Flow에는 실제 시도 Run과
-coordinator intent edge·역할 시도 그룹·네 보기의 탐색을 연결했다. 운영 반영, 인증된
-사용자 화면, 보호된 owner 제어 broker/UI와 실제 제공자 검증은 **미완료**다.
+coordinator intent edge·역할 시도 그룹·네 보기의 탐색을 연결했다. 후속
+[보호 owner 제어 broker/UI](coordinator-command-controls.md)는 원본 writer,
+영속 검토·CAS 한 번 전송·동일 ID 복구·현재 역할/Run 대조까지 소스로 구현했다.
+운영 반영, 인증된 사용자 화면과 실제 제공자 검증은 **미완료**다.
 일반 Native owner의 [검토·단일 전송·동일 ID 복구 UI](run-successor-controls.md)는 후속
 source에 구현했다. 취소와 별도인 명시 권한이 필요하며 운영 설정은 활성화하지 않았다.
 일반 명령 receipt의 [Flow 관계 연결](native-command-flow.md)은 후속 source에 구현했다.

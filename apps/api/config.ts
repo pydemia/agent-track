@@ -50,7 +50,7 @@ export const sourceConfigSchema = z.object({
   assistantPrincipalId: sourceId.optional(),
   assistantCommandCredentialFile: z.string().refine(isAbsolute).optional(),
   assistantCommandPrincipalId: sourceId.optional(),
-  assistantCommandUsers: z.array(email).min(1).optional(),
+  assistantCommandUsers: z.array(email).optional(),
   assistantProjectsSourceId: sourceId.optional(),
   assistantProtocol: z.union([z.literal(1), z.literal(2)]).optional(),
   assistantDemianMappings: z.array(assistantDemianMappingSchema).max(20).optional(),
@@ -101,7 +101,7 @@ export const configSchema = z.object({
           !source.assistantCredentialFile || !source.assistantOwnerId || !source.assistantPrincipalId ||
           source.assistantProtocol !== 2 || !source.assistantProjectsSourceId || !source.assistantDemianMappings?.length ||
           config.auth.mode !== "proxy" || config.auth.users.length !== 1 ||
-          source.assistantCommandUsers?.length !== 1 || source.assistantCommandUsers[0] !== source.assistantUser ||
+          source.assistantCommandUsers!.length > 1 || source.assistantCommandUsers!.some(user => user !== source.assistantUser) ||
           !commandOwners.includes(source.assistantUser!) ||
           source.assistantCommandPrincipalId === source.assistantPrincipalId ||
           pathKey(source.assistantCommandCredentialFile!) === pathKey(source.assistantCredentialFile) ||

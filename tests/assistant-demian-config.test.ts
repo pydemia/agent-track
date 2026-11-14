@@ -66,6 +66,8 @@ test("Assistant writer is explicit and separate without changing reader source i
   assert.equal(sourceIdentity(config.sources[0]!), sourceIdentity(before));
   assert.deepEqual(config.sources[0]!.assistantCommandUsers, [before.assistantUser]);
   assert.equal(before.assistantCommandUsers, undefined);
+  config.sources[0]!.assistantCommandUsers = [];
+  assert.deepEqual(configSchema.parse(config).sources[0]!.assistantCommandUsers, [], "Empty writer users disables dispatch while retaining reader configuration");
 });
 
 for (const invalid of ["missing-principal", "missing-credential", "missing-users", "reader-path", "proxy-path",

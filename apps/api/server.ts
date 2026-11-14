@@ -6,6 +6,8 @@ import { CommandError, CommandService } from "../../packages/commands/index.ts";
 import { commandPorts } from "./commands.ts";
 import { SuccessorCommands } from "../../packages/commands/run-successors.ts";
 import { RunSuccessors } from "./run-successors.ts";
+import { CoordinatorCommands } from "../../packages/commands/coordinator-commands.ts";
+import { AssistantRoleCommands } from "./assistant-role-commands.ts";
 import { projectSuccessorSnapshot } from "./run-successor-observation.ts";
 import { artifactEvidence } from "./evidence.ts";
 import { ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
@@ -70,6 +72,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const commands = new CommandService(store);
   const successors = new SuccessorCommands(store);
   const runSuccessors = new RunSuccessors(store, config, sources, snapshot);
+  const coordinatorCommands = new CoordinatorCommands(store);
+  const assistantRoleCommands = new AssistantRoleCommands(store, config, sources, snapshot);
   const bindings = new RunBindings(store, config, sources, snapshot);
   const permissions = new RunPermissions(store, config, sources, snapshot);
   const approvals = new ApprovalService(store);
@@ -181,6 +185,55 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
         const receipt = await bindings.apply(user, await jsonBody(request));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, { receipt }); return;
+      }
+      const coordinatorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/coordinator-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);
+      if (coordinatorRoute) {
+        const [, runKey, id, action] = coordinatorRoute;
+        if (url.search || !snapshot(user).runs.some(run => run.key === runKey)) {
+          json(response, url.search ? 400 : 404, { error: url.search ? "invalid_command_query" : "run_not_found" }); return;
+        }
+        const confirm = () => authenticate(request, config()) === user && !request.aborted && !response.destroyed;
+        if (request.method === "GET" && !action && id !== "reviews") {
+          if (request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+            json(response, 400, { error: "invalid_command_query" }); return;
+          }
+          const ports = assistantRoleCommands.ports(user, runKey!, confirm, !id);
+          if (id) {
+            const receipt = await coordinatorCommands.get(user, id, ports);
+            if (!confirm()) { json(response, 401, { error: "authentication_required" }); return; }
+            json(response, 200, { receipt });
+          } else {
+            const availability = await assistantRoleCommands.availability(user, runKey!, confirm);
+            const selected = snapshot(user).runs.find(run => run.key === runKey);
+            const native = config().sources.find(source => source.id === selected?.sourceId);
+            const source = config().sources.find(source => source.id === native?.assistantNativeSourceId);
+            const page = selected?.assistantAttempt && source?.assistantCommandCredentialFile
+              ? await coordinatorCommands.list(user, runKey!, ports) : { receipts: [], hasMore: false };
+            if (!confirm()) { json(response, 401, { error: "authentication_required" }); return; }
+            json(response, 200, { ...page, availability });
+          }
+          return;
+        }
+        if (request.method !== "POST" || !id || id === "reviews" && action || id !== "reviews" && !action) {
+          json(response, 405, { error: "unsupported_method" }); return;
+        }
+        if (!validMutationOrigin(request, config())) { json(response, 403, { error: "invalid_origin" }); return; }
+        const confirmMutation = () => confirm() && validMutationOrigin(request, config());
+        const body = await jsonBody(request), ports = assistantRoleCommands.ports(user, runKey!, confirmMutation);
+        let receipt;
+        if (id === "reviews") {
+          if (!body || typeof body !== "object" || Array.isArray(body) || !("runKey" in body) || body.runKey !== runKey) {
+            json(response, 400, { error: "invalid_command" }); return;
+          }
+          receipt = await coordinatorCommands.review(user, body, ports);
+        } else {
+          if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) {
+            json(response, 400, { error: "invalid_command" }); return;
+          }
+          receipt = action === "dispatch" ? await coordinatorCommands.dispatch(user, id, ports) : await coordinatorCommands.discard(user, id, ports);
+        }
+        if (!confirmMutation()) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
       const successorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/successor-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);

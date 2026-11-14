@@ -85,6 +85,13 @@ export function trackPendingCommands(database) {
       result[name] = db.prepare(`SELECT count(*) AS n FROM ${name} WHERE state IN (${states.map(() => '?').join(',')})`).get(...states).n;
     }
     result.approval_receipts = db.prepare('SELECT payload FROM approval_receipts').all().filter(row => ['requested', 'dispatching'].includes(JSON.parse(row.payload).receipt?.state)).length;
+    for (const name of ['successor_intents', 'coordinator_command_intents']) {
+      if (db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?").get(name)) {
+        // Prepared reviews have no remote effect; maintenance revokes dispatch.
+        // Unknown rows retain same-ID recovery across restart and never resend.
+        result[name] = db.prepare(`SELECT count(*) AS n FROM ${name} WHERE state='dispatching'`).get().n;
+      }
+    }
     return result;
   } finally { db.close(); }
 }
@@ -105,7 +112,7 @@ async function inputs(inputFile, inputSha, recovery = false) {
   const original = await load(join(p.operationDir, 'config.before.json')), maintenance = await load(join(p.operationDir, 'config.maintenance.json'));
   assert(original.auth.mode === 'proxy' && original.auth.users.length === 1 && original.port === 14345);
   const expected = structuredClone(original);
-  for (const source of expected.sources) for (const key of ['cancelUsers', 'approvalUsers', 'assignmentUsers', 'taskCreateUsers']) if (Object.hasOwn(source, key)) source[key] = [];
+  for (const source of expected.sources) for (const key of ['cancelUsers', 'approvalUsers', 'assignmentUsers', 'taskCreateUsers', 'runCommandUsers', 'assistantCommandUsers']) if (Object.hasOwn(source, key)) source[key] = [];
   assert.deepEqual(maintenance, expected);
   if (p.version === 2) {
     assert(releases.operationId === p.operationId && qa.operationId === p.operationId && qa.backupSha256 === baseline.backup.sha256);
