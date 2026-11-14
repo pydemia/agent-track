@@ -20,6 +20,26 @@ const exec = promisify(execFile), hash = b => createHash('sha256').update(b).dig
 const samePath = (a, b) => typeof a === 'string' && typeof b === 'string' && isAbsolute(a) && isAbsolute(b) && relative(resolve(a), resolve(b)) === '';
 const sha = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) && value.length === 64;
 const uuid = value => typeof value === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/.test(value) && value.length === 36;
+// Explicit, additive command-journal policy. A pinned v2 cold proof must opt in.
+export const trackCommandSchemaObjects = Object.freeze([
+  {type: 'table', name: 'coordinator_command_intents', tbl_name: 'coordinator_command_intents', sql: `CREATE TABLE coordinator_command_intents (
+      actor TEXT NOT NULL, id TEXT NOT NULL, run_key TEXT NOT NULL, digest TEXT NOT NULL,
+      assistant_source TEXT NOT NULL, execution_id TEXT NOT NULL, role_id TEXT NOT NULL,
+      private_json TEXT NOT NULL, receipt_json TEXT, state TEXT NOT NULL, detail TEXT NOT NULL,
+      created_at TEXT NOT NULL, updated_at TEXT NOT NULL, PRIMARY KEY(actor,id))`},
+  {type: 'index', name: 'coordinator_command_unresolved', tbl_name: 'coordinator_command_intents', sql: `CREATE UNIQUE INDEX coordinator_command_unresolved
+      ON coordinator_command_intents(actor,assistant_source,execution_id,role_id)
+      WHERE state IN ('prepared','dispatching','unknown')`},
+  {type: 'index', name: 'sqlite_autoindex_coordinator_command_intents_1', tbl_name: 'coordinator_command_intents', sql: null},
+  {type: 'index', name: 'sqlite_autoindex_successor_intents_1', tbl_name: 'successor_intents', sql: null},
+  {type: 'table', name: 'successor_intents', tbl_name: 'successor_intents', sql: `CREATE TABLE successor_intents (
+      actor TEXT NOT NULL, id TEXT NOT NULL, run_key TEXT NOT NULL, digest TEXT NOT NULL,
+      state TEXT NOT NULL, detail TEXT NOT NULL, private_json TEXT NOT NULL, input_json TEXT,
+      receipt_json TEXT, observed INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+      PRIMARY KEY(actor,id))`},
+  {type: 'index', name: 'successor_unresolved', tbl_name: 'successor_intents', sql: `CREATE UNIQUE INDEX successor_unresolved ON successor_intents(actor,run_key)
+      WHERE state IN ('prepared','dispatching','unknown')`},
+].map(Object.freeze));
 export const trackRuntimeOperationSources = Object.freeze([
   'scripts/Start-Track.ps1', 'scripts/Restart-Track.ps1', 'deploy/track/runtime-release.mjs',
   'deploy/track/runtime-operation.mjs', 'deploy/track/activate-runtime.ps1', 'deploy/track/sqlite-preservation.mjs',
@@ -66,6 +86,12 @@ export function assertTrackColdProof(qa, name, version, webFileCount, expectedMa
   assert(q.verified === true && q.childStopped === true && q.portReleased === true && q.allLegacyTablesAndSchemaPreserved === true && q.webFilesBytesAndMimeMatched === webFileCount);
   assert.equal(q.savedViewStatus, version === 2 || name === 'candidate' ? 200 : 404);
   if (version === 2) assert(sha(expectedManifestSha256) && q.manifestSha256 === expectedManifestSha256);
+  if (Object.hasOwn(qa, 'commandSchemaVersion') || Object.hasOwn(qa, 'commandSchemaObjects')) {
+    assert(version === 2 && qa.commandSchemaVersion === 1);
+    assert.deepEqual(qa.commandSchemaObjects, trackCommandSchemaObjects);
+    assert(q.commandSchemaExact === true && q.commandTablesEmpty === true);
+    if (name === 'rollback') assert(q.retainedCandidateSchema === true);
+  }
   return true;
 }
 async function bytes(path, limit = 4 * 1024 * 1024) {
@@ -125,7 +151,8 @@ async function inputs(inputFile, inputSha, recovery = false) {
       Object.keys((await verifyRuntimeRelease(r.releaseDir, r.manifestSha256)).manifest.files).filter(path => path.startsWith('dist/web/')).length;
     assertTrackColdProof(qa, name, p.version, webFileCount, r.manifestSha256);
   }
-  return {p, b: baseline, releases: releases.releases, original, maintenance, inputSha};
+  return {p, b: baseline, releases: releases.releases, original, maintenance, inputSha,
+    allowCommandTables: qa.commandSchemaVersion === 1};
 }
 async function driver(c) {
   const owner = await load(join(c.p.operationDir, 'driver.json'));
@@ -171,15 +198,23 @@ async function nativePreserved(c) {
   const actual = JSON.parse((await exec('docker.exe', ['inspect', '--format', format, service.containerId], {windowsHide: true, timeout: 15000, maxBuffer: 1048576})).stdout); assert.deepEqual(actual, c.b.container);
 }
 const quote = value => '"' + value.replaceAll('"', '""') + '"';
-export function assertTrackHistoryPreserved(database, backupFile, tableNames, allowSaved) {
+export function assertTrackHistoryPreserved(database, backupFile, tableNames, allowSaved, allowCommandTables = false) {
   const db = new DatabaseSync(database, {readOnly: true});
   try {
     db.exec('PRAGMA query_only=ON'); db.prepare('ATTACH DATABASE ? AS baseline').run(backupFile); db.exec('BEGIN');
-    const schema = db.prepare('SELECT type,name,tbl_name,sql FROM baseline.sqlite_schema ORDER BY name').all();
-    const current = db.prepare('SELECT type,name,tbl_name,sql FROM main.sqlite_schema ORDER BY name').all();
+    const schema = db.prepare('SELECT type,name,tbl_name,sql FROM baseline.sqlite_schema ORDER BY name').all().map(row => ({...row}));
+    const current = db.prepare('SELECT type,name,tbl_name,sql FROM main.sqlite_schema ORDER BY name').all().map(row => ({...row}));
     for (const row of schema) assert(current.some(other => isDeepStrictEqual(row, other)));
-    const added = current.filter(row => !schema.some(old => old.name === row.name)).map(row => row.name).sort();
-    assert(added.length === 0 || allowSaved && isDeepStrictEqual(added, ['saved_flow_views', 'sqlite_autoindex_saved_flow_views_1']));
+    const added = current.filter(row => !schema.some(old => old.name === row.name));
+    const saved = added.filter(row => ['saved_flow_views', 'sqlite_autoindex_saved_flow_views_1'].includes(row.name));
+    assert(saved.length === 0 || allowSaved && isDeepStrictEqual(saved.map(row => row.name).sort(), ['saved_flow_views', 'sqlite_autoindex_saved_flow_views_1']));
+    for (const row of added.filter(row => !saved.includes(row))) {
+      assert(allowCommandTables && trackCommandSchemaObjects.some(expected => isDeepStrictEqual(expected, row)));
+    }
+    if (allowCommandTables) for (const table of ['successor_intents', 'coordinator_command_intents']) {
+      if (!added.some(row => row.tbl_name === table)) continue;
+      assert.deepEqual(current.filter(row => row.tbl_name === table), trackCommandSchemaObjects.filter(row => row.tbl_name === table));
+    }
     for (const name of tableNames) {
       if (['runs', 'metadata', 'sqlite_sequence'].includes(name)) continue;
       const cols = db.prepare("SELECT name,pk FROM pragma_table_info(?, 'baseline') ORDER BY cid").all(name); assert(cols.some(col => col.pk > 0));
@@ -210,7 +245,7 @@ export function assertTrackHistoryPreserved(database, backupFile, tableNames, al
     assert.equal(db.prepare('SELECT count(*) AS n FROM baseline.sqlite_sequence b LEFT JOIN main.sqlite_sequence r ON r.name=b.name WHERE r.name IS NULL OR r.seq<b.seq').get().n, 0);
   } finally { db.close(); }
 }
-const historyPreserved = (c, allowSaved) => assertTrackHistoryPreserved(c.original.database, c.b.backup.file, c.b.backup.result.fingerprint.tables.map(table => table.name), allowSaved);
+const historyPreserved = (c, allowSaved) => assertTrackHistoryPreserved(c.original.database, c.b.backup.file, c.b.backup.result.fingerprint.tables.map(table => table.name), allowSaved, c.allowCommandTables === true);
 async function activeIdentity(c, name) {
   const record = await load(c.b.receiptFile), release = c.releases[name];
   assert(record.runtime.mode === 'frozen' && samePath(record.runtime.cwd, release.releaseDir) && record.runtime.manifestSha256 === release.manifestSha256 && samePath(record.runtime.entry, join(release.releaseDir, 'apps/api/main.ts')));

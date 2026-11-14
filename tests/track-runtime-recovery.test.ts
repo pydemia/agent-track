@@ -7,7 +7,23 @@ import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { test } from 'node:test';
-import { assertTrackColdProof, assertTrackRecoveryState, trackRuntimePointerPrecondition } from '../deploy/track/runtime-operation.mjs';
+import { assertTrackColdProof, assertTrackRecoveryState, trackRuntimePointerPrecondition, trackCommandSchemaObjects } from '../deploy/track/runtime-operation.mjs';
+
+test('command schema opt-in is v2-only, exact and backed by both empty-table/rollback proofs', () => {
+  const sha = 'a'.repeat(64), cold = {verified: true, childStopped: true, portReleased: true,
+    allLegacyTablesAndSchemaPreserved: true, webFilesBytesAndMimeMatched: 1, savedViewStatus: 200,
+    manifestSha256: sha, commandSchemaExact: true, commandTablesEmpty: true, retainedCandidateSchema: true};
+  const qa = {fixtureOnly: true, sourceDatabaseRestored: false, originalApiRestarted: false, sourceOrModelRequests: 0,
+    commandSchemaVersion: 1, commandSchemaObjects: structuredClone(trackCommandSchemaObjects), releases: {candidate: cold, rollback: cold}};
+  for (const name of ['candidate', 'rollback']) assertTrackColdProof(qa, name, 2, 1, sha);
+  assert.throws(() => assertTrackColdProof(qa, 'candidate', 1, 1, sha));
+  for (const bad of [
+    {...qa, commandSchemaVersion: 2}, {...qa, commandSchemaObjects: []},
+    {...qa, commandSchemaObjects: qa.commandSchemaObjects.map((row, index) => index === 0 ? {...row, sql: row.sql + ' changed'} : row)},
+    {...qa, releases: {...qa.releases, candidate: {...cold, commandTablesEmpty: false}}},
+    {...qa, releases: {...qa.releases, rollback: {...cold, retainedCandidateSchema: false}}},
+  ]) assert.throws(() => { assertTrackColdProof(bad, 'candidate', 2, 1, sha); assertTrackColdProof(bad, 'rollback', 2, 1, sha); });
+});
 
 const source = await readFile(new URL('../deploy/track/runtime-operation.mjs', import.meta.url), 'utf8');
 // Exercise the actual phase control flow with memory ports. No deployment I/O is permitted.

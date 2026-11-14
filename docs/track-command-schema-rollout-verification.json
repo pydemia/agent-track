@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "stage": "operator-and-isolated-cold-qa-before-activation",
+  "appRevision": "88b2557a41e1a41144293be76e7f425940134b75",
+  "operationId": "865676f4-54de-4fb0-a7b5-6dd52b8678ac",
+  "verifiedAt": "2026-11-14T01:32:49.368Z",
+  "files": {
+    "deploy/track/runtime-operation.mjs": "39c16a9672b4c069525b9eb093c6b32ec290ba14227eb9867e9f45ff27dfd18a",
+    "deploy/track/runtime-operation.d.mts": "b34fe3dda2d90fc89b894180bd1af272faabb773fc7158c31288f7edff4e1f04",
+    "tests/track-runtime-operation.test.ts": "4218ffdbfa45b451290dc4aa241a54d718ce7099e14d79d1e5338e0dc1b4fe4f",
+    "tests/track-runtime-recovery.test.ts": "ee0d724bc8721fe1b56383f4b931c6a65030f9858c33b84e1aa0b9a8363845ca"
+  },
+  "checks": {
+    "focused": {
+      "total": 43,
+      "pass": 43,
+      "fail": 0,
+      "skip": 0
+    },
+    "typecheck": "pass",
+    "independentSourceReview": "no concrete findings; read-only review, not independent test execution",
+    "coldProofSha256": "e1ad071926d07e41b53cf4dd71a2355fbb8b5c65f7e7a674c50269f317bfefc6",
+    "candidate": {
+      "manifestSha256": "943816baa31f6b29a507959b745bc3b8e88e1b1f66086713668eb038e7bfa71f",
+      "webFiles": 18,
+      "newSchemaObjects": 6,
+      "legacyPreserved": true
+    },
+    "rollback": {
+      "manifestSha256": "32983c6d97e3c348000fa2b641fdb0d279fe7a18a69f8f862be8baca13f08b22",
+      "webFiles": 18,
+      "retainedCandidateSchema": true,
+      "syntheticUnknownRowRetained": true,
+      "syntheticUnknownRowRemoved": true
+    },
+    "originalBackupCreatedOnce": true,
+    "walUnsafeIsolatedCopyFailureRetained": true
+  },
+  "limits": {
+    "operatingAppChanged": false,
+    "originalDatabaseRestored": false,
+    "nativeModelRequests": 0,
+    "writerGrantCreated": false,
+    "wholeWorkflowAcceptance": false,
+    "forwardPidRecordRepairOnly": true
+  }
+}

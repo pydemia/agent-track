@@ -1,7 +1,8 @@
 export const trackRuntimeOperationSources: readonly string[];
+export const trackCommandSchemaObjects: readonly Readonly<{type: string; name: string; tbl_name: string; sql: string | null}>[];
 export function validateTrackRuntimePlan(value: unknown, expected: {state: string; repository: string}): unknown;
 export function trackPendingCommands(database: string): Record<string, number>;
-export function assertTrackHistoryPreserved(database: string, backupFile: string, tableNames: string[], allowSaved: boolean): void;
+export function assertTrackHistoryPreserved(database: string, backupFile: string, tableNames: string[], allowSaved: boolean, allowCommandTables?: boolean): void;
 export function runTrackRuntimePhase(phase: string, inputFile: string, inputSha: string): Promise<unknown>;
 export function trackRuntimePointerPrecondition(baseline: unknown): string | null;
 export function validateTrackUpgradeBaseline(baseline: unknown, pointerBytes: Buffer, receiptBytes: Buffer, rollback: unknown): true;

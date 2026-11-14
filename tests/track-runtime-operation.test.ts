@@ -5,6 +5,8 @@ import { join, relative } from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { DatabaseSync } from 'node:sqlite';
 import { Store } from '../packages/storage/store.ts';
+import { SuccessorCommands } from '../packages/commands/run-successors.ts';
+import { CoordinatorCommands } from '../packages/commands/coordinator-commands.ts';
 import { FlowViewRepository } from '../packages/storage/flow-views.ts';
 import { backupTrackDatabase } from '../deploy/track/sqlite-preservation.mjs';
 import { assertTrackHistoryPreserved, trackPendingCommands, trackRuntimeOperationSources, validateTrackRuntimePlan } from '../deploy/track/runtime-operation.mjs';
@@ -52,8 +54,27 @@ async function history(t: TestContext) {
   db.exec("INSERT INTO bindings(run_key,payload,actor,bound_at) VALUES('run-key','baseline binding','owner','time'); UPDATE runs SET binding='baseline binding';");
   const tables = db.prepare("SELECT name FROM sqlite_schema WHERE type='table'").all().map(row => String(row.name));
   await backupTrackDatabase(path, backup);
-  return { db, path, backup, tables, check: (allowSaved = false) => assertTrackHistoryPreserved(path, backup, tables, allowSaved) };
+  return { db, store, path, backup, tables, check: (allowSaved = false, allowCommands = false) => assertTrackHistoryPreserved(path, backup, tables, allowSaved, allowCommands) };
 }
+
+test('new command tables require explicit policy and exactly match the actual constructors', async t => {
+  const f = await history(t); new SuccessorCommands(f.store); new CoordinatorCommands(f.store);
+  assert.throws(() => f.check(true)); f.check(true, true);
+  f.db.exec("INSERT INTO coordinator_command_intents VALUES('owner','id','run','digest','assistant','execution','role','{}',NULL,'unknown','outcome_unknown','at','at')");
+  f.check(true, true); // The verifier never clears durable recovery rows.
+  assert.equal(f.db.prepare('SELECT count(*) AS n FROM coordinator_command_intents').get()!.n, 1);
+});
+for (const [name, sql] of [
+  ['extra column', 'ALTER TABLE successor_intents ADD COLUMN unexpected TEXT'],
+  ['weakened index', "DROP INDEX coordinator_command_unresolved; CREATE INDEX coordinator_command_unresolved ON coordinator_command_intents(actor)"],
+  ['missing index', 'DROP INDEX successor_unresolved'],
+  ['extra trigger', "CREATE TRIGGER unexpected AFTER INSERT ON successor_intents BEGIN SELECT 1; END"],
+  ['unrelated table', 'CREATE TABLE unexpected(id TEXT)'],
+  ['old history removed', 'DELETE FROM events'],
+] as const) test(`command schema policy still rejects ${name}`, async t => {
+  const f = await history(t); new SuccessorCommands(f.store); new CoordinatorCommands(f.store);
+  f.db.exec(sql); assert.throws(() => f.check(true, true));
+});
 test('preservation accepts new observations and events while preserving the snapshot history', async t => {
   const f = await history(t);
   f.check();
