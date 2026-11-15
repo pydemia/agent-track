@@ -1,0 +1,53 @@
+diff --git a/apps/api/src/work-runtime-server.ts b/apps/api/src/work-runtime-server.ts
+index c830874..ef98947 100644
+--- a/apps/api/src/work-runtime-server.ts
++++ b/apps/api/src/work-runtime-server.ts
+@@ -427 +427 @@ export function registerWorkRuntimeServer(
+-          const deployment = await currentPreparedDeployment(client, actor)
++          const deployment = await currentPreparedDeployment(client, actor, true)
+diff --git a/apps/api/test/work-runtime-server.integration.test.ts b/apps/api/test/work-runtime-server.integration.test.ts
+index 2a2d487..b867900 100644
+--- a/apps/api/test/work-runtime-server.integration.test.ts
++++ b/apps/api/test/work-runtime-server.integration.test.ts
+@@ -1127,0 +1128,27 @@ for (const roleMetadata of [false, true]) test(`prepared native delegation trave
++      // A stopped worker expires both heartbeat tables. Durable authorized
++      // history must not inherit the readiness gate used for new admission.
++      const offlineServices = (await s!.db.query("SELECT service_id,enabled,current_authority_id FROM deployment_services WHERE worker_id=$1", [workerId])).rows
++      await s!.db.query("UPDATE deployment_services SET checked_at=clock_timestamp()-interval '91 seconds' WHERE worker_id=$1", [workerId])
++      try {
++        const beforeOfflineRequests = await s!.counts()
++        for (const suffix of ["", "/metadata?after=0&limit=100", "/evidence?after=0&limit=100"]) {
++          const historical = await s!.app.inject(s!.signed("GET", path + suffix))
++          assert.equal(historical.statusCode, 200, "A stale deployment heartbeat must not revoke current authorized history: " + suffix + " " + historical.body)
++        }
++        const unavailable = await s!.app.inject(s!.signed("GET", "/api/v1/capabilities"))
++        assert.equal(unavailable.statusCode, 200, unavailable.body)
++        assert.equal(unavailable.json().work_runtime.prepared_codex_text_v1, false)
++        const offlineCommands = await s!.app.inject(s!.signed("GET", path + "/command-context"))
++        assert.equal(offlineCommands.statusCode, 200, offlineCommands.body)
++        assert.deepEqual(offlineCommands.json().available_kinds, [])
++        assert.equal((await s!.app.inject(s!.signed("POST", s!.runPath, s!.body()))).statusCode, 403, "An expired deployment service cannot admit work")
++        assert.deepEqual(await s!.counts(), beforeOfflineRequests)
++        await s!.db.query("UPDATE deployment_services SET enabled=false,current_authority_id=NULL WHERE worker_id=$1", [workerId])
++        for (const suffix of ["/metadata", "/evidence"]) {
++          const revoked = await s!.app.inject(s!.signed("GET", path + suffix))
++          assert.equal(revoked.statusCode, 403, "Disabling the deployment still revokes history")
++          assert.doesNotMatch(revoked.body, /metadata_page|evidence_page|nativeThreadKey/)
++        }
++      } finally {
++        for (const service of offlineServices) await s!.db.query("UPDATE deployment_services SET enabled=$2,current_authority_id=$3,checked_at=clock_timestamp() WHERE service_id=$1", [service.service_id,service.enabled,service.current_authority_id])
++      }
+diff --git a/packages/db/src/work-runtime-runs.ts b/packages/db/src/work-runtime-runs.ts
+index 3234be8..7a1cdae 100644
+--- a/packages/db/src/work-runtime-runs.ts
++++ b/packages/db/src/work-runtime-runs.ts
+@@ -4 +4 @@ import { parseRunInput, type RunInputItem } from "@demian/protocol"
+-import { inspectDeploymentSessionAuthority, lockDeploymentScope, pinDeploymentRunAuthority } from "./deployment-services.ts"
++import { inspectDeploymentHistoryAuthority, inspectDeploymentSessionAuthority, lockDeploymentScope, pinDeploymentRunAuthority } from "./deployment-services.ts"
+@@ -544 +544,5 @@ export async function currentPreparedDeployment(client: DatabaseClient, actor: D
+-  const selected = await inspectDeploymentSessionAuthority(client, scope)
++  // Admission needs a live worker. Existing receipts retain current policy,
++  // membership and settings fences even when that worker's heartbeat expires.
++  const selected = requireReadyMetadataWorker
++    ? await inspectDeploymentSessionAuthority(client, scope)
++    : await inspectDeploymentHistoryAuthority(client, scope)

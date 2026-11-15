@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "repository": "https://github.com/pydemia/demian",
+  "baselineCommit": "2c113bb34fe120345d9e617524c8d41df2bbd4c6",
+  "targetCommit": "5a6ed5422c335cb5c03c2f45f5f338b83df98175",
+  "baselineTree": "65a4cd6e831fe1dff034b35a3c8a55ae5d148979",
+  "targetTree": "372ca45e8bdb2918cd01648b7ddb5aac0710be23",
+  "patchSha256": "10a929f4098448ae057037a53265e5a0354849534e8c43524e450a295b8e4daa",
+  "files": [
+    {
+      "path": "apps/api/src/work-runtime-server.ts",
+      "baselineSha256": "3c760340e0144d10b094ffc1988631c727f4c310ee41587c9e1a39d5421de4d4",
+      "payloadSha256": "0cb27418b39659b250d95b2de765f8fac4aa3b254a4adc8058c2e6f2d604bec7",
+      "payloadBytes": 35430,
+      "qaWorkingTreeRawSha256": "0cb27418b39659b250d95b2de765f8fac4aa3b254a4adc8058c2e6f2d604bec7",
+      "lineEndingNormalizedPayloadMatches": true
+    },
+    {
+      "path": "apps/api/test/work-runtime-server.integration.test.ts",
+      "baselineSha256": "e6a2fd7d212a37a3dcc5a8357acd83f78fc8493c9936dcc055fbeb2f5645a30a",
+      "payloadSha256": "dfb01bf117eeec36c148944b129056241ff665139933a4c5d3f221a2520f256a",
+      "payloadBytes": 102431,
+      "qaWorkingTreeRawSha256": "499078e2b48e088e061e0c15d4af3258a4358788c2352245618457420ed9c567",
+      "lineEndingNormalizedPayloadMatches": true
+    },
+    {
+      "path": "packages/db/src/work-runtime-runs.ts",
+      "baselineSha256": "45bf94d84d54888097b7082a84afd0e45465aec9fa3d72b6b20322df48b1f541",
+      "payloadSha256": "b10b671cd959380927d91695995f5ddfe832a5952fa3cb34cc523510ba790eb7",
+      "payloadBytes": 32839,
+      "qaWorkingTreeRawSha256": "b10b671cd959380927d91695995f5ddfe832a5952fa3cb34cc523510ba790eb7",
+      "lineEndingNormalizedPayloadMatches": true
+    }
+  ],
+  "patchContextLines": 0,
+  "applyOption": "--unidiff-zero",
+  "verification": {
+    "freshIndexBaselineApplied": true,
+    "exactTargetTreeMatched": true,
+    "syntheticPostgreSQL": {
+      "version": "17.11",
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "assistantSignerAndSuccessorGatewayIncluded": true,
+      "isolatedContainerRemoved": true,
+      "productionDatabaseUsed": false
+    },
+    "actualExistingRunCanary": {
+      "apiSha256": "838b6758b7f946277cbca61336ed801fc21746b2bd612442fd88f0339c7bf077",
+      "metadataStatus": 200,
+      "evidenceStatus": 200,
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "artifacts": 1,
+      "hasMore": false,
+      "offlineAdmissionUnavailable": true,
+      "businessRowsDdlSequencesSecurityPreserved": true,
+      "operatingListenersPreserved": true,
+      "canaryRemoved": true,
+      "modelRequests": 0,
+      "runCreates": 0,
+      "operatingApiPromoted": false
+    }
+  },
+  "scope": "Current-authorized protected history after worker heartbeat expiry; live admission remains required; no schema or credential change"
+}

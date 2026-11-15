@@ -1,12 +1,20 @@
 # Agent Track 개발계획
 
-현재 후속: Assistant9382c9c·Track9639375와 보호 source가 운영 연결돼 있다.
-같은 실제 Execution/Run/Task에서 실행 성공→Projects 결과 선첨부→Note 발행·참조→
-Track 관측을 확인했다. [현재 업무 근거](workflow-observation-2026-11-14.json)를 따른다.
-상세 Trace 보완 source는 Track17e5ff0·Native9f45e6c·Personaf9f78ac다. Track의
-CI43494168243은 Windows·Ubuntu 모두 성공했고 세 후보를 별도로 동결했다.
-새 evidence 운영 전환은 아직 하지 않았다. Persona CI는 결제/한도 annotation과 함께
-실행 step 없이 실패했다. 현재 PC 브라우저는 Entra 비밀번호 단계로 사용자 로그인 대기다.
+현재 기준은 2026-11-15 KST다. Track API80cfbb0·web27e00a8, Assistant9382c9c와
+보호 source가 운영 연결돼 있다. Edge에서 Track Entra 로그인과 같은 실제 Run의
+Map→Trace→그룹 내부/상세 탐색을 확인했다. 승인된 Persona32176e9 후보는 상세
+조회 timeout으로 복구한 뒤 중지돼 있으며 이전 CI 실패는 성공으로 바꾸지 않는다.
+
+재개 점검에서 종료된 원본 API/전용 API를 기존 launcher로 복구했다. worker는
+시작하지 않았다. 이후 보호 Run의 403을 deployment heartbeat 만료로 재현했다.
+Native5a6ed54는 과거 이력과 live admission의 조건을 구별한다. 격리 PostgreSQL
+60개 통과·실패/skip0, 실제 기존 Run의 임시 API 상세 조회200과 전체 DB·listener
+보존을 확인했다. 운영 전용 API는 아직2c113bb이므로 새 API 동결·안전한 전환,
+승인된 reader의 재검증과 Track 상세 Trace·그룹 GUI 확인을 다음 순서로 수행한다.
+[조회 복구 기록](native-offline-history.md)에 근거와 운영 미반영 범위를 구분했다.
+
+기존 실제 Execution/Run/Task의 실행 성공→Projects 결과 선첨부→Note 발행·참조→
+Track 관측 근거는 [업무 기록](workflow-observation-2026-11-14.json)에 유지한다.
 수용15/21·71.4%(상위 동일 가중치·부분0)·전체 ETA 산정 불가/신뢰도 낮음을 유지한다.
 [상세 조회 계약](native-run-evidence.md)과 [전체 기준표](goal-status.md)를 우선한다.
 
