@@ -11,8 +11,11 @@ Native5a6ed54는 과거 이력과 live admission의 조건을 구별한다. 격�
 60개 통과·실패/skip0, 실제 기존 Run의 임시 API 상세 조회200을 확인했다.
 Track05ea9b9의 Windows·Ubuntu CI 성공 후 전용 API를 동결 release로 전환했고,
 운영 직접/공개 상세 조회200과 전체 DB·listener·설정13개 보존을 확인했다.
-동일 승인 Persona 이미지의 읽기 전용 producer port도 실제 상세 조회에 성공했다.
-HTTP reader·Track 요청 전체와 상세 Trace·그룹 GUI 확인을 다음 순서로 수행한다.
+동일 승인 Persona 이미지의 읽기 전용 producer port와 실제 HTTP reader도 상세
+조회에 성공했다. 그러나 실제 Projects와 연결한 Track authority의 nativeWindow는
+중복 원격 확인으로10초 deadline에 걸렸다. [실제 지연](assistant-reader-latency-2026-11-15.json)을
+근거로, 필수 원본·철회 검사를 보존하는 내부 선택 attempt identity port를 구현한다.
+그 뒤 전체 수집/상세·동시 SSE와 Trace·그룹 GUI를 확인한다.
 [조회 복구 기록](native-offline-history.md)에 근거와 운영 미반영 범위를 구분했다.
 
 기존 실제 Execution/Run/Task의 실행 성공→Projects 결과 선첨부→Note 발행·참조→

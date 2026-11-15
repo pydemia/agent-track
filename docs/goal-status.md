@@ -13,8 +13,9 @@ worker는 시작하지 않았다. 이후 실제 Run의 상세 조회 403이 work
 60개(실패·skip 0)와 기존 실제 Run의 임시 API metadata/evidence 200을 확인했다.
 Windows·Ubuntu CI 성공 후 운영 전용 API도5a6ed54로 전환했고 직접/공개 상세
 조회200과 원장·인증·다른 프로세스 보존을 확인했다. 같은 승인 Persona 이미지의
-읽기 전용 producer port에서도 실제 증거를 읽었다. HTTP reader·Track 전체
-요청·GUI 검증은 남으므로 수용 개수는 올리지 않는다.
+읽기 전용 producer port와 실제 HTTP reader에서도 증거를 읽었다. 다만 실제
+Projects와 이어진 Track 수집 authority의 nativeWindow는 중복 원격 확인 때문에
+10초 deadline에 걸렸다. 전체 수집/상세·동시 SSE·GUI는 남으므로 수용 개수는 올리지 않는다.
 전체 ETA 산정 불가·신뢰도 낮음이며 다음 재산정은 실제 상세 Trace의 운영 연동 후다.
 [조회 복구 기록](native-offline-history.md)에 원인·수정·원장 보존·잔여 범위를 구분했다.
 

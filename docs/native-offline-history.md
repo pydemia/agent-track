@@ -79,9 +79,16 @@ attempt/metadata/evidence 조회가 성공했다. SQLite 쓰기는0이며 원본
 artifact1을 확인했다. 이 결과는 HTTP reader와 Track 전체 요청 경계를 대체하지 않는다.
 [운영 근거](native-offline-history-operating.json)에 범위를 고정했다.
 
+후속 실제 HTTP reader는 metadata/evidence200·익명401이었다. 같은 reader와
+실제 Projects를 현재 Track authority에 연결한 격리 조회에서는 첫 native HTTP
+5690ms와 반복된 현재 역할/원본 확인 뒤10초 deadline에 걸렸다. 이는 새 Native API의
+403 재발이 아니라 별도의 중복 원격 검증 문제다. [지연 근거](assistant-reader-latency-2026-11-15.json)를
+따른다. 이 결과를 운영 Assistant의 전환 성공으로 계산하지 않는다.
+
 ## 남은 작업
 
-승인된 Persona HTTP reader와 Track의 실제 상세 Trace·Entra 화면·그룹 탐색을
-확인해야 한다. Persona의 이전 예외 승인을 새
+reader의 선택 attempt 로컬 identity와 이미 필수인 Native 조회 전후의 원본
+확인을 연결하여 중복 조회를 줄이고, 전체 Track 수집/상세·SSE·Entra 화면·그룹
+탐색을 확인해야 한다. Persona의 이전 예외 승인을 새
 source/image 승인으로 확대하지 않는다. 원본 Demian GUI의 별도 인증 확인과
 AT-06·09·12·14·15·20의 기존 실기 조건도 남는다.

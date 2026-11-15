@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "phase": "reader-http-verified-track-authority-native-window-deadline-failed",
+  "at": "2026-11-15T02:53:54.124Z",
+  "approvedSourceRevision": "32176e985b38317b4d39fcaf558393045f964232",
+  "approvedImage": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+  "nativeOperatingSource": "5a6ed5422c335cb5c03c2f45f5f338b83df98175",
+  "readerHttp": {
+    "counts": {
+      "http-metadata": {
+        "status": 200,
+        "events": 8
+      },
+      "http-evidence": {
+        "status": 200,
+        "events": 8
+      },
+      "anonymousStatus": 401
+    },
+    "latenciesMs": {
+      "metadata": 3860,
+      "evidence": 2734
+    },
+    "sqlWrites": 0
+  },
+  "trackAuthority": {
+    "configuredBudgetMs": 10000,
+    "productionStoreOpened": false,
+    "productionSourceChanged": false,
+    "realProjectsAndReaderUsed": true,
+    "logicalSourceUrlPreservedOnlyAfterValidatedStagingTargetMatch": true,
+    "listMs": 258,
+    "executions": 1,
+    "nativeWindowPassed": false,
+    "evidenceNotReached": true,
+    "status": 503,
+    "requests": [
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 21
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 18
+      },
+      {
+        "kind": "projects-read",
+        "status": 200,
+        "elapsedMs": 14
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 4
+      },
+      {
+        "kind": "executions",
+        "status": 200,
+        "elapsedMs": 86
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "projects-read",
+        "status": 200,
+        "elapsedMs": 8
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 10
+      },
+      {
+        "kind": "projects-read",
+        "status": 200,
+        "elapsedMs": 9
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 4
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 30
+      },
+      {
+        "kind": "projects-read",
+        "status": 200,
+        "elapsedMs": 20
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 6
+      },
+      {
+        "kind": "executions",
+        "status": 200,
+        "elapsedMs": 48
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "projects-read",
+        "status": 200,
+        "elapsedMs": 10
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "role-attempts",
+        "status": 200,
+        "elapsedMs": 1313
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 9
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "native-metadata",
+        "status": 200,
+        "elapsedMs": 5690
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "execution",
+        "status": 200,
+        "elapsedMs": 8
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 6
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 10
+      },
+      {
+        "kind": "role-attempts",
+        "status": 200,
+        "elapsedMs": 553
+      },
+      {
+        "kind": "capabilities",
+        "status": 200,
+        "elapsedMs": 2
+      },
+      {
+        "kind": "native-metadata",
+        "status": "transport-error",
+        "elapsedMs": 2695
+      }
+    ]
+  },
+  "staging": {
+    "originalAssistantPreserved": true,
+    "originalAssistantLifecycleChanged": false,
+    "publicPorts": 0,
+    "temporaryLoopbackEndpoint": true,
+    "temporaryTunnelClosed": true,
+    "helperRemoved": true,
+    "sqliteWrites": 0,
+    "productionVolumesRemoved": 0,
+    "modelRequests": 0,
+    "runCreates": 0
+  },
+  "next": "Internal local attempt-identity port; preserve raw Native read current source checks before/after and all credential/binding/key fences; no deadline increase",
+  "wholeTrackServerSseVerified": false,
+  "operatingPersonaPromoted": false,
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal top-level; partial=0",
+    "eta": "unknown",
+    "confidence": "low"
+  }
+}
