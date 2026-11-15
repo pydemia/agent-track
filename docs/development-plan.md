@@ -8,9 +8,11 @@ Map→Trace→그룹 내부/상세 탐색을 확인했다. 승인된 Persona3217
 재개 점검에서 종료된 원본 API/전용 API를 기존 launcher로 복구했다. worker는
 시작하지 않았다. 이후 보호 Run의 403을 deployment heartbeat 만료로 재현했다.
 Native5a6ed54는 과거 이력과 live admission의 조건을 구별한다. 격리 PostgreSQL
-60개 통과·실패/skip0, 실제 기존 Run의 임시 API 상세 조회200과 전체 DB·listener
-보존을 확인했다. 운영 전용 API는 아직2c113bb이므로 새 API 동결·안전한 전환,
-승인된 reader의 재검증과 Track 상세 Trace·그룹 GUI 확인을 다음 순서로 수행한다.
+60개 통과·실패/skip0, 실제 기존 Run의 임시 API 상세 조회200을 확인했다.
+Track05ea9b9의 Windows·Ubuntu CI 성공 후 전용 API를 동결 release로 전환했고,
+운영 직접/공개 상세 조회200과 전체 DB·listener·설정13개 보존을 확인했다.
+동일 승인 Persona 이미지의 읽기 전용 producer port도 실제 상세 조회에 성공했다.
+HTTP reader·Track 요청 전체와 상세 Trace·그룹 GUI 확인을 다음 순서로 수행한다.
 [조회 복구 기록](native-offline-history.md)에 근거와 운영 미반영 범위를 구분했다.
 
 기존 실제 Execution/Run/Task의 실행 성공→Projects 결과 선첨부→Note 발행·참조→

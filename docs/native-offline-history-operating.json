@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "phase": "native-api-operating-verified-assistant-producer-ports-readonly-verified",
+  "at": "2026-11-15T02:33:31.333Z",
+  "operation": "cd9a22e3-37e5-4b90-ba8c-6df3e073708e",
+  "sourceRevision": "5a6ed5422c335cb5c03c2f45f5f338b83df98175",
+  "manifestSha256": "a819b888bdff3b14245506200011f1cc49ba4eeff12b65b6f5c6f7f3b4935cde",
+  "apiSha256": "838b6758b7f946277cbca61336ed801fc21746b2bd612442fd88f0339c7bf077",
+  "apiPid": 83456,
+  "trackRevision": "05ea9b95f2b931c7134aa35eec76365bdb10b7b5",
+  "trackCi": {
+    "runId": 43666756255,
+    "url": "https://github.com/pydemia/agent-track/actions/runs/43666756255",
+    "headSha": "05ea9b95f2b931c7134aa35eec76365bdb10b7b5",
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "metadataEvidence": [
+    {
+      "endpoint": "metadata",
+      "boundary": "direct",
+      "status": 200,
+      "events": 8
+    },
+    {
+      "endpoint": "metadata",
+      "boundary": "public",
+      "status": 200,
+      "events": 8
+    },
+    {
+      "endpoint": "evidence",
+      "boundary": "direct",
+      "status": 200,
+      "events": 8
+    },
+    {
+      "endpoint": "evidence",
+      "boundary": "public",
+      "status": 200,
+      "events": 8
+    }
+  ],
+  "protectedFilesPreserved": 13,
+  "businessRowsDdlSequencesSecurityPreserved": true,
+  "workerClockTolerance": false,
+  "delegationNoncesValidated": true,
+  "transitionLocksRemoved": true,
+  "workerStarted": false,
+  "modelRequests": 0,
+  "runCreates": 0,
+  "databaseRestored": false,
+  "schemaChanged": false,
+  "assistantProducerReadonly": {
+    "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9",
+    "sourceRevision": "32176e985b38317b4d39fcaf558393045f964232",
+    "stage": "complete",
+    "readLatenciesMs": {
+      "attempts": 1514,
+      "metadata": 2654,
+      "evidence": 3082
+    },
+    "counts": {
+      "roleValidity": {
+        "validFrom": null,
+        "validUntil": null,
+        "team": "active",
+        "persona": "active",
+        "membership": "active"
+      },
+      "attempts": 1,
+      "metadata": {
+        "events": 8,
+        "model": 1,
+        "morePages": 0
+      },
+      "evidence": {
+        "events": 8,
+        "model": 1,
+        "usage": 4,
+        "lineage": 2,
+        "artifact": 1,
+        "morePages": 0
+      }
+    },
+    "sqlWrites": 0,
+    "originalAssistantPreserved": true,
+    "helperRemoved": true,
+    "httpReaderVerified": false,
+    "wholeTrackWindowVerified": false
+  },
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal top-level; partial=0",
+    "wholeGoalComplete": false,
+    "eta": "unknown",
+    "confidence": "low"
+  }
+}

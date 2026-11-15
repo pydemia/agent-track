@@ -55,10 +55,33 @@ Run pin은 일치했다.
 - 임시 API·읽기 전용 probe 컨테이너·격리 PostgreSQL과 임시 credential 파일은
   각각 소유 ID로 정리했다. 운영 Assistant와 중지된 승인 후보는 보존했다.
 
+## 운영 반영
+
+전용 API를 Native `5a6ed54`의 별도 동결 release로 전환했다. 현재 PID는 83456,
+manifest는 `a819b888bdff3b14245506200011f1cc49ba4eeff12b65b6f5c6f7f3b4935cde`다.
+Track05ea9b9의 Windows·Ubuntu CI43666756255가 모두 성공으로 종료된 뒤 반영했다.
+운영 metadata/evidence는 직접 API와 공개 tunnel에서 각각200·8개 이벤트였다.
+
+전환 전 독립 검토에서 잠금 해제 간격·복구 bytes 고정·잠금 파일 소유권·완료
+기록 시점·process 변수 가림 문제를 수정했다. 실제 persistence callback의 수정 전
+실패·수정 후 starting/ready 저장과 다른 writer의 변경 후 CAS 거절을 확인했다.
+두 잠금은 후보 기동·검증·복구 창 전체에 유지했다. 종료 후 잠금 파일 부재와
+현재 PID·13개 설정 파일을 대조했다. 기존 startup helper 자체의 일반적 경쟁
+조건을 전역 수정했다고 주장하지 않는다.
+
+전후 DB 대조에서는 worker clock 허용도 끄고 정상 위임 nonce 증가만 허용했다.
+모든 business row·DDL·sequence·보안 catalog와 다른 listener를 보존했다.
+worker 기동·새 Run·모델 호출·DB 복원·schema/인증 변경은0이다.
+
+동일한 승인 Persona320 이미지의 읽기 전용 구성에서도 실제 producer port의
+attempt/metadata/evidence 조회가 성공했다. SQLite 쓰기는0이며 원본 Assistant는
+보존했다. 지연은 각각1514/2654/3082ms였고 8개 이벤트·모델 선택1·usage4·lineage2·
+artifact1을 확인했다. 이 결과는 HTTP reader와 Track 전체 요청 경계를 대체하지 않는다.
+[운영 근거](native-offline-history-operating.json)에 범위를 고정했다.
+
 ## 남은 작업
 
-현재 운영 전용 API는 아직 이전 `2c113bb`다. 새 API를 별도 동결 후보로 만들고
-복구 가능한 API 전환을 검증한 뒤, 승인된 Persona reader와 Track의 실제 상세
-Trace·Entra 화면·그룹 탐색을 확인해야 한다. Persona의 이전 예외 승인을 새
+승인된 Persona HTTP reader와 Track의 실제 상세 Trace·Entra 화면·그룹 탐색을
+확인해야 한다. Persona의 이전 예외 승인을 새
 source/image 승인으로 확대하지 않는다. 원본 Demian GUI의 별도 인증 확인과
 AT-06·09·12·14·15·20의 기존 실기 조건도 남는다.
