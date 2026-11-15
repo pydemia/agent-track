@@ -13,5 +13,15 @@
   "requestAutomaticallyResent": false,
   "userActionIndependentlyEstablished": false,
   "currentUiAccepted": false,
-  "noteSnapshot": "assistant-reader-app-preview-note-publication.json"
+  "noteSnapshot": "assistant-reader-app-preview-note-publication.json",
+  "independentDemianBrowserAttempt": {
+    "observedAt": "2026-11-15T06:18:10.1600000+00:00",
+    "origin": "https://demian.pydemia.ai/",
+    "browser": "Edge",
+    "result": "net::ERR_INVALID_AUTH_CREDENTIALS",
+    "authenticatedPageOpened": false,
+    "credentialsEntered": false,
+    "authenticationSettingsChanged": false,
+    "modelsRequested": 0
+  }
 }

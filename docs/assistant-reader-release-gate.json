@@ -65,5 +65,73 @@
     "operation": "c70fe931-3002-4250-b128-1ead8e44cfa0",
     "productionPromoted": false,
     "currentProductionDataEquivalence": false
+  },
+  "resumptionAudit": {
+    "observedAt": "2026-11-15T06:18:10.1600000+00:00",
+    "sourceRevision": "fe5369eac8fbfdb87afacd60261e82313098ea20",
+    "previousGoalTurn": "progress: full app historical preview, rollback, Note readback and repository publication",
+    "sameBlockerConsecutiveGoalTurnsAtLeast": 3,
+    "sourceCi": {
+      "run": 43670396041,
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": 4,
+      "jobsWithStartedSteps": 0,
+      "newerSuccessfulPullRequestRunObserved": false,
+      "workflowRerunRequested": false
+    },
+    "assistant": {
+      "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+      "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+      "running": true,
+      "pid": 1395329,
+      "startedAt": "2026-11-14T07:41:32.079775172Z"
+    },
+    "stagedCandidate": {
+      "id": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+      "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+      "running": false,
+      "pid": 0,
+      "startedAt": "0001-01-01T00:00:00Z"
+    },
+    "verificationJobs": [
+      {
+        "operation": "869fcc1f-ec68-4c4a-98cc-ee712a1a84db",
+        "sameProcessLive": false,
+        "terminalPhase": "failed",
+        "remainingOwnedContainers": 0
+      },
+      {
+        "operation": "c70fe931-3002-4250-b128-1ead8e44cfa0",
+        "sameProcessLive": false,
+        "terminalPhase": "full-reader-main-and-rollback-copy-verified",
+        "remainingOwnedContainers": 0
+      }
+    ],
+    "liveVerificationJobs": 0,
+    "blockingConditions": [
+      "Approval requested for source4a9ad42/imageb68ece66; previous source32176e9/image320474cd exception remains distinct",
+      "Track last Entra UI displayed Request denied; no completed authenticated current UI inspection",
+      "Independent original Demian browser navigation returned net::ERR_INVALID_AUTH_CREDENTIALS"
+    ],
+    "remainingRequirementGates": {
+      "AT-06": "authenticated original same Session/Task browser movement",
+      "AT-09": "operating owner control, current capability/authority, authenticated UI and actual provider acceptance",
+      "AT-12": "deployed common scope/saved restore interactions and peer representative edge pointer selection",
+      "AT-14": "new reader operating detail Trace and authenticated same actual task/Run review",
+      "AT-15": "same deployed default dashboard multiple hosts and filter-clear selection/state",
+      "AT-20": "authenticated original context/same-selection and public UI outage isolation"
+    },
+    "next": [
+      "Use the pending exact-image approval answer; do not re-ask or substitute prior image approval",
+      "Revalidate current operating state and prepare guarded current backup/transition before image-only promotion",
+      "Complete existing authorized Entra login when user is available; do not repeatedly send MFA",
+      "Verify actual evidence with concurrent SSE and the same real task/Run in deployed views",
+      "Continue all six original requirements without adding a separate desktop app prerequisite"
+    ],
+    "deploymentExecuted": false,
+    "newPermissionsGranted": false,
+    "progressDenominatorChanged": false,
+    "eta": null
   }
 }
