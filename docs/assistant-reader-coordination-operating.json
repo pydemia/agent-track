@@ -1,0 +1,214 @@
+{
+  "schema": "agent-track-reader-coordination-operating-v1",
+  "observedAt": "2026-11-15T04:29:37.226Z",
+  "operationId": "7ac9c046-4987-4cba-924b-fc0e6fff2b0a",
+  "committed": true,
+  "pid": 61768,
+  "created": "2026-11-15T04:27:32.5978140Z",
+  "apiRevision": "06dd8c78532eee7dd4b97cda5e08c254d85a3d85",
+  "webRevision": "27e00a8a510091dad7a44875eaf6811b1f4c964b",
+  "manifestSha256": "e5839add01ea6a5710ea4e0556d5e676c7b246b25fd85bdb42af45b498d0cded",
+  "webFilesBytesAndMimeMatched": 18,
+  "originalConfigRestored": true,
+  "preservedFiles": 47,
+  "preservedProcesses": 18,
+  "historyPreserved": true,
+  "sqliteIntegrity": "ok",
+  "tables": [
+    {
+      "name": "approval_receipts",
+      "count": 4
+    },
+    {
+      "name": "binding_receipts",
+      "count": 5
+    },
+    {
+      "name": "bindings",
+      "count": 6
+    },
+    {
+      "name": "coordinator_command_intents",
+      "count": 0
+    },
+    {
+      "name": "event_digests",
+      "count": 0
+    },
+    {
+      "name": "events",
+      "count": 43324
+    },
+    {
+      "name": "metadata",
+      "count": 21
+    },
+    {
+      "name": "receipts",
+      "count": 2
+    },
+    {
+      "name": "runs",
+      "count": 1225
+    },
+    {
+      "name": "saved_flow_views",
+      "count": 0
+    },
+    {
+      "name": "sqlite_sequence",
+      "count": 2
+    },
+    {
+      "name": "successor_intents",
+      "count": 0
+    },
+    {
+      "name": "task_assignment_receipts",
+      "count": 2
+    },
+    {
+      "name": "task_creation_receipts",
+      "count": 1
+    }
+  ],
+  "pending": {
+    "receipts": 0,
+    "task_creation_receipts": 0,
+    "task_assignment_receipts": 0,
+    "approval_receipts": 0,
+    "successor_intents": 0,
+    "coordinator_command_intents": 0
+  },
+  "sources": [
+    {
+      "id": "demian-local",
+      "kind": "demian",
+      "state": "connected",
+      "runs": 19
+    },
+    {
+      "id": "codex-local",
+      "kind": "codex",
+      "state": "connected",
+      "runs": 1205
+    },
+    {
+      "id": "projects-native",
+      "kind": "projects",
+      "state": "connected",
+      "runs": 0
+    },
+    {
+      "id": "assistant-native",
+      "kind": "assistant",
+      "state": "connected",
+      "runs": 0
+    },
+    {
+      "id": "desktop",
+      "kind": "desktop",
+      "state": "unsupported",
+      "runs": 0
+    },
+    {
+      "id": "demian-assistant-owner",
+      "kind": "demian",
+      "state": "connected",
+      "runs": 1
+    }
+  ],
+  "auth": [
+    {
+      "name": "anonymous",
+      "status": 401
+    },
+    {
+      "name": "forged",
+      "status": 401
+    }
+  ],
+  "publicProbes": [
+    {
+      "url": "https://track.pydemia.ai/",
+      "status": 302
+    },
+    {
+      "url": "https://track.pydemia.ai/api/snapshot",
+      "status": 401
+    },
+    {
+      "url": "https://trail.pydemia.ai/",
+      "status": 302
+    }
+  ],
+  "ownerProbe": {
+    "actualPermittedTasks": 2,
+    "createdAndRead": true,
+    "staleRevisionDenied": true,
+    "ownedProbeRemoved": true,
+    "nativeWorkCreated": false
+  },
+  "nativeDatabasePreservedByCommit": true,
+  "actualEntraGuiVerified": false,
+  "sourceOrModelDispatchPerformed": false,
+  "protectedRun": {
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "state": "connected",
+    "events": 8,
+    "legacyProducerEvidence": {
+      "state": "forbidden",
+      "page": null
+    }
+  },
+  "ci": {
+    "run": 43675393901,
+    "revision": "06dd8c78532eee7dd4b97cda5e08c254d85a3d85",
+    "windows": "success-after-one-failed-job-rerun",
+    "ubuntu": "success",
+    "firstWindowsFailure": "Existing PowerShell process inspection timeout; tests/deadline unchanged"
+  },
+  "transitivePreservation": [
+    {
+      "operationId": "28e424f9-0d64-4b1f-9af6-ac142b52e283",
+      "trackHistoryPreserved": true,
+      "originalNativeDatabasePreserved": true
+    },
+    {
+      "operationId": "9d987db0-405e-42c6-beda-1d07c5d14da9",
+      "trackHistoryPreserved": true,
+      "originalNativeDatabasePreserved": true
+    },
+    {
+      "operationId": "7ac9c046-4987-4cba-924b-fc0e6fff2b0a",
+      "trackHistoryPreserved": true,
+      "originalNativeDatabasePreserved": true
+    }
+  ],
+  "workerStopped": true,
+  "scopeCorrection": {
+    "excludedFile": "Unrelated Codex runtime credential",
+    "changedByTrack": false,
+    "restored": false,
+    "reason": "External change caused the v2 guard to refuse; only this inherited unrelated path excluded in v3",
+    "independentReview": "No findings; subsequent plan reference and preflight completed"
+  },
+  "assistant": {
+    "revision": "9382c9cb5e337bc186a63cdd74f3b6605164401c",
+    "changed": false,
+    "newCandidate": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "newCandidateApproval": "requested-awaiting-user"
+  },
+  "gui": {
+    "currentRecheck": "unverified",
+    "browserConnection": "CDP focus command timeout",
+    "nativeInput": "GetCursorPos access denied",
+    "previousEntraVerificationRetained": true
+  },
+  "acceptance": {
+    "met": 15,
+    "total": 21,
+    "percent": 71.4,
+    "eta": null
+  }
+}

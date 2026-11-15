@@ -1,0 +1,62 @@
+{
+  "schema": "agent-track-assistant-reader-release-gate-v1",
+  "observedAt": "2026-11-15T04:15:26.067Z",
+  "candidate": {
+    "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "sourceCommit": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "sourceTree": "1477fdddec0408bb037fbc557c9faa7ecdc43be6",
+    "sourceArchiveSha256": "a483f20b55d393eaed5bcb3eb5d3e12fdd07b99a87b6bfb88f06c9861d69b920"
+  },
+  "container": {
+    "id": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+    "name": "pydemia-persona-reader-staged-98623102-1a5",
+    "started": false
+  },
+  "imageOnlyPreparation": {
+    "newEnvKeys": 0,
+    "newCredentialMounts": 0,
+    "originalEnvMountNetworkAndHostFieldsPreserved": true,
+    "originalProcessPreserved": true,
+    "productionWrites": 0,
+    "modelRequests": 0
+  },
+  "verification": "assistant-reader-coordination-verification.json",
+  "sourceCi": {
+    "run": 43670396041,
+    "headSha": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "container",
+        "conclusion": "failure",
+        "executedSteps": 0
+      },
+      {
+        "name": "app",
+        "conclusion": "failure",
+        "executedSteps": 0
+      },
+      {
+        "name": "code-worker",
+        "conclusion": "failure",
+        "executedSteps": 0
+      },
+      {
+        "name": "collection",
+        "conclusion": "failure",
+        "executedSteps": 0
+      }
+    ],
+    "failureAnnotation": "The job was not started because recent account payments have failed or your spending limit needs to be increased. Please check the 'Billing & plans' section in your settings"
+  },
+  "exception": {
+    "previous": {
+      "revision": "32176e985b38317b4d39fcaf558393045f964232",
+      "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9"
+    },
+    "newCandidateApproval": "requested-awaiting-user"
+  },
+  "operatingAssistantChanged": false,
+  "writerEnabled": false
+}

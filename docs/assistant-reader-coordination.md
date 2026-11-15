@@ -1,7 +1,9 @@
 # 보호 실행 reader 지연과 동시 갱신 수정
 
 2026-11-15 실제 완료 업무의 Run을 대상으로 격리 통합 검사를 통과했다.
-운영 Assistant와 Track을 교체한 결과는 아니다. 상위 수용 판정은15/21로 유지한다.
+후속에서는 Track API06dd8c7을 운영 전환했다. Assistant는 교체하지 않았으므로
+격리 상세 조회를 운영 성공으로 해석하지 않는다. 상위 수용 판정은15/21로 유지한다.
+[운영 근거](assistant-reader-coordination-operating.json)에 구별했다.
 
 ## 원인과 변경
 

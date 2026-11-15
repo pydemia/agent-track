@@ -1,11 +1,11 @@
 # Agent Track 개발계획
 
 최신 [reader 지연·동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존
-업무의 격리 SSE·상세 조회를 통과했다. 아래 운영 revision은 아직 교체하지 않았으며
+업무의 격리 SSE·상세 조회를 통과했다. 후속 Track 운영 API는06dd8c7·web은27e00a8이다.
 새 Persona 이미지의 CI 실행 전 실패와 별도 예외 승인 조건을 문서에 구분했다.
 
-현재 기준은 2026-11-15 KST다. Track API80cfbb0·web27e00a8, Assistant9382c9c와
-보호 source가 운영 연결돼 있다. Edge에서 Track Entra 로그인과 같은 실제 Run의
+현재 기준은 2026-11-15 KST다. Track API06dd8c7·web27e00a8, Assistant9382c9c와
+보호 source가 운영 연결돼 있다. 이전 Edge 검사에서 Track Entra 로그인과 같은 실제 Run의
 Map→Trace→그룹 내부/상세 탐색을 확인했다. 승인된 Persona32176e9 후보는 상세
 조회 timeout으로 복구한 뒤 중지돼 있으며 이전 CI 실패는 성공으로 바꾸지 않는다.
 
