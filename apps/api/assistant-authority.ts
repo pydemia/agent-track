@@ -317,14 +317,7 @@ export class AssistantAuthority {
         if (!task) continue;
         for (const role of execution.roles) {
           if (observations.length >= 64) { partial = true; break; }
-          for (const candidate of await this.roleNativeTargets(scope, client, execution, role)) {
-          const { ref, attemptId } = candidate;
-          if (!ref || ref.origin !== mapping.origin || ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId) continue;
-          if (observations.length >= 64) { partial = true; break; }
-          if (seen.has(ref.runId)) throw new AssistantAuthorityError(503);
-          seen.add(ref.runId);
-          const after = nativeMetadataSequenceSchema.parse(cursor(ref.runId));
-          const read = async (position: string, limit: number) => {
+          const readTarget = async (ref: NativeTarget["ref"], attemptId: string | undefined, position: string, limit: number) => {
             const result = assistantNativeMetadataPageSchema.parse(await this.guarded(scope,
               () => client.nativeMetadata!(execution.id, role.id, position, limit, attemptId)));
             const run = result.page.run;
@@ -333,8 +326,37 @@ export class AssistantAuthority {
                 run.organization_id !== ref.organizationId || run.correlation_id !== ref.operationId) throw new AssistantAuthorityError(503);
             confirmTarget(); return result;
           };
+          const currentRef = role.runtime.demian;
+          // Current Task access was checked above. The producer independently
+          // authorizes this explicit attempt; discovery remains mandatory before
+          // using its response. Keep at most one initial read in flight, and
+          // settle both operations even when discovery fails before native I/O.
+          const initial = scope.roleAttempts && currentRef && z.uuid().safeParse(currentRef.operationId).success &&
+            currentRef.origin === mapping.origin && currentRef.organizationId === mapping.organizationId &&
+            currentRef.workspaceId === mapping.workspaceId && !seen.has(currentRef.runId)
+            ? { ref: structuredClone(currentRef), attemptId: currentRef.operationId,
+              after: nativeMetadataSequenceSchema.parse(cursor(currentRef.runId)) } : null;
+          const [discovery, prefetched] = await Promise.allSettled([
+            this.roleNativeTargets(scope, client, execution, role),
+            initial ? readTarget(initial.ref, initial.attemptId, initial.after, 250) : Promise.resolve(null),
+          ] as const);
+          if (discovery.status === "rejected") throw discovery.reason;
+          for (const candidate of discovery.value) {
+          const { ref, attemptId } = candidate;
+          if (!ref || ref.origin !== mapping.origin || ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId) continue;
+          if (observations.length >= 64) { partial = true; break; }
+          if (seen.has(ref.runId)) throw new AssistantAuthorityError(503);
+          seen.add(ref.runId);
+          const after = nativeMetadataSequenceSchema.parse(cursor(ref.runId));
+          const read = (position: string, limit: number) => readTarget(ref, attemptId, position, limit);
           let first: Awaited<ReturnType<typeof read>>;
-          try { first = await read(after, 250); }
+          try {
+            if (initial && attemptId === initial.attemptId && after === initial.after && JSON.stringify(ref) === JSON.stringify(initial.ref)) {
+              if (prefetched.status === "rejected") throw prefetched.reason;
+              if (!prefetched.value) throw new AssistantAuthorityError(503);
+              first = prefetched.value;
+            } else first = await read(after, 250);
+          }
           catch (error) { if (error instanceof AssistantSourceError && [401, 403, 404].includes(error.status)) continue; throw error; }
           const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
           if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId || latest.task.taskId !== execution.task.taskId) continue;

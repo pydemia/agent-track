@@ -6,12 +6,14 @@ import type { SourceView } from "../../packages/contracts/index.ts";
 import { normalizeEvent } from "../../packages/adapters/demian/index.ts";
 
 interface Grant { stamp: string; observedAt: string; runIds: string[]; partial: boolean; attemptCoverage: "coordinator-history" | "current-role-only" }
+interface Readers { count: number; done: Promise<void>; release: () => void }
 
 /** Protected native observations use only the owner-bound Assistant reader, never executor keys. */
 export class AssistantNativeCollector {
   private grants = new Map<string, Grant>();
   private jobs = new Map<string, Promise<void>>();
   private failures = new Map<string, SourceView["state"]>();
+  private readers = new Map<string, Readers>();
   constructor(private store: Store, private config: () => Config, private assistant: AssistantAuthority) {}
 
   private stamp(source: SourceConfig, user: string): string {
@@ -43,19 +45,56 @@ export class AssistantNativeCollector {
 
   async refresh(user: string, sourceId?: string): Promise<void> {
     for (const source of this.config().sources.filter(item => item.assistantNativeSourceId && (!sourceId || item.id === sourceId) && item.users.includes(user))) {
-      let job = this.jobs.get(source.id);
+      const id = source.id;
+      let job = this.jobs.get(id);
       if (!job) {
-        job = this.collect(source, user); this.jobs.set(source.id, job);
-        void job.finally(() => { if (this.jobs.get(source.id) === job) this.jobs.delete(source.id); });
+        const readers = this.readers.get(id);
+        // Do not invalidate a local view or create the authority request scope
+        // while a separately bounded evidence read is using that view.
+        job = readers ? readers.done.then(() => this.collect(source, user)) : this.collect(source, user);
+        this.jobs.set(id, job);
+        void job.finally(() => { if (this.jobs.get(id) === job) this.jobs.delete(id); });
       }
       await job;
     }
   }
 
+  /** Excludes collection mutations until the bounded, read-only evidence callback settles. */
+  async withStableView<T>(user: string, sourceId: string, read: () => Promise<T>, deadline = performance.now() + 10_000): Promise<T> {
+    const held = await this.afterRefresh(user, () => {
+      const config = this.config();
+      if (!(config.auth.mode === "proxy" ? config.auth.users.includes(user) : config.auth.user === user))
+        throw new AssistantAuthorityError(403);
+      const sources = config.sources.filter(source => source.id === sourceId && source.assistantNativeSourceId && source.users.includes(user));
+      // Validate the selected source before acquiring anything: a rejected owner or
+      // changed configuration cannot leave an orphaned reader gate.
+      for (const source of sources) this.stamp(source, user);
+      return sources.map(source => {
+        let group = this.readers.get(source.id);
+        if (!group) {
+          let release!: () => void;
+          const done = new Promise<void>(resolve => { release = resolve; });
+          group = { count: 0, done, release }; this.readers.set(source.id, group);
+        }
+        group.count++; return { id: source.id, group };
+      });
+    }, deadline, sourceId);
+    try {
+      // The callback retains its own authority deadline and final credential /
+      // configuration checks. It must not wait for a refresh queued behind it.
+      return await read();
+    } finally {
+      for (const { id, group } of held) if (--group.count === 0) {
+        if (this.readers.get(id) === group) this.readers.delete(id);
+        group.release();
+      }
+    }
+  }
+
   /** Capture a fresh view after pending collection, never a revoked or in-flight grant. */
-  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000): Promise<T> {
+  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000, sourceId?: string): Promise<T> {
     for (;;) {
-      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && source.users.includes(user))
+      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && (sourceId === undefined || source.id === sourceId) && source.users.includes(user))
         .flatMap(source => { const job = this.jobs.get(source.id); return job ? [job] : []; }))];
       if (!pending.length) return read();
       const remaining = deadline - performance.now();

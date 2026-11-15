@@ -9,6 +9,7 @@ import {
 
 interface RunRow {
   key: string;
+  source_id: string;
   observation: string;
   cursor: string;
   high_water: string;

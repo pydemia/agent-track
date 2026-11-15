@@ -18,6 +18,7 @@ import { nativeEvidenceFixture } from "./fixtures/native-run-evidence.ts";
 import { nativeRunEvidenceViewSchema } from "../packages/contracts/native-run-evidence.ts";
 import type { AssistantRoleAttemptsPage } from "../packages/contracts/assistant-attempts.ts";
 import { AssistantAuthorityError } from "../apps/api/assistant-authority.ts";
+import { nativeRunEvidence } from "../apps/api/native-run-evidence.ts";
 
 const user = "owner@example.com", ownerId = "sso-sub:" + "a".repeat(64);
 const uuid = (value: number) => `00000000-0000-4000-8000-${String(value).padStart(12, "0")}`;
@@ -197,6 +198,53 @@ test("attempt confirmation and final signed metadata read overlap while both rem
   assert.equal(snapshot.runs.length, 1); assert.equal(finalRead, true); assert.equal(attemptReads, 2);
 });
 
+test("current native metadata starts alongside mandatory attempt discovery", async t => {
+  const f = await fixture(t); f.attemptPage = attempts();
+  let discoveryReads = 0, nativeStarted = false, release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.attemptsHook = async () => {
+    if (++discoveryReads !== 1) return;
+    const timer = setTimeout(release, 500);
+    try { await gate; assert.equal(nativeStarted, true, "initial Native read must start before attempt discovery completes"); }
+    finally { clearTimeout(timer); }
+  };
+  f.hook = async (_after, limit) => { if (limit === 250) { nativeStarted = true; release(); } };
+  const snapshot = await f.snapshot();
+  assert.equal(nativeStarted, true); assert.equal(snapshot.runs.length, 1); assert.equal(discoveryReads, 2);
+});
+
+test("initial native overlap never reads a Task denied by current Projects access", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(); f.projectAllowed = false;
+  const snapshot = await f.snapshot();
+  assert.equal(snapshot.runs.length, 0);
+  assert.equal(f.calls.some(path => /\/attempts\/[^/]+\/native\?/.test(path)), false);
+});
+
+test("failed discovery drains the initial native read before releasing the actor queue", { timeout: 5000 }, async t => {
+  const f = await fixture(t); f.attemptPage = attempts();
+  let started!: () => void, release!: () => void, denied!: () => void;
+  const nativeStarted = new Promise<void>(resolve => { started = resolve; });
+  const nativeGate = new Promise<void>(resolve => { release = resolve; });
+  const discoveryDenied = new Promise<void>(resolve => { denied = resolve; });
+  t.after(() => release());
+  let discoveryReads = 0, firstDone = false;
+  f.hook = async (_after, limit) => { if (limit === 250) { started(); await nativeGate; } };
+  f.attemptsHook = async () => {
+    if (++discoveryReads !== 1) return;
+    await nativeStarted; denied(); throw new AssistantReadError(403, "withdrawn");
+  };
+  const first = f.sources.assistant.nativeWindow(user, "assistant", "protected", () => "0")
+    .then(() => null, error => error).finally(() => { firstDone = true; });
+  await discoveryDenied;
+  const second = f.sources.assistant.list(user, "assistant");
+  await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(firstDone, false);
+  assert.equal(f.calls.filter(path => path === "/api/integrations/track/v2/executions").length, 1);
+  release(); assert.ok(await first instanceof AssistantAuthorityError);
+  assert.equal((await second).executions.length, 1);
+  assert.equal(f.store.snapshot(user, []).runs.length, 0);
+});
+
 test("attempt confirmation and final evidence read overlap without mutating event history", async t => {
   const f = await fixture(t); f.attemptPage = attempts(); await f.snapshot();
   const before = JSON.stringify(f.store.events(externalKey("protected", uuid(9))));
@@ -373,18 +421,19 @@ test("separate evidence crosses real HTTP reader and current Project authority w
   assert.ok(f.methods.every(method => method === "GET"));
 });
 
-test("a concurrent native refresh settles before evidence performs its final Run visibility check", async t => {
+test("a concurrent native refresh waits until evidence performs its final Run visibility check", async t => {
   const f = await fixture(t); await f.snapshot();
   const before = JSON.stringify(f.store.events(key));
-  let refresh: Promise<void> | undefined;
+  let refresh: Promise<void> | undefined, queued!: () => void;
+  const entered = new Promise<void>(resolve => { queued = resolve; });
+  const original = f.sources.assistantNative.refresh.bind(f.sources.assistantNative);
+  f.sources.assistantNative.refresh = async (...args) => {
+    const operation = original(...args); if (refresh) queued(); return operation;
+  };
   f.evidenceHook = async () => {
     if (refresh) return;
     refresh = f.sources.refreshProjectGrants(user);
-    const deadline = performance.now() + 1000;
-    while (f.sources.views(user).find(source => source.id === "protected")?.state === "connected") {
-      assert.ok(performance.now() < deadline, "the concurrent refresh must enter its pending authority check");
-      await new Promise<void>(resolve => setImmediate(resolve));
-    }
+    await entered;
   };
   const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
   await refresh;
@@ -394,18 +443,41 @@ test("a concurrent native refresh settles before evidence performs its final Run
   assert.equal(JSON.stringify(f.store.events(key)), before);
 });
 
+test("a refresh queued during evidence keeps its validated view until the read commits", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const before = JSON.stringify(f.store.events(key));
+  let refresh: Promise<void> | undefined, active = false, queued!: () => void;
+  const entered = new Promise<void>(resolve => { queued = resolve; });
+  const original = f.sources.assistantNative.refresh.bind(f.sources.assistantNative);
+  f.sources.assistantNative.refresh = async (...args) => {
+    const operation = original(...args); if (active) queued(); return operation;
+  };
+  f.evidenceHook = async () => {
+    if (refresh) return;
+    active = true; refresh = f.sources.refreshProjectGrants(user); await entered;
+    assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+  };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  await refresh;
+  assert.equal(response.status, 200);
+  const view = nativeRunEvidenceViewSchema.parse(await response.json());
+  assert.equal(view.state, "connected"); assert.ok(view.page);
+  assert.equal(JSON.stringify(f.store.events(key)), before);
+});
+
 test("a concurrent native refresh that confirms Project withdrawal still releases no evidence", async t => {
   const f = await fixture(t); await f.snapshot();
   const before = JSON.stringify(f.store.events(key));
-  let refresh: Promise<void> | undefined;
+  let refresh: Promise<void> | undefined, queued!: () => void;
+  const entered = new Promise<void>(resolve => { queued = resolve; });
+  const original = f.sources.assistantNative.refresh.bind(f.sources.assistantNative);
+  f.sources.assistantNative.refresh = async (...args) => {
+    const operation = original(...args); if (refresh) queued(); return operation;
+  };
   f.evidenceHook = async () => {
     if (refresh) return;
     refresh = f.sources.refreshProjectGrants(user);
-    const deadline = performance.now() + 1000;
-    while (f.sources.views(user).find(source => source.id === "protected")?.state === "connected") {
-      assert.ok(performance.now() < deadline);
-      await new Promise<void>(resolve => setImmediate(resolve));
-    }
+    await entered;
     f.projectAllowed = false;
   };
   const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
@@ -431,15 +503,94 @@ test("an unfinished native refresh has a bounded wait and cannot publish the pre
   } finally { release(); await refresh; }
 });
 
+test("a rejected evidence callback releases its queued native refresh", { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot();
+  let refresh: Promise<void> | undefined;
+  const failure = new Error("evidence rejected");
+  await assert.rejects(f.sources.assistantNative.withStableView(user, "protected", async () => {
+    refresh = f.sources.assistantNative.refresh(user);
+    throw failure;
+  }), error => error === failure);
+  await refresh;
+  assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+});
+
+test("a queued refresh captures authority after the reader settles and precedes later readers", { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot();
+  let releaseRead!: () => void, releaseRefresh!: () => void, enterRead!: () => void, enterRefresh!: () => void;
+  const readGate = new Promise<void>(resolve => { releaseRead = resolve; });
+  const refreshGate = new Promise<void>(resolve => { releaseRefresh = resolve; });
+  const reading = new Promise<void>(resolve => { enterRead = resolve; });
+  const refreshing = new Promise<void>(resolve => { enterRefresh = resolve; });
+  t.after(() => { releaseRead(); releaseRefresh(); });
+  let nativeCalls = 0, lateReader = false;
+  const nativeWindow = f.sources.assistant.nativeWindow.bind(f.sources.assistant);
+  f.sources.assistant.nativeWindow = async (...args) => { nativeCalls++; return nativeWindow(...args); };
+  f.hook = async () => { enterRefresh(); await refreshGate; };
+  const first = f.sources.assistantNative.withStableView(user, "protected", async () => { enterRead(); await readGate; });
+  await reading;
+  const refresh = f.sources.assistantNative.refresh(user);
+  const second = f.sources.assistantNative.withStableView(user, "protected", async () => { lateReader = true; });
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(nativeCalls, 0); assert.equal(lateReader, false);
+  releaseRead(); await first; await refreshing;
+  assert.equal(nativeCalls, 1); assert.equal(lateReader, false);
+  releaseRefresh(); await refresh; await second;
+  assert.equal(lateReader, true);
+});
+
+test("invalid stable-view configuration cannot leave a reader blocking later collection", { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot();
+  const source = f.config.sources.find(source => source.id === "protected")!;
+  const producer = source.assistantNativeSourceId;
+  source.assistantNativeSourceId = "missing";
+  let entered = false;
+  await assert.rejects(f.sources.assistantNative.withStableView(user, "protected", async () => { entered = true; }),
+    error => error instanceof AssistantAuthorityError && error.status === 403);
+  assert.equal(entered, false);
+  source.assistantNativeSourceId = producer;
+  await f.sources.assistantNative.refresh(user);
+  assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+});
+
+test("an unrelated protected source identity failure does not block a healthy Run evidence read", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const other = { ...f.config.sources.find(source => source.id === "protected")!, id: "unrelated" };
+  f.config.sources.push(other);
+  assert.equal(f.store.pinSourceIdentity(other.id, sourceIdentity(other)), true);
+  other.baseUrl = "https://changed-native.example";
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  assert.equal(response.status, 200);
+  const value = nativeRunEvidenceViewSchema.parse(await response.json());
+  assert.equal(value.state, "connected"); assert.ok(value.page);
+  assert.equal(f.sources.views(user).find(source => source.id === "unrelated")!.state, "forbidden");
+});
+
+test("credential rotation during a gated API evidence read still rejects its captured authority", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const source = f.config.sources.find(source => source.kind === "assistant")!;
+  let refresh: Promise<void> | undefined;
+  f.evidenceHook = async () => {
+    if (refresh) return;
+    const path = source.assistantCredentialFile!;
+    writeFileSync(path, readFileSync(path, "utf8") + "\n");
+    refresh = f.sources.refreshProjectGrants(user);
+  };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
+  const value = await response.json();
+  await refresh;
+  assert.equal(value.page ?? null, null); assert.notEqual(value.state, "connected");
+  assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+});
+
 for (const rotation of ["assistant-path", "assistant-file", "projects-path"] as const) test(`reauthorizing the same Run after ${rotation} rotation cannot release its previous evidence`, async t => {
   const f = await fixture(t); await f.snapshot();
   const source = f.config.sources.find(row => row.kind === (rotation === "projects-path" ? "projects" : "assistant"))!;
   const path = (rotation === "projects-path" ? source.projectsCredentialFile : source.assistantCredentialFile)!;
   const replacement = join(dirname(path), "rotated-reader.json");
   copyFileSync(path, replacement);
-  const original = f.sources.assistantNative.afterRefresh.bind(f.sources.assistantNative);
   let reads = 0;
-  f.sources.assistantNative.afterRefresh = async (actor, read, deadline) => {
+  const snapshot = async (actor: string) => {
     if (++reads === 2) {
       if (rotation === "assistant-path") source.assistantCredentialFile = replacement;
       else if (rotation === "projects-path") source.projectsCredentialFile = replacement;
@@ -447,10 +598,9 @@ for (const rotation of ["assistant-path", "assistant-file", "projects-path"] as 
       await f.sources.refreshProjectGrants(user);
       assert.equal(f.sources.views(user).find(row => row.id === "protected")!.state, "connected");
     }
-    return original(actor, read, deadline);
+    return f.store.snapshot(actor, f.sources.views(actor));
   };
-  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`);
-  const value = await response.json();
+  const value = await nativeRunEvidence(() => f.config, snapshot, f.sources.assistant, user, key, "0", 250);
   assert.equal(value.page ?? null, null); assert.notEqual(value.state, "connected");
 });
 

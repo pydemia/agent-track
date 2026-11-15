@@ -1,0 +1,89 @@
+{
+  "schema": "agent-track-reader-coordination-verification-v1",
+  "at": "2026-11-15T04:07:29.583Z",
+  "parent": "9be928d",
+  "sourceFilesSha256": {
+    "apps/api/assistant-authority.ts": "be1559a70050bc761b50b39d9093b9e587fad4733ee66396bc2b0a0c9f19bbc7",
+    "apps/api/assistant-native-collector.ts": "dfeea782795276c6d857acc2a0e41db2b22782996fa8a921f4d76068ac279596",
+    "apps/api/server.ts": "e19d8c19710811a3690b843bb474aecc1d4ab4dc6b9461d908b93e79ee08517b",
+    "packages/storage/store.ts": "dabe844e7aa06a07b005d9a2c5e7cbb1782ea8b5b681f6571d4bc6df967797ce",
+    "tests/assistant-native-collector.test.ts": "a78094c0e932056bfacceaecbf3e4f94819a28b8cbcb050a703083db224fe416"
+  },
+  "persona": {
+    "revision": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "relatedTests": {
+      "passed": 327,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sourceCi": {
+      "runs": [
+        43670396041,
+        43670391946
+      ],
+      "conclusion": "failure",
+      "executedSteps": 0,
+      "reason": "GitHub annotation: account payment failure or spending limit",
+      "exceptionApprovedForThisImage": false
+    }
+  },
+  "track": {
+    "tests": {
+      "total": 1241,
+      "passed": 1231,
+      "failed": 0,
+      "skipped": 10,
+      "logSha256": "55cd0587eadf5c39cffe8a3207f74650eda3317d0fc328030e12ed3f05f6bb69"
+    },
+    "focusedTests": {
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "buildCheck": "passed",
+    "independentReview": {
+      "finding": "Unrelated source identity failure blocked healthy evidence",
+      "resolution": "Selected-source gate and API regression",
+      "otherFindings": 0
+    }
+  },
+  "actualReadOnlyStage": {
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "helperId": "98e437fcbdef841d071c753a7edbb48b7cd67a5dde911339d6fd1aee780be654",
+    "windowMs": 6908,
+    "authorityEvidenceMs": 4867,
+    "sseConcurrentRefresh": true,
+    "httpEvidenceMs": 14372,
+    "evidence": {
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "artifacts": 1
+    },
+    "eventMetadataSha256": "6dd3a119db9ad1a697e437728c081ceaec79ae0eb2861eeba65fa910dc60c4bb",
+    "originalEventsPreserved": true,
+    "sqliteWrites": 0,
+    "helperRemoved": true,
+    "tunnelClosed": true,
+    "originalProcessPreserved": true,
+    "productionStoreOpened": false,
+    "productionSourceChanged": false,
+    "modelRequests": 0
+  },
+  "deployment": {
+    "assistant": "not-deployed",
+    "track": "not-deployed",
+    "web": "preserved",
+    "writer": "disabled"
+  },
+  "acceptance": {
+    "met": 15,
+    "total": 21,
+    "percent": 71.4,
+    "partialWeight": 0,
+    "eta": null
+  }
+}
