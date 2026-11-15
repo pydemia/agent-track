@@ -3,6 +3,9 @@
 최신 [reader 지연·동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존
 업무의 격리 SSE·상세 조회를 통과했다. 후속 Track 운영 API는06dd8c7·web은27e00a8이다.
 새 Persona 이미지의 CI 실행 전 실패와 별도 예외 승인 조건을 문서에 구분했다.
+후속 [전체 앱의 과거 사본 기동·롤백](assistant-reader-app-preview.md)에서는 새/이전
+이미지의 실제 main·reader 인증, 각 시작 이벤트6개의 전체 payload와 업무 원장 보존을
+확인했다. 새 운영 백업·운영 Assistant 전환·사용자 화면 수용은 별도 단계로 남긴다.
 
 현재 기준은 2026-11-15 KST다. Track API06dd8c7·web27e00a8, Assistant9382c9c와
 보호 source가 운영 연결돼 있다. 이전 Edge 검사에서 Track Entra 로그인과 같은 실제 Run의

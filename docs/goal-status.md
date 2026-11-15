@@ -3,6 +3,12 @@
 ## 현재 판정 — 2026-11-15 KST
 
 **기존 수용 판정 15/21·71.4%를 유지한다. 전체 개발 완료율은 산정하지 않는다.**
+새 Assistant와 이전 이미지의 [전체 앱 사본 기동·롤백](assistant-reader-app-preview.md)은
+통과했다. 실제 serializer의 시작 이벤트 payload와 기존 업무·이력 보존을 대조했다.
+현재 운영 사본의 동등성이나 운영 Assistant 전환·화면 수용으로 계산하지 않는다.
+Edge의 Track Entra 로그인 화면은 다시 열었다. 후속 화면에 `Request denied`가
+표시돼 로그인을 완료하지 못했다. 인증 요청을 자동 재전송하지 않았다.
+[후속 인증 관측](assistant-reader-auth-observation.json)은 Note 발행 시점의 승인 대기와 구별한다.
 후속 [reader 동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존 Run의
 격리 SSE·상세 조회를 통과했다. Track API06dd8c7의 [운영 전환](assistant-reader-coordination-operating.json)도
 완료했다. 새 Assistant의 예외 승인·전환과 현재 화면 검증은 남아 있어 수용 개수는

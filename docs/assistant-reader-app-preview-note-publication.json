@@ -1,0 +1,22 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "839e8aa4-629c-4e89-a59d-d2800af663b1",
+  "title": "Agent Track 새 Assistant 사본 검증·진척 현황 — 2026-11-15",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/01fd5369-ae66-4fc7-915b-f54a6fb4b940",
+  "workspaceId": "personal-note-production",
+  "pageId": "01fd5369-ae66-4fc7-915b-f54a6fb4b940",
+  "revision": "ea5d9d7ec74028289c4352152c4d7522d3c59ac1aba9de875e69d933bf82226a",
+  "sourceSha256": "fc071b8059aa8fd8cd09bbde4522567373aead84cfbd864bb937ba6a91ca8d42",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "wholeWorkflowAcceptance": false,
+  "verifiedAt": "2026-11-15T06:11:22.192Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/assistant-reader-app-preview.md",
+  "markdownSha256": "8a9bc4e9363e85db3fb797c3b5c73fa0e785a4340d686248d61755efcadd67ea",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/d855e98b-3197-4440-bbd9-b2b7fc44e886",
+  "authStateAtDispatch": "Authenticator approval pending; see subsequent assistant-reader-auth-observation.json for later state"
+}

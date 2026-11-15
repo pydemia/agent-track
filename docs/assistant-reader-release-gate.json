@@ -58,5 +58,12 @@
     "newCandidateApproval": "requested-awaiting-user"
   },
   "operatingAssistantChanged": false,
-  "writerEnabled": false
+  "writerEnabled": false,
+  "fullAppHistoricalPreview": {
+    "verification": "assistant-reader-app-preview.json",
+    "phase": "full-reader-main-and-rollback-copy-verified",
+    "operation": "c70fe931-3002-4250-b128-1ead8e44cfa0",
+    "productionPromoted": false,
+    "currentProductionDataEquivalence": false
+  }
 }

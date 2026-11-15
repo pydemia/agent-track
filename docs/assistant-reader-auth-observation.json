@@ -1,0 +1,17 @@
+{
+  "schema": "agent-track-entra-ui-observation-v1",
+  "observedAt": "2026-11-15T06:12:11Z",
+  "destination": "https://track.pydemia.ai/",
+  "browser": "Edge",
+  "loginPageOpened": true,
+  "existingWorkAccountSelected": true,
+  "passwordEntered": false,
+  "newPermissionsGranted": false,
+  "authenticatorPromptObserved": true,
+  "finalEntraHeading": "Request denied",
+  "loginCompleted": false,
+  "requestAutomaticallyResent": false,
+  "userActionIndependentlyEstablished": false,
+  "currentUiAccepted": false,
+  "noteSnapshot": "assistant-reader-app-preview-note-publication.json"
+}

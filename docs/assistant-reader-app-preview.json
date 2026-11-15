@@ -1,0 +1,196 @@
+{
+  "schema": "agent-track-assistant-reader-app-preview-v1",
+  "verifiedAt": "2026-11-15T06:09:18.825Z",
+  "scope": "Historical 2026-11-14 sealed snapshot restored into an isolated owned volume; full app main and rollback only",
+  "sourceSha256": {
+    "full-preview-continuation-controller.py": "ef52039454766e84f01145831a789700c1b1fbd1ba8cddd0da7438a4d18133e0",
+    "audit-startup-payloads.mjs": "ce573c4bd0acd793acde3703af385521f21a070a639b18c5e9d7b024e4ee577d",
+    "startup-payload-compare.mjs": "d9ab0b888ac52ce2a2f94aed60d3aa183f7f3929ff9c3c7c512df29681ef8dce",
+    "full-preview-v2-restore.mjs": "3dc8bdb64760e546c4f62f107921118c62a1582abdafa44e6fda05e444c66763"
+  },
+  "controllerSha256": "ef52039454766e84f01145831a789700c1b1fbd1ba8cddd0da7438a4d18133e0",
+  "result": {
+    "phase": "full-reader-main-and-rollback-copy-verified",
+    "operation": "c70fe931-3002-4250-b128-1ead8e44cfa0",
+    "previousOperation": "869fcc1f-ec68-4c4a-98cc-ee712a1a84db",
+    "startedAt": 1794722768.9573338,
+    "candidateRevision": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "candidateImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "rollbackImage": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+    "inputSnapshot": "Continuation of existing restored historical preview; no new restore",
+    "sourceVolume": "agent-track-native-recovery-83ad42efc6fe-v3",
+    "stateVolume": "agent-track-reader-preview-869fcc1f-ec6",
+    "newProductionBackupCreated": false,
+    "currentProductionDataEquivalence": false,
+    "productionPromoted": false,
+    "publicPorts": 0,
+    "network": "none",
+    "externalModelRequests": 0,
+    "writerActivated": false,
+    "previousStoppedSnapshotReverified": true,
+    "candidatePreservation": {
+      "work": {
+        "oldTables": 31,
+        "newTables": [
+          "work_execution_role_command_audits",
+          "work_execution_role_commands"
+        ],
+        "nonLeaseRowChanges": [],
+        "exactHistoricalStartupInverse": false,
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ]
+      },
+      "runtime": {
+        "oldTables": 64,
+        "newTables": [
+          "work_demian_successor_plans"
+        ],
+        "nonLeaseRowChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "exactHistoricalStartupInverse": true,
+        "operationalLeaseExceptions": [
+          "import_leases",
+          "runtime_leases"
+        ]
+      }
+    },
+    "candidateMainHealth": 200,
+    "candidateAppVerifiedInPreviousOperation": true,
+    "rollbackMainHealth": 200,
+    "rollbackAppId": "fa0c57eb8d84e8fd6cf5bd523be08232e82a371edacdc341cdfe0619f06a0f54",
+    "rollbackPreservation": {
+      "work": {
+        "oldTables": 33,
+        "newTables": [],
+        "nonLeaseRowChanges": [],
+        "exactHistoricalStartupInverse": false,
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ]
+      },
+      "runtime": {
+        "oldTables": 65,
+        "newTables": [],
+        "nonLeaseRowChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "exactHistoricalStartupInverse": true,
+        "operationalLeaseExceptions": [
+          "import_leases",
+          "runtime_leases"
+        ]
+      }
+    },
+    "protectedProcessesAndContractsPreserved": 13,
+    "operatingCandidateStarted": false,
+    "originalStateMountedByPreview": false,
+    "originalWorkerCgroupMountedOrParentReused": false,
+    "ownedContainersRemoved": 5,
+    "cleanupFailed": false,
+    "cleanupPendingIds": [],
+    "cleanupPendingNames": [],
+    "previewVolumeRetained": "agent-track-reader-preview-869fcc1f-ec6",
+    "intendedPreviewVolume": "agent-track-reader-preview-869fcc1f-ec6",
+    "productionVolumesRemoved": 0,
+    "finishedAt": 1794722859.9606676,
+    "fullAppReaderChecks": [
+      {
+        "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+        "anonymous": 401,
+        "authorized": 200,
+        "controls": false,
+        "roleAttemptsSupported": true
+      },
+      {
+        "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+        "anonymous": 401,
+        "authorized": 200,
+        "controls": false,
+        "roleAttemptsSupported": false
+      }
+    ],
+    "fullStartupPayloadChecks": [
+      {
+        "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+        "stoppedSnapshot": true,
+        "fullPayloadsMatched": 6,
+        "readonly": true
+      },
+      {
+        "image": "sha256:de1b1f1e9c12589d5cad1a0e86cfd862980295528e8ea7f1ffc4c6f0e5ac22b1",
+        "stoppedSnapshot": true,
+        "fullPayloadsMatched": 6,
+        "readonly": true
+      }
+    ],
+    "originalProcessesPreservedAfterCleanup": true
+  },
+  "baseline": {
+    "encryptedSnapshotReused": true,
+    "newProductionBackupCreated": false,
+    "referenceSchemaAndTypedTableHashesMatched": true,
+    "workBytes": 45719552,
+    "runtimeBytes": 5203615744,
+    "activeExecutionTaskReportImportCounts": 0,
+    "initialOperation": "869fcc1f-ec68-4c4a-98cc-ee712a1a84db"
+  },
+  "startupAudit": {
+    "expectedEventsPassedExplicitly": true,
+    "exactEventCountAndCompletePayloadEquality": true,
+    "sharedSampledNow": true,
+    "actualImageSerializers": true,
+    "serializerSourceIdenticalBetweenImages": true,
+    "contextProof": "Actual taskContextAvailable with every external service gate true is still false; both callback variants yield identical full serialized payloads",
+    "readonlySqliteChanges": 0,
+    "reasonForUnavailabilityIndependentlyEstablished": false,
+    "originalEventTimePolicyEvaluationClaimed": false
+  },
+  "isolation": {
+    "network": "none",
+    "publicPorts": 0,
+    "originalConfigAndCredentialMounts": "retained read-only for full app main/rollback; no new credential mounts or grants",
+    "payloadAuditMounts": "owned historical state read-only plus audit reference only; no config or credentials",
+    "productionStateMounted": false,
+    "workerCgroupMountedOrParentReused": false
+  },
+  "localRegression": {
+    "sqliteNullPrototypeFailureReproduced": true,
+    "normalizedFullEqualityPassed": true,
+    "changedDataRejected": true,
+    "completePayloadComparator": {
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "limits": {
+    "currentProductionDataEquivalence": false,
+    "operatingAssistantReplaced": false,
+    "currentUiAccepted": false,
+    "writerEnabled": false,
+    "modelRequests": 0,
+    "sourceCiExceptionApproved": false
+  },
+  "acceptance": {
+    "met": 15,
+    "total": 21,
+    "percent": 71.4,
+    "partialWeight": 0,
+    "eta": null
+  },
+  "independentReview": {
+    "scope": "read-only audit and continuation controller review",
+    "expectedEventCountAndClockFindings": "resolved with explicit expected count and one sampled clock",
+    "fullAppVsAuditMountFinding": "retracted after separating inherited readonly app mounts from state/reference-only audit helpers",
+    "remainingCodeBlockers": 0,
+    "remoteRunIndependentlyVerified": false
+  }
+}
