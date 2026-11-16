@@ -100,6 +100,10 @@ async function bytes(path, limit = 4 * 1024 * 1024) {
 }
 async function digest(path) { try { return hash(await bytes(path, 128 * 1024 * 1024)); } catch (e) { if (e.code === 'ENOENT') return null; throw e; } }
 const load = async path => JSON.parse((await bytes(path)).toString('utf8'));
+// A preservation baseline includes up to 100,000 immutable nonce fingerprints,
+// an MVCC snapshot and worker freshness rows. It is larger than a control file.
+// Keep ordinary plans/configs/manifests at 4 MiB and retain all file-identity checks.
+export const loadTrackBaseline = async path => JSON.parse((await bytes(path, 64 * 1024 * 1024)).toString('utf8'));
 async function saveNew(path, value) { const handle = await open(path, 'wx'); try { await handle.writeFile(value); await handle.sync(); } finally { await handle.close(); } }
 async function journal(p, stage, details) { const file = await open(join(p.operationDir, 'journal.jsonl'), 'a'); try { await file.writeFile(JSON.stringify({at: new Date().toISOString(), stage, ...(details ? {details} : {})}) + '\n'); await file.sync(); } finally { await file.close(); } }
 export function trackPendingCommands(database) {
@@ -129,7 +133,7 @@ async function inputs(inputFile, inputSha, recovery = false) {
   assert.equal((await bytes(join(p.operationDir, 'purpose'))).toString(), `agent-track-frozen-runtime-operation-v${p.version}\n`);
   for (const [path, expected] of Object.entries(p.sources)) assert.equal(await digest(join(repository, path)), expected);
   for (const [file, expected] of [[p.baselineFile, p.baselineSha256], [p.releasesFile, p.releasesSha256], [p.qaFile, p.qaSha256]]) assert.equal(await digest(file), expected);
-  const baseline = await load(p.baselineFile), releases = await load(p.releasesFile), qa = await load(p.qaFile);
+  const baseline = await loadTrackBaseline(p.baselineFile), releases = await load(p.releasesFile), qa = await load(p.qaFile);
   assert(baseline.version === p.version && baseline.operationId === p.operationId && samePath(baseline.operationDir, p.operationDir) && samePath(baseline.state, state) && samePath(baseline.repository, repository));
   assert(samePath(baseline.configFile, join(state, 'track-product.config.json')) && samePath(baseline.pointerFile, join(state, 'track-runtime.json')) && samePath(baseline.receiptFile, join(state, 'track-product-process.json')));
   assert(samePath(baseline.backup.file, join(p.operationDir, 'backup.sqlite')) && sha(baseline.backup.sha256));

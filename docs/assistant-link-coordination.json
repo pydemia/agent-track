@@ -17,6 +17,23 @@
     "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
   },
   "operatingApplied": false,
+  "apiCandidate": {
+    "revision": "00c06b8c8ca78513d73eec8fe6a9fd43f420b4f2",
+    "ciRun": 43797017958,
+    "windows": "success",
+    "ubuntu": "success",
+    "actualSourceCanary": "passed: list/detail/events each connected with one link; concurrent SSE/snapshot; eight original events preserved",
+    "initialCanaryFailure": "First native collection reached its unchanged 10-second deadline; the subsequent instrumented run passed. Intermittent cold collection latency is not claimed resolved."
+  },
+  "baselineLoader": {
+    "reason": "Current preservation baseline is 8,396,718 bytes, including 8,369,961 bytes of nonce fingerprints; existing native preservation supports up to 100,000 nonce rows",
+    "baselineOnlyLimitBytes": 67108864,
+    "ordinaryControlFileLimitBytes": 4194304,
+    "allFileIdentityAndNonceRowChecksRetained": true,
+    "before": { "tests": 2, "passed": 1, "failed": 1 },
+    "afterRelated": { "tests": 39, "passed": 39, "failed": 0 },
+    "coldCandidateAndRollback": "passed on the current operating Track backup; original API and source DB unchanged"
+  },
   "authenticatedUiRecheckAfterFix": false,
   "wholeWorkflowAccepted": false,
   "followUp": "Freeze exact CI-passed API with existing web, apply through the existing runtime operation, and recheck the same execution in Edge"
