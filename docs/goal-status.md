@@ -2,6 +2,14 @@
 
 ## 현재 판정 — 2026-11-17 KST
 
+일반 Trace·명령 이력의 독립 수정은 운영 API·Entra 화면까지 확인했다. 남은 실제
+수용 경로는 외부 조건에 막혀 있다. 새 Persona90e0825/image33e19141의 정확한 후보
+CI 예외 승인은 여러 연속 goal turn 동안 대기 중이며 현재 두 CI도 실패 상태다.
+기존4a9ad42/b68ece66 승인을 확대하지 않는다. 원본 Demian401/Basic, writer 비활성,
+peer QA API·credential 부재도 현재 다시 확인했다. 완료로 판정하지 않으며 다음
+후보 CI 통과 또는 정확한 후보 예외 승인 뒤 보호 업무의 반복 검증부터 재개한다.
+[현재 잔여 경계와 차단 감사](remaining-gates-audit-20261117.json)를 따른다.
+
 현재 Persona source4a9ad42/imageb68ece66과 Track API047b4d6·web474676f를 운영 중이다.
 일반 Native 문맥의 무관한 Assistant 수집·순차 조회·전체 소유자 투영 비용을 수정했다.
 같은2초 제한에서 Task281ms/1Run·Project215ms/4Run과 실제 Edge 요약·목록 배지의

@@ -1,0 +1,160 @@
+{
+  "recordedAt": "2026-11-16T16:43:38.894211+00:00",
+  "dateKst": "2026-11-17",
+  "scope": "Remaining real acceptance paths after authorized ordinary reader fixes; no new implementation or operating change in this audit",
+  "previousGoalTurn": "progress: command history fix047b4d6 deployed and actual API/Entra GUI verified; Persona Windows candidate recheck passed",
+  "currentGoalTurn": "no acceptance progress; existing external gates revalidated",
+  "operatingTrack": {
+    "api": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "web": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "evidence": "command-history-scoped-reads-verification.json"
+  },
+  "personaGate": {
+    "approvedOperatingSource": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "approvedOperatingImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "candidateSource": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "candidateImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "currentCi": [
+      {
+        "id": 43862557819,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "id": 43862473033,
+        "event": "push",
+        "status": "completed",
+        "conclusion": "failure"
+      }
+    ],
+    "failurePreviouslyVerified": "billing/spending limit, before job steps; no newer exact-source run returned",
+    "candidateQa": "Windows1345/1331pass/0fail/14skip; Linux1345/1336pass/0fail/9skip; not full upstream CI",
+    "exactCandidateExceptionApproval": "pending; earlier user exception explicitly names different source/image",
+    "candidateActivated": false
+  },
+  "currentLocalGates": {
+    "at": "2026-11-16T16:42:21.374Z",
+    "readOnly": true,
+    "operatingChanges": 0,
+    "sources": [
+      {
+        "id": "demian-local",
+        "kind": "demian",
+        "device": "PYDEMIA-DESKTOP",
+        "protectedReader": false,
+        "runCommandsEnabledForOwner": false,
+        "assistantCommandsEnabledForOwner": false,
+        "commandCredentialConfigured": false
+      },
+      {
+        "id": "assistant-native",
+        "kind": "assistant",
+        "device": "server",
+        "protectedReader": false,
+        "runCommandsEnabledForOwner": false,
+        "assistantCommandsEnabledForOwner": false,
+        "commandCredentialConfigured": false
+      },
+      {
+        "id": "demian-assistant-owner",
+        "kind": "demian",
+        "device": "pydemia-desktop",
+        "protectedReader": true,
+        "runCommandsEnabledForOwner": false,
+        "assistantCommandsEnabledForOwner": false,
+        "commandCredentialConfigured": false
+      }
+    ],
+    "publicDemianAuth": [
+      {
+        "path": "/",
+        "status": 401,
+        "authenticationScheme": "Basic"
+      },
+      {
+        "path": "/sessions/095abfb9-01ad-41b9-beff-38c7e76bb05e",
+        "status": 401,
+        "authenticationScheme": "Basic"
+      }
+    ]
+  },
+  "currentPeerGates": {
+    "at": "2026-11-16T16:42:22.024364+00:00",
+    "readOnly": true,
+    "operationId": "c439b984-6c71-40a6-869e-12c271c4b900",
+    "remoteRootExists": true,
+    "engines": [
+      {
+        "socket": "/var/run/docker.sock",
+        "socketExists": true,
+        "exitCode": 1,
+        "failure": "missing"
+      },
+      {
+        "socket": "/run/user/1000/docker.sock",
+        "socketExists": true,
+        "exitCode": 1,
+        "failure": "missing"
+      }
+    ],
+    "purposeMatches": true,
+    "files": {
+      "plan-v4.json": false,
+      "private-resources-v4.json": false,
+      "api-v4-container.json": true,
+      "release/worker-release.json": true,
+      "app.mts": true
+    }
+  },
+  "remaining": [
+    {
+      "id": "AT-06",
+      "unproven": "Authenticated original Demian same-Session browser selection; Projects Task path already verified"
+    },
+    {
+      "id": "AT-09",
+      "unproven": "Actual authorized provider/owner command and same-ID recovery; original command-context404 and writer disabled"
+    },
+    {
+      "id": "AT-12",
+      "unproven": "Actual peer representative edge pointer selection; prior peer read boundary removed"
+    },
+    {
+      "id": "AT-14",
+      "unproven": "Stable protected Assistant whole-workflow repeated acceptance; exact new candidate deployment gate remains"
+    },
+    {
+      "id": "AT-15",
+      "unproven": "Multiple actual devices on same operating dashboard and selection/filter preservation"
+    },
+    {
+      "id": "AT-20",
+      "unproven": "Original authenticated Demian browser context and public-web failure isolation"
+    }
+  ],
+  "blockedAudit": {
+    "sameCandidateApprovalGatePersistedAcrossAtLeastThreeConsecutiveGoalTurns": true,
+    "independentProgressContinuedWhileGatePersisted": true,
+    "supportingRecords": [
+      "ordinary-evidence-scoped-reads.md",
+      "command-history-scoped-reads.md",
+      "projects-read-transport-candidate.json"
+    ],
+    "noFurtherIndependentAcceptancePathEstablished": true,
+    "notWaitingOnLiveJob": true,
+    "noNarrowerGoalSubstitution": true,
+    "nextCondition": "Exact candidate CI passes or user explicitly approves its source/image CI exception; original auth and scoped real peer/writer conditions remain separately required"
+  },
+  "upperAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal, partial=0",
+    "lowerLevelDenominator": null
+  },
+  "readOnlyAudit": true,
+  "newCredentials": 0,
+  "newProviderRuns": 0,
+  "operatingChanges": 0
+}
