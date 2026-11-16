@@ -75,18 +75,18 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
   // publication still pass their own current authority fences.
   for (let offset = 0; offset < window.length; offset += 4) {
     const batch = await Promise.all(window.slice(offset, offset + 4).map(async (run) => {
-    const before = authorize();
-    const source = before.current.sources.find((item) => item.id === run.sourceId && item.kind === "demian" && item.baseUrl && item.users.includes(initial.user));
-    if (!source || source.assistantNativeSourceId || !before.allowedRun(run)) { unavailable = true; return null; }
-    const stamp = sourceIdentity(source);
-    try {
-      const native = await new DemianClient(options(source)).observe(run.runId);
-      const current = authorize();
-      if (native.sessionId !== run.sessionId || native.workspaceId !== run.workspaceId ||
-        !current.view.runs.some((item) => item.key === run.key && current.allowedRun(item) && bindingStamp(item) === bindingStamp(run)) ||
-        !current.current.sources.some((item) => item.id === source.id && sourceIdentity(item) === stamp)) { unavailable = true; return null; }
-      return { run, native, stamp, binding: bindingStamp(run) };
-    } catch (error) { if (error instanceof CommandError) throw error; unavailable = true; return null; }
+      const before = authorize();
+      const source = before.current.sources.find((item) => item.id === run.sourceId && item.kind === "demian" && item.baseUrl && item.users.includes(initial.user));
+      if (!source || source.assistantNativeSourceId || !before.allowedRun(run)) { unavailable = true; return null; }
+      const stamp = sourceIdentity(source);
+      try {
+        const native = await new DemianClient(options(source)).observe(run.runId);
+        const current = authorize();
+        if (native.sessionId !== run.sessionId || native.workspaceId !== run.workspaceId ||
+          !current.view.runs.some((item) => item.key === run.key && current.allowedRun(item) && bindingStamp(item) === bindingStamp(run)) ||
+          !current.current.sources.some((item) => item.id === source.id && sourceIdentity(item) === stamp)) { unavailable = true; return null; }
+        return { run, native, stamp, binding: bindingStamp(run) };
+      } catch (error) { if (error instanceof CommandError) throw error; unavailable = true; return null; }
     }));
     for (const row of batch) if (row) validated.push(row);
   }

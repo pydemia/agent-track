@@ -69,7 +69,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   if (!Number.isSafeInteger(flowViewRequestTimeoutMs) || flowViewRequestTimeoutMs < 1 || flowViewRequestTimeoutMs > 10_000) throw new Error("Invalid saved-view request deadline");
   const root = resolve(webRoot);
   const taskAssignments = new TaskAssignments(store, config, sources);
-  const snapshot = (user: string) => projectSuccessorSnapshot(taskAssignments.filterSnapshot(store.snapshot(user, sources.views(user))), config(), successors);
+  const snapshot = (user: string, sourceIds?: ReadonlySet<string>) => projectSuccessorSnapshot(taskAssignments.filterSnapshot(
+    store.snapshot(user, sources.views(user).filter(source => !sourceIds || sourceIds.has(source.id)))), config(), successors);
   const commands = new CommandService(store);
   const successors = new SuccessorCommands(store);
   const runSuccessors = new RunSuccessors(store, config, sources, snapshot);
@@ -99,7 +100,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (!target || privateUrl.search || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
           json(response, 400, { error: "invalid_context" }); return;
         }
-        const readerSnapshot = (user: string) => taskAssignments.filterSnapshot(snapshot(user),
+        // The service reader has an explicit source scope. Apply it before
+        // reading Run relations, while retaining fresh snapshots and every
+        // assignment/Project/command visibility fence on each authorization.
+        const sourceIds = new Set([...reader.nativeSourceIds, ...reader.projectScopes.map(scope => scope.sourceId)]);
+        const readerSnapshot = (user: string) => taskAssignments.filterSnapshot(snapshot(user, sourceIds),
           (sourceId, projectId) => reader.projectScopes.some((scope) => scope.sourceId === sourceId && scope.projectIds.includes(projectId)));
         const value = await contextSummary(config, readerSnapshot, reader, target, sources);
         const confirmed = authenticateContextReader(request, config());

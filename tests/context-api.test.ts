@@ -62,11 +62,15 @@ test("private context API scopes independent readers, verifies original Task/nat
   const nativeBase = await listen(native);
   config = configSchema.parse({ port: 14345, database: join(root, "product.sqlite"), publicOrigin: "https://track.example.test", auth: { mode: "proxy", secretFile: proxyFile, users: [user] },
     sources: [{ id: "projects", kind: "projects", label: "Projects", device: "fixture", users: [user], baseUrl: nativeBase, projectsUser: user, projectsAccountId: id(90), projectsPrincipalId: "reader", projectsCredentialFile: credentialFile },
-      { id: "native", kind: "demian", label: "Native", device: "fixture", users: [user], baseUrl: nativeBase }],
+      { id: "native", kind: "demian", label: "Native", device: "fixture", users: [user], baseUrl: nativeBase },
+      { id: "unrelated-codex", kind: "codex", label: "Codex", device: "fixture", users: [user] }],
     contextReaders: [{ id: "projects-context", purpose: "projects", user, secretFile, nativeSourceIds: ["native"], projectScopes: [{ sourceId: "projects", projectIds: [id(1)] }], sessionScopes: [{ sourceId: "native", sessionIds: [id(3), id(4)] }] }] });
   assert.equal(configSchema.safeParse({ ...config, contextReaders: [{ ...config.contextReaders![0], secretFile: proxyFile }] }).success, false);
   assert.equal(configSchema.safeParse({ ...config, contextReaders: [{ ...config.contextReaders![0], user: "other@example.test" }] }).success, false);
   const store = new Store(config.database);
+  store.observeRun({ sourceId: "unrelated-codex", runId: id(99), sessionId: id(98), workspaceId: null, title: "PRIVATE_CODEX_RUN", status: "succeeded", createdAt: at, startedAt: at, completedAt: at, observedAt: at });
+  const snapshotSources: string[][] = [], originalSnapshot = store.snapshot.bind(store);
+  store.snapshot = (actor, views, now) => { snapshotSources.push(views.map(view => view.id)); return originalSnapshot(actor, views, now); };
   for (const n of [20, 21, 22, 23]) {
     store.observeRun({ sourceId: "native", runId: id(n), sessionId: n === 21 ? id(4) : id(3), workspaceId: id(5), title: "PRIVATE_RUN", status: "queued", createdAt: at, startedAt: null, completedAt: null, observedAt: at });
     if (n !== 23) store.bind({ sourceId: "native", runId: id(n), projectSourceId: "projects", projectId: n === 22 ? id(9) : id(1), taskId: n === 22 ? id(10) : id(2),
@@ -74,8 +78,11 @@ test("private context API scopes independent readers, verifies original Task/nat
   }
   const sources = new Sources(store, () => config);
   let unrelatedAssistantReads = 0;
-  sources.assistantNative.refresh = async () => { unrelatedAssistantReads++; throw new Error("Unrelated Assistant collection unavailable"); };
-  sources.views = (actor) => actor === user ? [{ id: "native", kind: "demian", label: "Native", device: "fixture", state: nativeConnected ? "connected" : "disconnected", lastObservedAt: at, detail: "fixture", capabilities: ["run.read"] } as SourceView, sources.projects.view(config.sources[0]!, actor)] : [];
+  const originalAssistantRefresh = sources.assistantNative.refresh.bind(sources.assistantNative);
+  const unavailableAssistant = async () => { unrelatedAssistantReads++; throw new Error("Unrelated Assistant collection unavailable"); };
+  sources.assistantNative.refresh = unavailableAssistant;
+  sources.views = (actor) => actor === user ? [{ id: "native", kind: "demian", label: "Native", device: "fixture", state: nativeConnected ? "connected" : "disconnected", lastObservedAt: at, detail: "fixture", capabilities: ["run.read"] } as SourceView,
+    { id: "unrelated-codex", kind: "codex", label: "Codex", device: "fixture", state: "connected", lastObservedAt: at, detail: "fixture", capabilities: [] }, sources.projects.view(config.sources[0]!, actor)] : [];
   const { server } = createTrackServer(store, () => config, root, sources); const base = await listen(server);
   store.db.prepare(`INSERT INTO task_assignment_receipts(actor,id,project_source_id,project_id,task_id,task_revision,review_sha256,demian_source_id,session_id,session_sha256,request_digest,source_identity,input_sha256,state,run_id,binding_state,created_at,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(user,id(70),"projects",id(9),id(10),"1","hash","native",id(3),"hash","hash","hash","hash","accepted",id(23),"pending",at,at);
@@ -85,6 +92,15 @@ test("private context API scopes independent readers, verifies original Task/nat
   try {
     const response = await read(); assert.equal(response.status, 200); const body = await response.text(); assert.doesNotMatch(body, /PRIVATE_|actor|credential|apiToken/);
     const result = contextSummarySchema.parse(JSON.parse(body)); assert.equal(result.counts.runs, 2); assert.equal(result.counts.sessions, 2); assert.equal(result.counts.byStatus.succeeded, 2);
+    assert(snapshotSources.length > 0 && snapshotSources.every(ids => !ids.includes("unrelated-codex")), "private reader projects only its current registered source scope before querying Run relations");
+    snapshotSources.length = 0;
+    sources.assistantNative.refresh = originalAssistantRefresh;
+    const ownerResponse = await fetch(base + "/api/snapshot", { headers: { "x-track-proxy-key": proxyKey, "x-forwarded-email": user } });
+    sources.assistantNative.refresh = unavailableAssistant;
+    assert.equal(ownerResponse.status, 200);
+    const ownerView = await ownerResponse.json();
+    assert(ownerView.runs.some((run: { sourceId: string }) => run.sourceId === "unrelated-codex"));
+    assert(snapshotSources.some(ids => ids.includes("unrelated-codex")), "general owner dashboard retains every authorized source");
     readGate.enabled = false;
     assert.equal(readGate.peak, 2, "independent native reads must overlap instead of accumulating every Run latency");
     assert.deepEqual(result.runs.map(run => run.runId), [id(20), id(21)], "parallel completion preserves stable context order");
