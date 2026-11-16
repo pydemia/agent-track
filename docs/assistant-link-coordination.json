@@ -32,6 +32,12 @@
     "allFileIdentityAndNonceRowChecksRetained": true,
     "before": { "tests": 2, "passed": 1, "failed": 1 },
     "afterRelated": { "tests": 39, "passed": 39, "failed": 0 },
+    "finalRelatedIncludingRecovery": { "tests": 50, "passed": 50, "failed": 0 },
+    "typecheck": "passed after the loader declaration was added",
+    "ciFailures": [
+      { "run": 43798066292, "reason": "Missing TypeScript declaration for the new loader; declaration added" },
+      { "run": 43798278891, "reason": "Extracted recovery-test input function needed its new baseline-loader dependency injected; recovery expectation retained" }
+    ],
     "coldCandidateAndRollback": "passed on the current operating Track backup; original API and source DB unchanged"
   },
   "authenticatedUiRecheckAfterFix": false,

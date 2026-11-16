@@ -88,7 +88,8 @@ test('actual input validation admits recovery evidence without loading the damag
   const visited: string[] = [];
   const deps = {assert, sha: () => true, bytes: async (path: string) => Buffer.from(path === 'input' ? JSON.stringify(plan) : 'agent-track-frozen-runtime-operation-v1\n'), hash: () => pin,
     validateTrackRuntimePlan: (value: unknown) => value, state, repository, samePath: (a: string, b: string) => a === b, realpath: async (p: string) => p,
-    join, digest: async () => pin, load: async (p: string) => data.get(p), structuredClone, dirname, assertTrackColdProof,
+    join, digest: async () => pin, load: async (p: string) => { assert.notEqual(p, plan.baselineFile); return data.get(p); },
+    loadTrackBaseline: async (p: string) => { assert.equal(p, plan.baselineFile); return baseline; }, structuredClone, dirname, assertTrackColdProof,
     verifyRuntimeRelease: async (path: string) => { visited.push(path); throw Error('candidate closure mismatch'); }};
   const inputs = new Function(...Object.keys(deps), body + ';return inputs;')(...Object.values(deps));
   await assert.rejects(inputs('input', pin, false), /candidate closure mismatch/); assert.equal(visited.length, 1); visited.length = 0;
