@@ -1,0 +1,95 @@
+{
+  "recordedAt": "2026-11-16T13:57:24.649Z",
+  "requirements": [
+    "AT-12",
+    "AT-15"
+  ],
+  "current": {
+    "at": "2026-11-16T13:43:06.113764+00:00",
+    "readOnly": true,
+    "operationId": "c439b984-6c71-40a6-869e-12c271c4b900",
+    "remoteRootExists": true,
+    "engines": [
+      {
+        "socket": "/var/run/docker.sock",
+        "socketExists": true,
+        "exitCode": 1,
+        "failure": "missing"
+      },
+      {
+        "socket": "/run/user/1000/docker.sock",
+        "socketExists": true,
+        "exitCode": 1,
+        "failure": "missing"
+      }
+    ],
+    "purposeMatches": true,
+    "files": {
+      "plan-v4.json": false,
+      "private-resources-v4.json": false,
+      "api-v4-container.json": true,
+      "release/worker-release.json": true,
+      "app.mts": true
+    }
+  },
+  "archive": {
+    "at": "2026-11-16T13:53:59.004708+00:00",
+    "readOnly": true,
+    "sourceOrModelDispatch": false,
+    "engines": [
+      {
+        "socket": "/var/run/docker.sock",
+        "readSucceeded": true,
+        "ownedContainers": 0
+      },
+      {
+        "socket": "/run/user/1000/docker.sock",
+        "readSucceeded": true,
+        "ownedContainers": 0
+      }
+    ],
+    "archiveExists": true,
+    "archiveBytes": 164189,
+    "archiveSha256": "293f27460de7d8a1dbeaca2da54fc051d9185d617d0066201e9cf14a31aaccb4",
+    "archiveMatchesOriginalProof": true,
+    "independentRecordExists": true,
+    "runIdMatches": true,
+    "runStatus": "succeeded",
+    "events": 49,
+    "outputSha256": "6f9fac0af72608ebea2317f19b11c132737b1f072e04b8cf4e95c8b12f8ab132"
+  },
+  "historicalCleanup": {
+    "evidence": "native-peer-processing-verification.json",
+    "completedAt": "2026-11-13",
+    "ownedQaContainersRemoved": true,
+    "qaCredentialFilesRemoved": true,
+    "localApiCapabilityFileRemoved": true
+  },
+  "sourceReview": {
+    "reportedByIndependentReadOnlyWorker": true,
+    "reviewedRevision": "201dce3614bffe83b873d7b837ec5bde4312d7dd",
+    "sourceRegistrationAndPointerSupportPresent": true,
+    "codeChangeEstablishedAsNecessary": false,
+    "remoteAccessByWorker": false,
+    "workerWrites": false
+  },
+  "conclusion": {
+    "originalQaApiCurrentlyAvailable": false,
+    "originalQaCredentialReusable": false,
+    "retainedActualRunArchiveAvailable": true,
+    "archiveIsNotLiveAuthorization": true,
+    "representativePointerVerified": false,
+    "sameOperatingDashboardMultipleDevicesVerified": false,
+    "fixtureSubstitutedForActualAcceptance": false
+  },
+  "next": "Re-establish an explicitly scoped actual peer read boundary before pointer and same-dashboard multiple-device acceptance. Replaying retained history alone does not satisfy current live authorization.",
+  "productionChanges": 0,
+  "sourceOrModelDispatch": 0,
+  "newCredentials": 0,
+  "upperAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "changed": false
+  }
+}

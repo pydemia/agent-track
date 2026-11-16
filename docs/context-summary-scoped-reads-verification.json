@@ -1,0 +1,658 @@
+{
+  "recordedAt": "2026-11-16T14:38:47.126Z",
+  "scope": "Ordinary Native Projects/Task context summaries; protected Assistant, writer, peer and full goal acceptance remain separate",
+  "sourceCommits": [
+    "e31321c9ac59600300254323beb1f00157278e95",
+    "cc2b5ae528c8b928d5347421500081902a897491",
+    "cd73f0962c99e7ae1266fe2ef4127a2d31472852"
+  ],
+  "ci": {
+    "run": 43885275813,
+    "headSha": "cd73f0962c99e7ae1266fe2ef4127a2d31472852",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "verify (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "windows": {
+      "total": 1280,
+      "passed": 1269,
+      "failed": 0,
+      "skipped": 11
+    },
+    "ubuntu": {
+      "total": 1280,
+      "passed": 1255,
+      "failed": 0,
+      "skipped": 25
+    }
+  },
+  "checks": {
+    "relatedTests": 10,
+    "relatedTestsPassed": true,
+    "typecheck": "pass on exact final source CI",
+    "preFixRegressions": [
+      "unrelated Assistant failure returns503",
+      "native reads serialize, concurrency1",
+      "private reader projects unrelated Codex source before relation reads"
+    ],
+    "postFixCoverage": [
+      "current Project withdrawal",
+      "reader rotation",
+      "source credential rotation",
+      "protected Assistant Run excluded",
+      "native overlap and stable order",
+      "private source scope before storage relation reads",
+      "general owner dashboard retains full sources"
+    ]
+  },
+  "independentReview": {
+    "revision": "cd73f0962c99e7ae1266fe2ef4127a2d31472852",
+    "base": "cc2b5ae528c8b928d5347421500081902a897491",
+    "scope": [
+      "apps/api/server.ts",
+      "apps/api/context-summary.ts whitespace-only delta",
+      "tests/context-api.test.ts"
+    ],
+    "mustFixFindings": 0,
+    "staticOnly": true,
+    "privateRuntimeAccess": false,
+    "actualModelObserved": false
+  },
+  "before": {
+    "at": "2026-11-16T13:47:16.167Z",
+    "existingReader": true,
+    "readerId": "projects-context-qa",
+    "nativeSourceIds": [
+      "demian-local"
+    ],
+    "clientDeadlineMs": 2000,
+    "sourceWrites": 0,
+    "modelRequests": 0,
+    "status": 200,
+    "elapsedMs": 20962,
+    "summaryValidated": true,
+    "counts": {
+      "runs": 1,
+      "sessions": 1,
+      "byStatus": {
+        "queued": 0,
+        "leasing": 0,
+        "running": 0,
+        "waiting_for_permission": 0,
+        "cancelling": 0,
+        "succeeded": 1,
+        "failed": 0,
+        "cancelled": 0,
+        "expired": 0,
+        "interrupted": 0,
+        "unknown": 0
+      }
+    },
+    "coverage": {
+      "kind": "observed-window",
+      "limit": 50,
+      "capped": false,
+      "unavailable": false
+    },
+    "errorCode": null
+  },
+  "intermediate": {
+    "unrelatedCollectionRemoved": {
+      "task": {
+        "at": "2026-11-16T14:00:03.450Z",
+        "existingReader": true,
+        "readerId": "projects-context-qa",
+        "nativeSourceIds": [
+          "demian-local"
+        ],
+        "clientDeadlineMs": 2000,
+        "sourceWrites": 0,
+        "modelRequests": 0,
+        "status": 200,
+        "elapsedMs": 1000,
+        "summaryValidated": true,
+        "counts": {
+          "runs": 1,
+          "sessions": 1,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 1,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        },
+        "errorCode": null
+      },
+      "project": {
+        "at": "2026-11-16T14:03:57.261Z",
+        "target": "project",
+        "existingReader": true,
+        "readerId": "projects-context-qa",
+        "nativeSourceIds": [
+          "demian-local"
+        ],
+        "clientDeadlineMs": 2000,
+        "sourceWrites": 0,
+        "modelRequests": 0,
+        "status": 200,
+        "elapsedMs": 2808,
+        "summaryValidated": true,
+        "counts": {
+          "runs": 4,
+          "sessions": 4,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 4,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        },
+        "errorCode": null
+      },
+      "boundedClient": {
+        "at": "2026-11-16T14:00:28.691Z",
+        "existingReader": true,
+        "clientDeadlineMs": 2000,
+        "timeoutConfigurationChanged": false,
+        "readOnly": true,
+        "sourceOrModelDispatch": 0,
+        "rows": [
+          {
+            "target": "task",
+            "state": "connected",
+            "elapsedMs": 1051,
+            "counts": {
+              "runs": 1,
+              "sessions": 1,
+              "byStatus": {
+                "queued": 0,
+                "leasing": 0,
+                "running": 0,
+                "waiting_for_permission": 0,
+                "cancelling": 0,
+                "succeeded": 1,
+                "failed": 0,
+                "cancelled": 0,
+                "expired": 0,
+                "interrupted": 0,
+                "unknown": 0
+              }
+            },
+            "coverage": {
+              "kind": "observed-window",
+              "limit": 50,
+              "capped": false,
+              "unavailable": false
+            },
+            "taskRevision": "1"
+          },
+          {
+            "target": "project",
+            "state": "unavailable",
+            "elapsedMs": 2013,
+            "counts": null,
+            "coverage": null,
+            "taskRevision": null
+          }
+        ]
+      }
+    },
+    "boundedNativeReads": {
+      "project": {
+        "at": "2026-11-16T14:14:54.697Z",
+        "target": "project",
+        "existingReader": true,
+        "readerId": "projects-context-qa",
+        "nativeSourceIds": [
+          "demian-local"
+        ],
+        "clientDeadlineMs": 2000,
+        "sourceWrites": 0,
+        "modelRequests": 0,
+        "status": 200,
+        "elapsedMs": 2321,
+        "summaryValidated": true,
+        "counts": {
+          "runs": 4,
+          "sessions": 4,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 4,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        },
+        "errorCode": null
+      },
+      "boundedClient": {
+        "at": "2026-11-16T14:12:28.138Z",
+        "existingReader": true,
+        "clientDeadlineMs": 2000,
+        "timeoutConfigurationChanged": false,
+        "readOnly": true,
+        "sourceOrModelDispatch": 0,
+        "rows": [
+          {
+            "target": "task",
+            "state": "connected",
+            "elapsedMs": 1120,
+            "counts": {
+              "runs": 1,
+              "sessions": 1,
+              "byStatus": {
+                "queued": 0,
+                "leasing": 0,
+                "running": 0,
+                "waiting_for_permission": 0,
+                "cancelling": 0,
+                "succeeded": 1,
+                "failed": 0,
+                "cancelled": 0,
+                "expired": 0,
+                "interrupted": 0,
+                "unknown": 0
+              }
+            },
+            "coverage": {
+              "kind": "observed-window",
+              "limit": 50,
+              "capped": false,
+              "unavailable": false
+            },
+            "taskRevision": "1"
+          },
+          {
+            "target": "project",
+            "state": "unavailable",
+            "elapsedMs": 2008,
+            "counts": null,
+            "coverage": null,
+            "taskRevision": null
+          }
+        ]
+      }
+    }
+  },
+  "snapshotCost": {
+    "at": "2026-11-16T14:16:43.184Z",
+    "actualOperatingDatabaseReadOnly": true,
+    "localProjectionProbeNotAnAuthorizationAcceptance": true,
+    "sourceWrites": 0,
+    "results": [
+      {
+        "scope": "all-owner-sources",
+        "elapsedMs": 203,
+        "runs": 1374,
+        "relationQueries": 1374,
+        "relationQueryAndDecodeMs": 166
+      },
+      {
+        "scope": "reader-sources-only",
+        "elapsedMs": 8,
+        "runs": 19,
+        "relationQueries": 19,
+        "relationQueryAndDecodeMs": 3
+      }
+    ]
+  },
+  "preview": {
+    "at": "2026-11-16T14:22:33.444Z",
+    "scope": "Isolated current source HTTP preview, real Projects/native GETs, actual Track database read-only, prior observed native connection views; not operating GUI acceptance",
+    "clientDeadlineMs": 2000,
+    "readOnlyTrackDatabase": true,
+    "nativeSourcesStarted": false,
+    "sourceBusinessWrites": 0,
+    "newDemianProviderRuns": 0,
+    "rows": [
+      {
+        "target": "task",
+        "state": "connected",
+        "elapsedMs": 199,
+        "counts": {
+          "runs": 1,
+          "sessions": 1,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 1,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        }
+      },
+      {
+        "target": "project",
+        "state": "connected",
+        "elapsedMs": 131,
+        "counts": {
+          "runs": 4,
+          "sessions": 4,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 4,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        }
+      }
+    ]
+  },
+  "operating": {
+    "observedAt": "2026-11-16T14:33:54.632Z",
+    "operationId": "514deade-cead-4d56-b566-77a1b8d86ca1",
+    "committed": true,
+    "pid": 66940,
+    "created": "2026-11-16T14:32:17.7926310Z",
+    "apiRevision": "cd73f0962c99e7ae1266fe2ef4127a2d31472852",
+    "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "manifestSha256": "311352ff582a6c297bc65a45928b14fef452762809905717dea72bd7e2407789",
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "tables": [
+      {
+        "name": "approval_receipts",
+        "count": 4
+      },
+      {
+        "name": "binding_receipts",
+        "count": 5
+      },
+      {
+        "name": "bindings",
+        "count": 6
+      },
+      {
+        "name": "coordinator_command_intents",
+        "count": 0
+      },
+      {
+        "name": "event_digests",
+        "count": 0
+      },
+      {
+        "name": "events",
+        "count": 46109
+      },
+      {
+        "name": "metadata",
+        "count": 21
+      },
+      {
+        "name": "receipts",
+        "count": 2
+      },
+      {
+        "name": "runs",
+        "count": 1377
+      },
+      {
+        "name": "saved_flow_views",
+        "count": 1
+      },
+      {
+        "name": "sqlite_sequence",
+        "count": 2
+      },
+      {
+        "name": "successor_intents",
+        "count": 0
+      },
+      {
+        "name": "task_assignment_receipts",
+        "count": 2
+      },
+      {
+        "name": "task_creation_receipts",
+        "count": 1
+      }
+    ],
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "sources": [],
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "nativeDatabasePreservedByCommit": true,
+    "actualEntraGuiVerified": false,
+    "sourceOrModelDispatchPerformed": false,
+    "sourceReadChecks": {
+      "graded": false,
+      "reason": "Full protected Assistant availability is not accepted by this ordinary context-summary operation."
+    }
+  },
+  "originalHistory": {
+    "at": "2026-11-16T14:33:54.704Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "boundedClient": {
+    "at": "2026-11-16T14:33:55.503Z",
+    "existingReader": true,
+    "clientDeadlineMs": 2000,
+    "timeoutConfigurationChanged": false,
+    "readOnly": true,
+    "sourceOrModelDispatch": 0,
+    "rows": [
+      {
+        "target": "task",
+        "state": "connected",
+        "elapsedMs": 281,
+        "counts": {
+          "runs": 1,
+          "sessions": 1,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 1,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        },
+        "taskRevision": "1"
+      },
+      {
+        "target": "project",
+        "state": "connected",
+        "elapsedMs": 215,
+        "counts": {
+          "runs": 4,
+          "sessions": 4,
+          "byStatus": {
+            "queued": 0,
+            "leasing": 0,
+            "running": 0,
+            "waiting_for_permission": 0,
+            "cancelling": 0,
+            "succeeded": 4,
+            "failed": 0,
+            "cancelled": 0,
+            "expired": 0,
+            "interrupted": 0,
+            "unknown": 0
+          }
+        },
+        "coverage": {
+          "kind": "observed-window",
+          "limit": 50,
+          "capped": false,
+          "unavailable": false
+        },
+        "taskRevision": null
+      }
+    ]
+  },
+  "gui": {
+    "verified": true,
+    "browser": "Edge",
+    "existingEntraAccount": true,
+    "newConsent": false,
+    "newCredentials": false,
+    "originalAuthenticationChanged": false,
+    "oldLoginCallbackRejected": true,
+    "freshNormalOriginFlowSucceeded": true,
+    "projectObservedRuns": 4,
+    "selectedTaskRuns": 1,
+    "selectedTaskSessions": 1,
+    "selectedRunId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "taskId": "00418966-a605-411d-89ee-51344526ec42",
+    "taskRevision": "1",
+    "taskState": "todo",
+    "selectedRunStatus": "succeeded",
+    "taskListActivityBadges": true,
+    "oldUnavailableMessageAbsent": true,
+    "trackContextLinksPresent": true,
+    "screenshot": "projects-context-restored-20261116.png",
+    "taskEdited": false
+  },
+  "newDemianProviderRuns": 0,
+  "newNativeCredentials": 0,
+  "writerEnabled": false,
+  "acceptance": {
+    "upperAccepted": 15,
+    "upperTotal": 21,
+    "percent": 71.4,
+    "upperDelta": 0,
+    "fullMandatorySubresultDenominator": null,
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-14",
+      "AT-15",
+      "AT-20"
+    ],
+    "complete": false
+  },
+  "next": "After removing ordinary-context load, remeasure already-approved Persona4a9ad42 protected workflow under actual current source checks. Persona90e0825/image33e19141 exception remains separately pending. Restore an explicit actual peer read boundary before pointer/multiple-device acceptance."
+}
