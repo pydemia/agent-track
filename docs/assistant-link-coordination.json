@@ -17,6 +17,26 @@
     "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
   },
   "operatingApplied": false,
+  "firstOperatingAttempt": {
+    "operationId": "441e12d1-ef67-419c-b17f-a54307d9868e",
+    "committed": false,
+    "candidateHealthAndAssetCheck": "passed",
+    "finalFailure": "Task-only saved-view owner probe POST returned 503",
+    "rollback": "previous API restarted; original configuration restored; no database restore",
+    "readonlyFollowUp": "files, roles, original Native DB and Track history all preserved",
+    "cause": "Task-only saved-view authorization unnecessarily refreshed the unrelated native execution window twice within its 10-second budget"
+  },
+  "taskOnlySavedViewFix": {
+    "change": "Refresh Projects grants at both boundaries for Task-only anchors; keep full native refresh for Run/Assistant anchors",
+    "deadlineMs": 10000,
+    "projectWithdrawalAndCredentialFencesRetained": true,
+    "relatedTests": { "passed": 27, "failed": 0 },
+    "typecheck": "passed",
+    "independentReview": "No concrete authorization or deadlock finding; read-only source review",
+    "actualSourceCanary": "actual permitted Tasks2; save200/list200/stale revision409/remove200/removed-list200; in-memory store only; no native work created",
+    "operatingApplied": false,
+    "remainingLimitation": "Mixed Run/Assistant saved-view anchors retain full refresh; their operating latency acceptance is separate"
+  },
   "apiCandidate": {
     "revision": "00c06b8c8ca78513d73eec8fe6a9fd43f420b4f2",
     "ciRun": 43797017958,

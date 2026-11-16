@@ -17,7 +17,7 @@ test("saved flow HTTP persists account views, CAS conflicts and current native p
   const config: Config = { port: 14345, database: ":memory:", publicOrigin: "http://localhost", auth: { mode: "local", user: actor },
     sources: [{ id: "projects", kind: "projects", label: "Projects", device: "test", users: [actor, "bob@example.test"], baseUrl: "http://127.0.0.1:1", repositoryRoots: [], runIds: [], discoverActive: false, maxFiles: 100, sinceDays: 7 }] };
   const sources = { refreshProjectGrants: async () => {}, views: () => [{ id: "projects", kind: "projects", state: sourceDown ? "disconnected" : "connected", authorizedProjectIds: granted ? [projectId] : [] }],
-    projects: { client: () => ({ task: async () => { reads++; afterRead(); return { id: taskId, projectId, title: "Native title is never persisted", revision: "1", state: "todo", requiresTest: false }; } }) } } as unknown as Sources;
+    projects: { refresh: async () => {}, client: () => ({ task: async () => { reads++; afterRead(); return { id: taskId, projectId, title: "Native title is never persisted", revision: "1", state: "todo", requiresTest: false }; } }) } } as unknown as Sources;
   const store = new Store(":memory:");
   const { server } = createTrackServer(store, () => config, "dist/web", sources);
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -61,7 +61,7 @@ test("one saved-view deadline includes the body and grant refresh; late completi
     { id: "projects", kind: "projects", label: "Projects", device: "test", users: [actor], repositoryRoots: [], runIds: [], discoverActive: false, maxFiles: 10, sinceDays: 7 },
   ] };
   const sources = { refreshProjectGrants: () => new Promise<void>(resolve => { release = resolve; }), views: () => [{ id: "projects", kind: "projects", state: "connected", authorizedProjectIds: [projectId] }],
-    projects: { client: () => ({ task: async () => { reads++; return { id: taskId, projectId, title: "Hidden", revision: "1", state: "todo", requiresTest: false }; } }) } } as unknown as Sources;
+    projects: { refresh: () => new Promise<void>(resolve => { release = resolve; }), client: () => ({ task: async () => { reads++; return { id: taskId, projectId, title: "Hidden", revision: "1", state: "todo", requiresTest: false }; } }) } } as unknown as Sources;
   const store = new Store(":memory:");
   const { server } = createTrackServer(store, () => config, "dist/web", sources, 40);
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));

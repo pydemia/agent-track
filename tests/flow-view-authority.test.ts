@@ -62,7 +62,7 @@ test("a later saved-view read cannot publish earlier labels after a grant change
   assert.equal(repo.get(actor, uuid(6))?.revision, 1);
 });
 
-test("one saved task bundle shares fresh boundary checks and still rejects final grant withdrawal before commit", async t => {
+test("a task-only saved bundle checks Projects twice without unrelated native collection and rejects final withdrawal", async t => {
   const store = new Store(":memory:"); t.after(() => store.close());
   const projectId=uuid(20),tasks=[uuid(21),uuid(22)];
   const config: Config={port:14345,database:":memory:",publicOrigin:"http://localhost",auth:{mode:"local",user:actor},sources:[
@@ -70,9 +70,9 @@ test("one saved task bundle shares fresh boundary checks and still rejects final
   ]};
   let refreshes=0,reads=0,granted=true,revokeAtFinal=false,changeDuringTask=false;
   const sources={
-    refreshProjectGrants:async()=>{refreshes++;if(revokeAtFinal&&refreshes===2)granted=false;},
+    refreshProjectGrants:async()=>{throw new Error("Unrelated native collection must not be requested for Task-only anchors");},
     views:()=>[{id:"projects",kind:"projects",state:"connected",authorizedProjectIds:granted?[projectId]:[]}],
-    projects:{client:()=>({task:async(id:string)=>{reads++;if(changeDuringTask)config.sources[0]!.users=[];return {id,projectId,title:"Task",revision:"1",state:"todo",requiresTest:false};}})},
+    projects:{refresh:async()=>{refreshes++;if(revokeAtFinal&&refreshes===2)granted=false;},client:()=>({task:async(id:string)=>{reads++;if(changeDuringTask)config.sources[0]!.users=[];return {id,projectId,title:"Task",revision:"1",state:"todo",requiresTest:false};}})},
   }as unknown as Sources;
   const authorize=flowViewAuthorization(()=>config,sources,user=>store.snapshot(user,[]));
   const content:FlowViewContent={version:1,contextId:"b".repeat(64),name:"Task bundle",anchors:{tasks:tasks.map(taskId=>({sourceId:"projects",projectId,taskId})),runs:[],assistants:[]},state:{by:"task",depth:"structure",bundles:[],overrides:[],focus:null}};
