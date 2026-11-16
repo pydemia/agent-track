@@ -284,5 +284,41 @@
     "workerStarted": false,
     "writerEnabled": false,
     "originalTaskAccepted": false
+  },
+  "orchestrationFollowup": {
+    "at": "2026-11-16T16:16:44.605Z",
+    "readOnly": true,
+    "newProviderRuns": 0,
+    "rows": [
+      {
+        "name": "nativeRun",
+        "status": "success",
+        "elapsedMs": 56,
+        "sameSession": true
+      },
+      {
+        "name": "nativeSession",
+        "status": "success",
+        "elapsedMs": 8,
+        "sameSession": true,
+        "provider": "codex-native",
+        "mode": "single-agent"
+      },
+      {
+        "name": "orchestrationSupport",
+        "status": "failure",
+        "elapsedMs": 7,
+        "sourceStatus": 503,
+        "reason": "unclassified; raw detail suppressed"
+      }
+    ],
+    "httpRows": [
+      {
+        "path": "/api/v1/runtime/capabilities",
+        "status": 503,
+        "errorCode": "worker_capabilities_unavailable"
+      }
+    ],
+    "interpretation": "Native history Run/Session GETs succeed; current worker capability declaration is unavailable. No worker start and no orchestration acceptance."
   }
 }

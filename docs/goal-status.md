@@ -86,12 +86,13 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치다.
 기존 승인 Persona4a9ad42의 보호 업무를 재측정한 결과 반복 실패가 남았다.
 사설 Projects 후보의 별도 CI 예외 승인과 실제 전환·동일 보호 업무의 반복 검증,
-일반 조직화 지원 조회 실패의 원본 계약 조사도 남는다. 재산정은 같은 실제 업무의 그룹·Trace가 유지되는 운영 수용 후다.
+일반 조직화 지원은 원본 capabilities의503/worker_capabilities_unavailable로 좁혔다.
++현재 worker 기능 선언이 없으며 worker는 시작하지 않았다. 재산정은 같은 실제 업무의 그룹·Trace가 유지되는 운영 수용 후다.
 
 앞선 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
 [정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
-[최신 원본 실행 요약 복구 Note](https://note.pydemia.ai/#/w/personal-note-production/page/8d69401c-5d0f-4d4b-835e-854af05d9e4d)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[최신 일반 Trace 복구·보호 업무 잔여 Note](https://note.pydemia.ai/#/w/personal-note-production/page/6b599c1e-a991-4f9b-9561-9a927cfa8308)는 원문 재조회와 검색 색인 반영까지 확인했다.
 [정확한 후보와 배포 검토](projects-read-transport-candidate.json)에 기존/새 이미지,
 설정 변경 한 항목·전달기·검사·미승인 상태를 연결했다.
 

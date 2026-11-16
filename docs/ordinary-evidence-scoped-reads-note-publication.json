@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "149188d3-b7e0-494b-9cfa-c43f44f290db",
+  "title": "Agent Track 일반 Trace 복구와 보호 업무 잔여 — 2026-11-17",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/6b599c1e-a991-4f9b-9561-9a927cfa8308",
+  "workspaceId": "personal-note-production",
+  "pageId": "6b599c1e-a991-4f9b-9561-9a927cfa8308",
+  "revision": "0f5e68226951704f9e556824fe4ea28528ab40ca8a45d914b57bfb5eff123241",
+  "sourceSha256": "ac12d7dce565e11cf590cde01a3a304a42a393bc21f0007bd151c8381f30419f",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T16:16:03.980Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/ordinary-evidence-scoped-reads.md",
+  "markdownSha256": "8df19dc832afa6d680cb8c8f19da7a078822d75205c39189de9d961a62ce6e29",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/8d69401c-5d0f-4d4b-835e-854af05d9e4d",
+  "authStateAtDispatch": "Existing Entra account and original Note binding; no new consent or credential; exact approved Persona4a9ad42/b68ece66; candidate90e/33e remains unapproved"
+}
