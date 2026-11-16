@@ -24,6 +24,7 @@ test("private context API scopes independent readers, verifies original Task/nat
   await writeFile(credentialFile, JSON.stringify({ version: 1, user, accountId: id(90), principalId: "reader", kid: "reader", revision: 1, secretFile: nativeKeyFile }));
   let granted = true, revokeDuringRun = false, scopeDuringRun = false, rotateDuringRun = false, nativeDenied = false, nativeConnected = true;
   let writes = 0, taskReads = 0, revision = 1; const runReads: string[] = [];
+  const readGate = { enabled: true, active: 0, peak: 0, waiters: [] as Array<() => void> };
   let config: Config;
   const native = createServer(async (request, response) => {
     response.setHeader("content-type", "application/json");
@@ -39,6 +40,15 @@ test("private context API scopes independent readers, verifies original Task/nat
     const run = /^\/api\/v1\/runs\/([0-9a-f-]+)$/.exec(path ?? "");
     if (run) {
       runReads.push(run[1]!); if (nativeDenied) { response.writeHead(403).end("{}"); return; }
+      if (readGate.enabled) {
+        readGate.active++; readGate.peak = Math.max(readGate.peak, readGate.active);
+        await new Promise<void>((done) => {
+          const timer = setTimeout(done, 1000);
+          readGate.waiters.push(() => { clearTimeout(timer); done(); });
+          if (readGate.waiters.length >= 2) for (const release of readGate.waiters) release();
+        });
+        readGate.active--;
+      }
       if (revokeDuringRun) granted = false;
       if (scopeDuringRun) config.contextReaders![0]!.sessionScopes[0]!.sessionIds = [];
       if (rotateDuringRun) await writeFile(secretFile, randomBytes(32).toString("base64url"));
@@ -75,6 +85,9 @@ test("private context API scopes independent readers, verifies original Task/nat
   try {
     const response = await read(); assert.equal(response.status, 200); const body = await response.text(); assert.doesNotMatch(body, /PRIVATE_|actor|credential|apiToken/);
     const result = contextSummarySchema.parse(JSON.parse(body)); assert.equal(result.counts.runs, 2); assert.equal(result.counts.sessions, 2); assert.equal(result.counts.byStatus.succeeded, 2);
+    readGate.enabled = false;
+    assert.equal(readGate.peak, 2, "independent native reads must overlap instead of accumulating every Run latency");
+    assert.deepEqual(result.runs.map(run => run.runId), [id(20), id(21)], "parallel completion preserves stable context order");
     assert.equal(unrelatedAssistantReads, 0, "ordinary Native context must not collect unrelated protected Assistant windows");
     assert.equal(result.task?.state, "todo"); assert.equal(result.task?.revision, "1"); assert.ok(result.runs.every((run) => run.incomplete), "fresh native status is distinct from the queued journal snapshot"); assert.equal(taskReads, 2);
     assert.ok(result.trackUrl?.includes("run=")); assert.equal(writes, 0);

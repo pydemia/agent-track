@@ -69,19 +69,26 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
     .sort((a, b) => b.observedAt.localeCompare(a.observedAt) || a.key.localeCompare(b.key));
   let unavailable = access.reader.nativeSourceIds.some((id) => !access.view.sources.some((source) => source.id === id && source.state === "connected"));
   const validated: Array<{ run: RunView; stamp: string; native: Awaited<ReturnType<DemianClient["observe"]>>; binding: string }> = [];
-  for (const run of candidates.slice(0, 50)) {
-    access = authorize();
-    const source = access.current.sources.find((item) => item.id === run.sourceId && item.kind === "demian" && item.baseUrl && item.users.includes(initial.user));
-    if (!source || source.assistantNativeSourceId || !access.allowedRun(run)) { unavailable = true; continue; }
+  const window = candidates.slice(0, 50);
+  // Bound origin load while avoiding one full native round trip per Run in
+  // series. Promise.all retains the original order; each read and the final
+  // publication still pass their own current authority fences.
+  for (let offset = 0; offset < window.length; offset += 4) {
+    const batch = await Promise.all(window.slice(offset, offset + 4).map(async (run) => {
+    const before = authorize();
+    const source = before.current.sources.find((item) => item.id === run.sourceId && item.kind === "demian" && item.baseUrl && item.users.includes(initial.user));
+    if (!source || source.assistantNativeSourceId || !before.allowedRun(run)) { unavailable = true; return null; }
     const stamp = sourceIdentity(source);
     try {
       const native = await new DemianClient(options(source)).observe(run.runId);
       const current = authorize();
       if (native.sessionId !== run.sessionId || native.workspaceId !== run.workspaceId ||
         !current.view.runs.some((item) => item.key === run.key && current.allowedRun(item) && bindingStamp(item) === bindingStamp(run)) ||
-        !current.current.sources.some((item) => item.id === source.id && sourceIdentity(item) === stamp)) { unavailable = true; continue; }
-      validated.push({ run, native, stamp, binding: bindingStamp(run) });
-    } catch (error) { if (error instanceof CommandError) throw error; unavailable = true; }
+        !current.current.sources.some((item) => item.id === source.id && sourceIdentity(item) === stamp)) { unavailable = true; return null; }
+      return { run, native, stamp, binding: bindingStamp(run) };
+    } catch (error) { if (error instanceof CommandError) throw error; unavailable = true; return null; }
+    }));
+    for (const row of batch) if (row) validated.push(row);
   }
   await sources.projects.refresh(initial.user); access = authorize();
   if (target.kind === "task") { task = await sources.projects.client(target.sourceId, initial.user).task(target.taskId, target.projectId); access = authorize(); }
