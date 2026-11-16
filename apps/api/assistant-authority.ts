@@ -433,10 +433,38 @@ export class AssistantAuthority {
       };
       await this.refreshProjects(scope);
       const window = assistantExecutionPageV2Schema.parse(await this.guarded(scope, () => client.executions(null)));
+      const readTarget = async (executionId: string, roleId: string, ref: NativeReference, attemptId: string | undefined,
+        position: string, requested: number) => {
+        const envelope = assistantNativeRunEvidencePageSchema.parse(await this.guarded(scope,
+          () => client.nativeEvidence!(executionId, roleId, position, requested, attemptId)));
+        const page = envelope.page, run = page.run;
+        if (envelope.executionId !== executionId || envelope.roleId !== roleId || page.events.after !== position ||
+            page.events.limit !== requested || run.id !== ref.runId || run.session_id !== ref.sessionId ||
+            run.workspace_id !== ref.workspaceId || run.organization_id !== ref.organizationId || run.correlation_id !== ref.operationId)
+          throw new AssistantAuthorityError(503);
+        confirmTarget(); return envelope;
+      };
+      let initial: { executionId: string; roleId: string; ref: NativeReference;
+        result: PromiseSettledResult<Awaited<ReturnType<typeof readTarget>>> } | undefined;
       const matches: Array<{ execution: NativeExecution; target: NativeTarget }> = [];
       for (const execution of window.executions) for (const role of execution.roles) {
         if (!execution.task) continue;
-        for (const target of await this.roleNativeTargets(scope, client, execution, role))
+        const ref = role.runtime.demian;
+        const prefetch = !initial && scope.roleAttempts && ref?.runId === runId &&
+          z.uuid().safeParse(ref.operationId).success && ref.origin === mapping.origin &&
+          ref.organizationId === mapping.organizationId && ref.workspaceId === mapping.workspaceId;
+        // Only the requested current Run can overlap discovery, and only after
+        // current Task access. Discovery still authorizes the exact attempt;
+        // settle both reads before releasing the actor/source queue on failure.
+        if (prefetch && await this.currentTask(scope, execution, new Map())) {
+          const [discovery, evidence] = await Promise.allSettled([
+            this.roleNativeTargets(scope, client, execution, role),
+            readTarget(execution.id, role.id, ref, ref.operationId, after, limit),
+          ]);
+          if (discovery.status === "rejected") throw discovery.reason;
+          initial = { executionId: execution.id, roleId: role.id, ref: structuredClone(ref), result: evidence };
+          for (const target of discovery.value) if (target.ref.runId === runId) matches.push({ execution, target });
+        } else for (const target of await this.roleNativeTargets(scope, client, execution, role))
           if (target.ref.runId === runId) matches.push({ execution, target });
       }
       if (matches.length !== 1) throw new AssistantAuthorityError(matches.length || window.hasMore ? 503 : 404);
@@ -444,17 +472,13 @@ export class AssistantAuthority {
       if (!execution.task || !await this.currentTask(scope, execution, new Map()) || ref.origin !== mapping.origin ||
           ref.organizationId !== mapping.organizationId || ref.workspaceId !== mapping.workspaceId)
         throw new AssistantAuthorityError(404);
-      const read = async (position: string, requested: number) => {
-        const envelope = assistantNativeRunEvidencePageSchema.parse(await this.guarded(scope,
-          () => client.nativeEvidence!(execution.id, role.id, position, requested, attemptId)));
-        const page = envelope.page, run = page.run;
-        if (envelope.executionId !== execution.id || envelope.roleId !== role.id || page.events.after !== position ||
-            page.events.limit !== requested || run.id !== ref.runId || run.session_id !== ref.sessionId ||
-            run.workspace_id !== ref.workspaceId || run.organization_id !== ref.organizationId || run.correlation_id !== ref.operationId)
-          throw new AssistantAuthorityError(503);
-        confirmTarget(); return envelope;
-      };
-      const first = await read(after, limit);
+      const read = (position: string, requested: number) => readTarget(execution.id, role.id, ref, attemptId, position, requested);
+      let first: Awaited<ReturnType<typeof read>>;
+      if (initial && initial.executionId === execution.id && initial.roleId === role.id &&
+          attemptId === initial.ref.operationId && JSON.stringify(ref) === JSON.stringify(initial.ref)) {
+        if (initial.result.status === "rejected") throw initial.result.reason;
+        first = initial.result.value;
+      } else first = await read(after, limit);
       const latest = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(execution.id)));
       if (latest.id !== execution.id || latest.task?.projectId !== execution.task.projectId ||
           latest.task.taskId !== execution.task.taskId ||

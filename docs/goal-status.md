@@ -2,7 +2,7 @@
 
 ## 현재 판정 — 2026-11-16 KST
 
-Persona source4a9ad42/imageb68ece66과 Track API·web186ff8d를 운영 반영했다.
+Persona source4a9ad42/imageb68ece66과 Track API8d2ec50·web186ff8d를 운영 반영했다.
 Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
 writer는 비활성이다. 원본 이벤트8개 전체 metadata SHA와 역사 binding r3,
 설정47개·다른 프로세스18개·Track 이력 보존을 확인했다.
@@ -19,6 +19,14 @@ Native 상세403/404가 전체 대시보드·SSE를 지우던 처리도 수정�
 최종 별도 API 사후 검사도 snapshot 뒤 events404로 실패했고 데이터·설정 보존
 검사만 별도로 통과했다. 모든 사후 검사가 통과했다고 기록하지 않는다.
 [현재 운영·화면 관측](assistant-workflow-observation-20261116.json)을 따른다.
+
+읽기 계측 API8d2ec50의 양 OS CI와 동결 전환·설정/원장 보존이 통과했다.
+화면 자동 조회를 멈춘 순차 API에서도 evidence가 실패했다. 대기열0·입장
+예산10초에서 역할 조회1.84초와 첫 상세6.23초 뒤 마지막 원본 확인이10초
+deadline에 끝나지 않았다. 실시간 UI 표본의 내부 상세 성공도9.90초까지
+걸렸다. 첫 상세/시도 discovery의 병렬화 회귀는 수정 전 실패·수정 후 통과했고
+관련114개·타입 검사가 통과했다. 후보 소스의 CI·운영 반복 수용은 남는다.
+[경계별 실제 계측과 후속 범위](read-diagnostics.md)에 기록했다.
 
 **상위 수용15/21·71.4%, 직전 대비0%p(동일 가중치·부분0)를 유지한다.**
 AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확정이므로

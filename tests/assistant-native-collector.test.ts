@@ -270,6 +270,55 @@ test("attempt confirmation and final evidence read overlap without mutating even
   assert.equal(JSON.stringify(f.store.events(externalKey("protected", uuid(9)))), before);
 });
 
+test("current Run evidence starts alongside mandatory attempt discovery after current Task access", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(); await f.snapshot();
+  let discoveries = 0, evidenceStarted = false, release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  f.attemptsHook = async () => {
+    if (++discoveries !== 1) return;
+    const timer = setTimeout(release, 500);
+    try { await gate; assert.equal(evidenceStarted, true, "initial evidence must overlap attempt discovery"); }
+    finally { clearTimeout(timer); }
+  };
+  f.evidenceHook = async (_after, limit) => { if (limit === 250) { evidenceStarted = true; release(); } };
+  const value = await f.sources.assistant.nativeEvidence(user, "assistant", "protected", uuid(9), "0", 250);
+  assert.equal(value.page.run.id, uuid(9)); assert.equal(evidenceStarted, true); assert.equal(discoveries, 2);
+});
+
+test("initial evidence overlap never reads a current Run whose Task access is denied", async t => {
+  const f = await fixture(t); f.attemptPage = attempts(); await f.snapshot();
+  const before = f.calls.filter(path => path.includes("/native-evidence?")).length;
+  f.missingTask = true;
+  await assert.rejects(f.sources.assistant.nativeEvidence(user, "assistant", "protected", uuid(9), "0", 250),
+    error => error instanceof AssistantAuthorityError && error.status === 404);
+  assert.equal(f.calls.filter(path => path.includes("/native-evidence?")).length, before);
+});
+
+test("failed evidence discovery drains its overlapping read before the next actor request", { timeout: 5000 }, async t => {
+  const f = await fixture(t); f.attemptPage = attempts(); await f.snapshot();
+  let started!: () => void, release!: () => void, denied!: () => void;
+  const entered = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const rejected = new Promise<void>(resolve => { denied = resolve; });
+  t.after(() => release());
+  let discoveries = 0, done = false;
+  f.evidenceHook = async (_after, limit) => { if (limit === 250) { started(); await gate; } };
+  f.attemptsHook = async () => {
+    if (++discoveries !== 1) return;
+    await entered; denied(); throw new AssistantReadError(403, "withdrawn");
+  };
+  const first = f.sources.assistant.nativeEvidence(user, "assistant", "protected", uuid(9), "0", 250)
+    .then(() => null, error => error).finally(() => { done = true; });
+  await rejected;
+  const reads = f.calls.filter(path => path === "/api/integrations/track/v2/executions").length;
+  const next = f.sources.assistant.list(user, "assistant");
+  await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(done, false);
+  assert.equal(f.calls.filter(path => path === "/api/integrations/track/v2/executions").length, reads);
+  release(); assert.ok(await first instanceof AssistantAuthorityError);
+  assert.equal((await next).executions.length, 1);
+});
+
 test("protected history keeps the original Run authorized after retry and preserves its exact journal", async t => {
   const f = await fixture(t); f.attemptPage = attempts();
   const first = await f.snapshot(), originalKey = externalKey("protected", uuid(9));

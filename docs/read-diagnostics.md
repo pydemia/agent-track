@@ -30,7 +30,38 @@ fixture의 임시 포트가 Fetch의 차단 포트에 배정되는 실패도 두
 [Fetch의 port blocking](https://fetch.spec.whatwg.org/#port-blocking)을 따른다.
 이 fixture 실패는 운영 Trace404의 원인으로 간주하지 않는다.
 
-계측 후보의 CI·동결 배포와 실제 단일 운영 reader 관측은 후속 단계다.
+계측8d2ec50의 Windows·Ubuntu CI43847477050이 통과했고 API를 동결 배포했다.
+웹은186ff8d를 유지한다. 운영 전환dab2df08-9d36-4e6a-81fd-f1d4445ec1b7에서
+설정47개·다른 프로세스18개·웹18개 파일과 Track 이력 보존을 확인했다.
+원본 이벤트8개 metadata SHA는
+`dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15`로
+유지되고 역사 binding은r3다. writer를 활성화하거나 새 모델 실행을 만들지 않았다.
+
+2026-11-16T10:28:36Z부터 화면 자동 조회를 멈추고 같은 운영 reader에서 순차
+조회했다. 기존 background 수집은 유지했다. snapshot200/5,411ms·events200/
+7,170ms/8개 뒤 evidence404/10,409ms가 발생했다. 내부 native-evidence 작업은
+대기열0·입장 예산10,000ms였지만10,004ms에503/deadlineReached로 끝났다.
+첫 roleAttempts는1,835.54ms, 첫 nativeEvidence는6,229.99ms였고
+8,405.14ms에 시작한 최종 nativeEvidence는 원래 deadline에 끝나지 않았다.
+현재 권한을 확인하지 못한 producer 상태가 disconnected로 바뀌어 후속 Run
+가시성 확인에서404가 반환됐다. 이 표본의 직접 원인은 대기열이 아니라 원격
+조회 임계 경로의 시간 초과다. 어느 원격 내부 단계가 느린지는 이 계측만으로
+더 나누지 않는다.
+
+이어 실제 Edge Trace 자동 갱신 중57.8초 동안20회 진단만 읽었다. 새 원본
+조회 부하는 추가하지 않았다. 내부 상세 성공도6,479ms·9,903ms로 원래10초
+한도에 가까웠다. 순간 성공은 반복 안정성 수용이 아니다.
+
+후속 소스는 현재 Task를 확인한 정확한 현재 Run에 한해 첫 evidence와 역할
+시도 discovery를 병렬화한다. 전체 조회 창에서 선행 상세는 최대1개이며,
+discovery의 정확한 attempt·Run tuple 대조와 최종 signed evidence·역할·
+Projects·credential fence를 유지한다. 실패한 discovery도 병렬 읽기가 끝난 뒤
+큐를 해제한다. 역사 Run은 현재 Run 경로를 빌리지 않는다. 기존10초·lease·
+인증·재시도는 늘리지 않았다. 회귀1개가 수정 전 실패·수정 후 통과했고,
+Task 거부·실패 시 정리·기존 철회/회전/역사 조회를 포함한 관련114개와 타입
+검사가 통과했다. 후속 전체 검사도1,271개 중1,260개 통과·실패0·기존
+환경별 제외11개다. 후속 CI·운영 시간 측정은 아직 남았다.
+
 원본 이벤트8개·역사 binding r3·현재 Taskr5/in_review와 원본 DB·인증·
 writer 비활성은 보존한다. 다음 판정은 실패 표본의 RPC/queue/lease 경계를
 확인하고 원인 수정 후 반복 조회·인증 화면을 검증한 뒤 한다.
