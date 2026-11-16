@@ -7,6 +7,7 @@ import { normalizeEvent } from "../../packages/adapters/demian/index.ts";
 
 interface Grant { stamp: string; observedAt: string; runIds: string[]; partial: boolean; attemptCoverage: "coordinator-history" | "current-role-only" }
 interface Readers { count: number; done: Promise<void>; release: () => void }
+const grantLifetimeMs = 15_000, readBudgetMs = 10_000, admissionReserveMs = 1_000;
 
 /** Protected native observations use only the owner-bound Assistant reader, never executor keys. */
 export class AssistantNativeCollector {
@@ -32,7 +33,7 @@ export class AssistantNativeCollector {
     let grant: Grant | undefined;
     try {
       const stamp = this.stamp(source, user), candidate = this.grants.get(source.id);
-      if (candidate?.stamp === stamp && Date.now() - Date.parse(candidate.observedAt) < 15_000 &&
+      if (candidate?.stamp === stamp && Date.now() - Date.parse(candidate.observedAt) < grantLifetimeMs &&
           this.assistant.view(this.config().sources.find(item => item.id === source.assistantNativeSourceId)!, user).state === "connected") grant = candidate;
     } catch { /* No previous actor, source or policy can authorize a cached Run. */ }
     return { id: source.id, kind: "demian", label: source.label, device: source.device,
@@ -41,6 +42,12 @@ export class AssistantNativeCollector {
       capabilities: grant ? ["run.read", "events.read", "run.evidence"] : [],
       detail: grant ? `Assistant에서 현재 인가한 실행 metadata. ${grant.attemptCoverage === "coordinator-history" ? "역할별 보존 시도 포함" : "과거 시도 조회 미지원: 현재 역할의 Run만"}. 최근 업무 50개·실행 64개·실행별 이벤트 250개 조회 창${grant.partial ? "(일부 업무 제외)" : ""}. 전체 이력·도구 입출력·실행 제어와 별개입니다.`
         : "보호된 실행의 현재 Assistant/Projects 인가를 확인하지 못했습니다. 저장된 실행도 숨깁니다." };
+  }
+
+  /** Leave the existing read budget inside the metadata lease; never extend it. */
+  hasFreshReadView(source: SourceConfig, user: string): boolean {
+    const view = this.view(source, user), age = view.lastObservedAt ? Date.now() - Date.parse(view.lastObservedAt) : Number.NaN;
+    return view.state === "connected" && age >= 0 && age < grantLifetimeMs - readBudgetMs - admissionReserveMs;
   }
 
   async refresh(user: string, sourceId?: string): Promise<void> {

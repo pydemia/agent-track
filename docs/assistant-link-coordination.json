@@ -17,6 +17,31 @@
     "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
   },
   "operatingApplied": false,
+  "committedApiBeforeLiveRefreshFix": {
+    "revision": "cb43824238ee73eefee3b431c1bbc3eda29ff946",
+    "operationId": "75edece1-7a9b-4f0b-9fcc-2656a63f9331",
+    "committed": true,
+    "originalConfigurationAndDataPreserved": true,
+    "actualTaskOnlyOwnerProbe": "saved/read/conflict409/removed and re-read successfully",
+    "remaining": "Public evidence HTTP15 observation timed out; authenticated detail stayed loading during repeated source changes"
+  },
+  "liveRefreshFix": {
+    "change": "Known Run evidence refreshes Projects and admits a recent metadata lease; only stale leases recollect native metadata. Own evidence authority is always checked afresh. SSE, snapshot and event membership capture await pending native collection and recheck actor before sending.",
+    "metadataLeaseMs": 15000,
+    "readBudgetMs": 10000,
+    "admissionReserveMs": 1000,
+    "metadataLeaseOrReadTimeoutExtended": false,
+    "unknownRunDiscoveryChanged": false,
+    "cachedMetadataAloneAuthorizesEvidence": false,
+    "before": { "regressions": 2, "failed": 2 },
+    "relatedAfter": { "tests": 43, "passed": 43, "failed": 0 },
+    "actorProducerProjectRoleAndCredentialWithdrawalCasesRetained": true,
+    "typecheck": "passed",
+    "independentReview": "No confirmed security or concurrency finding in fresh evidence admission and SSE capture; subsequent HTTP mirrors use the same actor recheck; lease reserve is more conservative",
+    "actualParallelCanary": "Not passed: separate in-memory reader alongside operating collector reached the unchanged metadata deadline or an unavailable link. No capacity cause or resolution claimed.",
+    "operatingApplied": false,
+    "nextVerification": "CI and frozen pair, then single operating collector with actual Edge/SSE/evidence"
+  },
   "firstOperatingAttempt": {
     "operationId": "441e12d1-ef67-419c-b17f-a54307d9868e",
     "committed": false,

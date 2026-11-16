@@ -421,6 +421,71 @@ test("separate evidence crosses real HTTP reader and current Project authority w
   assert.ok(f.methods.every(method => method === "GET"));
 });
 
+test("a fresh protected evidence read avoids another metadata window but still rejects producer withdrawal", async t => {
+  const f = await fixture(t); await f.snapshot(); let metadataReads = 0;
+  f.hook = async () => { metadataReads++; };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=2`);
+  assert.equal(response.status, 200);
+  assert.equal(nativeRunEvidenceViewSchema.parse(await response.json()).state, "connected");
+  assert.equal(metadataReads, 0);
+  f.enable(false);
+  const denied = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=2`), body = await denied.json();
+  assert.equal(body.page ?? null, null); assert.notEqual(body.state, "connected");
+});
+
+test("evidence refreshes a metadata lease with less than the read budget remaining", async t => {
+  const f = await fixture(t); await f.snapshot(); let metadataReads = 0;
+  const now = Date.now(); t.mock.method(Date, "now", () => now + 5000);
+  f.hook = async () => { metadataReads++; };
+  const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=2`);
+  assert.equal(response.status, 200); assert.equal(nativeRunEvidenceViewSchema.parse(await response.json()).state, "connected");
+  assert(metadataReads > 0);
+});
+
+for (const route of ["stream", "snapshot", "events"] as const) {
+for (const revokeActor of [false, true]) {
+test(`${route} waits for refreshed capture${revokeActor ? " and rejects actor withdrawal" : ""}`, { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot();
+  let release!: () => void, enter!: () => void, observe!: () => void, refresh: Promise<void> | undefined, checks = 0, held = false;
+  const gate = new Promise<void>(resolve => { release = resolve; }), entered = new Promise<void>(resolve => { enter = resolve; });
+  const captureAttempted = new Promise<void>(resolve => { observe = resolve; });
+  const originalViews = f.sources.views.bind(f.sources);
+  f.sources.views = actor => { const views = originalViews(actor); if (held) observe(); return views; };
+  const originalAfter = f.sources.assistantNative.afterRefresh.bind(f.sources.assistantNative);
+  f.sources.assistantNative.afterRefresh = async <T>(actor: string, read: () => T, deadline?: number, sourceId?: string | readonly string[]): Promise<T> => {
+    if (held) observe(); return originalAfter(actor, read, deadline, sourceId);
+  };
+  const original = f.sources.refreshProjectGrants.bind(f.sources);
+  f.sources.refreshProjectGrants = async (...args) => {
+    await original(...args);
+    if (++checks === (route === "stream" ? 2 : 1)) { f.hook = async () => { held = true; enter(); await gate; held = false; }; refresh = f.sources.assistantNative.refresh(user); await entered; }
+  };
+  const controller = new AbortController();
+  t.after(() => { release(); controller.abort(); });
+  const frame = (async () => {
+    const response = await fetch(f.origin + (route === "events" ? `/api/runs/${key}/events` : "/api/" + route), { signal: controller.signal });
+    assert.equal(response.status, revokeActor && route !== "stream" ? 401 : 200); if (route !== "stream") return response.json();
+    const reader = response.body!.getReader();
+    let text = ""; while (!text.includes("\n\n")) { const part = await reader.read(); assert(!part.done); text += new TextDecoder().decode(part.value); }
+    return JSON.parse(text.split("data: ")[1]!.split("\n\n")[0]!);
+  })();
+  void frame.catch(() => {});
+  try {
+    await entered; await captureAttempted;
+    if (revokeActor) f.config.auth = { mode: "local", user: "other@example.test" };
+    release();
+    const snapshot = await frame;
+    if (revokeActor) assert.deepEqual(snapshot, route === "stream" ? {} : { error: "authentication_required" });
+    else if (route === "events") assert.equal(snapshot.events.length, 5);
+    else {
+      assert(snapshot.runs.some((run: { key: string }) => run.key === key));
+      assert.equal(snapshot.sources.find((source: { id: string }) => source.id === "protected").state, "connected");
+    }
+  } finally { release(); controller.abort(); await frame.catch(() => {}); await refresh; }
+});
+}
+}
+
 test("a concurrent native refresh waits until evidence performs its final Run visibility check", async t => {
   const f = await fixture(t); await f.snapshot();
   const before = JSON.stringify(f.store.events(key));

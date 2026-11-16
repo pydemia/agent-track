@@ -110,9 +110,20 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
       const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
+      const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
+      const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
-        if (projectTaskRead) await sources.projects.refresh(user);
+        if (projectTaskRead || evidenceRun) {
+          await sources.projects.refresh(user);
+          if (evidenceRun) {
+            const source = config().sources.find(item => item.id === evidenceRun.source_id && item.users.includes(user));
+            // The evidence reader revalidates current producer/Task/native
+            // authority itself. Recollect only if its metadata grant is stale.
+            if (source?.assistantNativeSourceId && !sources.assistantNative.hasFreshReadView(source, user))
+              await sources.assistantNative.refresh(user, source.id);
+          }
+        }
         else await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
@@ -366,7 +377,12 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (url.pathname === "/api/health") {
         json(response, 200, { status: "ok", schema: 2, version: "0.1.0", integrity: store.integrity() }); return;
       }
-      if (url.pathname === "/api/snapshot") { json(response, 200, snapshot(user)); return; }
+      if (url.pathname === "/api/snapshot") {
+        const observed = sources.assistantNative
+          ? await sources.assistantNative.afterRefresh(user, () => snapshot(user)) : snapshot(user);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        json(response, 200, observed); return;
+      }
       if (url.pathname === "/api/projects/catalog") {
         const views = sources.views(user).filter((source) => source.kind === "projects");
         json(response, 200, { generatedAt: new Date().toISOString(), sources: views.map((source) => ({
@@ -420,12 +436,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           sending = true;
           try {
             await sources.refreshProjectGrants?.(user);
+            const observed = sources.assistantNative
+              ? await sources.assistantNative.afterRefresh(user, () => snapshot(user)) : snapshot(user);
             if (response.destroyed || response.writableEnded) return;
             if (authenticate(request, config()) !== user) {
               response.write("event: authorization_revoked\ndata: {}\n\n");
               response.end(); return;
             }
-            response.write(`event: snapshot\ndata: ${JSON.stringify(snapshot(user))}\n\n`);
+            response.write(`event: snapshot\ndata: ${JSON.stringify(observed)}\n\n`);
           } catch { response.end(); }
           finally { sending = false; }
         };
@@ -452,7 +470,10 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const runEvents = /^\/api\/runs\/([A-Za-z0-9_-]+)\/events$/.exec(url.pathname);
       if (runEvents) {
         const key = runEvents[1]!;
-        if (!snapshot(user).runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
+        const observed = sources.assistantNative
+          ? await sources.assistantNative.afterRefresh(user, () => snapshot(user)) : snapshot(user);
+        if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+        if (!observed.runs.some((run) => run.key === key)) { json(response, 404, { error: "run_not_found" }); return; }
         try { json(response, 200, store.events(key, url.searchParams.get("after") ?? "0")); }
         catch { json(response, 400, { error: "invalid_page_cursor" }); }
         return;
