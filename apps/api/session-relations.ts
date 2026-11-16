@@ -43,15 +43,15 @@ export class SessionRelationCursors {
 /** Live session receipt metadata, intersected with both initial and final Track Run/Project visibility. */
 export class SessionRelations {
   private cursors = new SessionRelationCursors();
-  constructor(private config: () => Config, private snapshot: (user: string) => Snapshot,
-    private refreshGrants: (user: string) => Promise<void>,
+  constructor(private config: () => Config, private snapshot: (user: string, key: string) => Snapshot,
+    private refreshGrants: (user: string, key: string) => Promise<void>,
     private factory: (options: DemianOptions) => Reader = options => new DemianClient(options),
     private timeoutMs = 10_000) {
     if (!Number.isFinite(timeoutMs) || timeoutMs < 1 || timeoutMs > 10_000) throw new Error("Invalid relation read deadline");
   }
 
   private authorized(user: string, key: string) {
-    const config = this.config(), view = this.snapshot(user);
+    const config = this.config(), view = this.snapshot(user, key);
     if (!(config.auth.mode === "proxy" ? config.auth.users.includes(user) : config.auth.user === user)) throw missing();
     const run = view.runs.find(item => item.key === key);
     const source = config.sources.find(item => item.id === run?.sourceId && item.users.includes(user));
@@ -94,7 +94,7 @@ export class SessionRelations {
       return value;
     };
     try {
-      await guarded(() => this.refreshGrants(user));
+      await guarded(() => this.refreshGrants(user, key));
       const before = this.authorized(user, key);
       if (before.stamp !== initial.stamp || before.run.sessionId !== run.sessionId || !before.allowed.has(run.runId)) throw missing();
       const credential = credentialStamp(source);
@@ -111,7 +111,7 @@ export class SessionRelations {
       const page = await guarded(() => client.sessionRelations(run.sessionId, kind, after, 250));
       if (page.sessionId !== run.sessionId || page.kind !== kind) throw new SourceError(403);
       check(await guarded(() => client.observe(run.runId)));
-      await guarded(() => this.refreshGrants(user));
+      await guarded(() => this.refreshGrants(user, key));
       const final = this.authorized(user, key);
       if (final.stamp !== initial.stamp || final.run.sessionId !== run.sessionId || final.run.sourceState !== "connected" ||
           final.run.stale || credentialStamp(final.source) !== credential) throw missing();

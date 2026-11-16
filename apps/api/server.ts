@@ -71,6 +71,20 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const taskAssignments = new TaskAssignments(store, config, sources);
   const snapshot = (user: string, sourceIds?: ReadonlySet<string>) => projectSuccessorSnapshot(taskAssignments.filterSnapshot(
     store.snapshot(user, sources.views(user).filter(source => !sourceIds || sourceIds.has(source.id)))), config(), successors);
+  const ordinaryReadSource = (user: string, key: string) => {
+    const row = store.run(key), source = config().sources.find(item => item.id === row?.source_id && item.users.includes(user));
+    return source?.kind === "demian" && !source.assistantNativeSourceId ? source : undefined;
+  };
+  // Direct ordinary Native readers reauthorize their exact origin before and
+  // after I/O. Their Project fence must not collect unrelated Assistant windows;
+  // protected/unknown Sources retain the original complete collection fence.
+  const refreshReadGrants = (user: string, key: string) => ordinaryReadSource(user, key) && sources.projects?.refresh
+    ? sources.projects.refresh(user) : sources.refreshProjectGrants?.(user) ?? Promise.resolve();
+  const readSnapshot = (user: string, key: string) => {
+    const source = ordinaryReadSource(user, key);
+    const ids = source ? new Set([source.id, ...config().sources.filter(item => item.kind === "projects" && item.users.includes(user)).map(item => item.id)]) : undefined;
+    return snapshot(user, ids);
+  };
   const commands = new CommandService(store);
   const successors = new SuccessorCommands(store);
   const runSuccessors = new RunSuccessors(store, config, sources, snapshot);
@@ -80,7 +94,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const permissions = new RunPermissions(store, config, sources, snapshot);
   const approvals = new ApprovalService(store);
   const taskCreation = new ProjectTaskCreation(store, config, sources);
-  const sessionRelations = new SessionRelations(config, snapshot, user => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+  const sessionRelations = new SessionRelations(config, readSnapshot, refreshReadGrants);
   const flowViews = new FlowViews(new FlowViewRepository(store.db), flowViewAuthorization(config, sources, snapshot));
   const handle = async (request: IncomingMessage, response: ServerResponse) => {
     const flowDeadline = performance.now() + flowViewRequestTimeoutMs;
@@ -126,9 +140,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
       const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
+      const nativeRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/(?:files|orchestration|tools|lineage)$/.exec(url.pathname);
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && url.pathname !== "/api/stream" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
-        if (projectTaskRead || evidenceRun) {
+        if (nativeRead) await refreshReadGrants(user, nativeRead[1]!);
+        else if (projectTaskRead || evidenceRun) {
           await sources.projects.refresh(user);
           if (evidenceRun) {
             const source = config().sources.find(item => item.id === evidenceRun.source_id && item.users.includes(user));
@@ -516,8 +532,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const cancel = () => { if (!response.writableEnded) controller.abort(); };
         request.once("aborted", cancel); response.once("close", cancel);
         try {
-          const evidence = await artifactEvidence(config, snapshot, user, artifacts[1]!,
-            () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), { signal: controller.signal });
+          const evidence = await artifactEvidence(config, actor => readSnapshot(actor, artifacts[1]!), user, artifacts[1]!,
+            () => refreshReadGrants(user, artifacts[1]!), { signal: controller.signal });
           if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
           if (!response.destroyed) json(response, 200, evidence);
         } catch (error) {
@@ -528,13 +544,13 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       }
       const files = /^\/api\/runs\/([A-Za-z0-9_-]+)\/files$/.exec(url.pathname);
       if (files) {
-        const evidence = await fileEvidence(config, snapshot, user, files[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        const evidence = await fileEvidence(config, actor => readSnapshot(actor, files[1]!), user, files[1]!, () => refreshReadGrants(user, files[1]!));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }
       const orchestration = /^\/api\/runs\/([A-Za-z0-9_-]+)\/orchestration$/.exec(url.pathname);
       if (request.method === "GET" && orchestration) {
-        const evidence = await orchestrationEvidence(config, snapshot, user, orchestration[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
+        const evidence = await orchestrationEvidence(config, actor => readSnapshot(actor, orchestration[1]!), user, orchestration[1]!, () => refreshReadGrants(user, orchestration[1]!));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }
@@ -545,14 +561,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (keys.length > 1 || keys.some(key => key !== "include") || include !== null && include !== "model-requests") {
           json(response, 400, { error: "invalid_tool_evidence_query" }); return;
         }
-        const evidence = await toolEvidence(config, snapshot, user, tools[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), include === "model-requests");
+        const evidence = await toolEvidence(config, actor => readSnapshot(actor, tools[1]!), user, tools[1]!, () => refreshReadGrants(user, tools[1]!), include === "model-requests");
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }
       if (request.method === "GET" && lineage) {
         const after = sequenceSchema.safeParse(url.searchParams.get("after") ?? "0");
         if (!after.success) throw new CommandError(400, "invalid_cursor", "lineage 조회 위치를 확인해 주세요.");
-        const evidence = await lineageEvidence(config, snapshot, user, lineage[1]!, () => sources.refreshProjectGrants?.(user) ?? Promise.resolve(), after.data);
+        const evidence = await lineageEvidence(config, actor => readSnapshot(actor, lineage[1]!), user, lineage[1]!, () => refreshReadGrants(user, lineage[1]!), after.data);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, evidence); return;
       }

@@ -165,6 +165,9 @@ test("Track HTTP route rejects invalid/duplicate query, write and foreign actor 
     sessionId: row.sessionId, workspaceId: row.workspaceId, title: row.title, status: row.status, createdAt: row.createdAt,
     startedAt: row.startedAt, completedAt: row.completedAt, observedAt: row.observedAt }));
   const sources = new Sources(store, () => f.config); sources.views = () => f.views(); sources.refreshProjectGrants = () => f.state.refresh();
+  // Ordinary Native reads now refresh Projects directly; keep the same
+  // mid-request actor rotation attached to that actual authorization boundary.
+  sources.projects.refresh = () => f.state.refresh();
   const { server } = createTrackServer(store, () => f.config, "dist/web", sources), base = await listen(server); t.after(() => close(server));
   const path = `/api/runs/${keys[0]}/session-relations`;
   for (const query of ["", "?kind=other", "?kind=managed-children&kind=managed-children", "?kind=managed-children&after=7"]) {
