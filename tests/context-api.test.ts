@@ -63,6 +63,8 @@ test("private context API scopes independent readers, verifies original Task/nat
       taskRevision: "1", projectTitle: "PRIVATE_PROJECT", taskTitle: "PRIVATE_TASK_TITLE", provenance: "operator" }, user);
   }
   const sources = new Sources(store, () => config);
+  let unrelatedAssistantReads = 0;
+  sources.assistantNative.refresh = async () => { unrelatedAssistantReads++; throw new Error("Unrelated Assistant collection unavailable"); };
   sources.views = (actor) => actor === user ? [{ id: "native", kind: "demian", label: "Native", device: "fixture", state: nativeConnected ? "connected" : "disconnected", lastObservedAt: at, detail: "fixture", capabilities: ["run.read"] } as SourceView, sources.projects.view(config.sources[0]!, actor)] : [];
   const { server } = createTrackServer(store, () => config, root, sources); const base = await listen(server);
   store.db.prepare(`INSERT INTO task_assignment_receipts(actor,id,project_source_id,project_id,task_id,task_revision,review_sha256,demian_source_id,session_id,session_sha256,request_digest,source_identity,input_sha256,state,run_id,binding_state,created_at,updated_at)
@@ -73,8 +75,16 @@ test("private context API scopes independent readers, verifies original Task/nat
   try {
     const response = await read(); assert.equal(response.status, 200); const body = await response.text(); assert.doesNotMatch(body, /PRIVATE_|actor|credential|apiToken/);
     const result = contextSummarySchema.parse(JSON.parse(body)); assert.equal(result.counts.runs, 2); assert.equal(result.counts.sessions, 2); assert.equal(result.counts.byStatus.succeeded, 2);
+    assert.equal(unrelatedAssistantReads, 0, "ordinary Native context must not collect unrelated protected Assistant windows");
     assert.equal(result.task?.state, "todo"); assert.equal(result.task?.revision, "1"); assert.ok(result.runs.every((run) => run.incomplete), "fresh native status is distinct from the queued journal snapshot"); assert.equal(taskReads, 2);
     assert.ok(result.trackUrl?.includes("run=")); assert.equal(writes, 0);
+    const ordinaryReads = runReads.length;
+    config.sources[1]!.assistantNativeSourceId = "protected-assistant";
+    const protectedSummary = contextSummarySchema.parse(await (await read()).json());
+    assert.equal(protectedSummary.counts.runs, 0); assert.equal(protectedSummary.coverage.unavailable, true);
+    assert.equal(runReads.length, ordinaryReads, "ordinary reader cannot borrow protected Assistant Run authority");
+    assert.equal((await read(contextPath({ kind: "session", sourceId: "native", sessionId: id(3) }))).status, 404);
+    delete config.sources[1]!.assistantNativeSourceId;
     assert.equal((await fetch(base + "/api/snapshot", { headers })).status, 401, "service reader cannot authenticate general web API");
     assert.equal((await read(path, { authorization: `Bearer ${proxyKey}` })).status, 401, "proxy key cannot replace service credential");
     assert.equal((await read(path, { "x-forwarded-email": user })).status, 401, "browser/proxy impersonation headers rejected");

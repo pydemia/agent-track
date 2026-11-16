@@ -27,7 +27,7 @@ function options(source: SourceConfig) {
 
 /** The reader is an explicit service principal, not a caller-supplied user identity. */
 export async function contextSummary(config: () => Config, snapshot: (user: string) => Snapshot, initial: ContextReader,
-  raw: ContextTarget, sources: Pick<Sources, "refreshProjectGrants" | "projects">): Promise<ContextSummary> {
+  raw: ContextTarget, sources: Pick<Sources, "projects">): Promise<ContextSummary> {
   const target = contextTargetSchema.parse(raw); const initialStamp = contextReaderStamp(initial);
   const authorize = () => {
     const current = config(); const reader = current.contextReaders?.find((item) => item.id === initial.id);
@@ -49,7 +49,11 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
     }
     return { current, reader, view, source, allowedRun };
   };
-  await sources.refreshProjectGrants(initial.user); let access = authorize();
+  // This contract reads ordinary Native Runs and explicitly excludes
+  // Assistant-owned Runs below. Refresh current Projects grants here; each
+  // included Native Run/Session is read directly without collecting unrelated
+  // protected Assistant windows or borrowing their authority.
+  await sources.projects.refresh(initial.user); let access = authorize();
   const targetStamp = sourceIdentity(access.source);
   let task: ProjectTaskMetadata | null = null;
   if (target.kind === "task") task = await sources.projects.client(target.sourceId, initial.user).task(target.taskId, target.projectId);
@@ -79,7 +83,7 @@ export async function contextSummary(config: () => Config, snapshot: (user: stri
       validated.push({ run, native, stamp, binding: bindingStamp(run) });
     } catch (error) { if (error instanceof CommandError) throw error; unavailable = true; }
   }
-  await sources.refreshProjectGrants(initial.user); access = authorize();
+  await sources.projects.refresh(initial.user); access = authorize();
   if (target.kind === "task") { task = await sources.projects.client(target.sourceId, initial.user).task(target.taskId, target.projectId); access = authorize(); }
   if (sourceIdentity(access.source) !== targetStamp) throw new CommandError(403, "context_forbidden", "문맥 요약의 원본 구성이 변경됐습니다.");
   const link = (run: RunView, view = "map") => { const url = new URL("/", access.current.publicOrigin); url.searchParams.set("view", view); url.searchParams.set("run", run.key); return url.href; };
