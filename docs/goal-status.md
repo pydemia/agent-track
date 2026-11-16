@@ -1,16 +1,25 @@
 # Agent Track 구현 goal 기준표
 
-## 현재 판정 — 2026-11-16 KST
+## 현재 판정 — 2026-11-17 KST
 
-현재 Persona source4a9ad42/imageb68ece66과 Track APIcd73f09·web474676f를 운영 중이다.
+현재 Persona source4a9ad42/imageb68ece66과 Track APIe3581c7·web474676f를 운영 중이다.
 일반 Native 문맥의 무관한 Assistant 수집·순차 조회·전체 소유자 투영 비용을 수정했다.
 같은2초 제한에서 Task281ms/1Run·Project215ms/4Run과 실제 Edge 요약·목록 배지의
 복구를 확인했다. 원본 Task r1/todo와 성공 Run의 상태를 구분했고 원본 인증·업무
 자료는 변경하지 않았다. [현재 요약 복구 근거](context-summary-scoped-reads.md)를 우선한다.
 Track 업무 inspector→Projects 동일 Task 선택을 실제 Edge 계정에서 확인했다.
 양 OS CI와 설정·이력·다른 프로세스 보존 검사를 통과했다. 원본 Demian Session
-인증과 Projects 실행 기록 오류는 남아 AT-06 전체는 수용하지 않았다.
+인증은 남아 AT-06 전체는 수용하지 않았다.
 [원본 업무 이동·현재 운영 근거](task-origin-navigation.md)를 우선한다.
+
+일반 Native Trace의 무관한 보호 수집·전체 snapshot 범위도 분리했다.
+수정 전 모델 요청15,005ms timeout에서 운영302ms/1개로 복구했고 lineage253ms/2개,
+산출물233ms/1개와 Edge의17events·3nodes/2edges/1group·모델 요청 edge 상세를
+확인했다. 요청 시작만 관측했고 종료·실제 응답 모델은 미확인이다. 조직화 지원은
+disconnected이며 성공으로 세지 않는다. 최종 sourcee3581c7의 양 OS CI와 설정47개·
+다른 프로세스18개·원본 이력 보존을 통과했다. 기존 부하 제거 뒤 보호 업무 재측정은
+1차 성공/2차 실패였으므로 AT-14 안정성은 미수용이다.
+[현재 일반 Trace·보호 업무 잔여](ordinary-evidence-scoped-reads.md)를 우선한다.
 
 앞선 Persona source4a9ad42/imageb68ece66과 Track APIfefc94f·web186ff8d 전환에서는
 Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
@@ -74,10 +83,10 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 별도 전체 표시 진척률은 산정하지 않는다. 영역 상태는 reader 운영🟩,
 업무·그룹/Trace 안정성🟨, 명령·복구🟨, 저장 보기·peer🟨,
 다중 장치·원본 앱 이동🟨다. 전체 완료 ETA는 산정 불가·신뢰도 낮음이다.
-외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치이며, 현재 실패의
-다음 작업은 일반 문맥 부하를 제거한 상태에서 기존 승인 Persona4a9ad42의 보호
-업무를 반복 재측정하는 것이다. 사설 Projects 후보의 별도 CI 예외 승인과 실제
-전환 검증도 남는다. 재산정은 같은 실제 업무의 그룹·Trace가 유지되는 운영 수용 후다.
+외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치다.
+기존 승인 Persona4a9ad42의 보호 업무를 재측정한 결과 반복 실패가 남았다.
+사설 Projects 후보의 별도 CI 예외 승인과 실제 전환·동일 보호 업무의 반복 검증,
+일반 조직화 지원 조회 실패의 원본 계약 조사도 남는다. 재산정은 같은 실제 업무의 그룹·Trace가 유지되는 운영 수용 후다.
 
 앞선 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.

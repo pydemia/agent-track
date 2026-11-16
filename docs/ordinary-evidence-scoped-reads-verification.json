@@ -1,0 +1,288 @@
+{
+  "recordedDateKst": "2026-11-17",
+  "scope": "Ordinary Native evidence reads; not protected Assistant/full goal acceptance",
+  "sourceCommits": [
+    "bd78238551a502da863a2dbddc01a8417d471d2d",
+    "e3581c735629eaca45d3ea66028f86ffa2807011"
+  ],
+  "ci": {
+    "run": 43894599208,
+    "headSha": "e3581c735629eaca45d3ea66028f86ffa2807011",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "verify (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "windows": {
+      "total": 1281,
+      "passed": 1270,
+      "failed": 0,
+      "skipped": 11
+    },
+    "ubuntu": {
+      "total": 1281,
+      "passed": 1256,
+      "failed": 0,
+      "skipped": 25
+    },
+    "initialPrimaryCommitCi": "failed: file-api current Project view compatibility; fixed by final source"
+  },
+  "relatedLocalTests": {
+    "passed": 17,
+    "failed": 0,
+    "typecheck": "pass"
+  },
+  "independentReview": {
+    "base": "69a2e06",
+    "head": "bd78238551a502da863a2dbddc01a8417d471d2d",
+    "mustFixFindings": 0,
+    "staticOnly": true,
+    "actualBackendModelObserved": false,
+    "finalCompatibilityDelta": "parent reviewed, regression tests and exact-source CI passed"
+  },
+  "before": {
+    "at": "2026-11-16T14:52:12.236Z",
+    "source": "demian-local",
+    "newNativeRuns": 0,
+    "newCredentials": 0,
+    "rows": [
+      {
+        "path": "tools?include=model-requests",
+        "startedAt": "2026-11-16T14:51:57.230Z",
+        "failure": "timeout",
+        "elapsedMs": 15005
+      }
+    ]
+  },
+  "operatingAfter": {
+    "at": "2026-11-16T16:07:06.451Z",
+    "source": "demian-local",
+    "newNativeRuns": 0,
+    "newCredentials": 0,
+    "rows": [
+      {
+        "path": "tools?include=model-requests",
+        "startedAt": "2026-11-16T16:07:05.026Z",
+        "status": 200,
+        "state": "connected",
+        "modelRequests": 1,
+        "observations": null,
+        "relations": null,
+        "artifacts": null,
+        "elapsedMs": 302
+      },
+      {
+        "path": "lineage?after=0",
+        "startedAt": "2026-11-16T16:07:05.331Z",
+        "status": 200,
+        "state": "connected",
+        "modelRequests": null,
+        "observations": 2,
+        "relations": null,
+        "artifacts": null,
+        "elapsedMs": 253
+      },
+      {
+        "path": "session-relations?kind=managed-children",
+        "startedAt": "2026-11-16T16:07:05.585Z",
+        "status": 200,
+        "state": "connected",
+        "modelRequests": null,
+        "observations": null,
+        "relations": 0,
+        "artifacts": null,
+        "elapsedMs": 202
+      },
+      {
+        "path": "orchestration",
+        "startedAt": "2026-11-16T16:07:05.787Z",
+        "status": 200,
+        "state": "disconnected",
+        "modelRequests": null,
+        "observations": null,
+        "relations": null,
+        "artifacts": null,
+        "elapsedMs": 229
+      },
+      {
+        "path": "artifacts",
+        "startedAt": "2026-11-16T16:07:06.017Z",
+        "status": 200,
+        "state": "connected",
+        "modelRequests": null,
+        "observations": null,
+        "relations": null,
+        "artifacts": 1,
+        "elapsedMs": 233
+      },
+      {
+        "path": "files",
+        "startedAt": "2026-11-16T16:07:06.250Z",
+        "status": 200,
+        "state": "connected",
+        "modelRequests": null,
+        "observations": null,
+        "relations": null,
+        "artifacts": null,
+        "elapsedMs": 201
+      }
+    ]
+  },
+  "operatingTransition": {
+    "observedAt": "2026-11-16T16:07:04.883Z",
+    "operationId": "f331b930-ed6e-4c30-8245-5227e6d6dd03",
+    "committed": true,
+    "pid": 39036,
+    "created": "2026-11-16T16:05:21.5080470Z",
+    "apiRevision": "e3581c735629eaca45d3ea66028f86ffa2807011",
+    "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "manifestSha256": "00e5c0190d309091b91a373636aca8eba947e5cc18897f597ddbb6ef26644163",
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "nativeDatabasePreservedByCommit": true
+  },
+  "originalHistory": {
+    "at": "2026-11-16T16:07:04.965Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "actualEntraGui": {
+    "dateKst": "2026-11-17 01:12",
+    "browser": "Edge",
+    "account": "pydemia@pydemia.ai",
+    "source": "demian-local",
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "events": 17,
+    "lineage": 2,
+    "artifacts": 1,
+    "modelRequestStarts": 1,
+    "modelRequestEnd": "unobserved",
+    "requestedModel": "gpt-6.1-sol",
+    "actualResponseModel": null,
+    "nodes": 3,
+    "edges": 2,
+    "groups": 1,
+    "edgeSelected": {
+      "type": "model-request",
+      "source": "demian-local",
+      "evidenceSeq": 4,
+      "from": "Run",
+      "to": "model request"
+    },
+    "orchestrationSupport": "query failed",
+    "detailVerification": "accessibility tree and selected state",
+    "screenshot": "ordinary-native-trace-20261117.png",
+    "screenshotScope": "viewport top, signed-in account and Trace context; not lower inspector"
+  },
+  "protectedRecheck": {
+    "revision": "cd73f0962c99e7ae1266fe2ef4127a2d31472852",
+    "mode": "sequential actual API reads with existing UI/background clients; not quiet benchmark",
+    "round1": {
+      "snapshot": "connected",
+      "events": 8,
+      "evidence": "connected",
+      "elapsedMs": {
+        "snapshot": 2019,
+        "events": 10091,
+        "evidence": 13067
+      }
+    },
+    "round2": {
+      "snapshot": "disconnected; Run hidden",
+      "events": 8,
+      "evidence": "timeout",
+      "evidenceElapsedMs": 15015
+    },
+    "failure": {
+      "queueDepth": 0,
+      "admissionBudgetMs": 10000,
+      "authorityProjectsMs": 1076.78,
+      "firstNativeMetadataMs": 4657.84,
+      "secondNativeMetadata": "unfinished at deadline",
+      "status": 503
+    },
+    "accepted": false
+  },
+  "goalAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "changePercentagePoints": 0,
+    "weighting": "equal, partial=0",
+    "lowerLevelTotal": null,
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-14",
+      "AT-15",
+      "AT-20"
+    ]
+  },
+  "persona": {
+    "operatingSource": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "operatingImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "candidateSource": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "candidateImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "candidateApproval": "pending; previous exact-image exception not inherited"
+  },
+  "writes": {
+    "newProviderRuns": 0,
+    "newCredentials": 0,
+    "workerStarted": false,
+    "writerEnabled": false,
+    "originalTaskAccepted": false
+  }
+}
