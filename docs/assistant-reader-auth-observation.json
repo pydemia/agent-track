@@ -36,6 +36,8 @@
     "passwordEnteredByAgent": false,
     "actualExecutionSelected": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
     "actualRunTraceNavigation": "60cca68d-95d1-4d99-963a-c2554e0df347",
-    "operatingNewReaderDetailEvidenceAccepted": false
+    "operatingNewReaderDetailEvidenceAccepted": true,
+    "operatingVerification": "assistant-reader-promotion-operating.json",
+    "wholeWorkflowAccepted": false
   }
 }

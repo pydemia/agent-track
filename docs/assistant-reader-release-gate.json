@@ -1,6 +1,6 @@
 {
   "schema": "agent-track-assistant-reader-release-gate-v1",
-  "observedAt": "2026-11-15T04:15:26.067Z",
+  "observedAt": "2026-11-16T03:10:41.971Z",
   "candidate": {
     "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
     "sourceCommit": "4a9ad4222a749f84c2fc20effab08a019f06872c",
@@ -9,16 +9,18 @@
   },
   "container": {
     "id": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
-    "name": "pydemia-persona-reader-staged-98623102-1a5",
-    "started": false
+    "name": "/pydemia-persona-assistant-public-428cb10",
+    "started": true,
+    "pid": 620438,
+    "startedAt": "2026-11-16T02:54:21.446199515Z"
   },
   "imageOnlyPreparation": {
     "newEnvKeys": 0,
     "newCredentialMounts": 0,
     "originalEnvMountNetworkAndHostFieldsPreserved": true,
-    "originalProcessPreserved": true,
     "productionWrites": 0,
-    "modelRequests": 0
+    "modelRequests": 0,
+    "preparationOriginalProcessPreserved": true
   },
   "verification": "assistant-reader-coordination-verification.json",
   "sourceCi": {
@@ -65,7 +67,7 @@
       "recordedAt": "2026-11-16T01:34:44.852Z"
     }
   },
-  "operatingAssistantChanged": false,
+  "operatingAssistantChanged": true,
   "writerEnabled": false,
   "fullAppHistoricalPreview": {
     "verification": "assistant-reader-app-preview.json",
@@ -147,5 +149,12 @@
       "trackEntraLoginVisiblyConfirmed": true,
       "freshBackupOperation": "4cc9b7d1-a6d7-49fb-8598-e74a16c1f159"
     }
+  },
+  "operatingVerification": "assistant-reader-promotion-operating.json",
+  "retainedOriginal": {
+    "id": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "name": "/pydemia-persona-pre-reader-adf3c7fc-dfc",
+    "stopped": true,
+    "deleted": false
   }
 }

@@ -326,10 +326,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         }
         if (config().sources.some(source => source.id === sourceId && source.kind === "assistant" &&
             source.assistantUser === user && source.users.includes(user))) await sources.assistantNative?.refresh(user);
-        const result = executionId ? events
+        // Join projection uses these native windows too. Acquire them before the
+        // Assistant authority queue so a queued collector cannot revoke its own
+        // link mid-read or wait on a scope already holding that same queue.
+        const protectedSources = config().sources.filter(source => source.assistantNativeSourceId === sourceId && source.users.includes(user)).map(source => source.id);
+        const result = await sources.assistantNative.withStableViews(user, protectedSources, async () => executionId ? events
           ? await sources.assistant.events(user, sourceId!, executionId, url.searchParams.get("after") ?? "0")
           : await sources.assistant.detail(user, sourceId!, executionId)
-          : await sources.assistant.list(user, sourceId!, url.searchParams.get("cursor"));
+          : await sources.assistant.list(user, sourceId!, url.searchParams.get("cursor")));
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, result); return;
       }

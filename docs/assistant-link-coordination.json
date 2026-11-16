@@ -1,0 +1,23 @@
+{
+  "schema": "agent-track-assistant-link-coordination-v1",
+  "dateKst": "2026-11-16",
+  "trigger": "Actual signed-in Track UI intermittently hides the Demian link in Assistant execution detail while the same Run evidence remains available",
+  "cause": "Assistant list/detail/events routes did not hold native windows while background collection cleared grants",
+  "change": "Acquire related native windows together before entering the shared Assistant authority queue; release on success or failure; preserve the existing strict single-source evidence guard",
+  "unrelatedSourceIsolation": "Invalid sibling identities are excluded from the multi-window guard and remain denied by normal link authority; they do not reject valid execution reads",
+  "authorityTimeoutMs": 10000,
+  "newPermissions": 0,
+  "writerEnabled": false,
+  "verification": {
+    "syntheticUpstreamOverActualHttp": true,
+    "regressionBefore": { "tests": 3, "failed": 3 },
+    "relatedAfter": { "tests": 35, "passed": 35, "failed": 0, "skipped": 0 },
+    "fullSuiteBeforeSiblingIsolationRefinement": { "tests": 1245, "passed": 1234, "failed": 0, "skipped": 11 },
+    "typecheckAfterRefinement": "passed",
+    "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
+  },
+  "operatingApplied": false,
+  "authenticatedUiRecheckAfterFix": false,
+  "wholeWorkflowAccepted": false,
+  "followUp": "Freeze exact CI-passed API with existing web, apply through the existing runtime operation, and recheck the same execution in Edge"
+}

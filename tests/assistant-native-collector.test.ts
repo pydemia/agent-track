@@ -515,6 +515,44 @@ test("a rejected evidence callback releases its queued native refresh", { timeou
   assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
 });
 
+for (const route of ["list", "detail", "events"] as const) {
+  test(`Assistant ${route} preserves its Demian link while collection is queued`, { timeout: 5000 }, async t => {
+    const f = await fixture(t); await f.snapshot();
+    const before = JSON.stringify(f.store.events(key));
+    let refresh: Promise<void> | undefined, collecting = false, release!: () => void;
+    const gate = new Promise<void>(resolve => { release = resolve; });
+    const enter = async () => {
+      f.hook = async () => { collecting = true; await gate; };
+      refresh = f.sources.assistantNative.refresh(user);
+      await new Promise<void>(resolve => setImmediate(resolve));
+      assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+      assert.equal(collecting, false, "a read must hold the validated native window until it commits");
+    };
+    if (route === "list") {
+      const read = f.sources.assistant.list.bind(f.sources.assistant);
+      f.sources.assistant.list = async (...args) => { await enter(); return read(...args); };
+    } else if (route === "detail") {
+      const read = f.sources.assistant.detail.bind(f.sources.assistant);
+      f.sources.assistant.detail = async (...args) => { await enter(); return read(...args); };
+    } else {
+      const read = f.sources.assistant.events.bind(f.sources.assistant);
+      f.sources.assistant.events = async (...args) => { await enter(); return read(...args); };
+    }
+    try {
+      const suffix = route === "list" ? "" : `/${executionId}${route === "events" ? "/events?after=0" : ""}`;
+      const response = await fetch(`${f.origin}/api/assistant/assistant/executions${suffix}`);
+      assert.equal(response.status, 200);
+      const value = await response.json();
+      const execution = route === "list" ? value.executions[0] : route === "events" ? value.execution : value;
+      assert.equal(execution.demianLinks.state, "connected");
+      assert.equal(execution.demianLinks.links.length, 1);
+      assert.equal(execution.demianLinks.links[0].runId, runId);
+    } finally { release(); await refresh; }
+    assert.equal(JSON.stringify(f.store.events(key)), before);
+    assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+  });
+}
+
 test("a queued refresh captures authority after the reader settles and precedes later readers", { timeout: 5000 }, async t => {
   const f = await fixture(t); await f.snapshot();
   let releaseRead!: () => void, releaseRefresh!: () => void, enterRead!: () => void, enterRefresh!: () => void;
@@ -563,6 +601,23 @@ test("an unrelated protected source identity failure does not block a healthy Ru
   assert.equal(response.status, 200);
   const value = nativeRunEvidenceViewSchema.parse(await response.json());
   assert.equal(value.state, "connected"); assert.ok(value.page);
+  assert.equal(f.sources.views(user).find(source => source.id === "unrelated")!.state, "forbidden");
+});
+
+test("a broken sibling native identity does not hide valid Assistant execution links", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const other = { ...f.config.sources.find(source => source.id === "protected")!, id: "unrelated" };
+  f.config.sources.push(other);
+  assert.equal(f.store.pinSourceIdentity(other.id, sourceIdentity(other)), true);
+  other.baseUrl = "https://changed-native.example";
+  for (const suffix of ["", `/${executionId}`, `/${executionId}/events?after=0`]) {
+    const response = await fetch(`${f.origin}/api/assistant/assistant/executions${suffix}`);
+    assert.equal(response.status, 200);
+    const value = await response.json();
+    const execution = suffix === "" ? value.executions[0] : suffix.includes("events") ? value.execution : value;
+    assert.equal(execution.demianLinks.state, "connected");
+    assert.equal(execution.demianLinks.links[0].runId, runId);
+  }
   assert.equal(f.sources.views(user).find(source => source.id === "unrelated")!.state, "forbidden");
 });
 

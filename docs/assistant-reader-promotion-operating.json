@@ -1,0 +1,235 @@
+{
+  "schema": "agent-track-approved-reader-operating-v1",
+  "observedAt": "2026-11-16T03:10:41.971Z",
+  "approval": {
+    "sourceRevision": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "scope": "exact approved image-only; current data and credentials retained; writer disabled",
+    "sourceCiPassed": false,
+    "userExceptionApproved": true,
+    "sourceCiRun": 43670396041
+  },
+  "activation": {
+    "phase": "operating-native-assistant-started",
+    "startedAt": 1794797657.980527,
+    "databaseRestored": false,
+    "credentialsRestored": false,
+    "modelRequests": 0,
+    "writerEnabled": false,
+    "sourceCiExceptionApproved": true,
+    "sourceCiPassed": false,
+    "helperCiRun": 43791946260,
+    "scope": "exact approved image-only; current data and credentials retained; writer disabled",
+    "candidateId": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+    "candidateImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "candidateProcess": {
+      "id": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+      "running": true,
+      "pid": 620438,
+      "startedAt": "2026-11-16T02:54:21.446199515Z"
+    },
+    "retainedOriginalId": "dd0d733001190f9c4f8a307ff7e92e3c54485f1481027d543f1f799916cf42d1",
+    "retainedOriginalName": "/pydemia-persona-pre-reader-adf3c7fc-dfc",
+    "oldOriginalStopped": true,
+    "otherProtectedComponentsPreserved": 12,
+    "rendererPreserved": true,
+    "selectedFileFingerprintsPreserved": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
+    "planSha256": "9b22fcf73e6874d7d7474cca99400a5b190cbf5ea4bd46fd181f3d5522f766d2",
+    "operatingDatabaseReadbackPending": true,
+    "publicAuthAndWholeWorkflowPending": true,
+    "temporaryGuardFilesRemoved": true,
+    "finishedAt": 1794797669.5201073
+  },
+  "databaseReadback": {
+    "phase": "operating-native-database-readback-verified",
+    "databaseWrites": 0,
+    "databaseRestored": false,
+    "appRestarted": false,
+    "modelRequestsSentByVerification": 0,
+    "candidateId": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+    "candidateImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "candidateProcess": {
+      "id": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+      "running": true,
+      "pid": 620438,
+      "startedAt": "2026-11-16T02:54:21.446199515Z"
+    },
+    "newSchemaAndRows": {
+      "work": {
+        "oldTables": 33,
+        "newTables": [],
+        "newSchemaObjects": 0,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [],
+        "operationalLeaseExceptions": [
+          "work_execution_lease",
+          "work_report_lease"
+        ],
+        "totalChanges": 0
+      },
+      "runtime": {
+        "oldTables": 65,
+        "newTables": [],
+        "newSchemaObjects": 0,
+        "exactSourceDdl": true,
+        "newTablesEmpty": true,
+        "nonLeaseRowChanges": [
+          "persona_tasks",
+          "sqlite_sequence",
+          "ui_events"
+        ],
+        "operationalLeaseExceptions": [
+          "runtime_leases",
+          "import_leases"
+        ],
+        "totalChanges": 0
+      }
+    },
+    "reportPinsPreserved": true,
+    "fullStartupPayloadsMatched": 6,
+    "readTransactionsAtomicAcrossSeparateChecks": false,
+    "selectedFileFingerprintsPreserved": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
+    "otherProtectedComponentsPreserved": 12,
+    "rendererPreserved": true,
+    "sourceVolumeReadonly": true,
+    "credentialMounts": 0,
+    "network": "none",
+    "ownedContainersRemoved": 1,
+    "helperRemoved": true,
+    "cleanupFailed": false,
+    "cleanupPendingIds": [],
+    "cleanupPendingNames": [],
+    "finishedAt": 1794797840.06706
+  },
+  "trackEvidence": {
+    "phase": "operating-assistant-native-track-evidence-verified",
+    "at": "2026-11-16T02:59:39.519Z",
+    "newModelRequests": 0,
+    "browserGuiVerified": false,
+    "statuses": [
+      {
+        "route": "snapshot",
+        "status": 200
+      },
+      {
+        "route": "events",
+        "status": 200
+      },
+      {
+        "route": "evidence",
+        "status": 200
+      },
+      {
+        "route": "events",
+        "status": 200
+      }
+    ],
+    "evidenceState": "connected",
+    "detail": "현재 업무·역할·원본 권한을 대조한 상세 관측입니다. 기록 순서·Run 시간·usage 범위와 업무 수용은 구별합니다.",
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "evidence": {
+      "events": 8,
+      "models": 1,
+      "usage": 4,
+      "lineage": 2,
+      "artifacts": 1,
+      "hasMore": false
+    }
+  },
+  "concurrentSse": {
+    "at": "2026-11-16T03:00:37.951Z",
+    "phase": "operating-sse-concurrent-snapshot-evidence-verified",
+    "newModelRequests": 0,
+    "operatingApi": true,
+    "requests": [
+      {
+        "route": "snapshot",
+        "status": 200,
+        "startedMs": 287,
+        "elapsedMs": 1953
+      },
+      {
+        "route": "snapshot",
+        "status": 200,
+        "startedMs": 12463,
+        "elapsedMs": 6418
+      },
+      {
+        "route": "evidence",
+        "status": 200,
+        "startedMs": 12462,
+        "elapsedMs": 14483
+      },
+      {
+        "route": "events",
+        "status": 200,
+        "startedMs": 26955,
+        "elapsedMs": 6689
+      }
+    ],
+    "streamStatus": 200,
+    "streamBytesObserved": 65013,
+    "concurrentRequestsDispatched": true,
+    "eventsPreserved": 8,
+    "bindingPreserved": true,
+    "evidenceState": "connected",
+    "remoteReaderOverlapInstrumented": false,
+    "streamClosed": true
+  },
+  "gui": {
+    "browser": "Edge",
+    "signedInAccount": "pydemia@pydemia.ai",
+    "viewport": {
+      "width": 956,
+      "height": 694
+    },
+    "actualRunId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "model": "gpt-6.1-sol",
+    "traceNodes": 4,
+    "traceEdges": 3,
+    "traceGroups": 3,
+    "edgePointerSelected": "Native 호출 근거",
+    "edgeDetailSequences": [
+      "4",
+      "5"
+    ],
+    "usageScopesSeparated": true,
+    "artifactMetadataCount": 1,
+    "assistantExecutionId": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "assistantCurrentTask": "in_review/r5",
+    "assistantRevision": 72,
+    "assistantLinkIntermittentlyHidden": true,
+    "entireWorkflowAccepted": false
+  },
+  "acceptance": {
+    "met": 15,
+    "total": 21,
+    "percent": 71.4,
+    "weighting": "equal-top-level-partial-zero",
+    "wholeGoalComplete": false
+  },
+  "limitations": [
+    "Separate readonly database checks are not one cross-database atomic transaction.",
+    "Concurrent HTTP requests and SSE were observed; remote request overlap was not instrumented.",
+    "Assistant execution list/detail relation race found in actual GUI; Track fix is tested separately and not yet operating.",
+    "Persona source CI remains failed before steps; the exact approved exception was used."
+  ]
+}

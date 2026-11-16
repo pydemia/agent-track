@@ -2,35 +2,31 @@
 
 ## 현재 판정 — 2026-11-16 KST
 
-사용자가 source4a9ad42/imageb68ece66의 CI 예외 배포와 작업 재개를 승인했다.
-Edge에서 Track Entra 로그인을 완료하고 같은 실제 WorkExecution의 Map 관계 선택과
-Run60cca68d의 Trace 이동을 확인했다. 새 운영 사본의 Runtime 복원 검증은 기본
-측정 예산300초에 도달해 전환 전에 중단됐다. 기본값·데이터/인증 검사는 유지하고
-명시적 유한 예산 전달을 보완했으며 Linux 수정 전 실패2개·수정 후12통과/실패0을
-확인했다. 이미 캡처한 현재 사본의 검증을 이어가는 중이며 운영 이미지 전환은 아직
-실행하지 않았다. [승인·배포 조건](assistant-reader-release-gate.json)을 따른다.
+승인된 Persona source4a9ad42/imageb68ece66을 운영 Assistant에 반영했다.
+이전 이미지는 중지 보존했으며 현재 DB·인증은 복원하지 않았다. 운영 DB의
+Work33·Runtime65 tables와 시작 payload6개·설정68개·다른 서비스12개·renderer
+보존을 확인했다. 기존 실제 Run60cca68d의8events·역사 binding r3도 불변이다.
+Edge Entra 로그인 후 실제 Trace의 모델·시간·사용량·산출물과4nodes/3edges/
+3groups를 확인했고 연결선 선택 시 원본 seq4·5가 표시됐다. 운영 SSE와 동시
+snapshot/상세 조회도200/connected다. [운영 근거](assistant-reader-promotion-operating.json)를 따른다.
 
-11월15일 차단 기록: 새 Assistant 이미지의 CI 예외 승인과 인증된 화면 접근이
-남은 실기의 선행 조건이다. 같은 차단 조건이 승인 요청·사본 검증·이번 재점검의
-세 goal turn에서 이어졌다. 사본 검증 작업은 종료됐고 임시 컨테이너는0개다.
-CI는 현재도 검사 시작 전 실패이며, 별도 Demian 원본 화면도 기존 브라우저
-인증으로 열리지 않았다. 재시도·새 MFA 전송·권한 변경 없이 대기 조건으로 구분한다.
-[배포 재개 조건](assistant-reader-release-gate.json)의 `resumptionAudit`를 따른다.
+전체 업무 화면에는 추가 경합이 남았다. 자동 수집 중 Assistant 목록·상세·상태
+이력의 Demian 연결이 간헐적으로 사라지는 경로를 재현했고, 관련 native window를
+보호하도록 수정 중이다. 독립 검토에서 발견한 무관한 sibling 출처 오류 전파도
+회귀 사례에 포함했다. 운영 적용·같은 업무 화면 재검증 전에는 AT-14를 완료하지 않는다.
 
-**기존 수용 판정 15/21·71.4%를 유지한다. 전체 개발 완료율은 산정하지 않는다.**
-새 Assistant와 이전 이미지의 [전체 앱 사본 기동·롤백](assistant-reader-app-preview.md)은
-통과했다. 실제 serializer의 시작 이벤트 payload와 기존 업무·이력 보존을 대조했다.
-현재 운영 사본의 동등성이나 운영 Assistant 전환·화면 수용으로 계산하지 않는다.
-Edge의 Track Entra 로그인 화면은 다시 열었다. 후속 화면에 `Request denied`가
-표시돼 로그인을 완료하지 못했다. 인증 요청을 자동 재전송하지 않았다.
-[후속 인증 관측](assistant-reader-auth-observation.json)은 Note 발행 시점의 승인 대기와 구별한다.
-후속 [reader 동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존 Run의
-격리 SSE·상세 조회를 통과했다. Track API06dd8c7의 [운영 전환](assistant-reader-coordination-operating.json)도
-완료했다. 새 Assistant의 예외 승인·전환과 현재 화면 검증은 남아 있어 수용 개수는
-유지한다. 해당 문서의 최신 결과와 아래 과거 운영 기록을 구별한다.
-상위 요구 동일 가중치·부분0이며 직전 대비0%p다. 기존 완료15개는 각 행에 적힌
-owner/QA 범위의 누적 증거다. 이번 점검은 모든 완료 기능을 최신 운영 환경에서
-재실행한 검사가 아니다. 71.4%를 운영 준비도나 남은 시간의 비율로 사용하지 않는다.
+**기존 수용 판정15/21·71.4%를 유지한다. 상위 동일 가중치·부분0이다.**
+이 수치는 전체 개발 완료율·운영 준비도·남은 시간 비율이 아니다. 현재 영역 상태는
+운영 reader/Trace 확인, 통합 업무 연결 부분, 명령/복구 부분, 그룹/저장 보기 부분,
+다중 장치/원본 이동 부분이다. 전체 하위 결과 분모는 미확정으로 별도 표시 진행률은
+산정하지 않는다. 전체 ETA 산정 불가·신뢰도 낮음이며, 다음 재산정은 현재 연결 경합의
+운영·화면 재검증 후다. [현재 결과·정체 원인](assistant-reader-promotion.md)에 구분했다.
+
+11월15일의 CI 예외 승인·로그인 차단은 사용자의 이번 승인·로그인 완료로 해소됐다.
+Persona CI는 여전히 검사 시작 전 실패이며 예외를 CI 통과로 기록하지 않는다.
+writer는 비활성 상태다. 과거 차단 판정과 사본 QA는 현재 운영 결과를 대신하지 않는다.
+
+## 이전 판정 기록
 
 11월15일 재개에서는 종료된 두 API의 조회 경로를 기존 launcher로 복구했고
 worker는 시작하지 않았다. 이후 실제 Run의 상세 조회 403이 worker heartbeat를

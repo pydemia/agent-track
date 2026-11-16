@@ -61,14 +61,31 @@ export class AssistantNativeCollector {
 
   /** Excludes collection mutations until the bounded, read-only evidence callback settles. */
   async withStableView<T>(user: string, sourceId: string, read: () => Promise<T>, deadline = performance.now() + 10_000): Promise<T> {
+    return this.stableViews(user, [sourceId], read, deadline, true);
+  }
+
+  /** Acquire all selected windows together, before entering the shared Assistant reader queue. */
+  async withStableViews<T>(user: string, sourceIds: readonly string[], read: () => Promise<T>, deadline = performance.now() + 10_000): Promise<T> {
+    return this.stableViews(user, sourceIds, read, deadline, false);
+  }
+
+  private async stableViews<T>(user: string, sourceIds: readonly string[], read: () => Promise<T>, deadline: number, strict: boolean): Promise<T> {
+    const selected = new Set(sourceIds);
     const held = await this.afterRefresh(user, () => {
       const config = this.config();
       if (!(config.auth.mode === "proxy" ? config.auth.users.includes(user) : config.auth.user === user))
         throw new AssistantAuthorityError(403);
-      const sources = config.sources.filter(source => source.id === sourceId && source.assistantNativeSourceId && source.users.includes(user));
+      const sources = config.sources.filter(source => selected.has(source.id) && source.assistantNativeSourceId && source.users.includes(user)).filter(source => {
+        try { this.stamp(source, user); return true; }
+        catch (error) {
+          // A broken sibling window must not deny an otherwise authorized
+          // execution. The normal link projection still excludes that source.
+          if (strict) throw error;
+          return false;
+        }
+      });
       // Validate the selected source before acquiring anything: a rejected owner or
       // changed configuration cannot leave an orphaned reader gate.
-      for (const source of sources) this.stamp(source, user);
       return sources.map(source => {
         let group = this.readers.get(source.id);
         if (!group) {
@@ -78,7 +95,7 @@ export class AssistantNativeCollector {
         }
         group.count++; return { id: source.id, group };
       });
-    }, deadline, sourceId);
+    }, deadline, sourceIds);
     try {
       // The callback retains its own authority deadline and final credential /
       // configuration checks. It must not wait for a refresh queued behind it.
@@ -92,9 +109,10 @@ export class AssistantNativeCollector {
   }
 
   /** Capture a fresh view after pending collection, never a revoked or in-flight grant. */
-  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000, sourceId?: string): Promise<T> {
+  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000, sourceId?: string | readonly string[]): Promise<T> {
+    const selected = sourceId === undefined ? null : new Set(typeof sourceId === "string" ? [sourceId] : sourceId);
     for (;;) {
-      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && (sourceId === undefined || source.id === sourceId) && source.users.includes(user))
+      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && (!selected || selected.has(source.id)) && source.users.includes(user))
         .flatMap(source => { const job = this.jobs.get(source.id); return job ? [job] : []; }))];
       if (!pending.length) return read();
       const remaining = deadline - performance.now();
