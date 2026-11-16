@@ -1,3 +1,4 @@
+import { ReadDiagnostics, type ReadOperation, type ReadStage, type ReadTrace } from "./read-diagnostics.ts";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { AssistantClient, AssistantSourceError, type AssistantClientOptions } from "../../packages/adapters/assistant/index.ts";
@@ -24,7 +25,7 @@ export interface AssistantNativeWindow { observations: AssistantNativeObservatio
 export type AssistantClientFactory = (options: AssistantClientOptions) => AssistantReader;
 type CurrentTask = AssistantExecutionView["currentTask"];
 interface Grant { stamp: string; state: SourceView["state"]; observedAt: string }
-interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number; nativeChecks: Array<() => void>; roleAttempts: boolean | null }
+interface RequestScope { source: SourceConfig; user: string; stamp: string; deadline: number; nativeChecks: Array<() => void>; roleAttempts: boolean | null; trace?: ReadTrace }
 type NativeExecution = z.infer<typeof assistantExecutionMetadataV2Schema>;
 type NativeRole = NativeExecution["roles"][number];
 type NativeReference = NonNullable<NativeRole["runtime"]["demian"]>;
@@ -56,7 +57,7 @@ export class AssistantAuthority {
     private projects: ProjectsAuthority,
     private clientFactory: AssistantClientFactory = options => new AssistantClient(options),
     private requestTimeoutMs = 10_000,
-    private demianLinks = new AssistantDemianLinks(config, user => store.snapshot(user, []), async () => {})) {
+    private demianLinks = new AssistantDemianLinks(config, user => store.snapshot(user, []), async () => {}), private diagnostics?: ReadDiagnostics) {
     if (!Number.isFinite(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 10_000) throw new Error("Invalid Assistant read deadline");
   }
 
@@ -94,13 +95,13 @@ export class AssistantAuthority {
     if (performance.now() >= scope.deadline) throw new AssistantAuthorityError(503);
   }
 
-  private async guarded<T>(scope: RequestScope, read: () => Promise<T>): Promise<T> {
+  private async guarded<T>(scope: RequestScope, read: () => Promise<T>, stage?: ReadStage): Promise<T> {
     this.confirm(scope);
     let timer: ReturnType<typeof setTimeout> | undefined;
     const deadline = new Promise<never>((_, reject) => {
       timer = setTimeout(() => reject(new AssistantAuthorityError(503)), Math.max(1, scope.deadline - performance.now()));
     });
-    try { return await Promise.race([read(), deadline]); }
+    try { return await Promise.race([stage && scope.trace ? scope.trace.measure(stage, read) : read(), deadline]); }
     finally { clearTimeout(timer); this.confirm(scope); }
   }
 
@@ -167,16 +168,20 @@ export class AssistantAuthority {
     }
   }
 
-  private async request<T>(user: string, sourceId: string,
-    read: (scope: RequestScope, client: AssistantReader) => Promise<T>): Promise<T> {
+  private async request<T>(user: string, sourceId: string, operation: ReadOperation,
+    read: (scope: RequestScope, client: AssistantReader) => Promise<T>, parentId?: string): Promise<T> {
     // Capture before queueing as well: a queued request cannot adopt a rotated reader.
     let scope: RequestScope;
     try { scope = this.scope(sourceId, user); }
     catch (error) { throw safeError(error); }
-    return this.serial(sourceId, user, async () => {
+    const trace = this.diagnostics?.begin(scope.source, user, operation, parentId);
+    if (trace) scope.trace = trace;
+    const queueDepth = this.pendingCount.get(externalKey(sourceId, user)) ?? 0, queued = trace?.step("queue");
+    try { const value = await this.serial(sourceId, user, async () => {
+      queued?.(); trace?.admission(queueDepth, scope.deadline - performance.now());
       try {
         this.confirm(scope);
-        const client = this.client(scope);
+        const rawClient = this.client(scope), client = trace ? trace.client(rawClient) : rawClient;
         await this.capabilities(scope, client);
         const result = await read(scope, client);
         this.confirm(scope);
@@ -194,17 +199,22 @@ export class AssistantAuthority {
         throw safe;
       }
     });
+      trace?.finish(200, false, this.grants.get(externalKey(sourceId, user))?.state); return value;
+    } catch (error) {
+      trace?.finish(safeError(error).status, performance.now() >= scope.deadline, this.grants.get(externalKey(sourceId, user))?.state);
+      throw error;
+    }
   }
 
   async refresh(user: string): Promise<void> {
     for (const source of this.config().sources.filter(item => assistantReady(item))) {
-      try { await this.request(user, source.id, async () => {}); }
+      try { await this.request(user, source.id, "assistant.capabilities", async () => {}); }
       catch { /* Status only; request() records safe failures. */ }
     }
   }
 
   private async refreshProjects(scope: RequestScope): Promise<void> {
-    await this.guarded(scope, () => this.projects.refresh(scope.user));
+    await this.guarded(scope, () => this.projects.refresh(scope.user, scope.trace?.id), "authority.projects");
   }
 
   private project(scope: RequestScope, projectId: string) {
@@ -231,7 +241,7 @@ export class AssistantAuthority {
         pending = (async () => {
           const { peer, project } = this.project(scope, ref.projectId);
           try {
-            const task = await this.guarded(scope, () => this.projects.client(peer.id, scope.user).task(ref.taskId, ref.projectId));
+            const task = await this.guarded(scope, () => this.projects.client(peer.id, scope.user).task(ref.taskId, ref.projectId), "rpc.task");
             if (task.id !== ref.taskId || task.projectId !== ref.projectId) throw new AssistantAuthorityError(503);
             return { projectsSourceId: peer.id,
               projectKey: `project:${createHash("sha256").update(JSON.stringify([peer.id, project.id])).digest("base64url")}`,
@@ -253,11 +263,11 @@ export class AssistantAuthority {
     tasks: Map<string, Promise<CurrentTask>>): Promise<AssistantExecutionView> {
     const currentTask = await this.currentTask(scope, native, tasks);
     const projected = await this.guarded(scope, () => this.demianLinks.project(scope.user, scope.source,
-      { sourceId: scope.source.id, sourceLabel: scope.source.label, device: scope.source.device, native, currentTask }, scope.deadline));
+      { sourceId: scope.source.id, sourceLabel: scope.source.label, device: scope.source.device, native, currentTask }, scope.deadline), "authority.links");
     if (currentTask && projected.view.demianLinks?.state === "connected") {
       const { peer } = this.project(scope, currentTask.project.id);
       try {
-        const task = await this.guarded(scope, () => this.projects.client(peer.id, scope.user).task(currentTask!.task.id, currentTask!.project.id));
+        const task = await this.guarded(scope, () => this.projects.client(peer.id, scope.user).task(currentTask!.task.id, currentTask!.project.id), "rpc.task");
         if (task.id !== currentTask.task.id || task.projectId !== currentTask.project.id) throw new AssistantAuthorityError(503);
         currentTask.task = task;
         currentTask.observedAt = new Date().toISOString();
@@ -291,8 +301,8 @@ export class AssistantAuthority {
 
   /** Internal collection port. Never publishes producer receipts or native authority keys. */
   async nativeWindow(user: string, sourceId: string, targetSourceId: string,
-    cursor: (runId: string) => string): Promise<AssistantNativeWindow> {
-    return this.request(user, sourceId, async (scope, client) => {
+    cursor: (runId: string) => string, diagnosticParentId?: string): Promise<AssistantNativeWindow> {
+    return this.request(user, sourceId, "assistant.native-window", async (scope, client) => {
       const target = this.config().sources.find(item => item.id === targetSourceId);
       const mappings = scope.source.assistantDemianMappings?.filter(item => item.sourceId === targetSourceId) ?? [];
       if (scope.source.assistantProtocol !== 2 || !client.nativeMetadata || !target || target.kind !== "demian" ||
@@ -398,7 +408,7 @@ export class AssistantAuthority {
         try { this.project(scope, item.binding.projectId); return true; }
         catch (error) { if (error instanceof AssistantAuthorityError && error.status === 404) return false; throw error; }
       }), partial, attemptCoverage: scope.roleAttempts ? "coordinator-history" : "current-role-only" };
-    });
+    }, diagnosticParentId);
   }
 
   /** Independent evidence read: no event ingestion, binding mutation or lifecycle call. */
@@ -406,7 +416,7 @@ export class AssistantAuthority {
     after: string, limit: number): Promise<AssistantNativeEvidence> {
     if (!z.guid().safeParse(runId).success || !nativeMetadataSequenceSchema.safeParse(after).success ||
         !Number.isInteger(limit) || limit < 1 || limit > 250) throw new AssistantAuthorityError(400);
-    return this.request(user, sourceId, async (scope, client) => {
+    return this.request(user, sourceId, "assistant.native-evidence", async (scope, client) => {
       const target = this.config().sources.find(item => item.id === targetSourceId);
       const mappings = scope.source.assistantDemianMappings?.filter(item => item.sourceId === targetSourceId) ?? [];
       if (scope.source.assistantProtocol !== 2 || !client.nativeEvidence || !target || target.kind !== "demian" ||
@@ -484,7 +494,7 @@ export class AssistantAuthority {
   }
 
   async list(user: string, sourceId: string, cursor: string | null = null): Promise<AssistantExecutionListView> {
-    return this.request(user, sourceId, async (scope, client) => {
+    return this.request(user, sourceId, "assistant.list", async (scope, client) => {
       if (cursor !== null && !z.string().min(1).max(2048).regex(/^[^\u0000-\u001f\u007f]+$/).safeParse(cursor).success) {
         throw new AssistantAuthorityError(400);
       }
@@ -538,7 +548,7 @@ export class AssistantAuthority {
   }
 
   async detail(user: string, sourceId: string, executionId: string): Promise<AssistantExecutionView> {
-    return this.request(user, sourceId, async (scope, client) => {
+    return this.request(user, sourceId, "assistant.detail", async (scope, client) => {
       await this.refreshProjects(scope);
       const execution = await this.latest(scope, client, executionId);
       await this.finish(scope, client);
@@ -548,7 +558,7 @@ export class AssistantAuthority {
   }
 
   async events(user: string, sourceId: string, executionId: string, after = "0"): Promise<AssistantExecutionEventsView> {
-    return this.request(user, sourceId, async (scope, client) => {
+    return this.request(user, sourceId, "assistant.events", async (scope, client) => {
       if (!/^(0|[1-9][0-9]{0,15})$/.test(after) || BigInt(after) > BigInt(Number.MAX_SAFE_INTEGER)) throw new AssistantAuthorityError(400);
       await this.refreshProjects(scope);
       // Authorize against latest native linkage, never a prior list/detail response.

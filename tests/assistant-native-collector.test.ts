@@ -27,10 +27,18 @@ const workspaceId = uuid(5), organizationId = uuid(6), projectId = uuid(7), task
 const now = "2026-11-14T00:00:00.000Z", nativeOrigin = "https://protected-native.example";
 const key = externalKey("protected", runId);
 
+// This PC's dynamic range starts at1024 and can allocate Fetch-blocked ports.
+// Keep the real Fetch port policy: only the disposable listener allocation is retried.
+// https://fetch.spec.whatwg.org/#port-blocking (ports at or above1024)
+const blockedFetchPorts = new Set([1719, 1720, 1723, 2049, 3659, 4045, 4190, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669, 6679, 6697, 10080]);
 async function listen(server: Server) {
-  await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
-  const address = server.address(); assert.ok(address && typeof address !== "string");
-  return `http://127.0.0.1:${address.port}`;
+  for (let attempt = 0; attempt < 16; attempt++) {
+    await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address(); assert.ok(address && typeof address !== "string");
+    if (!blockedFetchPorts.has(address.port)) return `http://127.0.0.1:${address.port}`;
+    await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  }
+  throw new Error("No Fetch-compatible disposable listener was allocated");
 }
 
 // Synthetic upstream data over real HTTP. Production readers, Sources, SQLite and Track API are exercised.
@@ -801,4 +809,18 @@ test("stream first frame performs exactly one native refresh", { timeout: 5000 }
     let text = ""; while (!text.includes("\n\n")) { const part = await reader.read(); assert(!part.done); text += new TextDecoder().decode(part.value); }
     assert(text.startsWith("event: snapshot")); assert.equal(refreshes, 1);
   } finally { controller.abort(); await reader.cancel().catch(() => {}); }
+});
+
+
+test("actual HTTP diagnostics link collection, RPC and local persistence without another upstream read", async t => {
+  const f = await fixture(t); await f.snapshot();
+  const calls = f.calls.length, original = JSON.stringify(f.store.events(key));
+  const response = await fetch(f.origin + "/api/read-diagnostics"); assert.equal(response.status, 200);
+  const records = (await response.json()).operations as Array<{ id: string; parentId: string | null; sourceId: string; operation: string; status: number; observations: number; steps: Array<{ name: string; status: number }> }>;
+  const collect = records.find(row => row.operation === "native.collect")!, window = records.find(row => row.operation === "assistant.native-window")!;
+  assert(collect && window); assert.equal(window.parentId, collect.id); assert.equal(collect.observations, 1);
+  assert.equal(collect.status, 200); assert(collect.steps.some(step => step.name === "native.persist" && step.status === 200));
+  assert.equal(window.steps.filter(step => step.name === "rpc.nativeMetadata").length, f.calls.filter(path => path.includes("/native?")).length);
+  assert.equal(f.calls.length, calls); assert.equal(JSON.stringify(f.store.events(key)), original);
+  assert.doesNotMatch(JSON.stringify(records), new RegExp(`${runId}|${executionId}|PRIVATE_ERROR|binding_sha256|${user}`));
 });

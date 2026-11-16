@@ -1,3 +1,4 @@
+import { ReadDiagnostics, readFailureStatus, type ReadTrace } from "./read-diagnostics.ts";
 import { AssistantAuthority, AssistantAuthorityError } from "./assistant-authority.ts";
 import type { Config, SourceConfig } from "./config.ts";
 import { assistantReady, sourceIdentity } from "./source-identity.ts";
@@ -13,9 +14,10 @@ const grantLifetimeMs = 15_000, readBudgetMs = 10_000, admissionReserveMs = 1_00
 export class AssistantNativeCollector {
   private grants = new Map<string, Grant>();
   private jobs = new Map<string, Promise<void>>();
+  private jobTraces = new Map<string, ReadTrace>();
   private failures = new Map<string, SourceView["state"]>();
   private admissions = new Map<string, Promise<void>>();
-  constructor(private store: Store, private config: () => Config, private assistant: AssistantAuthority) {}
+  constructor(private store: Store, private config: () => Config, private assistant: AssistantAuthority, private diagnostics?: ReadDiagnostics) {}
 
   private stamp(source: SourceConfig, user: string): string {
     const config = this.config(), current = config.sources.find(item => item.id === source.id);
@@ -53,14 +55,21 @@ export class AssistantNativeCollector {
   async refresh(user: string, sourceId?: string): Promise<void> {
     for (const source of this.config().sources.filter(item => item.assistantNativeSourceId && (!sourceId || item.id === sourceId) && item.users.includes(user))) {
       const id = source.id;
+      const refreshTrace = this.diagnostics?.begin(source, user, "native.refresh");
       let job = this.jobs.get(id);
       if (!job) {
         const admission = this.admit([id]);
-        job = admission.ready.then(() => this.collect(source, user)).finally(admission.release);
+        const trace = this.diagnostics?.begin(source, user, "native.collect", refreshTrace?.id);
+        if (trace) this.jobTraces.set(id, trace);
+        job = (trace ? trace.measure("native.admission", () => admission.ready) : admission.ready)
+          .then(() => this.collect(source, user, trace)).finally(admission.release);
         this.jobs.set(id, job);
-        void job.finally(() => { if (this.jobs.get(id) === job) this.jobs.delete(id); });
+        void job.finally(() => { if (this.jobs.get(id) === job) { this.jobs.delete(id); this.jobTraces.delete(id); } });
       }
-      await job;
+      const joinedTrace = this.jobTraces.get(id);
+      refreshTrace?.related(joinedTrace?.id);
+      try { await (refreshTrace ? refreshTrace.measure("native.window", () => job!) : job); refreshTrace?.finish(joinedTrace?.observation.status ?? 200, false, joinedTrace?.observation.grantState ?? undefined); }
+      catch (error) { refreshTrace?.finish(readFailureStatus(error)); throw error; }
     }
   }
 
@@ -127,13 +136,17 @@ export class AssistantNativeCollector {
     finally { admission.release(); }
   }
 
-  private async collect(source: SourceConfig, user: string): Promise<void> {
+  private async collect(source: SourceConfig, user: string, trace?: ReadTrace): Promise<void> {
     // Refresh cannot expose a previous grant while a current check is in flight.
     this.grants.delete(source.id);
+    let finishPersist: ((status?: number) => void) | undefined;
     try {
       const stamp = this.stamp(source, user);
-      const window = await this.assistant.nativeWindow(user, source.assistantNativeSourceId!, source.id,
-        runId => this.store.cursor(source.id, runId));
+      const read = () => this.assistant.nativeWindow(user, source.assistantNativeSourceId!, source.id,
+        runId => this.store.cursor(source.id, runId), trace?.id);
+      const window = await (trace ? trace.measure("native.window", read) : read());
+      trace?.observations(window.observations.length);
+      finishPersist = trace?.step("native.persist");
       if (this.stamp(source, user) !== stamp) throw new AssistantAuthorityError(403);
       for (const observation of window.observations) {
         const { page, binding } = observation, run = page.run;
@@ -159,7 +172,11 @@ export class AssistantNativeCollector {
         runIds: window.observations.map(item => item.page.run.id), partial: window.partial,
         attemptCoverage: window.attemptCoverage ?? "current-role-only" });
       this.failures.delete(source.id);
+      finishPersist?.();
+      trace?.finish(200, false, "connected");
     } catch (error) {
+      finishPersist?.(readFailureStatus(error));
+      trace?.finish(readFailureStatus(error), false, error instanceof AssistantAuthorityError && [401, 403, 404].includes(error.status) ? "forbidden" : "disconnected");
       this.grants.delete(source.id);
       this.failures.set(source.id, error instanceof AssistantAuthorityError && [401, 403, 404].includes(error.status) ? "forbidden" : "disconnected");
     }

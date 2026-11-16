@@ -1,3 +1,4 @@
+import { withReadOrigin } from "./read-diagnostics.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
 import { extname, resolve, sep } from "node:path";
@@ -80,7 +81,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const taskCreation = new ProjectTaskCreation(store, config, sources);
   const sessionRelations = new SessionRelations(config, snapshot, user => sources.refreshProjectGrants?.(user) ?? Promise.resolve());
   const flowViews = new FlowViews(new FlowViewRepository(store.db), flowViewAuthorization(config, sources, snapshot));
-  const server = createServer(async (request, response) => {
+  const handle = async (request: IncomingMessage, response: ServerResponse) => {
     const flowDeadline = performance.now() + flowViewRequestTimeoutMs;
     let activeActor: string | null = null;
     response.setHeader("Cache-Control", "private, no-store");
@@ -109,6 +110,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
+      if (url.pathname === "/api/read-diagnostics") {
+        if (request.method !== "GET") { response.setHeader("Allow", "GET"); json(response, 405, { error: "read_only_diagnostics" }); return; }
+        if (url.search || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_diagnostics_query" }); return;
+        }
+        json(response, 200, { version: 1, observedAt: new Date().toISOString(),
+          operations: sources.readDiagnostics.snapshot(user, config().sources) }); return;
+      }
       const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
       const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
@@ -572,7 +581,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       }
       else json(response, 503, { error: "configuration_or_storage_unavailable" });
     }
-  });
+  };
+  const server = createServer((request, response) => withReadOrigin(request.url, () => handle(request, response)));
   server.requestTimeout = 15_000;
   server.headersTimeout = 10_000;
   return { server, sources };

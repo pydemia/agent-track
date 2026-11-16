@@ -1,3 +1,4 @@
+import { ReadDiagnostics, readFailureStatus } from "./read-diagnostics.ts";
 import { ProjectsClient, ProjectsSourceError } from "../../packages/adapters/projects/index.ts";
 import { externalKey, type ProjectMetadata, type SourceView } from "../../packages/contracts/index.ts";
 import type { Store } from "../../packages/storage/store.ts";
@@ -11,7 +12,7 @@ interface Grant { identity: string; state: SourceView["state"]; projects: Projec
 export class ProjectsAuthority {
   private grants = new Map<string, Grant>();
   private pending = new Map<string, Promise<void>>();
-  constructor(private store: Store, private config: () => Config) {}
+  constructor(private store: Store, private config: () => Config, private diagnostics?: ReadDiagnostics) {}
 
   private allowed(source: SourceConfig, user: string): boolean {
     const current = this.config();
@@ -48,25 +49,30 @@ export class ProjectsAuthority {
       user, accountId: source.projectsAccountId!, principalId: source.projectsPrincipalId! });
   }
 
-  async refresh(user: string): Promise<void> {
+  async refresh(user: string, parentId?: string): Promise<void> {
     for (const source of this.config().sources.filter((item) => projectsReady(item) && item.users.includes(user))) {
       const key = externalKey(source.id, user);
       const identity = sourceIdentity(source);
+      const trace = this.diagnostics?.begin(source, user, "projects.refresh", parentId), queued = trace?.step("queue");
       const record = (state: Grant["state"], projects: ProjectMetadata[], detail: string) => {
         this.grants.set(key, { identity, state, projects, observedAt: new Date().toISOString(), detail });
       };
       const read = async () => {
+        queued?.();
         try {
           const before = this.config().sources.find((item) => item.id === source.id);
           if (!before || !this.allowed(before, user) || sourceIdentity(before) !== identity || !this.store.pinSourceIdentity(source.id, identity)) throw new ProjectsSourceError(403);
-          const client = this.createClient(source, user);
+          const rawClient = this.createClient(source, user), client = trace ? trace.client(rawClient) : rawClient;
           const capabilities = await client.capabilities();
           if (!capabilities.projectsRead || !capabilities.tasksRead) throw new ProjectsSourceError(403);
           const projects = await client.projects();
           const current = this.config().sources.find((item) => item.id === source.id);
           if (!current || !this.allowed(current, user) || sourceIdentity(current) !== identity) throw new ProjectsSourceError(403);
+          trace?.observations(projects.length);
+          trace?.finish(200, false, "connected");
           record("connected", projects, `원본 계정·현재 ACL로 ${projects.length}개 프로젝트 읽기를 확인했습니다. Track 전용 읽기 principal이며 업무 원문은 저장하지 않습니다.`);
         } catch (error) {
+          trace?.finish(readFailureStatus(error), false, [401, 403, 404].includes(readFailureStatus(error)) ? "forbidden" : "disconnected");
           const forbidden = error instanceof ProjectsSourceError && [401, 403, 404].includes(error.status);
           record(forbidden ? "forbidden" : "disconnected", [], forbidden
             ? "원본 프로젝트 접근이 거부되거나 철회됐습니다. 연결된 업무 metadata를 숨깁니다."

@@ -1,3 +1,4 @@
+import { ReadDiagnostics } from "./read-diagnostics.ts";
 import { setTimeout as delay } from "node:timers/promises";
 import { DemianClient, SourceError } from "../../packages/adapters/demian/index.ts";
 import { CodexCollector } from "../../packages/adapters/codex/index.ts";
@@ -23,17 +24,18 @@ export class Sources {
   private codex: CodexCollector;
   private shutdown = new AbortController();
   private identities = new Map<string, string>();
+  readonly readDiagnostics = new ReadDiagnostics();
   readonly projects: ProjectsAuthority;
   readonly assistant: AssistantAuthority;
   readonly assistantNative: AssistantNativeCollector;
 
   constructor(private store: Store, private config: () => Config) {
     this.codex = new CodexCollector(store);
-    this.projects = new ProjectsAuthority(store, config);
+    this.projects = new ProjectsAuthority(store, config, this.readDiagnostics);
     this.assistant = new AssistantAuthority(store, config, this.projects, undefined, 10_000,
       new AssistantDemianLinks(config, user => filterAssignmentSnapshot(store, store.snapshot(user, this.views(user))),
-        user => this.projects.refresh(user)));
-    this.assistantNative = new AssistantNativeCollector(store, config, this.assistant);
+        user => this.projects.refresh(user)), this.readDiagnostics);
+    this.assistantNative = new AssistantNativeCollector(store, config, this.assistant, this.readDiagnostics);
   }
 
   async refreshProjectGrants(user: string): Promise<void> {
