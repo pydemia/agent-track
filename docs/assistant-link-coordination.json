@@ -198,6 +198,18 @@
       "passed": 1247,
       "failed": 0,
       "skipped": 11
+    },
+    "ciFailure": {
+      "run": 43810204082,
+      "platform": "ubuntu-latest",
+      "test": "deadline wins over a late custom fetch result and cancels its body",
+      "cause": "Fixed 70ms wait could finish before a late custom fetch began and cancelled its body under CI load",
+      "fix": "Freeze only setTimeout in this case, wait for fetch entry, tick the unchanged20ms deadline, assert aborted signal/unavailable result before releasing late fetch, then await its cancellation callback",
+      "relatedTests": {
+        "passed": 7,
+        "failed": 0
+      },
+      "productionTimeoutChanged": false
     }
   }
 }

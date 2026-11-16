@@ -81,24 +81,28 @@ test("maps forbidden responses, lost service, and timeout to summary-free result
   assert.deepEqual(await lost.client().read(target), { state: "unavailable", summary: null });
 });
 
-test("deadline wins over a late custom fetch result and cancels its body", async () => {
+test("deadline wins over a late custom fetch result and cancels its body", { timeout: 5000 }, async t => {
   const f = await fixture((_request, response) => sendJson(response, summary));
-  let bodyCancelled = false;
-  const lateFetch: typeof fetch = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 60));
+  let enter!: () => void, release!: () => void, cancelled!: () => void, signal: AbortSignal | null | undefined;
+  const entered = new Promise<void>(resolve => { enter = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const bodyCancelled = new Promise<void>(resolve => { cancelled = resolve; });
+  const lateFetch: typeof fetch = async (_input, init) => {
+    signal = init?.signal; enter(); await gate;
     return new Response(new ReadableStream<Uint8Array>({
       start(controller) { controller.enqueue(new TextEncoder().encode(JSON.stringify(summary))); },
-      cancel() { bodyCancelled = true; },
+      cancel() { cancelled(); },
     }), { status: 200, headers: { "content-type": "application/json" } });
   };
   try {
+    t.mock.timers.enable({ apis: ["setTimeout"] });
     const client = new ContextSummaryClient({ baseUrl: f.baseUrl, readerId: "native-ui", tokenFile: f.tokenFile, publicOrigin: "https://track.example", fetch: lateFetch, timeoutMs: 20 });
-    const started = Date.now();
-    assert.deepEqual(await client.read(target), { state: "unavailable", summary: null });
-    assert.ok(Date.now() - started < 100);
-    await new Promise((resolve) => setTimeout(resolve, 70));
-    assert.equal(bodyCancelled, true);
-  } finally { await f.cleanup(); }
+    const pending = client.read(target); await entered;
+    t.mock.timers.tick(20);
+    assert.deepEqual(await pending, { state: "unavailable", summary: null });
+    assert.equal(signal?.aborted, true);
+    release(); await bodyCancelled;
+  } finally { release(); t.mock.timers.reset(); await f.cleanup(); }
 });
 
 test("deadline cancels a response body that stalls after headers", async () => {
