@@ -178,7 +178,23 @@ class ReadRelayServer(http.server.ThreadingHTTPServer):
     ) -> None:
         if not self.slots.acquire(blocking=False):
             try:
-                request.settimeout(1)
+                # Consume a bounded request header before closing. Windows can
+                # reset a socket with unread bytes and discard the 503 response.
+                deadline = time.monotonic() + 0.1
+                header = bytearray()
+                while b"\r\n\r\n" not in header:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0 or len(header) >= 16384:
+                        return
+                    request.settimeout(remaining)
+                    chunk = request.recv(min(4096, 16384 - len(header)))
+                    if not chunk:
+                        return
+                    header.extend(chunk)
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    return
+                request.settimeout(remaining)
                 request.sendall(
                     b"HTTP/1.0 503 Service Unavailable\r\n"
                     b"Cache-Control: no-store\r\n"

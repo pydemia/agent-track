@@ -30,7 +30,7 @@ Projects edge에 해당 GET만 전달한다. 원본 Projects가 현재 서명·A
 신원 헤더는 차단하며 동시 요청 8개·응답 40MiB·원본 읽기 10초로 제한한다.
 
 컴파일한 새 client와 실제 전달기를 기존 소유자·같은 Task에 연결한 첫
-측정은 72 / 27 / 11ms, 최종 전달기 재측정은 75 / 13 / 11ms였다.
+측정은 72 / 27 / 11ms, 최종 전달기 재측정은 87 / 13 / 13ms였다.
 모두 HTTP 200·Task r5/in_review다. 원래 Persona 프로세스를 교체한
 결과는 아니다. 임시 전달기는 종료했고 새 credential·모델 실행·명령 전송과
 원래 Persona Work/Runtime DB 변경은 없다. 원본 GET의 통상 접근 기록까지
@@ -41,9 +41,13 @@ Projects edge에 해당 GET만 전달한다. 원본 Projects가 현재 서명·A
 - Persona source: `90e082510adee7e8e29c058490066cb86efcfdcc`
 - 후속 draft PR: [Persona #23](https://github.com/pydemia/persona/pull/23)
 - 이미지: `sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449`
-- 전달기 SHA-256: `50b3834ac40da115ef8abed108e7119428331604d8473b6af8a8a9fc37ce1528`
+- 전달기 SHA-256: `ed933a881a2204ad0ced4939977d59635c3481cb679d995e0320e2c40c52073a`
 - 새 client·기존 관련 검사 51개, 타입 검사·전체 build 통과
 - 전달기 실제 HTTP 검사 8개와 기존 Python 검사 합계 49개 통과
+- 최초 Track CI의 Windows 포화 검사는 503 응답 전 연결 reset으로 실패했다.
+  미수신 요청 header를 남기고 닫는 경계를 수정했다. 거부 처리에서 header를
+  최대 16KiB·100ms만 읽고 503을 반환하며 upstream에는 전달하지 않는다.
+  로컬 49개와 수정 후 실제 조회를 재확인했으며 새 양 OS CI를 대기한다.
 - Windows 전체: 1,345개 중 1,329 통과 / 2 실패 / 14 제외
 - 동시 실행 수 2의 Windows 전체: 1,330 통과 / 1 실패 / 14 제외
 - 최초 실패한 두 파일의 분리 실행: 24개 모두 통과

@@ -36,7 +36,7 @@ deadline 실패가 있어 그룹 범위/전체 업무의 안정적 수용은 미
 
 원래 Persona의 같은 소유자·Task GET은 공개 Projects 경로에서
 2,066/2,360/1,736ms였다. 현재 권한·서명 검사를 보존하는 사설 GET transport를
-구현했고 실제 후보 재측정은75/13/11ms·모두200이었다. Persona source90e0825의
+구현했고 실제 후보 재측정은87/13/13ms·모두200이었다. Persona source90e0825의
 draft PR#23과 image33e19141을 준비했으나 운영은 변경하지 않았다. 관련51개·
 Python49개·타입/build는 통과했다. Windows 전체는 복구 검사 실패가 남고,
 현재 여유 공간은 해당 CLI의1GiB 예비 공간보다 작다. 새 소스 CI는 결제/한도
