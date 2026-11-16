@@ -34,7 +34,7 @@ test("saved views use real native GET authorization, fail closed on denial/rebou
   const store = new Store(":memory:");
   t.after(async () => { native.closeAllConnections(); await new Promise<void>(resolve => native.close(() => resolve())); store.close(); });
   const key = store.observeRun({ sourceId: "native", runId, sessionId, workspaceId: uuid(3), title: "Native", status: "succeeded", createdAt: at, startedAt: at, completedAt: at, observedAt: at });
-  const sources = { refreshProjectGrants: async () => {}, views: () => [view] } as unknown as Sources;
+  const sources = { projects: { refresh: async () => {} }, views: () => [view] } as unknown as Sources;
   const authorize = flowViewAuthorization(() => config, sources, user => store.snapshot(user, [view]));
   const refs = { tasks: [], runs: [{ sourceId: "native", runId, key }], assistants: [] };
   const confirm = await authorize(actor, refs); confirm(); assert.equal(calls, 2);
@@ -85,4 +85,53 @@ test("a task-only saved bundle checks Projects twice without unrelated native co
   granted=true;revokeAtFinal=false;refreshes=0;reads=0;changeDuringTask=true;
   await assert.rejects(service.save(actor,{id:uuid(25),expectedRevision:0,content}),failure(404));
   assert.equal(reads,1);assert.equal(repo.get(actor,uuid(25)),undefined);
+});
+
+test("a bound native Run saves without collecting unrelated Assistant runs and still rejects final Project withdrawal", async t => {
+  const store = new Store(":memory:"); t.after(() => store.close());
+  const projectId=uuid(30), taskId=uuid(31);
+  const config:Config={port:14345,database:":memory:",publicOrigin:"http://localhost",auth:{mode:"local",user:actor},sources:[
+    {id:"native",kind:"demian",label:"Native",device:"test",baseUrl:"http://localhost:8081",users:[actor],repositoryRoots:[],runIds:[],discoverActive:false,maxFiles:10,sinceDays:7},
+    {id:"projects",kind:"projects",label:"Projects",device:"test",users:[actor],repositoryRoots:[],runIds:[],discoverActive:false,maxFiles:10,sinceDays:7},
+  ]};
+  const observed={sourceId:"native",runId,sessionId,workspaceId:uuid(3),title:"Native",status:"succeeded" as const,createdAt:at,startedAt:at,completedAt:at,observedAt:at};
+  const key=store.observeRun(observed);
+  let refreshes=0,taskReads=0,nativeReads=0,globalCollections=0,revokeAtFinal=false,granted=true;
+  const views=()=>[
+    {id:"native",kind:"demian" as const,label:"Native",device:"test",state:"connected" as const,lastObservedAt:at,detail:"",capabilities:[]},
+    {id:"projects",kind:"projects" as const,label:"Projects",device:"test",state:"connected" as const,lastObservedAt:at,detail:"",capabilities:[],authorizedProjectIds:granted?[projectId]:[]},
+  ];
+  const sources={refreshProjectGrants:async()=>{globalCollections++;throw new Error("Unrelated Assistant source is unavailable");},views,
+    projects:{refresh:async()=>{refreshes++;if(revokeAtFinal&&refreshes===2)granted=false;},client:()=>({task:async()=>{taskReads++;return{id:taskId,projectId,title:"Task",revision:"1",state:"todo",requiresTest:false};}})},
+    assistantNative:{refresh:async()=>{throw new Error("This Run is not Assistant-owned");}},
+  }as unknown as Sources;
+  const authorize=flowViewAuthorization(()=>config,sources,user=>store.snapshot(user,views()),()=>({observe:async()=>{nativeReads++;return observed;}}));
+  const content:FlowViewContent={version:1,contextId:"c".repeat(64),name:"Native bound task",anchors:{tasks:[{sourceId:"projects",projectId,taskId}],runs:[{sourceId:"native",runId,key}],assistants:[]},state:{by:"task",depth:"structure",bundles:[],overrides:[],focus:null}};
+  const repository=new FlowViewRepository(store.db),service=new FlowViews(repository,authorize);
+  const saved=await service.save(actor,{id:uuid(32),expectedRevision:0,content});
+  assert.equal(saved.revision,1);assert.equal(refreshes,2);assert.equal(taskReads,1);assert.equal(nativeReads,1);assert.equal(globalCollections,0);
+  refreshes=0;revokeAtFinal=true;
+  await assert.rejects(service.save(actor,{id:uuid(33),expectedRevision:0,content}),failure(404));
+  assert.equal(refreshes,2);assert.equal(repository.get(actor,uuid(33)),undefined);
+});
+
+for (const scope of ["protected-run", "assistant-execution"] as const) test(`${scope} saved views retain both protected refreshes and reject final withdrawal`, async t => {
+  const store=new Store(":memory:");t.after(()=>store.close());
+  const sourceId=scope==="protected-run"?"protected":"assistant";
+  const source={id:sourceId,kind:scope==="protected-run"?"demian" as const:"assistant" as const,label:"Protected",device:"test",users:[actor],repositoryRoots:[],runIds:[],discoverActive:false,maxFiles:10,sinceDays:7,
+    ...(scope==="protected-run"?{assistantNativeSourceId:"assistant"}: {})};
+  const config:Config={port:14345,database:":memory:",publicOrigin:"http://localhost",auth:{mode:"local",user:actor},sources:[source]};
+  const observed={sourceId,runId,sessionId,workspaceId:uuid(3),title:"Protected",status:"succeeded" as const,createdAt:at,startedAt:at,completedAt:at,observedAt:at};
+  const key=store.observeRun(observed);
+  let refreshes=0,details=0,denied=false,revokeAtFinal=false;
+  const views=():SourceView[]=>[{id:sourceId,kind:source.kind,label:"Protected",device:"test",state:denied?"forbidden":"connected",lastObservedAt:at,detail:"",capabilities:[]}];
+  const sources={views,refreshProjectGrants:async()=>{refreshes++;if(revokeAtFinal&&refreshes===2)denied=true;},
+    projects:{refresh:async()=>{throw new Error("Protected anchors must retain their producer fence");}},
+    assistant:{detail:async()=>{details++;}},
+  }as unknown as Sources;
+  const authorize=flowViewAuthorization(()=>config,sources,user=>store.snapshot(user,views()),()=>({observe:async()=>{throw new Error("Protected runs use the original producer collector");}}));
+  const anchors={tasks:[],runs:scope==="protected-run"?[{sourceId,runId,key}]:[],assistants:scope==="assistant-execution"?[{sourceId,executionId:uuid(40)}]:[]};
+  const confirm=await authorize(actor,anchors);confirm();assert.equal(refreshes,2);assert.equal(details,scope==="assistant-execution"?1:0);
+  refreshes=0;revokeAtFinal=true;
+  await assert.rejects(authorize(actor,anchors),failure(404));assert.equal(refreshes,2);
 });

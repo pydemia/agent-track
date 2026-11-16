@@ -22,10 +22,12 @@ export function flowViewAuthorization(config: () => Config, sources: Sources, sn
   return async (actor, input, deadline = performance.now() + 10_000) => {
     const anchors = flowViewAnchorsSchema.parse(input);
     const ids = [...new Set([...anchors.tasks, ...anchors.runs, ...anchors.assistants].map(ref => ref.sourceId))].sort();
-    // Task-only bundles need current Projects grants, not an unrelated native
-    // execution window. Keep both fresh boundary checks within the same budget.
-    const refresh = anchors.runs.length || anchors.assistants.length
-      ? () => sources.refreshProjectGrants(actor) : () => sources.projects.refresh(actor);
+    // Ordinary native/Codex Runs still recheck their exact Run/Session and
+    // current Projects grants, without collecting unrelated Assistant windows.
+    // Assistant-owned anchors retain the existing protected collection fence.
+    const assistantScope = anchors.assistants.length > 0 || anchors.runs.some(ref =>
+      config().sources.some(source => source.id === ref.sourceId && source.assistantNativeSourceId));
+    const refresh = assistantScope ? () => sources.refreshProjectGrants(actor) : () => sources.projects.refresh(actor);
     const check = () => {
       if (performance.now() >= deadline) throw disconnected();
       const current = config(), root = current.auth.mode === "proxy" ? current.auth.users.includes(actor) : current.auth.user === actor;
