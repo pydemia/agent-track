@@ -458,7 +458,7 @@ test(`${route} waits for refreshed capture${revokeActor ? " and rejects actor wi
   const original = f.sources.refreshProjectGrants.bind(f.sources);
   f.sources.refreshProjectGrants = async (...args) => {
     await original(...args);
-    if (++checks === (route === "stream" ? 2 : 1)) { f.hook = async () => { held = true; enter(); await gate; held = false; }; refresh = f.sources.assistantNative.refresh(user); await entered; }
+    if (++checks === 1) { f.hook = async () => { held = true; enter(); await gate; held = false; }; refresh = f.sources.assistantNative.refresh(user); await entered; }
   };
   const controller = new AbortController();
   t.after(() => { release(); controller.abort(); });
@@ -761,4 +761,44 @@ test("Project withdrawal during final signed evidence confirmation also hides th
   f.evidenceHook = async (_after, limit) => { if (limit === 1) f.projectAllowed = false; };
   const response = await fetch(`${f.origin}/api/runs/${key}/evidence?after=0&limit=250`), body = await response.json();
   assert.notEqual(body.state, "connected"); assert.equal(body.page ?? null, null);
+});
+
+
+test("waiting captures precede a later collection even when its continuation was registered first", { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot();
+  let releaseFirst!: () => void, releaseSecond!: () => void, enterFirst!: () => void, enterSecond!: () => void;
+  const firstGate = new Promise<void>(resolve => { releaseFirst = resolve; });
+  const secondGate = new Promise<void>(resolve => { releaseSecond = resolve; });
+  const firstEntered = new Promise<void>(resolve => { enterFirst = resolve; });
+  const secondEntered = new Promise<void>(resolve => { enterSecond = resolve; });
+  t.after(() => { releaseFirst(); releaseSecond(); });
+  const native = f.sources.assistant.nativeWindow.bind(f.sources.assistant); let calls = 0, captured = false;
+  f.sources.assistant.nativeWindow = async (...args) => {
+    if (++calls === 1) { enterFirst(); await firstGate; }
+    else { enterSecond(); await secondGate; }
+    return native(...args);
+  };
+  const first = f.sources.assistantNative.refresh(user); await firstEntered;
+  let second: Promise<void> | undefined;
+  void first.then(() => { second = f.sources.assistantNative.refresh(user); });
+  const capture = f.sources.assistantNative.afterRefresh(user, () => {
+    captured = true;
+    assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+  });
+  releaseFirst(); await first; await secondEntered;
+  try { assert.equal(captured, true, "the waiting capture must run before the next collector invalidates its grant"); }
+  finally { releaseSecond(); await second; await capture; }
+});
+
+test("stream first frame performs exactly one native refresh", { timeout: 5000 }, async t => {
+  const f = await fixture(t); await f.snapshot(); let refreshes = 0;
+  const refresh = f.sources.refreshProjectGrants.bind(f.sources);
+  f.sources.refreshProjectGrants = async (...args) => { refreshes++; await refresh(...args); };
+  const controller = new AbortController(); t.after(() => controller.abort());
+  const response = await fetch(f.origin + "/api/stream", { signal: controller.signal });
+  assert.equal(response.status, 200); const reader = response.body!.getReader();
+  try {
+    let text = ""; while (!text.includes("\n\n")) { const part = await reader.read(); assert(!part.done); text += new TextDecoder().decode(part.value); }
+    assert(text.startsWith("event: snapshot")); assert.equal(refreshes, 1);
+  } finally { controller.abort(); await reader.cancel().catch(() => {}); }
 });

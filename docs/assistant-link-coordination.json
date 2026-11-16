@@ -10,9 +10,22 @@
   "writerEnabled": false,
   "verification": {
     "syntheticUpstreamOverActualHttp": true,
-    "regressionBefore": { "tests": 3, "failed": 3 },
-    "relatedAfter": { "tests": 35, "passed": 35, "failed": 0, "skipped": 0 },
-    "fullSuiteBeforeSiblingIsolationRefinement": { "tests": 1245, "passed": 1234, "failed": 0, "skipped": 11 },
+    "regressionBefore": {
+      "tests": 3,
+      "failed": 3
+    },
+    "relatedAfter": {
+      "tests": 35,
+      "passed": 35,
+      "failed": 0,
+      "skipped": 0
+    },
+    "fullSuiteBeforeSiblingIsolationRefinement": {
+      "tests": 1245,
+      "passed": 1234,
+      "failed": 0,
+      "skipped": 11
+    },
     "typecheckAfterRefinement": "passed",
     "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
   },
@@ -33,8 +46,15 @@
     "metadataLeaseOrReadTimeoutExtended": false,
     "unknownRunDiscoveryChanged": false,
     "cachedMetadataAloneAuthorizesEvidence": false,
-    "before": { "regressions": 2, "failed": 2 },
-    "relatedAfter": { "tests": 43, "passed": 43, "failed": 0 },
+    "before": {
+      "regressions": 2,
+      "failed": 2
+    },
+    "relatedAfter": {
+      "tests": 43,
+      "passed": 43,
+      "failed": 0
+    },
     "actorProducerProjectRoleAndCredentialWithdrawalCasesRetained": true,
     "typecheck": "passed",
     "independentReview": "No confirmed security or concurrency finding in fresh evidence admission and SSE capture; subsequent HTTP mirrors use the same actor recheck; lease reserve is more conservative",
@@ -62,7 +82,10 @@
     "change": "Exact Task list/item ingress, item adapter and final list check refresh only Projects grants; other API paths retain full source refresh",
     "nativeBudgetAndHttpDeadlineChanged": false,
     "actorAndFinalProjectRevocationChecksRetained": true,
-    "relatedTests": { "passed": 29, "failed": 0 },
+    "relatedTests": {
+      "passed": 29,
+      "failed": 0
+    },
     "typecheck": "passed",
     "independentReview": "No source-confirmed authorization defect; full ownerProbe path checked",
     "actualSourceCanary": {
@@ -83,7 +106,10 @@
     "change": "Refresh Projects grants at both boundaries for Task-only anchors; keep full native refresh for Run/Assistant anchors",
     "deadlineMs": 10000,
     "projectWithdrawalAndCredentialFencesRetained": true,
-    "relatedTests": { "passed": 27, "failed": 0 },
+    "relatedTests": {
+      "passed": 27,
+      "failed": 0
+    },
     "typecheck": "passed",
     "independentReview": "No concrete authorization or deadlock finding; read-only source review",
     "actualSourceCanary": "actual permitted Tasks2; save200/list200/stale revision409/remove200/removed-list200; in-memory store only; no native work created",
@@ -103,17 +129,75 @@
     "baselineOnlyLimitBytes": 67108864,
     "ordinaryControlFileLimitBytes": 4194304,
     "allFileIdentityAndNonceRowChecksRetained": true,
-    "before": { "tests": 2, "passed": 1, "failed": 1 },
-    "afterRelated": { "tests": 39, "passed": 39, "failed": 0 },
-    "finalRelatedIncludingRecovery": { "tests": 50, "passed": 50, "failed": 0 },
+    "before": {
+      "tests": 2,
+      "passed": 1,
+      "failed": 1
+    },
+    "afterRelated": {
+      "tests": 39,
+      "passed": 39,
+      "failed": 0
+    },
+    "finalRelatedIncludingRecovery": {
+      "tests": 50,
+      "passed": 50,
+      "failed": 0
+    },
     "typecheck": "passed after the loader declaration was added",
     "ciFailures": [
-      { "run": 43798066292, "reason": "Missing TypeScript declaration for the new loader; declaration added" },
-      { "run": 43798278891, "reason": "Extracted recovery-test input function needed its new baseline-loader dependency injected; recovery expectation retained" }
+      {
+        "run": 43798066292,
+        "reason": "Missing TypeScript declaration for the new loader; declaration added"
+      },
+      {
+        "run": 43798278891,
+        "reason": "Extracted recovery-test input function needed its new baseline-loader dependency injected; recovery expectation retained"
+      }
     ],
     "coldCandidateAndRollback": "passed on the current operating Track backup; original API and source DB unchanged"
   },
   "authenticatedUiRecheckAfterFix": false,
   "wholeWorkflowAccepted": false,
-  "followUp": "Freeze exact CI-passed API with existing web, apply through the existing runtime operation, and recheck the same execution in Edge"
+  "followUp": "Freeze exact CI-passed API with existing web, apply through the existing runtime operation, and recheck the same execution in Edge",
+  "operatingApiAfterRefreshFix": {
+    "revision": "989809234abd806f62cbeb45402f7122f19c363a",
+    "operationId": "36915230-e9ae-4eec-b7bd-55ed7fa95807",
+    "committed": true,
+    "postChecks": "snapshot/events/evidence connected8, assets18, files47/processes18/Track history/original Native DB preserved; Task-only owner probe passed",
+    "subsequentEvidenceRead": "snapshot200/events200/evidence404; no acceptance",
+    "actualConcurrentSingleCollectorBurst": {
+      "snapshotMs": 2778,
+      "streamFirstFrameMs": 11980,
+      "assistantListMs": 3723,
+      "allStatus": 200,
+      "separateCollectorStarted": false
+    },
+    "gui": "Signed-in actual browser later disconnected and cleared data; remaining concurrency defect, not accepted"
+  },
+  "fairAdmissionFix": {
+    "change": "Per-source synchronous FIFO admission handoff for collection, protected reads and snapshot capture; cancelled slots retain predecessors. Stream first frame performs one refresh through send rather than also refreshing at generic ingress.",
+    "authorizationOrTimeoutExtended": false,
+    "authorityQueueLimitChanged": false,
+    "regressionsBefore": {
+      "tests": 2,
+      "failed": 2
+    },
+    "relatedAfter": {
+      "tests": 45,
+      "passed": 45,
+      "failed": 0,
+      "skipped": 0
+    },
+    "typecheck": "passed",
+    "operatingApplied": false,
+    "limitation": "Source-wide transient authority failure and lease expiry retain fail-closed behavior; their operating impact must be rechecked rather than assumed resolved.",
+    "independentReview": "No concrete security, concurrency or deadlock regression found in cancellation, multi-source claims, actor revocation and sibling identity checks; source-only review",
+    "fullSuite": {
+      "tests": 1258,
+      "passed": 1247,
+      "failed": 0,
+      "skipped": 11
+    }
+  }
 }

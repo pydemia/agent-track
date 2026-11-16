@@ -6,7 +6,7 @@ import type { SourceView } from "../../packages/contracts/index.ts";
 import { normalizeEvent } from "../../packages/adapters/demian/index.ts";
 
 interface Grant { stamp: string; observedAt: string; runIds: string[]; partial: boolean; attemptCoverage: "coordinator-history" | "current-role-only" }
-interface Readers { count: number; done: Promise<void>; release: () => void }
+interface Admission { ready: Promise<void>; release: () => void }
 const grantLifetimeMs = 15_000, readBudgetMs = 10_000, admissionReserveMs = 1_000;
 
 /** Protected native observations use only the owner-bound Assistant reader, never executor keys. */
@@ -14,7 +14,7 @@ export class AssistantNativeCollector {
   private grants = new Map<string, Grant>();
   private jobs = new Map<string, Promise<void>>();
   private failures = new Map<string, SourceView["state"]>();
-  private readers = new Map<string, Readers>();
+  private admissions = new Map<string, Promise<void>>();
   constructor(private store: Store, private config: () => Config, private assistant: AssistantAuthority) {}
 
   private stamp(source: SourceConfig, user: string): string {
@@ -55,10 +55,8 @@ export class AssistantNativeCollector {
       const id = source.id;
       let job = this.jobs.get(id);
       if (!job) {
-        const readers = this.readers.get(id);
-        // Do not invalidate a local view or create the authority request scope
-        // while a separately bounded evidence read is using that view.
-        job = readers ? readers.done.then(() => this.collect(source, user)) : this.collect(source, user);
+        const admission = this.admit([id]);
+        job = admission.ready.then(() => this.collect(source, user)).finally(admission.release);
         this.jobs.set(id, job);
         void job.finally(() => { if (this.jobs.get(id) === job) this.jobs.delete(id); });
       }
@@ -78,62 +76,55 @@ export class AssistantNativeCollector {
 
   private async stableViews<T>(user: string, sourceIds: readonly string[], read: () => Promise<T>, deadline: number, strict: boolean): Promise<T> {
     const selected = new Set(sourceIds);
-    const held = await this.afterRefresh(user, () => {
+    const admission = this.admit(this.selectedSources(user, sourceIds));
+    try {
+      await this.waitForAdmission(admission, deadline);
       const config = this.config();
       if (!(config.auth.mode === "proxy" ? config.auth.users.includes(user) : config.auth.user === user))
         throw new AssistantAuthorityError(403);
-      const sources = config.sources.filter(source => selected.has(source.id) && source.assistantNativeSourceId && source.users.includes(user)).filter(source => {
-        try { this.stamp(source, user); return true; }
-        catch (error) {
-          // A broken sibling window must not deny an otherwise authorized
-          // execution. The normal link projection still excludes that source.
-          if (strict) throw error;
-          return false;
-        }
-      });
-      // Validate the selected source before acquiring anything: a rejected owner or
-      // changed configuration cannot leave an orphaned reader gate.
-      return sources.map(source => {
-        let group = this.readers.get(source.id);
-        if (!group) {
-          let release!: () => void;
-          const done = new Promise<void>(resolve => { release = resolve; });
-          group = { count: 0, done, release }; this.readers.set(source.id, group);
-        }
-        group.count++; return { id: source.id, group };
-      });
-    }, deadline, sourceIds);
-    try {
-      // The callback retains its own authority deadline and final credential /
-      // configuration checks. It must not wait for a refresh queued behind it.
-      return await read();
-    } finally {
-      for (const { id, group } of held) if (--group.count === 0) {
-        if (this.readers.get(id) === group) this.readers.delete(id);
-        group.release();
+      for (const source of config.sources.filter(source => selected.has(source.id) && source.assistantNativeSourceId && source.users.includes(user))) {
+        try { this.stamp(source, user); }
+        catch (error) { if (strict) throw error; }
       }
-    }
+      return await read();
+    } finally { admission.release(); }
   }
 
-  /** Capture a fresh view after pending collection, never a revoked or in-flight grant. */
-  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000, sourceId?: string | readonly string[]): Promise<T> {
+  private selectedSources(user: string, sourceId?: string | readonly string[]): string[] {
     const selected = sourceId === undefined ? null : new Set(typeof sourceId === "string" ? [sourceId] : sourceId);
-    for (;;) {
-      const pending = [...new Set(this.config().sources.filter(source => source.assistantNativeSourceId && (!selected || selected.has(source.id)) && source.users.includes(user))
-        .flatMap(source => { const job = this.jobs.get(source.id); return job ? [job] : []; }))];
-      if (!pending.length) return read();
-      const remaining = deadline - performance.now();
-      if (remaining <= 0) throw new AssistantAuthorityError(503);
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      try {
-        await Promise.race([
-          Promise.all(pending),
-          new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new AssistantAuthorityError(503)), remaining); }),
-        ]);
-      } finally { clearTimeout(timer); }
-      // A second refresh may have started while the previous one settled.
-      // Read synchronously only once no currently relevant check is pending.
-    }
+    return this.config().sources.filter(source => source.assistantNativeSourceId && (!selected || selected.has(source.id)) && source.users.includes(user)).map(source => source.id);
+  }
+
+  /** Reserve the handoff synchronously so a later collection cannot overtake a waiting reader. */
+  private admit(sourceIds: readonly string[]): Admission {
+    const ids = [...new Set(sourceIds)].sort();
+    const ready = Promise.all(ids.map(id => this.admissions.get(id) ?? Promise.resolve())).then(() => {});
+    let release!: () => void;
+    const done = new Promise<void>(resolve => { release = resolve; });
+    // An admission cancelled before its turn still waits for its predecessors.
+    const tail = ready.then(() => done);
+    for (const id of ids) this.admissions.set(id, tail);
+    void tail.then(() => { for (const id of ids) if (this.admissions.get(id) === tail) this.admissions.delete(id); });
+    return { ready, release };
+  }
+
+  private async waitForAdmission(admission: Admission, deadline: number): Promise<void> {
+    const remaining = deadline - performance.now();
+    if (remaining <= 0) throw new AssistantAuthorityError(503);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([admission.ready, new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new AssistantAuthorityError(503)), remaining);
+      })]);
+    } finally { clearTimeout(timer); }
+    if (performance.now() >= deadline) throw new AssistantAuthorityError(503);
+  }
+
+  /** Capture after preceding collection; later collection waits for this synchronous read. */
+  async afterRefresh<T>(user: string, read: () => T, deadline = performance.now() + 10_000, sourceId?: string | readonly string[]): Promise<T> {
+    const admission = this.admit(this.selectedSources(user, sourceId));
+    try { await this.waitForAdmission(admission, deadline); return read(); }
+    finally { admission.release(); }
   }
 
   private async collect(source: SourceConfig, user: string): Promise<void> {

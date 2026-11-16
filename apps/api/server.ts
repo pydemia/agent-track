@@ -112,7 +112,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
       const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
-      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
+      if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && url.pathname !== "/api/stream" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
         if (projectTaskRead || evidenceRun) {
           await sources.projects.refresh(user);
