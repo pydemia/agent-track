@@ -2,7 +2,7 @@
 
 ## 현재 판정 — 2026-11-16 KST
 
-Persona source4a9ad42/imageb68ece66과 Track API8d2ec50·web186ff8d를 운영 반영했다.
+Persona source4a9ad42/imageb68ece66과 Track API05c1833·web186ff8d를 운영 반영했다.
 Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
 writer는 비활성이다. 원본 이벤트8개 전체 metadata SHA와 역사 binding r3,
 설정47개·다른 프로세스18개·Track 이력 보존을 확인했다.
@@ -25,7 +25,13 @@ Native 상세403/404가 전체 대시보드·SSE를 지우던 처리도 수정�
 예산10초에서 역할 조회1.84초와 첫 상세6.23초 뒤 마지막 원본 확인이10초
 deadline에 끝나지 않았다. 실시간 UI 표본의 내부 상세 성공도9.90초까지
 걸렸다. 첫 상세/시도 discovery의 병렬화 회귀는 수정 전 실패·수정 후 통과했고
-관련114개·타입 검사가 통과했다. 후보 소스의 CI·운영 반복 수용은 남는다.
+관련114개·타입과 전체1,271개 중1,260개 통과/실패0/환경 제외11개를 확인했다.
+05c1833의 양 OS CI·동결 배포 후 고정3회 snapshot/events/evidence9개는
+모두200·상세8events였고 Edge Run 그룹·Native edge inspector도 확인했다.
+그러나 공통 묶음 선택 시 SSE metadata 수집의 두 RPC에3.45초·6.29초가
+걸려 최종 Projects 확인이10초 deadline에 끝나지 않았다. 후속에도 이 수집
+deadline 실패가 있어 그룹 범위/전체 업무의 안정적 수용은 미완료다.
+[확대 운영 관측](read-diagnostics-operating.json)에 앞선 성공과 후속 실패를 함께 보존했다.
 [경계별 실제 계측과 후속 범위](read-diagnostics.md)에 기록했다.
 
 **상위 수용15/21·71.4%, 직전 대비0%p(동일 가중치·부분0)를 유지한다.**
@@ -34,13 +40,13 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 업무·그룹/Trace 안정성🟨, 명령·복구🟨, 저장 보기·peer🟨,
 다중 장치·원본 앱 이동🟨다. 전체 완료 ETA는 산정 불가·신뢰도 낮음이다.
 외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치이며, 현재 실패의
-다음 작업은 운영 reader 경계별 지연·queue·lease 관측이다. 재산정은 같은 실제
+다음 작업은 생산자의 Native metadata RPC 내부 처리 비용 조사다. 재산정은 같은 실제
 업무의 반복 조회·그룹·Trace가 유지되는 운영 수용 후다.
 
 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
 [정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
-[게시한 Note](https://note.pydemia.ai/#/w/personal-note-production/page/871c5c9d-7dfa-4adc-935f-526ea94487ae)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[최신 실측 Note](https://note.pydemia.ai/#/w/personal-note-production/page/11f4c4e5-ccfe-473a-8c05-85a1055ceed5)는 원문 재조회와 검색 색인 반영까지 확인했다.
 
 ## 이전 판정 기록
 

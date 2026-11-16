@@ -1,0 +1,374 @@
+{
+  "dateKst": "2026-11-16",
+  "observedAt": "2026-11-16T10:57:39.962Z",
+  "apiRevision": "05c18335e04731b326e847c2d6219de97ae96ae6",
+  "webRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+  "manifestSha256": "f56c55841bac193548715466475f719dc760aab1f31332ba7971752d936d8cc8",
+  "pid": 10824,
+  "operationId": "2914b2d7-6bce-411b-8a48-71473583d9a9",
+  "ci": {
+    "run": 43850572530,
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "verification": {
+    "related": {
+      "tests": 114,
+      "pass": 114,
+      "fail": 0
+    },
+    "full": {
+      "tests": 1271,
+      "pass": 1260,
+      "fail": 0,
+      "skip": 11
+    },
+    "typecheck": true,
+    "regressionBeforeFailed": true,
+    "regressionAfterPassed": true
+  },
+  "preservation": {
+    "files": 47,
+    "processes": 18,
+    "webFiles": 18,
+    "history": true,
+    "integrity": "ok",
+    "originalConfigRestored": true,
+    "nativeDatabasePreservedByCommit": true,
+    "originalHistory": {
+      "at": "2026-11-16T10:45:59.177Z",
+      "readOnly": true,
+      "oneTrackDatabaseReadTransaction": true,
+      "sourceDatabaseRestored": false,
+      "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+      "events": 8,
+      "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+      "eventMetadataPreserved": true,
+      "historicalBindingPreserved": true,
+      "taskBindingRevision": "3",
+      "cursor": "8",
+      "highWater": "8",
+      "liveAuthorizationOrGuiProof": false
+    }
+  },
+  "quietProfile": {
+    "startedAt": "2026-11-16T10:45:36.789Z",
+    "endedAt": "2026-11-16T10:46:37.693Z",
+    "rounds": 3,
+    "samples": [
+      {
+        "round": 1,
+        "label": "snapshot",
+        "startedAt": "2026-11-16T10:45:36.789Z",
+        "status": 200,
+        "sources": [
+          {
+            "id": "demian-local",
+            "state": "connected"
+          },
+          {
+            "id": "codex-local",
+            "state": "connected"
+          },
+          {
+            "id": "projects-native",
+            "state": "connected"
+          },
+          {
+            "id": "assistant-native",
+            "state": "connected"
+          },
+          {
+            "id": "desktop",
+            "state": "unsupported"
+          },
+          {
+            "id": "demian-assistant-owner",
+            "state": "connected"
+          }
+        ],
+        "protectedRunPresent": true,
+        "durationMs": 5751,
+        "endedAt": "2026-11-16T10:45:42.541Z"
+      },
+      {
+        "round": 1,
+        "label": "events",
+        "startedAt": "2026-11-16T10:45:42.552Z",
+        "status": 200,
+        "events": 8,
+        "durationMs": 5884,
+        "endedAt": "2026-11-16T10:45:48.435Z"
+      },
+      {
+        "round": 1,
+        "label": "evidence",
+        "startedAt": "2026-11-16T10:45:48.442Z",
+        "status": 200,
+        "state": "connected",
+        "events": 8,
+        "durationMs": 6946,
+        "endedAt": "2026-11-16T10:45:55.388Z"
+      },
+      {
+        "round": 2,
+        "label": "snapshot",
+        "startedAt": "2026-11-16T10:45:55.402Z",
+        "status": 200,
+        "sources": [
+          {
+            "id": "demian-local",
+            "state": "connected"
+          },
+          {
+            "id": "codex-local",
+            "state": "connected"
+          },
+          {
+            "id": "projects-native",
+            "state": "connected"
+          },
+          {
+            "id": "assistant-native",
+            "state": "connected"
+          },
+          {
+            "id": "desktop",
+            "state": "unsupported"
+          },
+          {
+            "id": "demian-assistant-owner",
+            "state": "connected"
+          }
+        ],
+        "protectedRunPresent": true,
+        "durationMs": 9130,
+        "endedAt": "2026-11-16T10:46:04.532Z"
+      },
+      {
+        "round": 2,
+        "label": "events",
+        "startedAt": "2026-11-16T10:46:04.540Z",
+        "status": 200,
+        "events": 8,
+        "durationMs": 7586,
+        "endedAt": "2026-11-16T10:46:12.126Z"
+      },
+      {
+        "round": 2,
+        "label": "evidence",
+        "startedAt": "2026-11-16T10:46:12.133Z",
+        "status": 200,
+        "state": "connected",
+        "events": 8,
+        "durationMs": 4749,
+        "endedAt": "2026-11-16T10:46:16.882Z"
+      },
+      {
+        "round": 3,
+        "label": "snapshot",
+        "startedAt": "2026-11-16T10:46:16.897Z",
+        "status": 200,
+        "sources": [
+          {
+            "id": "demian-local",
+            "state": "connected"
+          },
+          {
+            "id": "codex-local",
+            "state": "connected"
+          },
+          {
+            "id": "projects-native",
+            "state": "connected"
+          },
+          {
+            "id": "assistant-native",
+            "state": "connected"
+          },
+          {
+            "id": "desktop",
+            "state": "unsupported"
+          },
+          {
+            "id": "demian-assistant-owner",
+            "state": "connected"
+          }
+        ],
+        "protectedRunPresent": true,
+        "durationMs": 5225,
+        "endedAt": "2026-11-16T10:46:22.122Z"
+      },
+      {
+        "round": 3,
+        "label": "events",
+        "startedAt": "2026-11-16T10:46:22.131Z",
+        "status": 200,
+        "events": 8,
+        "durationMs": 8776,
+        "endedAt": "2026-11-16T10:46:30.907Z"
+      },
+      {
+        "round": 3,
+        "label": "evidence",
+        "startedAt": "2026-11-16T10:46:30.920Z",
+        "status": 200,
+        "state": "connected",
+        "events": 8,
+        "durationMs": 6751,
+        "endedAt": "2026-11-16T10:46:37.672Z"
+      }
+    ]
+  },
+  "gui": {
+    "entraVerified": true,
+    "browser": "Edge",
+    "width": 956,
+    "height": 694,
+    "observedRun": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "nativeEvents": 8,
+    "nodes": 4,
+    "edges": 3,
+    "groups": 3,
+    "runGroupDrilldown": true,
+    "edgeInspectorKind": "native-lineage",
+    "edgeSequences": [
+      "4",
+      "5"
+    ],
+    "commonFourViewScope": false,
+    "savedViewRestoreNotPerformed": true,
+    "screenshot": "trace-group-edge.jpg",
+    "finalObservation": {
+      "at": "2026-11-16T11:00:36.869Z",
+      "nativeEvents": 8,
+      "nodes": 4,
+      "edges": 3,
+      "commonScopeManuallyCleared": true,
+      "stableScopeOrFullWorkflowAccepted": false,
+      "screenshot": "trace-current.jpg"
+    }
+  },
+  "extendedObservation": {
+    "nativeWindowDeadlineFailures": [
+      {
+        "id": "897026e1-2ac6-4ab6-baca-b40ef83744d0",
+        "parentId": "7aebc05b-c490-4c60-a923-e83e10d3d71b",
+        "origin": "stream",
+        "startedAt": "2026-11-16T10:49:27.286Z",
+        "status": 503,
+        "durationMs": 10001.42,
+        "deadlineReached": true,
+        "queueDepth": 0,
+        "remainingBudgetAtAdmissionMs": 10000,
+        "steps": [
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 165.29,
+            "durationMs": 3451.47,
+            "status": 200
+          },
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 3661.18,
+            "durationMs": 6289.15,
+            "status": 200
+          },
+          {
+            "name": "authority.projects",
+            "offsetMs": 9984.76,
+            "durationMs": null,
+            "status": null
+          }
+        ]
+      },
+      {
+        "id": "dc36905e-ca3b-49ad-a998-d1eba47fd414",
+        "parentId": "17688a5f-df44-407c-9729-3c1d669ccdf2",
+        "origin": "stream",
+        "startedAt": "2026-11-16T10:53:19.331Z",
+        "status": 503,
+        "durationMs": 10010.88,
+        "deadlineReached": true,
+        "queueDepth": 0,
+        "remainingBudgetAtAdmissionMs": 10000,
+        "steps": [
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 177.3,
+            "durationMs": 5142.56,
+            "status": 200
+          },
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 5380.59,
+            "durationMs": null,
+            "status": null
+          }
+        ]
+      },
+      {
+        "id": "172220d5-b651-4dd6-9878-9f6cade8a5e4",
+        "parentId": "96acc127-3445-4df3-b6b9-c46192da7115",
+        "origin": "stream",
+        "startedAt": "2026-11-16T10:54:04.964Z",
+        "status": 503,
+        "durationMs": 10004.78,
+        "deadlineReached": true,
+        "queueDepth": 0,
+        "remainingBudgetAtAdmissionMs": 10000,
+        "steps": [
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 105.56,
+            "durationMs": 6777.38,
+            "status": 200
+          },
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 6946.53,
+            "durationMs": 3025.95,
+            "status": 200
+          }
+        ]
+      },
+      {
+        "id": "5800a1c0-0418-4685-8db3-ca25d94bddb1",
+        "parentId": "4f507956-8b7c-4029-b5a8-0d3bafc3c3fc",
+        "origin": "stream",
+        "startedAt": "2026-11-16T10:54:38.306Z",
+        "status": 503,
+        "durationMs": 10016.65,
+        "deadlineReached": true,
+        "queueDepth": 0,
+        "remainingBudgetAtAdmissionMs": 10000,
+        "steps": [
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 164.45,
+            "durationMs": 2603.53,
+            "status": 200
+          },
+          {
+            "name": "rpc.nativeMetadata",
+            "offsetMs": 2812.26,
+            "durationMs": null,
+            "status": null
+          }
+        ]
+      }
+    ],
+    "causalBoundary": "The SSE metadata collection exceeded its original 10-second authority deadline; scope loses current Run visibility. A standalone group UI defect is not established.",
+    "fullWorkflowAccepted": false
+  },
+  "sourceOrModelDispatchPerformed": false,
+  "writerEnabled": false,
+  "acceptance": {
+    "completed": 15,
+    "total": 21,
+    "percent": 71.4,
+    "partialWeight": 0,
+    "subresultDenominatorKnown": false,
+    "etaKnown": false
+  }
+}
