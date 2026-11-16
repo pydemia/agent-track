@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "4fabc38f-39e7-4e4b-ada1-17684b2f3d4b",
+  "title": "Agent Track 원본 업무 이동·운영 검증 — 2026-11-16",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/1993ef46-470a-440d-8e61-dc9311c9b804",
+  "workspaceId": "personal-note-production",
+  "pageId": "1993ef46-470a-440d-8e61-dc9311c9b804",
+  "revision": "dc71ce402c077f7ea4fc4ee76687289cec5dd42e3b6ce4abb80f45dd4fced5cc",
+  "sourceSha256": "f57ef4a6873953ab28c4062da80526a288ee40df66a1016d438d12e244767b43",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T13:38:34.040Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/task-origin-navigation.md",
+  "markdownSha256": "565a246a194b748c4a98d6127bf6e08744d8db126acba2f269ab1d55fb0a2cc0",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/e52df4c6-fde1-485a-8929-71737dd84a85",
+  "authStateAtDispatch": "Actual existing Entra account; operating Map Task inspector to exact Projects Task selection verified; Persona candidate remains unapproved"
+}

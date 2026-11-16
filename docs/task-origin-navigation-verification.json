@@ -1,0 +1,236 @@
+{
+  "recordedAt": "2026-11-16T13:38:04.829Z",
+  "revision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+  "sourceCommits": [
+    "632f4164cfb74dff93e0404b4e1aea157069d94c",
+    "474676f66f276fafd00c9325e3bfcfb2f30bd78b"
+  ],
+  "ci": {
+    "run": 43875527794,
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "verify (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "localChecks": {
+    "relatedTests": 24,
+    "typecheck": "pass",
+    "total": 1280,
+    "passed": 1269,
+    "failed": 0,
+    "skipped": 11,
+    "isolatedWindowsProcessTests": 19,
+    "explicitCandidateBuild": "pass",
+    "defaultBuildInvoked": false,
+    "explicitCandidateOutput": true
+  },
+  "operating": {
+    "observedAt": "2026-11-16T13:34:24.073Z",
+    "operationId": "7c1576fc-2a9d-4775-b13d-678df3c1eb75",
+    "committed": true,
+    "pid": 36984,
+    "created": "2026-11-16T13:32:31.3168250Z",
+    "apiRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "manifestSha256": "adaf08bbaa32879ad003eeff9d96007bf962db3475467ccb5911294216e70587",
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "tables": [
+      {
+        "name": "approval_receipts",
+        "count": 4
+      },
+      {
+        "name": "binding_receipts",
+        "count": 5
+      },
+      {
+        "name": "bindings",
+        "count": 6
+      },
+      {
+        "name": "coordinator_command_intents",
+        "count": 0
+      },
+      {
+        "name": "event_digests",
+        "count": 0
+      },
+      {
+        "name": "events",
+        "count": 45874
+      },
+      {
+        "name": "metadata",
+        "count": 21
+      },
+      {
+        "name": "receipts",
+        "count": 2
+      },
+      {
+        "name": "runs",
+        "count": 1363
+      },
+      {
+        "name": "saved_flow_views",
+        "count": 1
+      },
+      {
+        "name": "sqlite_sequence",
+        "count": 2
+      },
+      {
+        "name": "successor_intents",
+        "count": 0
+      },
+      {
+        "name": "task_assignment_receipts",
+        "count": 2
+      },
+      {
+        "name": "task_creation_receipts",
+        "count": 1
+      }
+    ],
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "sources": [],
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "nativeDatabasePreservedByCommit": true,
+    "actualEntraGuiVerified": false,
+    "sourceOrModelDispatchPerformed": false,
+    "sourceReadChecks": {
+      "graded": false,
+      "reason": "Full protected-source availability remains separately unaccepted; this operation verifies Task navigation."
+    }
+  },
+  "originalHistory": {
+    "at": "2026-11-16T13:34:24.148Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "snapshot": {
+    "at": "2026-11-16T13:34:32.808Z",
+    "actualOperatingSnapshot": true,
+    "status": 200,
+    "task": {
+      "sourceId": "projects-native",
+      "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+      "taskId": "00418966-a605-411d-89ee-51344526ec42"
+    },
+    "linkState": "ready",
+    "destination": "https://projects.pydemia.ai",
+    "exactProjectAndTask": true,
+    "nonProjectsUiAddressesStripped": true,
+    "credentialsPrinted": false,
+    "sourceWrites": 0,
+    "actualBrowserClickVerified": false
+  },
+  "gui": {
+    "verified": true,
+    "browser": "Edge",
+    "trackEntraAccountConfirmed": true,
+    "reloadedNewWeb": true,
+    "live": true,
+    "path": "Map Task node → inspector → 원본 업무 열기 → Projects Task",
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "taskId": "00418966-a605-411d-89ee-51344526ec42",
+    "projectId": "7b0bc73a-8a1f-4111-9d7f-cc85efad3fea",
+    "taskRevision": "1",
+    "exactNativeSelection": true,
+    "sourceWorkEdited": false,
+    "modelRuns": 0,
+    "screenshot": "track-original-task-selected-20261116.png",
+    "remainingProjectsError": "실행 기록을 불러오지 못했습니다.",
+    "otherAddedUiSurfacesActualClicksVerified": false
+  },
+  "originalSession": {
+    "browserSelectionVerified": false,
+    "errorPage": true,
+    "anonymousRootStatus": 401,
+    "anonymousExactSessionStatus": 401,
+    "challenge": "Basic",
+    "originalAuthenticationChanged": false
+  },
+  "acceptance": {
+    "upperAccepted": 15,
+    "upperTotal": 21,
+    "percent": 71.4,
+    "partialCredit": 0,
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-14",
+      "AT-15",
+      "AT-20"
+    ],
+    "complete": false
+  },
+  "persona": {
+    "operatingSource": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "operatingImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "newSource": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "newImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "newCandidateDeployed": false,
+    "newCandidateExceptionApproved": false
+  }
+}

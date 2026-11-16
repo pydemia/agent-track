@@ -1,6 +1,6 @@
 # Agent Track 개발계획
 
-현재 판정(2026-11-16): Persona4a9ad42·Track APIfefc94f/web186ff8d를 운영 중이다. 일반 Native Run 그룹 저장의 무관한 Assistant 수집 의존을 수정·배포했고 실제 Entra 계정의 저장·새로고침·키보드 선택·접힘 복원을 확인했다. [운영 GUI 근거](flow-view-scoped-authority.md)를 따른다. Persona의 공개 Projects 왕복은 실제1.7~2.4초였고 사설 조회 후보90e0825/image33e19141에서는13~87ms를 확인했다. 해당 후보는 Linux 검사와 이미지 비교를 마쳤으나 별도 CI 예외 승인이 대기 중이다. [조회 후보](projects-read-transport.md), [현재 수용표](goal-status.md)를 우선한다. 수용15/21·71.4%를 유지하며 peer 대표선·보호된 전체 업무의 반복 관측과 실제 명령·앱 이동이 남는다. 아래 이전 날짜의 배포·차단 상태는 당시 이력이다.
+현재 판정(2026-11-16): Persona4a9ad42·Track API/web474676f를 운영 중이다. 원본 업무 링크와 현재 Projects UI 주소의 권한별 투영을 추가했고, 실제 Edge의 Map 업무 inspector→Projects 동일 Task 선택을 확인했다. [현재 운영·이동 근거](task-origin-navigation.md)를 따른다. 앞선 일반 Native Run 그룹 저장 수정에서는 실제 Entra 계정의 저장·새로고침·키보드 선택·접힘 복원을 확인했다. [저장 보기 근거](flow-view-scoped-authority.md)는 당시 revision의 기록이다. Persona 공개 Projects 왕복은 실제1.7~2.4초였고 사설 조회 후보90e0825/image33e19141에서는13~87ms였다. 해당 후보는 Linux 검사와 이미지 비교를 마쳤으나 별도 CI 예외 승인이 대기 중이다. [조회 후보](projects-read-transport.md), [현재 수용표](goal-status.md)를 우선한다. 수용15/21·71.4%를 유지하며 peer 대표선·보호 업무의 반복 관측, 명령·복구·다중 장치, 원본 Demian 인증과 Projects 실행 기록 오류가 남는다. 아래 이전 날짜의 배포·차단 상태는 당시 이력이다.
 
 최신 [reader 지연·동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존
 업무의 격리 SSE·상세 조회를 통과했다. 후속 Track 운영 API는06dd8c7·web은27e00a8이다.

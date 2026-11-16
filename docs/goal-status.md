@@ -2,7 +2,13 @@
 
 ## 현재 판정 — 2026-11-16 KST
 
-Persona source4a9ad42/imageb68ece66과 Track APIfefc94f·web186ff8d를 운영 반영했다.
+현재 Persona source4a9ad42/imageb68ece66과 Track API·web474676f를 운영 중이다.
+Track 업무 inspector→Projects 동일 Task 선택을 실제 Edge 계정에서 확인했다.
+양 OS CI와 설정·이력·다른 프로세스 보존 검사를 통과했다. 원본 Demian Session
+인증과 Projects 실행 기록 오류는 남아 AT-06 전체는 수용하지 않았다.
+[원본 업무 이동·현재 운영 근거](task-origin-navigation.md)를 우선한다.
+
+앞선 Persona source4a9ad42/imageb68ece66과 Track APIfefc94f·web186ff8d 전환에서는
 Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
 writer는 비활성이다. 원본 이벤트8개 전체 metadata SHA와 역사 binding r3,
 설정47개·다른 프로세스18개·Track 이력 보존을 확인했다.
