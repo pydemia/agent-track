@@ -99,7 +99,7 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 앞선 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
 [정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
-[최신 일반 Trace 복구·보호 업무 잔여 Note](https://note.pydemia.ai/#/w/personal-note-production/page/6b599c1e-a991-4f9b-9561-9a927cfa8308)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[최신 명령 이력 복구·Windows 보완 검사 Note](https://note.pydemia.ai/#/w/personal-note-production/page/ce13cfe6-0325-4010-966c-5bfa290c5b36)는 원문 재조회와 검색 색인 반영까지 확인했다.
 [정확한 후보와 배포 검토](projects-read-transport-candidate.json)에 기존/새 이미지,
 설정 변경 한 항목·전달기·검사·미승인 상태를 연결했다.
 

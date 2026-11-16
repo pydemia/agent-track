@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "62ce2a3f-c22d-48b0-99a9-f96e0c946144",
+  "title": "Agent Track 명령 이력 조회 복구 — 2026-11-17",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/ce13cfe6-0325-4010-966c-5bfa290c5b36",
+  "workspaceId": "personal-note-production",
+  "pageId": "ce13cfe6-0325-4010-966c-5bfa290c5b36",
+  "revision": "99cbb21d194d0a4ff5aad5a4dbd673da8fbf69b47d9645529f185e814bdca419",
+  "sourceSha256": "519ce5c4c5284aea6b38d7345b7afba5f07ae222e1418431c97c7b4fe337ae77",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T16:38:48.713Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/command-history-scoped-reads.md",
+  "markdownSha256": "9123a08e7fda2ef13ac74c4f68cb63fe5456477a08de2c15e738f6aaf9f38d53",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/6b599c1e-a991-4f9b-9561-9a927cfa8308",
+  "authStateAtDispatch": "Existing Entra owner and Note binding; exact approved Persona4a9ad42/b68ece66; writer disabled; no new consent or credential; candidate90e/33e remains unapproved"
+}
