@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "84d8306c-6a62-4906-a9d7-b5c3c5dd01a7",
+  "title": "Agent Track Projects 조회 지연과 사설 transport 후보 — 2026-11-16",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/338c35a1-854b-4a16-8069-75c58cc84dd3",
+  "workspaceId": "personal-note-production",
+  "pageId": "338c35a1-854b-4a16-8069-75c58cc84dd3",
+  "revision": "12911122989efc56ebd1d4d6787b97bf4493ff39119ade1427e8e3fb70edaf51",
+  "sourceSha256": "89c85b6b69e9aa1407e3877d789640bf02d928b2868991f5390357f5bd3b69e8",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T12:19:11.079Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/projects-read-transport.md",
+  "markdownSha256": "f5b350c857643a4ba44655dd6a5bfe07ab24b8bcac0cce58226b8ca763acc99a",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/11f4c4e5-ccfe-473a-8c05-85a1055ceed5",
+  "authStateAtDispatch": "Existing Entra configuration preserved; candidate built and Linux suite passed; new image not activated"
+}

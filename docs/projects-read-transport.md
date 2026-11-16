@@ -47,7 +47,9 @@ Projects edge에 해당 GET만 전달한다. 원본 Projects가 현재 서명·A
 - 최초 Track CI의 Windows 포화 검사는 503 응답 전 연결 reset으로 실패했다.
   미수신 요청 header를 남기고 닫는 경계를 수정했다. 거부 처리에서 header를
   최대 16KiB·100ms만 읽고 503을 반환하며 upstream에는 전달하지 않는다.
-  로컬 49개와 수정 후 실제 조회를 재확인했으며 새 양 OS CI를 대기한다.
+  로컬 49개와 수정 후 실제 조회를 재확인했다.
+  [수정 후 Track CI](https://github.com/pydemia/agent-track/actions/runs/43864792283)의
+  Windows·Ubuntu 모두 통과했다. 해당 코드 revision은 `3e7fec8`이다.
 - Windows 전체: 1,345개 중 1,329 통과 / 2 실패 / 14 제외
 - 동시 실행 수 2의 Windows 전체: 1,330 통과 / 1 실패 / 14 제외
 - 최초 실패한 두 파일의 분리 실행: 24개 모두 통과
@@ -56,8 +58,17 @@ Projects edge에 해당 GET만 전달한다. 원본 Projects가 현재 서명·A
 checkout에서도 복구 검사 실패를 확인했다. 현재 C: 여유 공간 약 0.9GB는
 CLI가 요구하는 1GiB 예비 공간보다 작다. 전체 검사를 통과했다고 기록하지
 않으며 새 소스의 회귀라고 단정하지 않는다. 임시 작업 파일 삭제는 자동
-승인 검토에서 거절되어 수행하지 않았다. 충분한 공간의 격리 Linux 환경에서
-동일 후보의 build·타입·서식·전체 검사를 진행 중이다.
+승인 검토에서 거절되어 수행하지 않았다.
+
+충분한 공간의 격리 Linux 환경에서 동일 후보의 build·타입·서식 검사가
+통과했다. 전체 1,345개 중 1,336개 통과·실패 0개·환경 제외 9개였으며
+검증 프로세스도 종료 코드 0으로 끝났다. UID 1000으로 실행했고 운영 DB·
+인증 mount는 0개다. 로컬에서 전체 CI의 별도 브라우저·native worker·
+media 전용 job까지 실행한 결과는 아니다.
+
+승인된 운영 이미지와 후보 이미지 안의 컴파일 파일 751개를 실제 비교했다.
+추가·삭제는 없고 `integrations/client.js`, `main.js`, `workbench/connected.js`
+세 파일만 다르다. 웹·계약·collection·저장소 코드는 byte 단위로 동일하다.
 
 새 소스의 [push CI](https://github.com/pydemia/persona/actions/runs/43862473033)와
 [PR CI](https://github.com/pydemia/persona/actions/runs/43862557819)는 모든 job이

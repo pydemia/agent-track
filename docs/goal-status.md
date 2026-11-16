@@ -39,9 +39,11 @@ deadline 실패가 있어 그룹 범위/전체 업무의 안정적 수용은 미
 구현했고 실제 후보 재측정은87/13/13ms·모두200이었다. Persona source90e0825의
 draft PR#23과 image33e19141을 준비했으나 운영은 변경하지 않았다. 관련51개·
 Python49개·타입/build는 통과했다. Windows 전체는 복구 검사 실패가 남고,
-현재 여유 공간은 해당 CLI의1GiB 예비 공간보다 작다. 새 소스 CI는 결제/한도
-사유로 검사 시작 전 실패했다. 격리 Linux 검사와 새 후보에 대한 배포 판단이
-남는다. [Projects 조회 후보·검사 한계](projects-read-transport.md)를 따른다.
+현재 여유 공간은 해당 CLI의1GiB 예비 공간보다 작다. 격리 Linux의 build·타입·
+서식 검사와 전체1,345개 중1,336개 통과·실패0·환경 제외9개를 확인했다.
+수정 후 Track3e7fec8의 Windows·Ubuntu CI도 통과했다. 새 Persona 소스 CI는
+결제/한도 사유로 검사 시작 전 실패했고, 이전 승인과 다른 정확한 후보의
+예외 배포 판단이 남는다. [Projects 조회 후보·검사 한계](projects-read-transport.md)를 따른다.
 
 **상위 수용15/21·71.4%, 직전 대비0%p(동일 가중치·부분0)를 유지한다.**
 AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확정이므로
@@ -49,13 +51,15 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 업무·그룹/Trace 안정성🟨, 명령·복구🟨, 저장 보기·peer🟨,
 다중 장치·원본 앱 이동🟨다. 전체 완료 ETA는 산정 불가·신뢰도 낮음이다.
 외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치이며, 현재 실패의
-다음 작업은 사설 Projects 조회 후보의 격리 검사와 정확한 이미지 배포 판단이다. 재산정은 같은 실제
+다음 작업은 사설 Projects 조회 후보의 정확한 이미지 배포 판단과 실제 전환 검증이다. 재산정은 같은 실제
 업무의 반복 조회·그룹·Trace가 유지되는 운영 수용 후다.
 
 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
 [정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
-[최신 실측 Note](https://note.pydemia.ai/#/w/personal-note-production/page/11f4c4e5-ccfe-473a-8c05-85a1055ceed5)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[최신 실측·후보 검증 Note](https://note.pydemia.ai/#/w/personal-note-production/page/338c35a1-854b-4a16-8069-75c58cc84dd3)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[정확한 후보와 배포 검토](projects-read-transport-candidate.json)에 기존/새 이미지,
+설정 변경 한 항목·전달기·검사·미승인 상태를 연결했다.
 
 ## 이전 판정 기록
 

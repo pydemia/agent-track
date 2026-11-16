@@ -1,0 +1,103 @@
+{
+  "schema": "agent-track-projects-transport-candidate-v1",
+  "recordedAt": "2026-11-16T12:19:11.592226+00:00",
+  "phase": "candidate-verified-not-deployed",
+  "persona": {
+    "source": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "tree": "13d3f090a7b00af10800a499d0b1ba22ea20f858",
+    "archiveSha256": "3dd0592d0e280cb1ee32baa8d89d91981e81648eea438613e650f4f205641004",
+    "pr": "https://github.com/pydemia/persona/pull/23",
+    "ciRun": 43862473033,
+    "ciPassed": false,
+    "ciStepsStarted": 0,
+    "ciReason": "GitHub account payments or spending limit; explicit annotation",
+    "newSourceImageExceptionApproved": false
+  },
+  "track": {
+    "codeRevision": "3e7fec85f08fdd8f7ef37d9dadb9fa260880b12e",
+    "ciRun": 43864792283,
+    "windows": "success",
+    "ubuntu": "success",
+    "relaySha256": "ed933a881a2204ad0ced4939977d59635c3481cb679d995e0320e2c40c52073a"
+  },
+  "candidateQa": {
+    "build": "passed",
+    "typecheck": "passed",
+    "format": "passed",
+    "relatedTests": 51,
+    "pythonTests": 49,
+    "linux": {
+      "tests": 1345,
+      "passed": 1336,
+      "failed": 0,
+      "skipped": 9,
+      "exitCode": 0,
+      "productionMounts": 0,
+      "credentialMounts": 0
+    },
+    "windowsFull": {
+      "tests": 1345,
+      "passed": 1330,
+      "failed": 1,
+      "skipped": 14,
+      "failure": "compressed recovery CLI; C drive below required 1 GiB reserve",
+      "isolatedPreviouslyFailingFiles": {
+        "tests": 24,
+        "failed": 0
+      }
+    },
+    "compiledImageDelta": {
+      "phase": "compiled-image-delta-verified",
+      "originalImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+      "candidateImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+      "filesCompared": 751,
+      "addedFiles": 0,
+      "removedFiles": 0,
+      "changedFiles": [
+        "apps/server/dist/integrations/client.js",
+        "apps/server/dist/main.js",
+        "apps/server/dist/workbench/connected.js"
+      ],
+      "webContractsCollectionAndStorageCodeUnchanged": true,
+      "productionMounts": 0,
+      "credentialMounts": 0,
+      "network": "none",
+      "modelRequests": 0
+    }
+  },
+  "deploymentReview": {
+    "originalContainer": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+    "originalImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+    "originalPid": 620438,
+    "originalStartedAt": "2026-11-16T02:54:21.446199515Z",
+    "originalContractSha256": "4395c044a9aae08d6a73bcece4ff9969b5b2d30c9db7206ff2e4b856d36b03de",
+    "environmentDelta": {
+      "PERSONA_PROJECTS_READ_TRANSPORT_ORIGIN": "http://172.25.0.1:14325"
+    },
+    "relayInterface": "172.25.0.1",
+    "relayPort": 14325,
+    "existingBridge": {
+      "name": "pydemia-outline_egress",
+      "id": "97550c39a149e44189c908f2784983ccd8395c1022964952acdad5e692916911",
+      "modified": false
+    },
+    "existingBridgeLifecycleDependency": true,
+    "productionConfigChanged": false,
+    "relayStarted": false,
+    "candidateActivated": false,
+    "databaseRestored": false,
+    "authenticationChanged": false,
+    "newCredentials": 0,
+    "writerActivated": false,
+    "modelRequests": 0,
+    "rollback": "Retain current image/environment; preserve current DB and credentials. Stop only relay owned by this operation. Refresh existing lifecycle runbook evidence before transition."
+  },
+  "acceptance": {
+    "upperAccepted": 15,
+    "upperTotal": 21,
+    "upperPartialWeight": 0,
+    "wholeSubresultDenominator": null,
+    "stableWholeWorkflowAccepted": false
+  }
+}
