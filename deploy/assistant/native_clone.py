@@ -7,7 +7,8 @@ import posixpath
 import re
 
 __all__ = ["CloneError", "clone_request", "verify_clone",
-           "image_clone_request", "verify_image_clone"]
+           "image_clone_request", "verify_image_clone",
+           "projects_read_clone_request", "verify_projects_read_clone"]
 
 DESTINATION = "/run/secrets/agent-track-demian"
 ENV_KEY = "PERSONA_DEMIAN_RUNTIME_CONFIG_FILE"
@@ -15,6 +16,10 @@ SIGNING_KEY = "PERSONA_DEMIAN_RUNTIME_SIGNING_KEY_AGENT_TRACK"
 BEARER_KEY = "PERSONA_DEMIAN_RUNTIME_BEARER_AGENT_TRACK"
 ENV_KEYS = {ENV_KEY, SIGNING_KEY, BEARER_KEY}
 ENV_ENTRY = ENV_KEY + "=" + DESTINATION + "/config.json"
+PROJECTS_READ_TRANSPORT_KEY = "PERSONA_PROJECTS_READ_TRANSPORT_ORIGIN"
+PROJECTS_READ_TRANSPORT_ENTRY = (
+    PROJECTS_READ_TRANSPORT_KEY + "=http://172.25.0.1:14325"
+)
 
 
 class CloneError(ValueError):
@@ -394,3 +399,33 @@ def verify_image_clone(actual: dict, current: dict, candidate: dict) -> None:
     _require(len(set(destinations)) == len(destinations))
     _require(_same(sorted(mounts, key=lambda item: item["Destination"]),
                    sorted(current["Mounts"], key=lambda item: item["Destination"])))
+
+
+def projects_read_clone_request(current: dict, candidate: dict) -> dict:
+    """Add the one approved projects-read transport setting to an image clone."""
+    request = image_clone_request(current, candidate)
+    env = request.get("Env")
+    _require(type(env) is list)
+    _require(all(entry.partition("=")[0] != PROJECTS_READ_TRANSPORT_KEY
+                 for entry in env))
+    request["Env"].append(PROJECTS_READ_TRANSPORT_ENTRY)
+    return request
+
+
+def verify_projects_read_clone(
+    actual: dict, current: dict, candidate: dict,
+) -> None:
+    """Verify an image clone with exactly the approved transport env delta."""
+    # Validate the untrusted payload before copying it or examining nested fields.
+    _require(type(actual) is dict)
+    _json(actual)
+    config = actual.get("Config")
+    _require(type(config) is dict)
+    env = config.get("Env")
+    _require(type(env) is list and all(type(entry) is str for entry in env))
+    matching = [entry for entry in env
+                if entry.partition("=")[0] == PROJECTS_READ_TRANSPORT_KEY]
+    _require(matching == [PROJECTS_READ_TRANSPORT_ENTRY])
+    image_actual = deepcopy(actual)
+    image_actual["Config"]["Env"].remove(PROJECTS_READ_TRANSPORT_ENTRY)
+    verify_image_clone(image_actual, current, candidate)

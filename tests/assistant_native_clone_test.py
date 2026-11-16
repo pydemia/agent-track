@@ -17,6 +17,8 @@ DEST = "/run/secrets/agent-track-demian"
 CONFIG = "PERSONA_DEMIAN_RUNTIME_CONFIG_FILE"
 SIGNING = "PERSONA_DEMIAN_RUNTIME_SIGNING_KEY_AGENT_TRACK"
 BEARER = "PERSONA_DEMIAN_RUNTIME_BEARER_AGENT_TRACK"
+PROJECTS_TRANSPORT = "PERSONA_PROJECTS_READ_TRANSPORT_ORIGIN"
+PROJECTS_TRANSPORT_ENTRY = PROJECTS_TRANSPORT + "=http://172.25.0.1:14325"
 
 
 def encoded(size):
@@ -360,6 +362,78 @@ class ImageCloneTest(unittest.TestCase):
         with self.assertRaises(native.CloneError):
             native.image_clone_request(current, self.candidate)
 
+
+class ProjectsReadCloneTest(unittest.TestCase):
+    def setUp(self):
+        current, plan, credentials = fixture()
+        self.current = inspection(current, plan, credentials)
+        self.candidate = {"image": "sha256:" + "e" * 64,
+                          "sourceCommit": "f" * 40,
+                          "sourceArchiveSha256": "1" * 64,
+                          "sourceTree": "2" * 40}
+        self.actual = deepcopy(self.current)
+        self.actual["Image"] = self.actual["Config"]["Image"] = self.candidate["image"]
+        for label, value in (("org.opencontainers.image.revision", "f" * 40),
+                             ("com.pydemia.source.archive", "1" * 64),
+                             ("com.pydemia.source.tree", "2" * 40),
+                             ("io.pydemia.agent-track-reader.archive-sha256", "1" * 64),
+                             ("io.pydemia.agent-track-reader.source-tree", "2" * 40)):
+            self.actual["Config"]["Labels"][label] = value
+        self.actual["Config"]["Env"].append(PROJECTS_TRANSPORT_ENTRY)
+
+    def reject(self, function, *args):
+        with self.assertRaises(native.CloneError) as caught:
+            function(*args)
+        self.assertEqual(str(caught.exception), "Native clone validation failed.")
+        self.assertIsNone(caught.exception.__cause__)
+
+    def test_exact_delta_and_detached_inputs(self):
+        before = deepcopy((self.current, self.candidate, self.actual))
+        request = native.projects_read_clone_request(self.current, self.candidate)
+        expected = native.image_clone_request(self.current, self.candidate)
+        expected["Env"].append(PROJECTS_TRANSPORT_ENTRY)
+        self.assertEqual(request, expected)
+        self.assertEqual(request["Env"].count(PROJECTS_TRANSPORT_ENTRY), 1)
+        native.verify_projects_read_clone(self.actual, self.current, self.candidate)
+        self.assertEqual((self.current, self.candidate, self.actual), before)
+        request["Env"].clear()
+        self.assertEqual((self.current, self.candidate, self.actual), before)
+
+    def test_rejects_preset_duplicate_or_wrong_transport_environment(self):
+        for value in [PROJECTS_TRANSPORT_ENTRY,
+                      PROJECTS_TRANSPORT + "=http://wrong",
+                      PROJECTS_TRANSPORT + "="]:
+            with self.subTest(value=value):
+                current = deepcopy(self.current)
+                current["Config"]["Env"].append(value)
+                self.reject(native.projects_read_clone_request, current, self.candidate)
+        for entries in [[PROJECTS_TRANSPORT_ENTRY, PROJECTS_TRANSPORT_ENTRY],
+                        [PROJECTS_TRANSPORT + "=http://wrong"],
+                        [PROJECTS_TRANSPORT_ENTRY, PROJECTS_TRANSPORT + "=http://wrong"]]:
+            actual = deepcopy(self.actual)
+            actual["Config"]["Env"] = [entry for entry in actual["Config"]["Env"]
+                                        if entry.partition("=")[0] != PROJECTS_TRANSPORT]
+            actual["Config"]["Env"].extend(entries)
+            self.reject(native.verify_projects_read_clone, actual,
+                        self.current, self.candidate)
+
+    def test_rejects_config_host_mount_and_network_drift(self):
+        mutations = [
+            lambda value: value["Config"]["Env"].append("EXTRA=value"),
+            lambda value: value["Config"]["Labels"].update(custom="changed"),
+            lambda value: value["HostConfig"].update(Privileged=True),
+            lambda value: value["Mounts"][0].update(RW=not value["Mounts"][0]["RW"]),
+            lambda value: value["NetworkSettings"]["Networks"]["app"].update(Aliases=["changed"]),
+        ]
+        for mutate in mutations:
+            actual = deepcopy(self.actual)
+            mutate(actual)
+            self.reject(native.verify_projects_read_clone, actual,
+                        self.current, self.candidate)
+
+    def test_rejects_malformed_actual_with_static_error(self):
+        self.reject(native.verify_projects_read_clone, {"Config": object()},
+                    self.current, self.candidate)
 
 if __name__ == "__main__":
     unittest.main()
