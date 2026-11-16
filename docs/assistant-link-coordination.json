@@ -26,6 +26,34 @@
     "readonlyFollowUp": "files, roles, original Native DB and Track history all preserved",
     "cause": "Task-only saved-view authorization unnecessarily refreshed the unrelated native execution window twice within its 10-second budget"
   },
+  "secondOperatingAttempt": {
+    "operationId": "5d95d740-772e-415f-980d-5d45239b705e",
+    "committed": false,
+    "candidateHealthAndAssetCheck": "passed",
+    "finalFailure": "ownerProbe could not finish Tasks GET before the HTTP request deadline; no saved-view creation intent was reached",
+    "rollback": "previous API restarted and original configuration restored; no database restore"
+  },
+  "taskReadsIsolation": {
+    "change": "Exact Task list/item ingress, item adapter and final list check refresh only Projects grants; other API paths retain full source refresh",
+    "nativeBudgetAndHttpDeadlineChanged": false,
+    "actorAndFinalProjectRevocationChecksRetained": true,
+    "relatedTests": { "passed": 29, "failed": 0 },
+    "typecheck": "passed",
+    "independentReview": "No source-confirmed authorization defect; full ownerProbe path checked",
+    "actualSourceCanary": {
+      "store": "in-memory; operating store unopened",
+      "tasksGetStatus": 200,
+      "tasksGetElapsedMs": 237,
+      "saveStatus": 200,
+      "saveElapsedMs": 185,
+      "listStatus": 200,
+      "conflictStatus": 409,
+      "removeStatus": 200,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "operatingApplied": false
+  },
   "taskOnlySavedViewFix": {
     "change": "Refresh Projects grants at both boundaries for Task-only anchors; keep full native refresh for Run/Assistant anchors",
     "deadlineMs": 10000,

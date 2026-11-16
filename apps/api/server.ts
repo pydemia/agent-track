@@ -109,9 +109,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (!user) { json(response, 401, { error: "authentication_required" }); return; }
       activeActor = user;
       const url = new URL(request.url ?? "/", "http://localhost");
+      const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
-        await sources.refreshProjectGrants?.(user);
+        if (projectTaskRead) await sources.projects.refresh(user);
+        else await sources.refreshProjectGrants?.(user);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
       }
       if (url.pathname === "/api/flow-views" || url.pathname.startsWith("/api/flow-views/")) {
@@ -393,7 +395,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       if (projectTask) {
         if (request.method !== "GET") { json(response, 405, { error: "read_only_task_metadata" }); return; }
         if (url.search) { json(response, 400, { error: "invalid_task_metadata_query" }); return; }
-        const value = await projectTaskMetadata(sources, user, projectTask[1]!, projectTask[2]!, projectTask[3]!);
+        const value = await projectTaskMetadata({ projects: sources.projects, views: actor => sources.views(actor),
+          refreshProjectGrants: actor => sources.projects.refresh(actor) }, user, projectTask[1]!, projectTask[2]!, projectTask[3]!);
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, value); return;
       }
@@ -405,7 +408,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (!permitted()) { json(response, 404, { error: "project_not_found" }); return; }
         const cursor = url.searchParams.get("cursor") ?? undefined;
         const page = await sources.projects.client(sourceId, user).tasks(projectId, cursor);
-        await sources.refreshProjectGrants(user);
+        await sources.projects.refresh(user);
         if (authenticate(request, config()) !== user || !permitted()) { json(response, 403, { error: "source_forbidden" }); return; }
         json(response, 200, page); return;
       }

@@ -10,10 +10,10 @@ const user = "reader@example.test";
 const task = { id: taskId, projectId, title: "Authorized metadata", revision: "7", state: "todo", requiresTest: true };
 
 test("HTTP task metadata enforces read-only scope and rejects actor/grant changes after native read", async t => {
-  let granted = true, reads = 0, afterRead = () => {};
+  let granted = true, reads = 0, refreshes = 0, afterRead = () => {};
   const config: Config = { port: 14345, database: ":memory:", publicOrigin: "http://localhost", auth: { mode: "local", user }, sources: [] };
-  const sources = { refreshProjectGrants: async () => {}, views: () => [{ id: "projects", kind: "projects", state: "connected", authorizedProjectIds: granted ? [projectId] : [] }],
-    projects: { client: () => ({ task: async () => { reads++; afterRead(); return task; } }) } } as unknown as Sources;
+  const sources = { refreshProjectGrants: async () => { throw new Error("Task reads must not collect unrelated native executions"); }, views: () => [{ id: "projects", kind: "projects", state: "connected", authorizedProjectIds: granted ? [projectId] : [] }],
+    projects: { refresh: async () => { refreshes++; }, client: () => ({ task: async () => { reads++; afterRead(); return task; }, tasks: async () => { afterRead(); return { tasks: [task], cursor: null, hasMore: false }; } }) } } as unknown as Sources;
   const store = new Store(":memory:");
   const { server } = createTrackServer(store, () => config, "dist/web", sources);
   await new Promise<void>(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -23,11 +23,18 @@ test("HTTP task metadata enforces read-only scope and rejects actor/grant change
   const response = await fetch(url);
   assert.equal(response.status, 200); assert.match(response.headers.get("cache-control")!, /no-store/);
   assert.deepEqual(await response.json(), { actor: user, sourceId: "projects", projectId, task });
+  const beforeList = refreshes;
+  const list = await fetch(url.slice(0, -(taskId.length + 1)));
+  assert.equal(list.status, 200); assert.deepEqual((await list.json()).tasks, [task]);
+  assert.equal(refreshes - beforeList, 2);
   const baseline = reads;
   assert.equal((await fetch(url + "?cursor=0")).status, 400);
   assert.equal((await fetch(url, { method: "POST", headers: { origin: "http://localhost" } })).status, 405);
   assert.equal(reads, baseline);
   afterRead = () => { granted = false; };
+  const listRevoked = await fetch(url.slice(0, -(taskId.length + 1)));
+  assert.equal(listRevoked.status, 403); assert.doesNotMatch(await listRevoked.text(), /Authorized metadata|revision/);
+  granted = true;
   const revoked = await fetch(url); assert.equal(revoked.status, 404); assert.doesNotMatch(await revoked.text(), /Authorized metadata|revision/);
   granted = true; afterRead = () => { config.auth = { mode: "local", user: "changed@example.test" }; };
   const changed = await fetch(url); assert.equal(changed.status, 401); assert.doesNotMatch(await changed.text(), /Authorized metadata|revision/);
