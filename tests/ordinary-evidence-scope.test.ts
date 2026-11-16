@@ -50,10 +50,14 @@ test("ordinary Native evidence remains usable when an unrelated protected collec
   const { server } = createTrackServer(store, () => config, root, sources), origin = await listenHttp(server);
   try {
     for (const path of ["tools?include=model-requests", "lineage?after=0", "session-relations?kind=managed-children", "orchestration", "artifacts", "files"]) {
+      const before = nativeReads;
       const response = await fetch(`${origin}/api/runs/${key}/${path}`);
       assert.equal(response.status, 200, path);
       const body = await response.text(); assert(!body.includes("PRIVATE_"));
       assert.equal(protectedReads, 0, path);
+      assert(nativeReads > before, `${path} still reaches the original Native authority`);
+      if (JSON.parse(body).state === "connected" && !path.startsWith("orchestration"))
+        assert(nativeReads - before >= 4, `${path} checks original Run/Session before and after a successful read`);
     }
     assert(nativeReads > 0, "each supported read still checks the original Native Run/Session");
     assert(projectedSources.length > 0 && projectedSources.every(ids => !ids.includes("unrelated-codex")), "ordinary reads do not project unrelated Run relations");

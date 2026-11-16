@@ -82,7 +82,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
     ? sources.projects.refresh(user) : sources.refreshProjectGrants?.(user) ?? Promise.resolve();
   const readSnapshot = (user: string, key: string) => {
     const source = ordinaryReadSource(user, key);
-    const ids = source ? new Set([source.id, ...config().sources.filter(item => item.kind === "projects" && item.users.includes(user)).map(item => item.id)]) : undefined;
+    // Preserve the same current Project grant views the readers authorize.
+    const ids = source ? new Set([source.id, ...sources.views(user).filter(item => item.kind === "projects").map(item => item.id)]) : undefined;
     return snapshot(user, ids);
   };
   const commands = new CommandService(store);

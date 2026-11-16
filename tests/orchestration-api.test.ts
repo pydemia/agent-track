@@ -4,6 +4,7 @@ import test from "node:test";
 import { orchestrationEvidence } from "../apps/api/orchestration.ts";
 import type { Config } from "../apps/api/config.ts";
 import type { Snapshot } from "../packages/contracts/index.ts";
+import { listenHttp } from "./helpers/http-listen.ts";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const user = "owner@example.test", runId = id(1), sessionId = id(2), workspaceId = id(3), projectId = id(4), key = "qa-run-key";
@@ -33,11 +34,10 @@ test("orchestration support separates global declarations from provider ownershi
     }
     response.writeHead(404); response.end("{}");
   });
-  await new Promise<void>((resolve) => native.listen(0, "127.0.0.1", resolve));
-  const address = native.address(); assert.ok(address && typeof address !== "string");
+  const nativeOrigin = await listenHttp(native);
   const config: Config = { port: 14345, database: ":memory:", publicOrigin: "https://track.test",
     auth: { mode: "proxy", secretFile: "C:/fixture/key", users: [user] }, sources: [{ id: "native", kind: "demian", label: "Native", device: "fixture", users: [user],
-      baseUrl: `http://127.0.0.1:${address.port}`, runIds: [], discoverActive: false, repositoryRoots: [], maxFiles: 10, sinceDays: 7 }] };
+      baseUrl: nativeOrigin, runIds: [], discoverActive: false, repositoryRoots: [], maxFiles: 10, sinceDays: 7 }] };
   const run = { key, sourceId: "native", runId, sessionId, workspaceId, sourceState: "connected", binding: { projectSourceId: "projects", projectId } };
   const snapshot = () => ({ runs: [run], sources: [{ id: "projects", kind: "projects", state: revoked ? "forbidden" : "connected", authorizedProjectIds: revoked ? [] : [projectId] }] }) as unknown as Snapshot;
   const read = (actor = user) => orchestrationEvidence(() => config, snapshot, actor, key, async () => {});
