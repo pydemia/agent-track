@@ -20,6 +20,7 @@ export class BackupError extends Error {
   constructor(code: Code) { super(code); this.name = "BackupError"; this.code = code; }
 }
 export interface MeasureOptions { maxBytes?: number; maxRowBytes?: number; maxRowsPerTable?: number; timeoutMs?: number }
+export interface BackupVerificationOptions { timeoutMs?: number }
 export interface Measurement {
   schemaSha256: string;
   tables: { name: string; rows: number; sha256: string }[];
@@ -272,14 +273,18 @@ function keyCheck(key: Uint8Array) { if (!(key instanceof Uint8Array) || key.byt
 function metadataCheck(metadata: { nonce: string; database: string }) {
   if (!metadata || typeof metadata.nonce !== "string" || !/^[a-f0-9]{32}$/.test(metadata.nonce) || !["work", "runtime"].includes(metadata.database)) fail("INVALID");
 }
+function verificationTimeout(options?: BackupVerificationOptions) {
+  if (options !== undefined && (!options || typeof options !== "object" || Array.isArray(options) || Object.keys(options).some(key => key !== "timeoutMs"))) fail("INVALID");
+  return integer(options?.timeoutMs ?? 300_000, 3_600_000);
+}
 function aad(e: Pick<Envelope, "nonce" | "database" | "plainBytes" | "plainSha256" | "measurementSha256">) {
   return Buffer.from(JSON.stringify([1, PURPOSE, e.nonce, e.database, e.plainBytes, e.plainSha256, e.measurementSha256]));
 }
-export async function sealSnapshot(snapshotPath: string, cipherPath: string, key: Uint8Array, metadata: { nonce: string; database: "work" | "runtime" }): Promise<Envelope> {
+export async function sealSnapshot(snapshotPath: string, cipherPath: string, key: Uint8Array, metadata: { nonce: string; database: "work" | "runtime" }, options?: BackupVerificationOptions): Promise<Envelope> {
   let input: ReturnType<typeof source> | undefined; let output: ReturnType<typeof reserve> | undefined;
   try {
-    keyCheck(key); metadataCheck(metadata); input = source(snapshotPath, MAX_BYTES);
-    const measurement = measureDatabase(input.path); const plainSha256 = await sha256File(input.path, MAX_BYTES);
+    keyCheck(key); metadataCheck(metadata); const timeoutMs = verificationTimeout(options); input = source(snapshotPath, MAX_BYTES);
+    const measurement = measureDatabase(input.path, { timeoutMs }); const plainSha256 = await sha256File(input.path, MAX_BYTES);
     const base = { version: 1 as const, purpose: PURPOSE as typeof PURPOSE, nonce: metadata.nonce, database: metadata.database,
       plainBytes: input.st.size, plainSha256, measurement, measurementSha256: measurementHash(measurement) };
     const iv = randomBytes(12); const cipher = createCipheriv("aes-256-gcm", key, iv); cipher.setAAD(aad(base));
@@ -314,10 +319,10 @@ function validateEnvelope(value: unknown): asserts value is Envelope {
     previous = t.name; integer(t.rows, MAX_ROWS, 0); hex(t.sha256, 64);
   }
 }
-export async function restoreSealedSnapshot(cipherPath: string, destination: string, key: Uint8Array, envelope: Envelope): Promise<Measurement> {
+export async function restoreSealedSnapshot(cipherPath: string, destination: string, key: Uint8Array, envelope: Envelope, options?: BackupVerificationOptions): Promise<Measurement> {
   let input: ReturnType<typeof source> | undefined; let output: ReturnType<typeof reserve> | undefined;
   try {
-    keyCheck(key); validateEnvelope(envelope);
+    keyCheck(key); validateEnvelope(envelope); const timeoutMs = verificationTimeout(options);
     // Detach metadata before the first await so callers cannot change authenticated bounds.
     const e: Envelope = JSON.parse(JSON.stringify(envelope));
     if (measurementHash(e.measurement) !== e.measurementSha256) fail("MISMATCH");
@@ -330,7 +335,7 @@ export async function restoreSealedSnapshot(cipherPath: string, destination: str
     const c = cipher.result(); const p = plain.result();
     if (c.bytes !== e.cipherBytes || c.sha256 !== e.cipherSha256 || p.bytes !== e.plainBytes || p.sha256 !== e.plainSha256) fail("MISMATCH");
     verify(input, e.cipherBytes); if (verify(output, e.plainBytes).size !== e.plainBytes) fail("MISMATCH");
-    const measurement = measureDatabase(output.path, { maxBytes: e.plainBytes });
+    const measurement = measureDatabase(output.path, { maxBytes: e.plainBytes, timeoutMs });
     if (measurementHash(measurement) !== e.measurementSha256) fail("MISMATCH");
     return measurement;
   } catch (error) { throw clean(error); }

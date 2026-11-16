@@ -55,7 +55,15 @@
       "revision": "32176e985b38317b4d39fcaf558393045f964232",
       "image": "sha256:320474cdd35c1cb7042ff89d61000a7f8d623612f345da1762b57bc1c77ce9f9"
     },
-    "newCandidateApproval": "requested-awaiting-user"
+    "newCandidateApproval": "approved-exact-source-and-image",
+    "approval": {
+      "approved": true,
+      "sourceRevision": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+      "candidateImage": "sha256:b68ece66fde236069699d36612760aeaa49c69b3e175d7b6177f979dfe8af9f0",
+      "scope": "image-only; existing configuration and access preserved; writer disabled",
+      "basis": "User explicitly approved source4a9ad42 / imageb68ece66 and requested resumption",
+      "recordedAt": "2026-11-16T01:34:44.852Z"
+    }
   },
   "operatingAssistantChanged": false,
   "writerEnabled": false,
@@ -67,7 +75,7 @@
     "currentProductionDataEquivalence": false
   },
   "resumptionAudit": {
-    "observedAt": "2026-11-15T06:18:10.1600000+00:00",
+    "observedAt": "2026-11-15T15:18:10.16+09:00",
     "sourceRevision": "fe5369eac8fbfdb87afacd60261e82313098ea20",
     "previousGoalTurn": "progress: full app historical preview, rollback, Note readback and repository publication",
     "sameBlockerConsecutiveGoalTurnsAtLeast": 3,
@@ -132,6 +140,12 @@
     "deploymentExecuted": false,
     "newPermissionsGranted": false,
     "progressDenominatorChanged": false,
-    "eta": null
+    "eta": null,
+    "supersededBy": {
+      "explicitUserResume": true,
+      "exactImageApproved": true,
+      "trackEntraLoginVisiblyConfirmed": true,
+      "freshBackupOperation": "4cc9b7d1-a6d7-49fb-8598-e74a16c1f159"
+    }
   }
 }

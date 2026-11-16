@@ -51,6 +51,11 @@ test("invalid input errors are static and native TS module imports without appli
   await assert.rejects(snapshotDatabase("unused", "unused", { maxBytes: 0 }), safeError("BOUND"));
   await assert.rejects(sealSnapshot("unused", "unused", new Uint8Array(31), { nonce: "a".repeat(32), database: "work" }), safeError("INVALID"));
   await assert.rejects(sealSnapshot("unused", "unused", new Uint8Array(32), { nonce: secret, database: "work" }), safeError("INVALID"));
+  await assert.rejects(sealSnapshot("unused", "unused", new Uint8Array(32), { nonce: "a".repeat(32), database: "work" }, { timeoutMs: 0 }), safeError("BOUND"));
+  const empty: Parameters<typeof restoreSealedSnapshot>[3] = { version: 1, purpose: "assistant-sqlite-backup", nonce: "a".repeat(32), database: "work", iv: "a".repeat(24), tag: "a".repeat(32),
+    cipherBytes: 1, cipherSha256: "a".repeat(64), plainBytes: 4096, plainSha256: "a".repeat(64), measurementSha256: "a".repeat(64),
+    measurement: { schemaSha256: "a".repeat(64), tables: [], integrity: { integrityCheck: true, foreignKeyCheck: true } } };
+  await assert.rejects(restoreSealedSnapshot("unused", "unused", new Uint8Array(32), empty, { timeoutMs: 3_600_001 }), safeError("BOUND"));
 });
 
 test("Windows fails closed without POSIX ownership verification", { skip: typeof process.getuid === "function" }, () => {
@@ -168,6 +173,47 @@ test("streamed encryption roundtrip and authenticated metadata reject tampering"
   await assert.rejects(restoreSealedSnapshot(f.path("cipher"), f.path("cipher-tamper"), key, envelope), safeError("MISMATCH"));
   const rehashed = { ...envelope, cipherSha256: await sha256File(f.path("cipher"), maxBytes) };
   await assert.rejects(restoreSealedSnapshot(f.path("cipher"), f.path("cipher-tag-tamper"), key, rehashed), safeError());
+});
+
+test("seal and restore forward a bounded verification budget without changing authenticated bytes", posix, async t => {
+  const f = fixture(t); const key = randomBytes(32);
+  await snapshotDatabase(f.source, f.path("plain.sqlite"), { maxBytes });
+  const sourceHash = await sha256File(f.path("plain.sqlite"), maxBytes);
+  const clock = { now: 1_800_000_000_000, calls: 0 };
+  t.mock.method(Date, "now", () => clock.calls++ === 0 ? clock.now : clock.now + 300_001);
+  const timeMeasurement = async <T>(run: () => Promise<T>) => {
+    clock.calls = 0;
+    return run();
+  };
+
+  await assert.rejects(timeMeasurement(() => sealSnapshot(f.path("plain.sqlite"), f.path("default-cipher"), key,
+    { nonce: "c".repeat(32), database: "runtime" })), safeError("TIMEOUT"));
+  const envelope = await timeMeasurement(() => sealSnapshot(f.path("plain.sqlite"), f.path("cipher"), key,
+    { nonce: "c".repeat(32), database: "runtime" }, { timeoutMs: 900_000 }));
+  assert.equal(await sha256File(f.path("plain.sqlite"), maxBytes), sourceHash);
+  assert.equal(envelope.plainSha256, sourceHash);
+
+  await assert.rejects(timeMeasurement(() => restoreSealedSnapshot(f.path("cipher"), f.path("default-restore"), key, envelope)), safeError("TIMEOUT"));
+  const restored = await timeMeasurement(() => restoreSealedSnapshot(f.path("cipher"), f.path("restored.sqlite"), key, envelope,
+    { timeoutMs: 900_000 }));
+  assert.deepEqual(restored, envelope.measurement);
+  assert.equal(await sha256File(f.path("restored.sqlite"), maxBytes), sourceHash);
+  assert.equal(await sha256File(f.path("cipher"), maxBytes), envelope.cipherSha256);
+  assert.equal(await sha256File(f.path("plain.sqlite"), maxBytes), sourceHash);
+
+  let index = 0;
+  for (const timeoutMs of [0, 1.5, 3_600_001]) {
+    await assert.rejects(sealSnapshot("unused", f.path(`invalid-seal-${index}`), key,
+      { nonce: "d".repeat(32), database: "runtime" }, { timeoutMs }), safeError("BOUND"));
+    assert.equal(existsSync(f.path(`invalid-seal-${index++}`)), false);
+    await assert.rejects(restoreSealedSnapshot("unused", f.path(`invalid-restore-${index}`), key, envelope,
+      { timeoutMs }), safeError("BOUND"));
+    assert.equal(existsSync(f.path(`invalid-restore-${index++}`)), false);
+  }
+
+  const tampered = { ...envelope, tag: "0".repeat(32) };
+  await assert.rejects(timeMeasurement(() => restoreSealedSnapshot(f.path("cipher"), f.path("tampered-budget"), key,
+    tampered, { timeoutMs: 900_000 })), safeError());
 });
 
 test("multi-step backup reports bounded progress", posix, async t => {

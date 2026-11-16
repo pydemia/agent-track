@@ -15,7 +15,7 @@
   "currentUiAccepted": false,
   "noteSnapshot": "assistant-reader-app-preview-note-publication.json",
   "independentDemianBrowserAttempt": {
-    "observedAt": "2026-11-15T06:18:10.1600000+00:00",
+    "observedAt": "2026-11-15T15:18:10.16+09:00",
     "origin": "https://demian.pydemia.ai/",
     "browser": "Edge",
     "result": "net::ERR_INVALID_AUTH_CREDENTIALS",
@@ -23,5 +23,19 @@
     "credentialsEntered": false,
     "authenticationSettingsChanged": false,
     "modelsRequested": 0
+  },
+  "userResumedTrackLogin": {
+    "dateKst": "2026-11-16",
+    "browser": "Edge",
+    "destination": "https://track.pydemia.ai/",
+    "finalPageTitle": "Agent Track",
+    "visibleSignedInAccount": "pydemia@pydemia.ai",
+    "accountReadFromVisibleUi": true,
+    "loginCompleted": true,
+    "newPermissionsGranted": false,
+    "passwordEnteredByAgent": false,
+    "actualExecutionSelected": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "actualRunTraceNavigation": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "operatingNewReaderDetailEvidenceAccepted": false
   }
 }

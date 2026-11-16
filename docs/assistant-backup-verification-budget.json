@@ -1,0 +1,63 @@
+{
+  "schema": "assistant-backup-verification-budget-v1",
+  "recordedAt": "2026-11-16T02:24:10.429Z",
+  "sourceSha256": {
+    "packages/assistant-read/backup.ts": "00b465d2134a4fe1f5e07c2ff59521fab45a33ec41b7945c74fef4d5305b68a4",
+    "tests/assistant-backup.test.ts": "6777a495cff32cdee477013e10481713c206a7525b2141b0067bfb49c9960880"
+  },
+  "trigger": {
+    "currentSnapshotOperation": "4cc9b7d1-a6d7-49fb-8598-e74a16c1f159",
+    "stage": "runtime:restore",
+    "errorCode": "TIMEOUT",
+    "operatingAppChanged": false
+  },
+  "change": {
+    "optionalTimeoutMsOnly": true,
+    "defaultTimeoutMs": 300000,
+    "maximumTimeoutMs": 3600000,
+    "measurementBudgetForCurrentSnapshotMs": 900000,
+    "cryptoByteMetadataRowAndOwnershipBoundsPreserved": true,
+    "restorePlainBytesLimitPreserved": true,
+    "readerTenSecondDeadlineUnchanged": true
+  },
+  "checks": {
+    "linuxReadOnlyContainer": {
+      "phase": "posix-budget-red-green-passed",
+      "operation": "7ac43b09-6560-4fe7-b979-a37788e453c0",
+      "productionFilesOpened": false,
+      "results": [
+        {
+          "version": "red",
+          "status": 1,
+          "tests": 13,
+          "pass": 10,
+          "fail": 2,
+          "skip": 1
+        },
+        {
+          "version": "green",
+          "status": 0,
+          "tests": 13,
+          "pass": 12,
+          "fail": 0,
+          "skip": 1
+        }
+      ],
+      "sourceMountReadOnly": true,
+      "ownedContainersRemoved": 2,
+      "cleanupFailed": false,
+      "cleanupPendingIds": [],
+      "cleanupPendingNames": [],
+      "finishedAt": 1794794452.6916456,
+      "codeAndFixtureOnly": true
+    },
+    "typecheck": "passed"
+  },
+  "scope": {
+    "approvedAppImageUnchanged": true,
+    "operatingTrackBinaryUnchanged": true,
+    "ciExceptionNotConvertedToSuccess": true,
+    "currentProductionBackupOrDeploymentSuccessNotClaimed": true,
+    "wholeGoalAcceptance": false
+  }
+}
