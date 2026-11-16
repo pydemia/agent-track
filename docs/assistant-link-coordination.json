@@ -237,7 +237,7 @@
       "failed": 0
     },
     "typecheck": "passed",
-    "operatingApplied": false,
+    "operatingApplied": true,
     "reviewFinding": "Initial list-authority replacement could override a newer detail denial; changed to intersection and added reverse-order denial regression.",
     "fullGuiAcceptance": false,
     "fullSuiteBeforeFinalDetailIntersection": {
@@ -246,6 +246,31 @@
       "failed": 0,
       "skipped": 11
     },
-    "independentRecheck": "Initial denial override fixed by intersection; no concrete remaining metadata retention or cancellation issue in source-only review"
+    "independentRecheck": "Initial denial override fixed by intersection; no concrete remaining metadata retention or cancellation issue in source-only review",
+    "operatingRevision": "6011ab5ac82caeaa23d45e170f4fb7a7c039d1f0",
+    "operatingCi": {
+      "run": 43812760572,
+      "windows": "success",
+      "ubuntu": "success"
+    },
+    "actualGui": {
+      "scopePreservedDuringNativeDisconnectAndRecovery": true,
+      "groupPathPreservedAcrossTrackToMap": true,
+      "inspectionSeconds": 36,
+      "nativeLinkConnected": true,
+      "nodes": 6,
+      "edges": 6,
+      "groups": 4,
+      "selectedEdge": "assistant-demian-runtime",
+      "traceTransition": "Native evidence403/404 invoked global logout handler; separate fix required",
+      "wholeWorkflowAccepted": false
+    }
+  },
+  "nativeEvidenceDenialFix": {
+    "trigger": "Actual Trace403/404 cleared all private snapshot state and closed SSE although owner was still signed in",
+    "change": "Only401 calls the global authentication handler.403/404 still erase the complete private evidence page but remain Run-scoped and keep the existing15-second retry.",
+    "newPermissions": 0,
+    "privateEvidenceRetainedAfterDenial": false,
+    "operatingApplied": false
   }
 }

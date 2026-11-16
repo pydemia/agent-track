@@ -28,7 +28,8 @@ export function useNativeRunEvidence(actor: string, run: RunView, onUnauthorized
           if (controller.signal.aborted) return;
           if ([401, 403, 404].includes(response.status)) {
             setValue(empty(scope, "forbidden", "실행 접근이 변경되어 상세 근거를 지웠습니다."));
-            onUnauthorized("실행 접근이 변경되어 상세 근거를 지웠습니다."); return;
+            if (response.status === 401) onUnauthorized("로그인이 만료되어 실행 상세를 지웠습니다.");
+            return;
           }
           if (!response.ok) throw new Error("Evidence unavailable");
           const result = nativeRunEvidenceViewSchema.parse(await response.json());
