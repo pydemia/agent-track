@@ -1,4 +1,5 @@
 export const trackRuntimeOperationSources: readonly string[];
+export function loadTrackBaseline(path: string): Promise<unknown>;
 export const trackCommandSchemaObjects: readonly Readonly<{type: string; name: string; tbl_name: string; sql: string | null}>[];
 export function validateTrackRuntimePlan(value: unknown, expected: {state: string; repository: string}): unknown;
 export function trackPendingCommands(database: string): Record<string, number>;
