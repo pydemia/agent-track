@@ -7,7 +7,8 @@
     "apiAndWebRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a",
     "operatingPublished": true,
     "actualPermittedTaskOwnerApiVerified": true,
-    "authenticatedBrowserGuiVerified": false
+    "authenticatedBrowserGuiVerified": false,
+    "historicalObservedAt": "2026-11-13"
   },
   "codeAndTestSha256": {
     "apps/api/server.ts": "11721a9216a0ce48abbc7dd10b3009778180e539598e47bbfbc63592789f960f",
@@ -168,5 +169,13 @@
     "premise": "Operating saved-view rollout plus SSO/cross-app/additional-device work remain"
   },
   "sourceHashBasis": "Git index bytes (repository LF normalization); SHA-256, not Git object IDs",
-  "implementationRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a"
+  "implementationRevision": "7e98793fff6274d41fe764b2b94e23d82e5b000a",
+  "operatingGuiFollowUp": {
+    "observedAt": "2026-11-16T12:46:00Z",
+    "evidence": "flow-view-scoped-authority-operating.json",
+    "apiRevision": "fefc94fffdb61b4df8305fbfd86b51b140a3413f",
+    "webRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "authenticatedBrowserGuiVerified": true,
+    "scope": "Existing ordinary native Run and explicitly bound Task; saved presentation reload and keyboard restore; not protected Assistant or whole workflow acceptance"
+  }
 }

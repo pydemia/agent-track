@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "776e3e60-1e8b-4e38-8a93-5e182d5ffdf3",
+  "title": "Agent Track 그룹 저장 실패와 운영 복원 검증 — 2026-11-16",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/e52df4c6-fde1-485a-8929-71737dd84a85",
+  "workspaceId": "personal-note-production",
+  "pageId": "e52df4c6-fde1-485a-8929-71737dd84a85",
+  "revision": "310ee4246120bb134bdb3596f39d43dcb71ec0256fabd79855b4f65c095dd17a",
+  "sourceSha256": "361f30fa54164e6bd69aa24174edb2144691decd62c3370b5654f86dad90e1cc",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T12:51:00.923Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/flow-view-scoped-authority.md",
+  "markdownSha256": "741c4e7ed2502083dcc8b796dfa9bf7e8c77093de160da17f02c2e07f972cd33",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/338c35a1-854b-4a16-8069-75c58cc84dd3",
+  "authStateAtDispatch": "Actual existing Entra account; ordinary native Task/Run saved presentation reload and restore verified; Persona candidate remains unapproved"
+}

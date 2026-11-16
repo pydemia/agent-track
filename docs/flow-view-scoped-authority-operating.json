@@ -1,0 +1,227 @@
+{
+  "observedAt": "2026-11-16T12:49:08.118Z",
+  "schema": "agent-track-flow-view-gui-operating-v1",
+  "requirementIds": [
+    "AT-12",
+    "AT-12-G06"
+  ],
+  "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+  "sessionId": "095abfb9-01ad-41b9-beff-38c7e76bb05e",
+  "apiRevision": "fefc94fffdb61b4df8305fbfd86b51b140a3413f",
+  "webRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+  "operationId": "4bc12d98-1c8c-4d00-8a8f-b29ab472004a",
+  "manifestSha256": "b332803b96c5244d1c13129f24c765bd316e4d2f8c46b3136e0cddc509d9b4c7",
+  "ciRun": 43867575130,
+  "ciWindows": "success",
+  "ciUbuntu": "success",
+  "local": {
+    "tests": 1274,
+    "passed": 1263,
+    "failed": 0,
+    "skipped": 11,
+    "relatedPassed": 11,
+    "typecheck": true,
+    "buildCheck": true
+  },
+  "browser": {
+    "url": "https://track.pydemia.ai/?view=map&run=WyJkZW1pYW4tbG9jYWwiLCI4MmY3ZTFmZC04ZmUyLTRkYTEtODMwNy05OWYzZTAxNmY0OGMiXQ&source=demian-local",
+    "browser": "Edge",
+    "existingEntraAccountConfirmed": true,
+    "viewport": {
+      "width": 956,
+      "height": 694
+    },
+    "beforeFixSaveFailed": true,
+    "beforeFixStoredViewCount": 0,
+    "afterFixSaveMessageConfirmed": true,
+    "newPageLoadListContainsSavedView": true,
+    "initialTaskGroupExpanded": true,
+    "keyboardSelectedSavedView": true,
+    "currentAuthorityReadbackBeforeRestore": true,
+    "restoredMessageConfirmed": true,
+    "restoredTaskGroupCollapsed": true,
+    "regularEvents": 17,
+    "fourViewRunScopePreservedBeforeApiChange": true,
+    "commonFourViewScopePersistsAcrossReload": false,
+    "savedViewNotAutoApplied": true,
+    "peerRepresentativePointerVerified": false,
+    "screenshot": "track-saved-view-restored-20261116.png"
+  },
+  "saved": {
+    "id": "d1817283-0f9b-4231-b1a4-288077a1e0be",
+    "revision": 1,
+    "createdAt": "2026-11-16T12:43:46.857Z",
+    "updatedAt": "2026-11-16T12:43:46.857Z",
+    "name": "검증 · Demian 실행 보기 · 2026-11-16",
+    "contextId": "26737becf66fbb830a21a1bf2a49cc5ff82931c9ebb369930a01df066c1b3380",
+    "anchorCounts": {
+      "tasks": 1,
+      "runs": 1,
+      "assistants": 0
+    },
+    "depth": "structure",
+    "groupBy": "task",
+    "collapsedOverrides": [
+      [
+        "[\"flow-container\",\"task\",\"[\\\"projects-native\\\",\\\"[\\\\\\\"task\\\\\\\",\\\\\\\"00418966-a605-411d-89ee-51344526ec42\\\\\\\"]\\\"]\"]",
+        true
+      ]
+    ],
+    "contentSha256": "1e2527f277527613d358725e565e1f8739eede4b8e752cc52e67bc66bdbc9abf"
+  },
+  "preservation": {
+    "observedAt": "2026-11-16T12:41:32.136Z",
+    "operationId": "4bc12d98-1c8c-4d00-8a8f-b29ab472004a",
+    "committed": true,
+    "pid": 28572,
+    "created": "2026-11-16T12:39:58.7224250Z",
+    "apiRevision": "fefc94fffdb61b4df8305fbfd86b51b140a3413f",
+    "webRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "manifestSha256": "b332803b96c5244d1c13129f24c765bd316e4d2f8c46b3136e0cddc509d9b4c7",
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "tables": [
+      {
+        "name": "approval_receipts",
+        "count": 4
+      },
+      {
+        "name": "binding_receipts",
+        "count": 5
+      },
+      {
+        "name": "bindings",
+        "count": 6
+      },
+      {
+        "name": "coordinator_command_intents",
+        "count": 0
+      },
+      {
+        "name": "event_digests",
+        "count": 0
+      },
+      {
+        "name": "events",
+        "count": 45661
+      },
+      {
+        "name": "metadata",
+        "count": 21
+      },
+      {
+        "name": "receipts",
+        "count": 2
+      },
+      {
+        "name": "runs",
+        "count": 1355
+      },
+      {
+        "name": "saved_flow_views",
+        "count": 0
+      },
+      {
+        "name": "sqlite_sequence",
+        "count": 2
+      },
+      {
+        "name": "successor_intents",
+        "count": 0
+      },
+      {
+        "name": "task_assignment_receipts",
+        "count": 2
+      },
+      {
+        "name": "task_creation_receipts",
+        "count": 1
+      }
+    ],
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "sources": [],
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "nativeDatabasePreservedByCommit": true,
+    "actualEntraGuiVerified": false,
+    "sourceOrModelDispatchPerformed": false,
+    "sourceReadChecks": {
+      "graded": false,
+      "separateEvidence": "quiet-profile.json"
+    }
+  },
+  "history": {
+    "at": "2026-11-16T12:41:32.241Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "limits": {
+    "wholeAt12Accepted": false,
+    "protectedAssistantViewAccepted": false,
+    "wholeWorkflowAccepted": false,
+    "newSourceImageExceptionApproved": false,
+    "sourceOrModelDispatchPerformed": false
+  },
+  "peerRecheck": {
+    "observedAt": "2026-11-16T12:52:00Z",
+    "oldUiProcessPresent": false,
+    "oldUiPortListening": false,
+    "oldLocalReaderConfigPresent": false,
+    "recordedContainerFoundByProbe": false,
+    "containerAbsenceConclusive": false,
+    "credentialsUsed": false,
+    "productionChanged": false,
+    "newModelRequests": 0,
+    "evidenceScope": "Previous peer UI process and original local reader config are unavailable; Docker probe did not identify the recorded container. No new run or credential was created."
+  }
+}
