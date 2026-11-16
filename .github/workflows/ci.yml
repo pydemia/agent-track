@@ -23,4 +23,20 @@ jobs:
           python-version: '3.13'
       - run: python -m unittest discover -s tests -p 'assistant_native_*_test.py'
       - run: npm test
+        if: runner.os != 'Windows'
+      # Keep the 10-second production probes unchanged. Do not run their
+      # PowerShell/CIM startup checks alongside the rest of the test processes.
+      - name: Run isolated Windows process tests
+        if: runner.os == 'Windows'
+        run: |
+          node node_modules/tsx/dist/cli.mjs --test --test-concurrency=1 tests/demian-api-process.test.ts tests/demian-api-record.test.ts
+          exit $LASTEXITCODE
+      - name: Run remaining Windows tests
+        if: runner.os == 'Windows'
+        run: |
+          $isolated = @('demian-api-process.test.ts', 'demian-api-record.test.ts')
+          $files = @(Get-ChildItem -LiteralPath tests -Filter '*.test.ts' -File | Where-Object { $_.Name -notin $isolated } | Sort-Object Name | ForEach-Object FullName)
+          if ($files.Count -eq 0) { throw 'No remaining Windows test files found.' }
+          node node_modules/tsx/dist/cli.mjs --test @files
+          exit $LASTEXITCODE
       - run: npm run build
