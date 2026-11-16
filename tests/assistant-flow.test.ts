@@ -8,6 +8,8 @@ import { externalKey, type RunView } from "../packages/contracts/index.ts";
 import { projectFlowGroups } from "../packages/projection/flow-groups.ts";
 import { flowGroupKey, nativeFlowGroupDefinitions } from "../packages/projection/flow-group-definitions.ts";
 
+import { assistantWindowScope, currentAssistantDetail } from "../apps/web/src/assistant-window-state.ts";
+
 const at = "2026-11-12T00:00:00Z";
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 function sources(): SourceView[] {
@@ -268,4 +270,57 @@ test("zero observed seconds is retained and missing timing stays unknown", () =>
   assert.equal(value(unknown, "관측 시간 (초)"), "unknown");
   assert.equal(value(unknown, "시작 관측 시각"), "unknown");
   assert.equal(value(unknown, "시간 관측 근거"), "server_dispatch_to_terminal_including_sdk_preparation");
+});
+
+
+test("unrelated Demian changes preserve the Assistant window while owner and Projects withdrawal invalidate it", () => {
+  const { grants } = linkedExecution();
+  const before = assistantWindowScope("owner", grants);
+  grants[2]!.state = "disconnected";
+  grants.push({ ...grants[2]!, id: "unrelated", state: "forbidden" });
+  assert.equal(assistantWindowScope("owner", grants), before);
+  assert.notEqual(assistantWindowScope("other", grants), before);
+  grants[0]!.state = "forbidden";
+  assert.notEqual(assistantWindowScope("owner", grants), before);
+  grants[0]!.state = "connected"; grants[1]!.authorizedProjectIds = [];
+  assert.notEqual(assistantWindowScope("owner", grants), before);
+});
+
+test("a refreshed list withdraws detail links without discarding its execution or inventing an authorized edge", () => {
+  const { input, run, grants } = linkedExecution(), detail = structuredClone(input);
+  const latest = structuredClone(input); latest.demianLinks = { ...latest.demianLinks!, state: "forbidden", links: [] };
+  const current = currentAssistantDetail(detail, latest);
+  assert(current); assert.equal(current.native, detail.native);
+  const model = assistantFlow([current], grants, { runs: [run] });
+  assert(model.nodes.some(node => node.kind === "assistant-execution"));
+  assert(!model.nodes.some(node => node.kind === "run"));
+  assert(!model.edges.some(edge => edge.kind === "assistant-demian-runtime"));
+  assert.equal(detail.demianLinks!.links.length, 1, "retained detail is never mutated");
+  delete latest.demianLinks;
+  assert.equal(currentAssistantDetail(detail, latest)!.demianLinks, undefined);
+});
+
+test("retained details cannot cross execution, Task or Project access revisions", () => {
+  const { input } = linkedExecution();
+  for (const mutate of [
+    (view: AssistantExecutionView) => { view.native.revision = "new"; },
+    (view: AssistantExecutionView) => { view.native.id = uuid(333); },
+    (view: AssistantExecutionView) => { view.currentTask!.task.revision = "new"; },
+    (view: AssistantExecutionView) => { view.currentTask!.project.accessRevision = "new"; },
+  ]) {
+    const current = structuredClone(input); mutate(current);
+    assert.equal(currentAssistantDetail(input, current), null);
+  }
+});
+
+
+test("a newer detail denial cannot be reopened by an older connected list row", () => {
+  const { input, run, grants } = linkedExecution();
+  const deniedDetail = structuredClone(input);
+  deniedDetail.demianLinks = { ...deniedDetail.demianLinks!, state: "forbidden", links: [] };
+  const current = currentAssistantDetail(deniedDetail, input);
+  assert(current); assert.equal(current.demianLinks!.links.length, 0);
+  assert.equal(assistantFlow([current], grants, { runs: [run] }).nodes.some(node => node.kind === "run"), false);
+  const changed = structuredClone(input); changed.demianLinks!.links[0]!.operationId = uuid(444);
+  assert.equal(currentAssistantDetail(input, changed)!.demianLinks!.links.length, 0);
 });

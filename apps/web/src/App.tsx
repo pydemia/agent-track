@@ -395,7 +395,7 @@ export function App() {
   };
 
   const accessibleRuns = useMemo(() => snapshot?.runs.filter((item) => item.sourceState !== "forbidden") ?? [], [snapshot]);
-  const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); }, accessibleRuns);
+  const assistant = useAssistantExecutions(snapshot?.user ?? null, snapshot?.sources ?? [], clearPrivateData, () => { void loadSnapshot(); });
   const groupAuthority = useRef({ actor: snapshot?.user ?? "", runs: accessibleRuns, sources: snapshot?.sources ?? [], executions: assistant.executions });
   groupAuthority.current = { actor: snapshot?.user ?? "", runs: accessibleRuns, sources: snapshot?.sources ?? [], executions: assistant.executions };
   const groupSelection = groupWorkspace && "scope" in groupWorkspace ? groupWorkspace.scope : null;

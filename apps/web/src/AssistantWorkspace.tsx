@@ -9,6 +9,7 @@ import { layoutGroupedFlow } from "./flow-group-layout.ts";
 import { groupAssistantRoles, groupAssistantFlowSubset } from "../../../packages/projection/group-workspace-flow.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import { AssistantWebError, fetchAssistantExecution, fetchAssistantEvents } from "./assistant-client.ts";
+import { assistantLinkScope, currentAssistantDetail } from "./assistant-window-state.ts";
 import { assistantMatches, type useAssistantExecutions } from "./useAssistantExecutions.ts";
 import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
@@ -58,8 +59,7 @@ export function AssistantWorkspace({ mode, sources, runs = [], collection, selec
         <td>{states[view.native.state] ?? view.native.state}</td><td>{view.currentTask ? `${states[view.currentTask.task.state] ?? view.currentTask.task.state} · r${view.currentTask.task.revision}` : "원본 업무 연결 없음"}</td>
         <td>{view.native.roles.length}개{view.demianLinks && <small>Demian 실행 연결 {authorizedAssistantLinks(view, sources, runs).length}개</small>}</td><td>{time(view.native.updatedAt)}</td></tr>)}</tbody></table></div>
       : <p className="empty-inline" role="status">현재 허용된 조회 창과 필터에 표시할 Assistant 실행이 없습니다. 전체 이력에 실행이 없다는 뜻은 아닙니다.</p>}
-    {chosen ? <AssistantSelectionView key={JSON.stringify([selectedKey(selection), chosen.demianLinks?.state,
-      chosen.demianLinks?.links.map(link => [link.roleId, link.sourceId, link.runKey, link.sessionId, link.workspaceId, link.operationId])])} mode={mode} initial={chosen} sources={sources} runs={runs}
+    {chosen ? <AssistantSelectionView key={selectedKey(selection)} mode={mode} initial={chosen} sources={sources} runs={runs}
       onSelect={onSelect} onTaskMap={onTaskMap} {...(onSelectRun ? { onSelectRun } : {})} onUnauthorized={onUnauthorized} onUnavailable={() => { collection.invalidateSource(chosen.sourceId); onSelect(null); }} />
       : (mode === "map" && visible.length > 0 ? <AssistantFlowMap entries={visible} sources={sources} runs={runs} onSelect={onSelect} onTaskMap={onTaskMap} {...(onSelectRun ? { onSelectRun } : {})} />
         : <p className="graph-legend">실행을 선택하면 {mode === "trail" ? "원본 상태 이력" : mode === "trace" ? "역할·시간·상태 Trace" : "역할과 연결 구조"}를 볼 수 있습니다.</p>)}
@@ -74,7 +74,9 @@ export function AssistantSelectionView({ mode, initial, sources, runs, onSelect,
   scopeNodeKeys?: readonly string[];
   taskMapLabel?: string;
 }) {
-  const [detail, setDetail] = useState<AssistantExecutionView | null>(null);
+  const [receivedDetail, setDetail] = useState<AssistantExecutionView | null>(null);
+  const detail = currentAssistantDetail(receivedDetail, initial);
+  const linkScope = assistantLinkScope(initial);
   const [events, setEvents] = useState<AssistantExecutionEvent[]>([]);
   const [cursor, setCursor] = useState("0");
   const [hasMore, setHasMore] = useState(false);
@@ -87,7 +89,7 @@ export function AssistantSelectionView({ mode, initial, sources, runs, onSelect,
   const nativeLinks = detail ? authorizedAssistantLinks(detail, sources, runs).filter(link => scopedRoles.some(role => role.id === link.roleId)) : [];
   useEffect(() => {
     const controller = new AbortController();
-    setBusy(true); setDetail(null); setEvents([]); setCursor("0"); setHasMore(false); setError(""); setMore(0);
+    setBusy(true); setDetail(previous => currentAssistantDetail(previous, initial)); setEvents([]); setCursor("0"); setHasMore(false); setError(""); setMore(0);
     async function load() {
       try {
         if (showEvents) {
@@ -107,7 +109,7 @@ export function AssistantSelectionView({ mode, initial, sources, runs, onSelect,
     }
     void load();
     return () => controller.abort();
-  }, [initial.sourceId, initial.native.id, initial.native.revision, initial.currentTask?.task.revision, initial.currentTask?.project.accessRevision, showEvents, refresh]);
+  }, [initial.sourceId, initial.native.id, initial.native.revision, initial.currentTask?.task.revision, initial.currentTask?.project.accessRevision, showEvents, refresh, linkScope]);
   useEffect(() => {
     if (!more || !hasMore) return;
     const controller = new AbortController(); setBusy(true);

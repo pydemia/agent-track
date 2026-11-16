@@ -190,7 +190,7 @@
       "skipped": 0
     },
     "typecheck": "passed",
-    "operatingApplied": false,
+    "operatingApplied": true,
     "limitation": "Source-wide transient authority failure and lease expiry retain fail-closed behavior; their operating impact must be rechecked rather than assumed resolved.",
     "independentReview": "No concrete security, concurrency or deadlock regression found in cancellation, multi-source claims, actor revocation and sibling identity checks; source-only review",
     "fullSuite": {
@@ -210,6 +210,42 @@
         "failed": 0
       },
       "productionTimeoutChanged": false
+    },
+    "operatingRevision": "7cc029c97005a3046b651246b87ce63f346bdfca",
+    "operatingCi": {
+      "run": 43810553202,
+      "windows": "success",
+      "ubuntu": "success"
+    },
+    "operatingObservation": {
+      "operationId": "9a1c5e4c-8786-4c01-848f-22efce0c3a5f",
+      "committed": true,
+      "firstPostSnapshot": "protected Run absent; first source failure reason not captured",
+      "followUp": "sources connected; full snapshot/events/evidence8 and settings/history/files47/processes18 preservation passed",
+      "actualGui": "Login, Taskr5, WorkExecutionr72, nativeLink1 and6nodes6edges4groups shown; later selection disappeared during metadata change",
+      "wholeWorkflowAccepted": false
     }
+  },
+  "windowScopeFix": {
+    "trigger": "Actual signed-in GUI lost the selected work/group after successful detail rendering while unrelated Demian snapshot metadata changed",
+    "cause": "Assistant window scope included all Demian states and Run memberships; any unrelated change invalidated all pages. Selection component key also included transient link authority.",
+    "change": "Scope the Assistant window to actor, Assistant source policy and Projects grants. Keep execution component identity stable. Reconcile detail/list link authority by intersection, re-fetch changed link authority without unmounting same-scope metadata. Existing current snapshot native link projection remains authoritative.",
+    "primaryScopeWithdrawalStillClearsData": true,
+    "nativeLinksMustPassBothListAndDetailAuthority": true,
+    "relatedTests": {
+      "passed": 30,
+      "failed": 0
+    },
+    "typecheck": "passed",
+    "operatingApplied": false,
+    "reviewFinding": "Initial list-authority replacement could override a newer detail denial; changed to intersection and added reverse-order denial regression.",
+    "fullGuiAcceptance": false,
+    "fullSuiteBeforeFinalDetailIntersection": {
+      "tests": 1261,
+      "passed": 1250,
+      "failed": 0,
+      "skipped": 11
+    },
+    "independentRecheck": "Initial denial override fixed by intersection; no concrete remaining metadata retention or cancellation issue in source-only review"
   }
 }
