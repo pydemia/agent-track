@@ -89,6 +89,12 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
   const commands = new CommandService(store);
   const successors = new SuccessorCommands(store);
   const runSuccessors = new RunSuccessors(store, config, sources, snapshot);
+  // GET recovery only: keep exact Native/Task checks, without recollecting an
+  // unrelated protected source. Mutation ports retain the complete fence above.
+  const successorReader = (key: string) => new RunSuccessors(store, config, {
+    projects: sources.projects, views: actor => sources.views(actor),
+    refreshProjectGrants: actor => refreshReadGrants(actor, key),
+  }, actor => readSnapshot(actor, key));
   const coordinatorCommands = new CoordinatorCommands(store);
   const assistantRoleCommands = new AssistantRoleCommands(store, config, sources, snapshot);
   const bindings = new RunBindings(store, config, sources, snapshot);
@@ -142,9 +148,10 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
       const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
       const nativeRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/(?:files|orchestration|tools|lineage)$/.exec(url.pathname);
+      const successorRead = request.method === "GET" ? /^\/api\/runs\/([A-Za-z0-9_-]+)\/successor-commands(?:\/[0-9a-f-]{36})?$/.exec(url.pathname) : null;
       if (url.pathname.startsWith("/api/") && url.pathname !== "/api/health" && url.pathname !== "/api/stream" && !url.pathname.startsWith("/api/assistant/") && !url.pathname.startsWith("/api/flow-views") &&
           !/^\/api\/runs\/[A-Za-z0-9_-]+\/(?:session-relations|artifacts)$/.test(url.pathname)) {
-        if (nativeRead) await refreshReadGrants(user, nativeRead[1]!);
+        if (nativeRead || successorRead) await refreshReadGrants(user, (nativeRead ?? successorRead)![1]!);
         else if (projectTaskRead || evidenceRun) {
           await sources.projects.refresh(user);
           if (evidenceRun) {
@@ -283,7 +290,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
       const successorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/successor-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);
       if (successorRoute) {
         const [, runKey, id, action] = successorRoute;
-        if (url.search || !snapshot(user).runs.some(run => run.key === runKey)) {
+        const commandSnapshot = () => successorRead ? readSnapshot(user, runKey!) : snapshot(user);
+        if (url.search || !commandSnapshot().runs.some(run => run.key === runKey)) {
           json(response, url.search ? 400 : 404, { error: url.search ? "invalid_command_query" : "run_not_found" }); return;
         }
         const confirm = () => authenticate(request, config()) === user && !request.aborted && !response.destroyed;
@@ -291,14 +299,14 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           if (request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
             json(response, 400, { error: "invalid_command_query" }); return;
           }
-          const ports = runSuccessors.ports(user, runKey!, confirm);
+          const reader = successorReader(runKey!), ports = reader.ports(user, runKey!, confirm);
           if (id) {
             const receipt = await successors.get(user, id, ports);
             if (!confirm()) { json(response, 401, { error: "authentication_required" }); return; }
             json(response, 200, { receipt });
           } else {
-            const availability = await runSuccessors.availability(user, runKey!, confirm);
-            const selected = snapshot(user).runs.find(run => run.key === runKey);
+            const availability = await reader.availability(user, runKey!, confirm);
+            const selected = commandSnapshot().runs.find(run => run.key === runKey);
             const nativeSource = config().sources.find(source => source.id === selected?.sourceId);
             const historySupported = nativeSource?.kind === "demian" && !nativeSource.assistantNativeSourceId;
             const page = historySupported ? await successors.list(user, runKey!, ports) : { receipts: [], hasMore: false };

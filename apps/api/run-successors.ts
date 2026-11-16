@@ -19,7 +19,7 @@ const client = (source: SourceConfig) => new DemianClient({ sourceId: source.id,
 
 /** Ordinary Native owner path. Assistant readers remain incapable of dispatch. */
 export class RunSuccessors {
-  constructor(private store: Store, private config: () => Config, private sources: Sources,
+  constructor(private store: Store, private config: () => Config, private sources: Pick<Sources, "projects" | "views" | "refreshProjectGrants">,
     private snapshot: (user: string) => Snapshot) {}
 
   private target(user: string, runKey: string, confirmed: () => boolean, writing: boolean) {

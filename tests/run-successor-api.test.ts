@@ -91,7 +91,7 @@ async function fixture(t: test.TestContext, bound = false) {
     for (const value of [server, native]) { value.closeAllConnections(); await new Promise<void>(resolve => value.close(() => resolve())); }
     store.close(); assert.equal(dirname(root), realpathSync(tmpdir())); rmSync(root, { recursive: true, force: true });
   });
-  return { config, store, headers, request, review, receipts, payloads,
+  return { config, store, sources, headers, request, review, receipts, payloads,
     snapshot: async () => { const response = await fetch(origin + "/api/snapshot", { headers }); assert.equal(response.status, 200); return response.json() as Promise<import("../packages/contracts/index.ts").Snapshot>; },
     ports: () => new RunSuccessors(store, () => config, sources, user => store.snapshot(user, views())).ports(actor, runKey, () => true),
     useToken: () => { const tokenFile = join(root, "native-token"); writeFileSync(tokenFile, randomBytes(32).toString("base64url")); config.sources[0]!.tokenFile = tokenFile; },
@@ -129,6 +129,43 @@ test("Native commit then ACK loss reconciles the same command ID with no second 
   assert.equal((await first.json()).receipt.state, "unknown"); assert.equal(f.nativePost, 1);
   const recovered = successorReceiptSchema.parse((await (await f.request(`/${input.id}`)).json()).receipt);
   assert.equal(recovered.state, "accepted"); assert.equal(recovered.newRunId, successorId); assert.equal(f.nativePost, 1);
+});
+
+test("ordinary command history and same-ID recovery ignore an unrelated protected failure while retaining current authority", async t => {
+  const f = await fixture(t, true), input = f.review(); f.lostAck = true;
+  assert.equal((await f.request("/reviews", "POST", input)).status, 200);
+  const dispatched = await f.request(`/${input.id}/dispatch`, "POST", {});
+  assert.equal(dispatched.status, 200); assert.equal((await dispatched.json()).receipt.state, "unknown");
+  assert.equal(f.nativePost, 1);
+  let unrelatedReads = 0, projectReads = 0;
+  f.sources.refreshProjectGrants = async () => { unrelatedReads++; throw new Error("Unrelated protected collector unavailable"); };
+  f.sources.projects.refresh = async () => { projectReads++; };
+  const recovered = await f.request(`/${input.id}`);
+  assert.equal(recovered.status, 200);
+  assert.equal(successorReceiptSchema.parse((await recovered.json()).receipt).state, "accepted");
+  assert.equal(f.nativePost, 1); assert.equal(unrelatedReads, 0); assert(projectReads > 0);
+  f.config.sources[0]!.runCommandUsers = [];
+  const historyResponse = await f.request(); assert.equal(historyResponse.status, 200);
+  const history = successorPanelSchema.parse(await historyResponse.json());
+  assert.equal(history.availability.detail, "not_enabled"); assert.equal(history.receipts[0]!.id, input.id);
+  assert.equal(f.nativePost, 1); assert.equal(unrelatedReads, 0);
+  // POST retains the existing complete collection fence and does not borrow the read path.
+  assert.equal((await f.request(`/${input.id}/dispatch`, "POST", {})).status, 503);
+  assert.equal(f.nativePost, 1); assert.equal(unrelatedReads, 1);
+  f.sources.projects.client = (() => ({ task: async () => {
+    f.projectAllowed = false;
+    return { id: taskId, projectId, revision: "2", title: "PRIVATE_TASK", state: "in_progress", requiresTest: false };
+  } })) as unknown as Sources["projects"]["client"];
+  const denied = await f.request(`/${input.id}`);
+  assert.equal(denied.status, 403); assert.doesNotMatch(await denied.text(), /PRIVATE_TASK|receipt/);
+  assert.equal(f.nativePost, 1);
+  f.projectAllowed = true;
+  assert(f.config.auth.mode === "proxy");
+  const rotatedAuth = { ...f.config.auth, users: ["other@example.com"] };
+  f.sources.projects.refresh = async () => { f.config.auth = rotatedAuth; };
+  const rotated = await f.request(`/${input.id}`);
+  assert.equal(rotated.status, 401); assert.doesNotMatch(await rotated.text(), /receipt|PRIVATE_TASK/);
+  assert.equal(f.nativePost, 1);
 });
 
 test("continue sends exact reviewed input, wipes staged plaintext and leaves the new Task root unbound", async t => {
