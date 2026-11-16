@@ -218,10 +218,19 @@ for (const change of ["owner", "actor", "Task"] as const) {
 }
 
 test("native fetch shares Authority overall deadline", async t => {
-  const f = await fixture(t, 100); let release!: () => void;
+  let clock = 0;
+  t.mock.method(performance, "now", () => clock);
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const f = await fixture(t, 100); let release!: () => void, entered!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
-  f.nativeHook = async () => held;
-  try { await denied(f.read(), 503); assert.equal(f.counts.capsCalls, 1); }
+  const nativeStarted = new Promise<void>(resolve => { entered = resolve; });
+  f.nativeHook = async () => { entered(); await held; };
+  try {
+    const rejected = denied(f.read(), 503);
+    await nativeStarted;
+    clock = 101; t.mock.timers.tick(101);
+    await rejected; assert.equal(f.counts.capsCalls, 1);
+  }
   finally { release(); }
 });
 
