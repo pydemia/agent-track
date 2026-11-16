@@ -2,7 +2,7 @@
 
 ## 현재 판정 — 2026-11-17 KST
 
-현재 Persona source4a9ad42/imageb68ece66과 Track APIe3581c7·web474676f를 운영 중이다.
+현재 Persona source4a9ad42/imageb68ece66과 Track API047b4d6·web474676f를 운영 중이다.
 일반 Native 문맥의 무관한 Assistant 수집·순차 조회·전체 소유자 투영 비용을 수정했다.
 같은2초 제한에서 Task281ms/1Run·Project215ms/4Run과 실제 Edge 요약·목록 배지의
 복구를 확인했다. 원본 Task r1/todo와 성공 Run의 상태를 구분했고 원본 인증·업무
@@ -20,6 +20,12 @@ disconnected이며 성공으로 세지 않는다. 최종 sourcee3581c7의 양 OS
 다른 프로세스18개·원본 이력 보존을 통과했다. 기존 부하 제거 뒤 보호 업무 재측정은
 1차 성공/2차 실패였으므로 AT-14 안정성은 미수용이다.
 [현재 일반 Trace·보호 업무 잔여](ordinary-evidence-scoped-reads.md)를 우선한다.
+
+일반 명령 이력·같은 ID 복구 GET의 무관한 보호 수집도 분리했다. 운영 이력 조회는
+15,005ms timeout에서916ms/200·not_enabled·기록0개로 복구했고 실제 Edge Run 상세의
+정확한 권한 미설정 문구를 확인했다. writer·새 명령·worker는 활성화하지 않았다.
+관련53개·타입·양 OS CI와 동결 전환·보존 검사를 통과했다.
+[현재 명령 이력 복구](command-history-scoped-reads.md)를 우선한다.
 
 앞선 Persona source4a9ad42/imageb68ece66과 Track APIfefc94f·web186ff8d 전환에서는
 Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
@@ -57,8 +63,9 @@ deadline 실패가 있어 그룹 범위/전체 업무의 안정적 수용은 미
 2,066/2,360/1,736ms였다. 현재 권한·서명 검사를 보존하는 사설 GET transport를
 구현했고 실제 후보 재측정은87/13/13ms·모두200이었다. Persona source90e0825의
 draft PR#23과 image33e19141을 준비했으나 운영은 변경하지 않았다. 관련51개·
-Python49개·타입/build는 통과했다. Windows 전체는 복구 검사 실패가 남고,
-현재 여유 공간은 해당 CLI의1GiB 예비 공간보다 작다. 격리 Linux의 build·타입·
+Python49개·타입/build는 통과했다. 당시 Windows 전체는 디스크 부족의 복구 검사
+실패가 남았다. 11월17일 여유5.1GB에서 같은 후보의 실패 파일13개와 전체1,345개 중
+1,331개 통과·실패0·환경 제외14개를 확인했다. 이전 실패와 별도 후속 검사로 보존한다. 격리 Linux의 build·타입·
 서식 검사와 전체1,345개 중1,336개 통과·실패0·환경 제외9개를 확인했다.
 수정 후 Track3e7fec8의 Windows·Ubuntu CI도 통과했다. 새 Persona 소스 CI는
 결제/한도 사유로 검사 시작 전 실패했고, 이전 승인과 다른 정확한 후보의
@@ -288,12 +295,12 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Edge의 Track 업무 inspector→Projects 동일 Project/Task 선택을 확인했다 (`task-origin-navigation-verification.json`). Demian Session href·Run link 미지원 안내도 제공한다. 원본 웹의 무인증 Basic401과 후속 인증 root/context200을 구별하며, 동일 Session의 브라우저 선택 성공은 남는다. 무인증401만으로 새 인증 구현이 필수라고 단정하지 않으며 공개 Track Entra 정책은 유지 |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
-| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. native cancel 실기·동일 receipt, unknown/철회/만료/재시작·중복 방어와 공개 UI 취소 대조. 후속 Native 명령·Assistant owner 시도/참조·같은 명령 복구와 과거 시도 Flow source·격리 검사 완료. 일반 Native 검토·전송·복구 broker/UI·접수 Flow source·HTTP 검사 완료. 보호된 owner 제어·운영/인증 화면·실제 제공자 수용은 미완료 |
+| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. 실제 취소·receipt/중복 방어, 일반 Native와 보호 owner 명령·검토/전송/같은 ID 복구·원장·Flow source를 구현했다. 현재 Track API047b4d6/web474676f와 두 원장 테이블은 운영에 있으며, 일반 GET의 무관한 보호 수집을 분리해 운영916ms/200·not_enabled와 실제 Edge 상태를 확인했다. ACK 유실 후 같은 ID 복구·POST1회 유지 등 관련53개는 합성 Native HTTP/SQLite 검사다. 원본 command-context GET404·writer 비활성이며 실제 provider/owner 명령·복구 수용은 남는다 (`command-history-scoped-reads-verification.json`) |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 일반 Native Run 묶음의 네 보기 전환과 실제 Entra 계정의 Task1·Run1 저장/새로고침/접힘 복원을 확인했다. peer 대표선 포인터 선택 성공 확인은 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 실행 성공·Projects 결과·Note 연결, 앞선 Persona4a9ad42/Track186ff8d의 Entra GUI 그룹·관계·Native8events를 확인했다. 이후 자동 원본 재확인에서 근거가 사라지고 events404가 남아 안정적 수용은 미완료다. 현재 APIcd73f09/web474676f의 일반 문맥 부하 제거 후 보호 업무를 재측정한다. 원본8events·binding r3와 Task r5/in_review는 보존했다. `assistant-workflow-observation-20261116.json`, `context-summary-scoped-reads-verification.json` |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 실제 실행·Projects 결과·Note 연결과 Entra GUI 그룹·Native8events는 확인했다. 일반 문맥 부하 제거 후 보호 업무의 실제 순차 재측정은1차 성공/2차 disconnected·evidence timeout이었다. 현재 Track API047b4d6/web474676f의 일반 Trace·명령 이력 복구를 보호 안정성 수용으로 계산하지 않는다. 승인 운영 Persona4a9ad42/b68ece66, 새90e/33e 후보 별도 승인 대기. 원본8events·binding r3·Task r5/in_review 보존 (`ordinary-evidence-scoped-reads-verification.json`, `command-history-scoped-reads-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

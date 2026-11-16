@@ -1,0 +1,218 @@
+{
+  "recordedDateKst": "2026-11-17",
+  "scope": "Ordinary Native command history GET and same-ID recovery; not real-provider command acceptance",
+  "sourceRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+  "ci": {
+    "run": 43907688296,
+    "headSha": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "conclusion": "success",
+    "windows": {
+      "total": 1282,
+      "passed": 1271,
+      "failed": 0,
+      "skipped": 11
+    },
+    "ubuntu": {
+      "total": 1282,
+      "passed": 1257,
+      "failed": 0,
+      "skipped": 25
+    }
+  },
+  "relatedLocalTests": {
+    "passed": 53,
+    "failed": 0,
+    "typecheck": "pass"
+  },
+  "regression": {
+    "before": "503 != 200",
+    "after": "passed",
+    "checks": [
+      "same-ID recovery after lost ACK, Native POST stays1",
+      "read history after writer withdrawal",
+      "late Project withdrawal hides receipt",
+      "actor rotation401",
+      "POST retains complete fence"
+    ]
+  },
+  "independentReview": {
+    "base": "c758551c22d52b4f08d44e699354e117263eafb5",
+    "head": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "files": [
+      "apps/api/server.ts",
+      "apps/api/run-successors.ts",
+      "tests/run-successor-api.test.ts"
+    ],
+    "mustFixFindings": 0,
+    "staticOnly": true,
+    "actualBackendModelObserved": false,
+    "sourceRotation": "code traced, no additional new regression"
+  },
+  "before": {
+    "at": "2026-11-16T16:23:01.807Z",
+    "readOnly": true,
+    "commandDispatched": false,
+    "nativeWriterConfigured": false,
+    "failure": "timeout",
+    "elapsedMs": 15005
+  },
+  "operatingAfter": {
+    "at": "2026-11-16T16:35:05.112Z",
+    "readOnly": true,
+    "commandDispatched": false,
+    "nativeWriterConfigured": false,
+    "status": 200,
+    "availability": {
+      "state": "unsupported",
+      "detail": "not_enabled",
+      "availableKinds": []
+    },
+    "receipts": 0,
+    "elapsedMs": 916
+  },
+  "operatingTransition": {
+    "operationId": "cdaa24c9-48c7-4d76-bfbe-ab33003ca0aa",
+    "observedAt": "2026-11-16T16:34:33.040Z",
+    "pid": 60388,
+    "created": "2026-11-16T16:33:18.9596580Z",
+    "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "manifestSha256": "143a04a1bffb9f3c760ac033f2f3e4fb14c0a5c9b3d4e3edfd510ff1745dabf8",
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "nativeDatabasePreservedByCommit": true
+  },
+  "originalHistory": {
+    "at": "2026-11-16T16:35:04.704Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "actualEntraGui": {
+    "atKst": "2026-11-17 01:36",
+    "browser": "Edge",
+    "account": "pydemia@pydemia.ai",
+    "runId": "82f7e1fd-8fe2-4da1-8307-99f3e016f48c",
+    "source": "demian-local",
+    "liveAfterReload": true,
+    "detailExpanded": true,
+    "commandState": "not_enabled",
+    "privateReadErrorDisplayed": false,
+    "newCommandSubmitted": false,
+    "screenshot": "command-history-read-20261117.png",
+    "viewport": [
+      956,
+      698
+    ],
+    "protectedMissionAvailabilityAccepted": false
+  },
+  "nativeCommandContextRead": {
+    "at": "2026-11-16T16:29:46.655Z",
+    "sourceId": "demian-local",
+    "readOnly": true,
+    "commandDispatched": false,
+    "nativeWriterConfigured": false,
+    "status": 404,
+    "rawDetailsSuppressed": true
+  },
+  "personaWindowsFollowup": {
+    "recordedAt": "2026-11-16T16:29:07.639415+00:00",
+    "dateKst": "2026-11-17",
+    "sourceRevision": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "checkoutClean": true,
+    "environmentChanged": "C drive free space increased; before failed check below 1 GiB reserve, this followup before tests 5106638848 bytes",
+    "fullCommand": "node --import tsx --test --test-concurrency=2 tests/persona/*.test.ts tests/workbench/*.test.ts",
+    "checks": {
+      "recovery": {
+        "total": 13,
+        "passed": 13,
+        "failed": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "logSha256": "823527c8a99df088999463f43488523a0a8d7ca5dbd3ce5e992f47a4fa9a0d0b"
+      },
+      "full": {
+        "total": 1345,
+        "passed": 1331,
+        "failed": 0,
+        "skipped": 14,
+        "exitCode": 0,
+        "logSha256": "c5784fb2bfd31b05ca93d8409fa0f7f9a2edb9d26a37133e165376b0e9e70a52"
+      }
+    },
+    "previousFailureRetained": true,
+    "ciStatusUnchanged": "failed before steps: billing/spending limit",
+    "operatingChanges": 0,
+    "newSourceImageExceptionApproved": false,
+    "operatingSource": "4a9ad4222a749f84c2fc20effab08a019f06872c",
+    "actualProviderAcceptance": false
+  },
+  "goalAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "changePercentagePoints": 0,
+    "lowerLevelDenominator": null,
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-14",
+      "AT-15",
+      "AT-20"
+    ]
+  },
+  "limits": {
+    "writerEnabled": false,
+    "newCredentials": 0,
+    "newProviderRuns": 0,
+    "workerStarted": false,
+    "realLostAckRecovery": false,
+    "originalTaskAccepted": false,
+    "personaCandidateActivated": false
+  }
+}
