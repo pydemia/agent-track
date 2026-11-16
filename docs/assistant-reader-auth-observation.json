@@ -38,6 +38,7 @@
     "actualRunTraceNavigation": "60cca68d-95d1-4d99-963a-c2554e0df347",
     "operatingNewReaderDetailEvidenceAccepted": true,
     "operatingVerification": "assistant-reader-promotion-operating.json",
-    "wholeWorkflowAccepted": false
+    "wholeWorkflowAccepted": false,
+    "workflowObservation": "assistant-workflow-observation-20261116.json"
   }
 }

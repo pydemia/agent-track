@@ -2,29 +2,37 @@
 
 ## 현재 판정 — 2026-11-16 KST
 
-승인된 Persona source4a9ad42/imageb68ece66을 운영 Assistant에 반영했다.
-이전 이미지는 중지 보존했으며 현재 DB·인증은 복원하지 않았다. 운영 DB의
-Work33·Runtime65 tables와 시작 payload6개·설정68개·다른 서비스12개·renderer
-보존을 확인했다. 기존 실제 Run60cca68d의8events·역사 binding r3도 불변이다.
-Edge Entra 로그인 후 실제 Trace의 모델·시간·사용량·산출물과4nodes/3edges/
-3groups를 확인했고 연결선 선택 시 원본 seq4·5가 표시됐다. 운영 SSE와 동시
-snapshot/상세 조회도200/connected다. [운영 근거](assistant-reader-promotion-operating.json)를 따른다.
+Persona source4a9ad42/imageb68ece66과 Track API·web186ff8d를 운영 반영했다.
+Edge Entra 로그인과 새 웹 module을 확인했다. 현재 DB·인증은 복원하지 않았고
+writer는 비활성이다. 원본 이벤트8개 전체 metadata SHA와 역사 binding r3,
+설정47개·다른 프로세스18개·Track 이력 보존을 확인했다.
 
-전체 업무 화면에는 추가 경합이 남았다. 자동 수집 중 Assistant 목록·상세·상태
-이력의 Demian 연결이 간헐적으로 사라지는 경로를 재현했고, 관련 native window를
-보호하도록 수정 중이다. 독립 검토에서 발견한 무관한 sibling 출처 오류 전파도
-회귀 사례에 포함했다. 운영 적용·같은 업무 화면 재검증 전에는 AT-14를 완료하지 않는다.
+실제 WorkExecutionr72·Taskr5/in_review의 그룹 내부와 Demian 관계 inspector를
+확인했다. 무관한 Run 변화가 Assistant 전체 목록을 지우던 scope와 링크 상태에
+따라 상세를 remount하던 key를 수정했다. 목록·상세 어느 한쪽의 거부도 연결선
+재노출로 덮지 않도록 교집합 검사와 현재 snapshot 투영을 유지한다.
 
-**기존 수용 판정15/21·71.4%를 유지한다. 상위 동일 가중치·부분0이다.**
-이 수치는 전체 개발 완료율·운영 준비도·남은 시간 비율이 아니다. 현재 영역 상태는
-운영 reader/Trace 확인, 통합 업무 연결 부분, 명령/복구 부분, 그룹/저장 보기 부분,
-다중 장치/원본 이동 부분이다. 전체 하위 결과 분모는 미확정으로 별도 표시 진행률은
-산정하지 않는다. 전체 ETA 산정 불가·신뢰도 낮음이며, 다음 재산정은 현재 연결 경합의
-운영·화면 재검증 후다. [현재 결과·정체 원인](assistant-reader-promotion.md)에 구분했다.
+Native 상세403/404가 전체 대시보드·SSE를 지우던 처리도 수정했다. 실제 화면에서
+거부 후에도 LIVE를 유지했고 이후8events·모델·범위별 usage·산출물1개와
+4nodes/3edges/3groups·lineage seq4,5를 확인했다. 그러나 다음 원본 재확인에서
+근거가 다시 사라졌다. 이 순간 성공을 안정적인 통합 수용으로 계산하지 않는다.
+최종 별도 API 사후 검사도 snapshot 뒤 events404로 실패했고 데이터·설정 보존
+검사만 별도로 통과했다. 모든 사후 검사가 통과했다고 기록하지 않는다.
+[현재 운영·화면 관측](assistant-workflow-observation-20261116.json)을 따른다.
 
-11월15일의 CI 예외 승인·로그인 차단은 사용자의 이번 승인·로그인 완료로 해소됐다.
-Persona CI는 여전히 검사 시작 전 실패이며 예외를 CI 통과로 기록하지 않는다.
-writer는 비활성 상태다. 과거 차단 판정과 사본 QA는 현재 운영 결과를 대신하지 않는다.
+**상위 수용15/21·71.4%, 직전 대비0%p(동일 가중치·부분0)를 유지한다.**
+AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확정이므로
+별도 전체 표시 진척률은 산정하지 않는다. 영역 상태는 reader 운영🟩,
+업무·그룹/Trace 안정성🟨, 명령·복구🟨, 저장 보기·peer🟨,
+다중 장치·원본 앱 이동🟨다. 전체 완료 ETA는 산정 불가·신뢰도 낮음이다.
+외부 조건은 writer 활성화 범위·원본 앱 인증·실제 다중 장치이며, 현재 실패의
+다음 작업은 운영 reader 경계별 지연·queue·lease 관측이다. 재산정은 같은 실제
+업무의 반복 조회·그룹·Trace가 유지되는 운영 수용 후다.
+
+Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
+실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
+[정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
+[게시한 Note](https://note.pydemia.ai/#/w/personal-note-production/page/871c5c9d-7dfa-4adc-935f-526ea94487ae)는 원문 재조회와 검색 색인 반영까지 확인했다.
 
 ## 이전 판정 기록
 
@@ -223,7 +231,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 배포된 네 보기 공통 범위/저장 복원의 사용자 동작 대조와 peer 대표선 포인터 선택 성공 확인이 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. Assistant9382c9c·Track9639375/6source가 운영 연결됐다. 실제 Executionf8a9e44f/Run60cca68d/Taske4470864를 유지해 모델 성공→Projects 결과 선첨부→Note 발행→Projects Note 참조 연결→Track 완료 관측의 API 경로를 검증했다. Note 본문·첨부2개·인덱스와 실제 Projects revision5/in_review를 재조회했다. 기존8event/역사 binding3은 불변이고 현재 Task/Execution/역할/Run의6node·5edge·실행group1을 실제 API로 projection했다. 현재 PC 화면 관측 도구가 실패해 인증된 GUI 선택·그룹 탐색은 미검증이며 상세 native Trace steps0이다 (`workflow-observation-2026-11-14.json`). 기존 위임/배포 근거도 보존한다 |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 실행 성공·Projects 결과·Note 연결, Persona4a9ad42와 Track186ff8d 운영 및 Entra GUI의 그룹·관계·Native8events를 확인했다. 그러나 자동 원본 재확인에서 상세 근거가 다시 사라지고 API events404가 남아 안정적 수용은 미완료다. 원본8events·binding r3 불변, 현재 Task r5/in_review. `assistant-workflow-observation-20261116.json` |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

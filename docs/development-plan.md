@@ -1,5 +1,7 @@
 # Agent Track 개발계획
 
+현재 판정(2026-11-16): Persona4a9ad42와 Track API·web186ff8d를 운영 반영했고 Entra 화면을 확인했다. 초기 SSE 중복·조회 순서·Assistant 선택 초기화·상세403/404의 전체 화면 초기화를 수정했으나 Native 상세의 반복 가용성은 미완료다. 수용15/21·71.4%를 유지한다. [현재 수용표](goal-status.md), [운영 관측](assistant-workflow-observation-20261116.json), [정체 원인·잔여](assistant-reader-promotion.md)를 우선한다. 다음은 실제 단일 운영 reader의 경계별 지연·queue·lease 원인을 계측해 반복 조회를 수용하는 작업이다. 아래 이전 날짜의 배포·차단 상태는 당시 이력이다.
+
 최신 [reader 지연·동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존
 업무의 격리 SSE·상세 조회를 통과했다. 후속 Track 운영 API는06dd8c7·web은27e00a8이다.
 새 Persona 이미지의 CI 실행 전 실패와 별도 예외 승인 조건을 문서에 구분했다.

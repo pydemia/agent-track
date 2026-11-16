@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "4dcd6983-0be9-4f8b-b4cc-29fd68b4e520",
+  "title": "Agent Track 운영 Trace 복구·진척 현황 — 2026-11-16",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/871c5c9d-7dfa-4adc-935f-526ea94487ae",
+  "workspaceId": "personal-note-production",
+  "pageId": "871c5c9d-7dfa-4adc-935f-526ea94487ae",
+  "revision": "cd5d65476d923871dc52c2a935fe0909b4899184152249a97bdba3b153b7bf4a",
+  "sourceSha256": "2d18d80053aa0e4315b7094d1529e98897e3063048a22c47591fc69f8d8caccb",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T06:27:27.441Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/assistant-reader-promotion.md",
+  "markdownSha256": "dbc2ddc1e581054af8e0c5fbb9460ef9bb1a04a880f6ce40d23e8951f3de345a",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/01fd5369-ae66-4fc7-915b-f54a6fb4b940",
+  "authStateAtDispatch": "Entra login visually confirmed in Edge; actual workflow acceptance is separately recorded"
+}

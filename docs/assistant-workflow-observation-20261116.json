@@ -1,0 +1,277 @@
+{
+  "schema": "agent-track-assistant-workflow-observation-v1",
+  "observedAt": "2026-11-16T06:25:24.672047+00:00",
+  "requirements": [
+    "AT-14",
+    "AT-20"
+  ],
+  "deployment": {
+    "observedAt": "2026-11-16T06:18:25.711Z",
+    "operationId": "b3689874-e073-4c25-8382-3cfccdc28a6b",
+    "committed": true,
+    "pid": 43512,
+    "created": "2026-11-16T06:15:33.2293110Z",
+    "apiRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "webRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "manifestSha256": "36fc6962839c08a4359c3b6f9e74f3a39b86e85fe6b67d12294cc987e70571c2",
+    "webFilesBytesAndMimeMatched": 18,
+    "originalConfigRestored": true,
+    "preservedFiles": 47,
+    "preservedProcesses": 18,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "tables": [
+      {
+        "name": "approval_receipts",
+        "count": 4
+      },
+      {
+        "name": "binding_receipts",
+        "count": 5
+      },
+      {
+        "name": "bindings",
+        "count": 6
+      },
+      {
+        "name": "coordinator_command_intents",
+        "count": 0
+      },
+      {
+        "name": "event_digests",
+        "count": 0
+      },
+      {
+        "name": "events",
+        "count": 44181
+      },
+      {
+        "name": "metadata",
+        "count": 21
+      },
+      {
+        "name": "receipts",
+        "count": 2
+      },
+      {
+        "name": "runs",
+        "count": 1287
+      },
+      {
+        "name": "saved_flow_views",
+        "count": 0
+      },
+      {
+        "name": "sqlite_sequence",
+        "count": 2
+      },
+      {
+        "name": "successor_intents",
+        "count": 0
+      },
+      {
+        "name": "task_assignment_receipts",
+        "count": 2
+      },
+      {
+        "name": "task_creation_receipts",
+        "count": 1
+      }
+    ],
+    "pending": {
+      "receipts": 0,
+      "task_creation_receipts": 0,
+      "task_assignment_receipts": 0,
+      "approval_receipts": 0,
+      "successor_intents": 0,
+      "coordinator_command_intents": 0
+    },
+    "sources": [
+      {
+        "id": "demian-local",
+        "state": "connected",
+        "lastObservedAt": "2026-11-16T06:17:07.031Z"
+      },
+      {
+        "id": "codex-local",
+        "state": "connected",
+        "lastObservedAt": "2026-11-16T06:17:07.134Z"
+      },
+      {
+        "id": "projects-native",
+        "state": "connected",
+        "lastObservedAt": "2026-11-16T06:17:11.243Z"
+      },
+      {
+        "id": "assistant-native",
+        "state": "connected",
+        "lastObservedAt": "2026-11-16T06:17:11.196Z"
+      },
+      {
+        "id": "desktop",
+        "state": "unsupported",
+        "lastObservedAt": null
+      },
+      {
+        "id": "demian-assistant-owner",
+        "state": "connected",
+        "lastObservedAt": "2026-11-16T06:17:11.256Z"
+      }
+    ],
+    "auth": [
+      {
+        "name": "anonymous",
+        "status": 401
+      },
+      {
+        "name": "forged",
+        "status": 401
+      }
+    ],
+    "publicProbes": [
+      {
+        "url": "https://track.pydemia.ai/",
+        "status": 302
+      },
+      {
+        "url": "https://track.pydemia.ai/api/snapshot",
+        "status": 401
+      },
+      {
+        "url": "https://trail.pydemia.ai/",
+        "status": 302
+      }
+    ],
+    "ownerProbe": {
+      "actualPermittedTasks": 2,
+      "createdAndRead": true,
+      "staleRevisionDenied": true,
+      "ownedProbeRemoved": true,
+      "nativeWorkCreated": false
+    },
+    "nativeDatabasePreservedByCommit": true,
+    "actualEntraGuiVerified": false,
+    "sourceOrModelDispatchPerformed": false,
+    "sourceReadChecks": {
+      "passed": false,
+      "stage": "events",
+      "status": 404,
+      "snapshotProtectedRunPresent": true,
+      "failureLog": ".runtime/track-assistant-links-20261116-v7/post-output.log"
+    }
+  },
+  "originalHistory": {
+    "at": "2026-11-16T06:17:14.790Z",
+    "readOnly": true,
+    "oneTrackDatabaseReadTransaction": true,
+    "sourceDatabaseRestored": false,
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "events": 8,
+    "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+    "eventMetadataPreserved": true,
+    "historicalBindingPreserved": true,
+    "taskBindingRevision": "3",
+    "cursor": "8",
+    "highWater": "8",
+    "liveAuthorizationOrGuiProof": false
+  },
+  "ci": {
+    "run": 43814636082,
+    "revision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "gui": {
+    "observedAt": "2026-11-16T06:23:20.859Z",
+    "loginCompleted": true,
+    "signedInAccount": "pydemia@pydemia.ai",
+    "webModulePath": "/assets/index-XU3b7uEe.js",
+    "executionId": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "nativeLinkConnected": true,
+    "groupExplored": true,
+    "traceEvents": 8,
+    "regularEvents": 8,
+    "traceNodes": 4,
+    "traceEdges": 3,
+    "traceGroups": 3,
+    "edgePointerSelected": "Native 호출 근거",
+    "edgeDetailSequences": [
+      "4",
+      "5"
+    ],
+    "selectedModel": "gpt-6.1-sol",
+    "artifactMetadataCount": 1,
+    "usageScopesSeparated": true,
+    "queueMs": 521,
+    "wallMs": 11063,
+    "scopeDenialKeptDashboardLive": true,
+    "recoveryObserved": true,
+    "eventRetryUsed": true,
+    "assistantFlow": {
+      "observedWebRevision": "6011ab5ac82caeaa23d45e170f4fb7a7c039d1f0",
+      "implementationUnchangedToCurrentRevision": true,
+      "workRevision": "72",
+      "taskRevision": "5",
+      "taskState": "in_review",
+      "nodes": 6,
+      "edges": 6,
+      "groups": 4,
+      "groupPathPreserved": true,
+      "typedEdgeInspector": "assistant-demian-runtime",
+      "image": "../track-assistant-links-20261116-v6/workflow-group.jpg"
+    },
+    "currentTraceSnapshotStillHasEightEvents": false,
+    "currentInspectorStillSelected": false,
+    "url": "https://track.pydemia.ai/?view=trace&run=WyJkZW1pYW4tYXNzaXN0YW50LW93bmVyIiwiNjBjY2E2OGQtOTVkMS00ZDk5LTk2M2EtYzI1NTRlMGRmMzQ3Il0&source=demian-assistant-owner",
+    "viewport": {
+      "height": 694,
+      "width": 941
+    },
+    "evidenceValuesReferToEarlierSuccessfulObservation": true,
+    "finalView": {
+      "liveDashboardRetained": true,
+      "nativeDetailedEventsDisplayed": false,
+      "visibleNodes": 1,
+      "visibleEdges": 0,
+      "selectedInspectorRetained": false
+    }
+  },
+  "screenshot": {
+    "file": "C:/Users/pydemia/git/agent-track/.runtime/track-assistant-links-20261116-v7/trace-operating.jpg",
+    "sharedFile": "C:/Users/pydemia/.codex/visualizations/2026/11/10/01a1c65b-0f6e-7d33-b7b8-8872d47bff4d/track-trace-20261116.jpg",
+    "observedAt": "2026-11-16T06:23:20.858Z",
+    "format": "jpg"
+  },
+  "wholeWorkflowAccepted": false,
+  "wholeGoalComplete": false,
+  "acceptance": {
+    "met": 15,
+    "total": 21,
+    "percent": 71.4,
+    "deltaPercentagePoints": 0,
+    "weighting": "equal-top-level-partial-zero"
+  },
+  "remainingRequirements": [
+    "AT-06",
+    "AT-09",
+    "AT-12",
+    "AT-14",
+    "AT-15",
+    "AT-20"
+  ],
+  "businessTaskState": "in_review",
+  "businessTaskRevision": "5",
+  "businessTaskAccepted": false,
+  "newNativeRunOrModelRequests": 0,
+  "writerEnabled": false,
+  "originalDataOrCredentialsRestored": false,
+  "unresolved": "Native metadata/evidence revalidation intermittently returns404/503; eight-event evidence and selected lineage were observed and later disappeared during automatic recheck. Repeated success is not a stable live-acceptance proof.",
+  "next": "Profile the single operating reader request boundaries and queue/lease expiry under the actual browser workload; identify the failing boundary before another latency change. Retain all access/credential/Task/role fences and existing budgets.",
+  "notePublication": {
+    "url": "https://note.pydemia.ai/#/w/personal-note-production/page/871c5c9d-7dfa-4adc-935f-526ea94487ae",
+    "receipt": "assistant-reader-promotion-note-publication.json",
+    "sourceMatches": true,
+    "indexReady": true
+  }
+}

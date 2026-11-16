@@ -231,5 +231,15 @@
     "Concurrent HTTP requests and SSE were observed; remote request overlap was not instrumented.",
     "Assistant execution list/detail relation race found in actual GUI; Track fix is tested separately and not yet operating.",
     "Persona source CI remains failed before steps; the exact approved exception was used."
-  ]
+  ],
+  "followUp": {
+    "operatingObservation": "assistant-workflow-observation-20261116.json",
+    "apiAndWebRevision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "dataAndConfigurationPreserved": true,
+    "scopeDenialNoLongerClearsGlobalDashboard": true,
+    "eightEventNativeTraceAndLineageObserved": true,
+    "laterEvidenceDisappearedDuringRecheck": true,
+    "wholeWorkflowAccepted": false,
+    "wholeGoalComplete": false
+  }
 }

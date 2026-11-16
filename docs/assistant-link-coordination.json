@@ -29,7 +29,7 @@
     "typecheckAfterRefinement": "passed",
     "independentReview": "P2 sibling isolation finding fixed; follow-up found no concrete defect; source review only"
   },
-  "operatingApplied": false,
+  "operatingApplied": true,
   "committedApiBeforeLiveRefreshFix": {
     "revision": "cb43824238ee73eefee3b431c1bbc3eda29ff946",
     "operationId": "75edece1-7a9b-4f0b-9fcc-2656a63f9331",
@@ -59,7 +59,7 @@
     "typecheck": "passed",
     "independentReview": "No confirmed security or concurrency finding in fresh evidence admission and SSE capture; subsequent HTTP mirrors use the same actor recheck; lease reserve is more conservative",
     "actualParallelCanary": "Not passed: separate in-memory reader alongside operating collector reached the unchanged metadata deadline or an unavailable link. No capacity cause or resolution claimed.",
-    "operatingApplied": false,
+    "operatingApplied": true,
     "nextVerification": "CI and frozen pair, then single operating collector with actual Edge/SSE/evidence"
   },
   "firstOperatingAttempt": {
@@ -100,7 +100,7 @@
       "ownedProbeRemoved": true,
       "nativeWorkCreated": false
     },
-    "operatingApplied": false
+    "operatingApplied": true
   },
   "taskOnlySavedViewFix": {
     "change": "Refresh Projects grants at both boundaries for Task-only anchors; keep full native refresh for Run/Assistant anchors",
@@ -113,7 +113,7 @@
     "typecheck": "passed",
     "independentReview": "No concrete authorization or deadlock finding; read-only source review",
     "actualSourceCanary": "actual permitted Tasks2; save200/list200/stale revision409/remove200/removed-list200; in-memory store only; no native work created",
-    "operatingApplied": false,
+    "operatingApplied": true,
     "remainingLimitation": "Mixed Run/Assistant saved-view anchors retain full refresh; their operating latency acceptance is separate"
   },
   "apiCandidate": {
@@ -157,9 +157,9 @@
     ],
     "coldCandidateAndRollback": "passed on the current operating Track backup; original API and source DB unchanged"
   },
-  "authenticatedUiRecheckAfterFix": false,
+  "authenticatedUiRecheckAfterFix": true,
   "wholeWorkflowAccepted": false,
-  "followUp": "Freeze exact CI-passed API with existing web, apply through the existing runtime operation, and recheck the same execution in Edge",
+  "followUp": "Profile the single operating reader request boundaries and queue/lease expiry under the actual browser workload; identify the failing boundary before another latency change. Retain all access/credential/Task/role fences and existing budgets.",
   "operatingApiAfterRefreshFix": {
     "revision": "989809234abd806f62cbeb45402f7122f19c363a",
     "operationId": "36915230-e9ae-4eec-b7bd-55ed7fa95807",
@@ -271,6 +271,18 @@
     "change": "Only401 calls the global authentication handler.403/404 still erase the complete private evidence page but remain Run-scoped and keep the existing15-second retry.",
     "newPermissions": 0,
     "privateEvidenceRetainedAfterDenial": false,
-    "operatingApplied": false
-  }
+    "operatingApplied": true,
+    "actualGui": "Scope denial kept LIVE dashboard; eight native events/model/usage/artifact and lineage seq4,5 recovered; subsequent recheck hid evidence again",
+    "relatedTests": {
+      "passed": 23,
+      "failed": 0
+    }
+  },
+  "currentCi": {
+    "run": 43814636082,
+    "revision": "186ff8d88b5e42d4f45ce3fda4f889951db7061d",
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "operatingVerification": "assistant-workflow-observation-20261116.json"
 }
