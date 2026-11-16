@@ -1,7 +1,7 @@
 {
   "schema": "agent-track-projects-transport-candidate-v1",
   "recordedAt": "2026-11-16T12:19:11.592226+00:00",
-  "phase": "candidate-verified-not-deployed",
+  "phase": "approved-current-rollout-preparation",
   "persona": {
     "source": "90e082510adee7e8e29c058490066cb86efcfdcc",
     "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
@@ -12,7 +12,16 @@
     "ciPassed": false,
     "ciStepsStarted": 0,
     "ciReason": "GitHub account payments or spending limit; explicit annotation",
-    "newSourceImageExceptionApproved": false
+    "newSourceImageExceptionApproved": true,
+    "approval": {
+      "approved": true,
+      "sourceRevision": "90e082510adee7e8e29c058490066cb86efcfdcc",
+      "candidateImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+      "recordedAt": "2026-11-16T17:11:44.171Z",
+      "dateKst": "2026-11-17",
+      "scope": "exact CI-exception image plus reviewed Projects read-only private transport; writer disabled",
+      "basis": "User explicitly approved Persona source90e0825/image33e19141 and requested deployment and repeated protected-workflow verification"
+    }
   },
   "track": {
     "codeRevision": "3e7fec85f08fdd8f7ef37d9dadb9fa260880b12e",
