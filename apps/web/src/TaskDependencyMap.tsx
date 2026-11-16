@@ -7,6 +7,7 @@ import { withAssistantExecutions } from "../../../packages/projection/assistant-
 import { dependencyGrants, projectDependenciesFlow } from "../../../packages/projection/project-dependencies-flow.ts";
 import { pollTaskDependencies, type DependencySnapshot } from "./task-dependencies-client.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
+import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import "@xyflow/react/dist/style.css";
@@ -125,6 +126,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
         <aside className="flow-inspector" aria-label="선택한 업무 또는 관계 상세" aria-live="polite">
           {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>
             <dl>{node.details.map((d) => <div key={d.label}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}</dl>
+            {node.kind === "task" && node.taskRef && <ProjectsTaskLink sources={sources} task={node.taskRef} />}
             {node.runKey && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Run 실행 근거 보기</button>}
             {onSelectAssistant && (node.kind === "assistant-execution" || node.kind === "assistant-role") && <button className="button-secondary" onClick={() => onSelectAssistant({ sourceId: node.sourceId,
               executionId: node.kind === "assistant-execution" ? node.id : node.details.find(detail => detail.label === "Execution ID")!.value })}>Assistant 실행 Trace 보기</button>}

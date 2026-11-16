@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { RunView, RelationView, SourceView } from "../../../packages/contracts/index.ts";
 import type { AssistantExecutionView } from "../../../packages/contracts/assistant-view.ts";
@@ -83,6 +84,7 @@ export function GroupWorkspaceMap({ tasks, runs, executions, sources, relations,
       height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" />
       <aside className="flow-inspector" aria-label="묶음 node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={model.nodes} edges={model.edges} />
         : node ? <><small>{missionUnitKind(node) === "invocation-reference" ? "호출 참조 · 생명주기 미관측" : node.kind} · {groupStatusLabel(node.kind, node.status)}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map(item => <div key={item.label}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
+          {node.kind === "task" && node.taskRef && <ProjectsTaskLink sources={sources} task={node.taskRef} />}
           {node.runKey && <button type="button" onClick={() => onRun(node.runKey!)}>이 실행의 흐름 펼치기</button>}
           {node.assistantExecutionRef && <button type="button" onClick={() => onAssistant(node.assistantExecutionRef!.sourceId, node.assistantExecutionRef!.executionId)}>이 Assistant 실행 펼치기</button>}</>
           : edge ? <><h3>{edge.label}</h3><p>{edge.kind}</p><p className="edge-evidence-detail">{edge.detail}</p><FlowGroupEdgeEvidence edgeKey={edge.key} state={grouping} nodes={model.nodes} /></>

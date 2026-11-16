@@ -135,6 +135,8 @@ export interface SourceView {
   lastObservedAt: string | null;
   detail: string;
   capabilities: string[];
+  /** Registered browser destination; it carries no source/API credentials. */
+  uiBaseUrl?: string;
   authorizedProjectIds?: string[];
   /** Optional per-Run grant; absence preserves existing source authorization. */
   authorizedRunIds?: string[];

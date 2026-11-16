@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
-import type { EventView, RelationView, RunView } from "../../../packages/contracts/index.ts";
+import type { EventView, RelationView, RunView, SourceView } from "../../../packages/contracts/index.ts";
+import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
 import { missionFlow, missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
@@ -41,10 +42,11 @@ function cardStatus(value: string): "idle" | "running" | "complete" | "error" {
 }
 type Choice = { kind: "node" | "edge"; key: string } | null;
 
-export function MissionFlow({ actor, run, runs, relations, events, mode = "mission", hasMore = false, onSelectRun, onUnauthorized, scopeNodeKeys }: {
+export function MissionFlow({ actor, run, runs, relations, events, sources = [], mode = "mission", hasMore = false, onSelectRun, onUnauthorized, scopeNodeKeys }: {
   actor: string; run: RunView; runs: RunView[]; relations: RelationView[]; events: EventView[];
   mode?: "mission" | "execution"; hasMore?: boolean; onSelectRun: (key: string) => void; onUnauthorized: (reason: string) => void;
   scopeNodeKeys?: readonly string[];
+  sources?: SourceView[];
 }) {
   const [choice, setChoice] = useState<Choice>(null);
   const [fitVersion, setFitVersion] = useState(0);
@@ -115,6 +117,7 @@ export function MissionFlow({ actor, run, runs, relations, events, mode = "missi
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
         {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
           <dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
+          {selectedNode.kind === "task" && selectedNode.taskRef && <ProjectsTaskLink sources={sources} task={selectedNode.taskRef} />}
           {selectedNode.sequences.length > 0 && <p className="flow-evidence">근거 seq {selectedNode.sequences.join(", ")}</p>}
           {selectedNode.runKey && selectedNode.runKey !== run.key && <button className="button-secondary" onClick={() => onSelectRun(selectedNode.runKey!)}>이 Run의 실행 근거 보기</button>}
           <h4>연결 {neighbours.length}건</h4><div className="flow-neighbours">{neighbours.map((edge) => <button className="flow-list-choice" key={edge.key} onClick={() => grouping.revealEdge(edge.key)}><strong>{edge.label}</strong><span>{nodeName(edge.from)} → {nodeName(edge.to)}</span></button>)}</div>
