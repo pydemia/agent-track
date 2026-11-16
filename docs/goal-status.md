@@ -2,14 +2,23 @@
 
 ## 현재 판정 — 2026-11-17 KST
 
-11월17일 사용자가 정확한 Persona source90e0825/image33e19141의 CI 예외 배포를
-승인해 Track 작업을 재개했다. 현재 새 백업·후보 기동·복구 경로 검증 뒤 전환을
-진행 중이며, 운영 앱은 아직4a9ad42/b68ece66이다. writer는 비활성이다.
-현재의 승인으로 이전 승인 대기 조건은 닫혔지만 실제 보호 업무 반복 수용은 아직
-미완료다. [정확한 승인·후보 상태](projects-read-transport-candidate.json)를 따른다.
-[이전 잔여 경계 감사](remaining-gates-audit-20261117.json)는 당시 차단 기록이다.
+11월17일 승인된 Persona source90e0825/image33e19141을 운영에 배포했다.
+Track API047b4d6·web474676f와 기존 DB·인증은 유지했고 writer는 비활성이다.
+새 암호화 백업·독립 복원, 격리 새/이전 이미지 기동, 현재 복구 경로의 읽기 전용
+사전 검사와 운영 전환·기동 보존 검사를 통과했다. 다른 원격13개 구성 요소,
+로컬 설정47개·다른 프로세스18개, 기존 이벤트8개·역사 binding r3도 유지됐다.
 
-현재 Persona source4a9ad42/imageb68ece66과 Track API047b4d6·web474676f를 운영 중이다.
+보호 업무 snapshot/events/evidence 3회씩9개는 모두200이었다. 그러나90초
+SSE26개 중2개에서 출처가 끊기고 Run이 숨겨졌다. Edge 최초 events404·선택
+해제를 관측했고 재선택 후8events·4nodes/3edges/3groups·Native edge seq4,5를
+확인했다. 한 실패는 metadata RPC291ms/503·queue0으로, 이전10초 deadline
+원인과 구별한다. 상위 수용15/21·71.4%와 AT-14 미수용은 유지한다.
+CI 승인 대기는 해소됐지만 Persona CI 실패를 성공으로 바꾸지 않는다.
+[현재 배포·보호 업무 재검증](projects-read-transport-deployment.md)과
+[정확한 운영·남은 실패 근거](projects-read-transport-deployment-verification.json)를 우선한다.
+[현재 배포·남은 오류 Note](https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0)는 본문과 색인 재확인까지 통과했다.
+이하의 이전 운영 revision·승인 대기는 당시 이력이며 현재 상태를 대신하지 않는다.
+
 일반 Native 문맥의 무관한 Assistant 수집·순차 조회·전체 소유자 투영 비용을 수정했다.
 같은2초 제한에서 Task281ms/1Run·Project215ms/4Run과 실제 Edge 요약·목록 배지의
 복구를 확인했다. 원본 Task r1/todo와 성공 Run의 상태를 구분했고 원본 인증·업무
@@ -106,7 +115,7 @@ AT-06/09/12/14/15/20이 남는다. 전체 필수 하위 결과 분모는 미확�
 앞선 Track186ff8d의 Windows·Ubuntu CI는 모두 통과했다. Persona CI는 검사 시작 전
 실패 상태이며 사용자가 승인한 정확한 source/image 예외를 적용했다.
 [정체 원인과 수정·잔여](assistant-reader-promotion.md)에 구분했다.
-[최신 명령 이력 복구·Windows 보완 검사 Note](https://note.pydemia.ai/#/w/personal-note-production/page/ce13cfe6-0325-4010-966c-5bfa290c5b36)는 원문 재조회와 검색 색인 반영까지 확인했다.
+[최신 Persona 배포·보호 업무 재검증 Note](https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0)는 원문 재조회와 검색 색인 반영까지 확인했다.
 [정확한 후보와 배포 검토](projects-read-transport-candidate.json)에 기존/새 이미지,
 설정 변경 한 항목·전달기·검사·미승인 상태를 연결했다.
 

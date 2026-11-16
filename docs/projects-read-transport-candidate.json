@@ -1,7 +1,7 @@
 {
   "schema": "agent-track-projects-transport-candidate-v1",
   "recordedAt": "2026-11-16T12:19:11.592226+00:00",
-  "phase": "approved-current-rollout-preparation",
+  "phase": "deployed-protected-api-passed-sse-instability-remains",
   "persona": {
     "source": "90e082510adee7e8e29c058490066cb86efcfdcc",
     "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
@@ -124,21 +124,36 @@
       "modified": false
     },
     "existingBridgeLifecycleDependency": true,
-    "productionConfigChanged": false,
-    "relayStarted": false,
-    "candidateActivated": false,
+    "productionConfigChanged": true,
+    "relayStarted": true,
+    "candidateActivated": true,
     "databaseRestored": false,
     "authenticationChanged": false,
     "newCredentials": 0,
     "writerActivated": false,
     "modelRequests": 0,
-    "rollback": "Retain current image/environment; preserve current DB and credentials. Stop only relay owned by this operation. Refresh existing lifecycle runbook evidence before transition."
+    "rollback": "Previous original5f12 container retained stopped; current DB/credentials retained; exact-current-plan recovery script read-only preflight passed; production rollback not performed. Verified encrypted snapshots retained."
   },
   "acceptance": {
     "upperAccepted": 15,
     "upperTotal": 21,
     "upperPartialWeight": 0,
     "wholeSubresultDenominator": null,
+    "stableWholeWorkflowAccepted": false
+  },
+  "deployment": {
+    "operationId": "89aa1266-d2a6-4fce-9b05-d723dc9a9f09",
+    "containerId": "c2aa189f693d023803cfc956dac8f50b18188108c3793467bafe13f63c826f21",
+    "process": {
+      "id": "c2aa189f693d023803cfc956dac8f50b18188108c3793467bafe13f63c826f21",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+      "running": true,
+      "pid": 1894170,
+      "startedAt": "2026-11-16T17:49:34.230052079Z"
+    },
+    "verification": "projects-read-transport-deployment-verification.json",
+    "deployed": true,
     "stableWholeWorkflowAccepted": false
   }
 }

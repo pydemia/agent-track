@@ -1,0 +1,494 @@
+{
+  "schema": "agent-track-persona-projects-read-deployment-v1",
+  "recordedDateKst": "2026-11-17",
+  "recordedAt": "2026-11-16T18:00:28.603737+00:00",
+  "phase": "deployed-protected-api-passed-sse-instability-remains",
+  "operationId": "89aa1266-d2a6-4fce-9b05-d723dc9a9f09",
+  "approval": {
+    "approved": true,
+    "sourceRevision": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "candidateImage": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "recordedAt": "2026-11-16T17:11:44.171Z",
+    "dateKst": "2026-11-17",
+    "scope": "exact CI-exception image plus reviewed Projects read-only private transport; writer disabled",
+    "basis": "User explicitly approved Persona source90e0825/image33e19141 and requested deployment and repeated protected-workflow verification"
+  },
+  "persona": {
+    "sourceRevision": "90e082510adee7e8e29c058490066cb86efcfdcc",
+    "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "containerId": "c2aa189f693d023803cfc956dac8f50b18188108c3793467bafe13f63c826f21",
+    "process": {
+      "id": "c2aa189f693d023803cfc956dac8f50b18188108c3793467bafe13f63c826f21",
+      "name": "/pydemia-persona-assistant-public-428cb10",
+      "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+      "running": true,
+      "pid": 1894170,
+      "startedAt": "2026-11-16T17:49:34.230052079Z"
+    },
+    "sourceCiPassed": false,
+    "ciExceptionApproved": true,
+    "sourceCiReason": "GitHub billing/spending limit; zero steps started; not treated as CI success"
+  },
+  "track": {
+    "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+    "manifestSha256": "143a04a1bffb9f3c760ac033f2f3e4fb14c0a5c9b3d4e3edfd510ff1745dabf8",
+    "runtimeReplaced": false,
+    "cloneHelperRevision": "b938b3a767393abfacf7c3679de44cf5f9f3caba",
+    "cloneHelperCiRun": 43916233590,
+    "cloneHelperCiPassedBothOs": true,
+    "cloneUnitTestsPassed": 19,
+    "pythonTestsPassed": 53
+  },
+  "environmentDelta": {
+    "PERSONA_PROJECTS_READ_TRANSPORT_ORIGIN": "http://172.25.0.1:14325"
+  },
+  "security": {
+    "writerEnabled": false,
+    "newCredentials": 0,
+    "authenticationChanged": false,
+    "newProviderRuns": 0,
+    "databaseRestored": false,
+    "credentialsRestored": false,
+    "relayPubliclyBound": false,
+    "bridgeReplaced": false
+  },
+  "recovery": {
+    "retainedOriginalContainer": "5f12b1f46dfe07217f336e496a9e00805ab1674668896c0c6b3513aa22c153aa",
+    "retainedOriginalName": "/pydemia-persona-pre-reader-89aa1266-d2a",
+    "originalStopped": true,
+    "encryptedBackupDatabases": 2,
+    "backupRecords": [
+      {
+        "database": "work",
+        "startedAt": "2026-11-16T17:17:21.930Z",
+        "finishedAt": "2026-11-16T17:17:26.435Z",
+        "bytes": 45719552,
+        "sha256": "5f1f437f83ff04bbc2a1b6df14ec8693c3dbb690a8f473f2176a655da6426bf3",
+        "pages": 11162,
+        "pageSize": 4096,
+        "backup": {
+          "backupCalls": 1,
+          "heldReadTransaction": true,
+          "sourceWrites": 0,
+          "progressSteps": 43
+        },
+        "measurementSha256": "9ae8c19e1ff1097de94d856baf4992c844a2e20f787faf8a23d7a76a4720fff4",
+        "cipherBytes": 29946905,
+        "cipherSha256": "978a1bd6bbccbd7b5a5cf4f5423d1b871106d862516913a8b5047ad3ab482562",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      },
+      {
+        "database": "runtime",
+        "startedAt": "2026-11-16T17:17:26.437Z",
+        "finishedAt": "2026-11-16T17:30:14.219Z",
+        "bytes": 5203660800,
+        "sha256": "d550d29a6d3a18ac2e9a1dc4b39e8f475331a724722f7196fd87604969262c95",
+        "pages": 1270425,
+        "pageSize": 4096,
+        "backup": {
+          "backupCalls": 1,
+          "heldReadTransaction": true,
+          "sourceWrites": 0,
+          "progressSteps": 4962
+        },
+        "measurementSha256": "34088c06f293e9f831c8ed5bfa856f7e84d96a7b9cea088ce7e27a381b1f295e",
+        "cipherBytes": 806854307,
+        "cipherSha256": "d47acb1e66a07a3ba11094c8cba418f06f7e9242376a154ff42b4ad4323462b3",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      }
+    ],
+    "sameCopyNewImageHealth": 200,
+    "sameCopyOldImageHealth": 200,
+    "fullStartupPayloadsMatchedPerImage": 6,
+    "rollbackPathReadonlyPreflightPassed": true,
+    "productionRollbackPerformed": false
+  },
+  "preservation": {
+    "remoteProtectedComponents": 13,
+    "remoteSelectedFiles": {
+      "assistant": 33,
+      "avatar": 32,
+      "budget": 3
+    },
+    "workTables": 33,
+    "runtimeTables": 65,
+    "newTables": 0,
+    "workNonLeaseChanges": [],
+    "runtimeExpectedStartupChanges": {
+      "taskRevisions": 3,
+      "events": 6,
+      "fullPayloadsValidated": true
+    },
+    "reportAndSixArtifactsPinsPreserved": true,
+    "bootAdoptionAlreadyRunning": true,
+    "local": {
+      "pid": 60388,
+      "preservedFiles": 47,
+      "preservedProcesses": 18,
+      "webFilesBytesAndMimeMatched": 18,
+      "historyPreserved": true,
+      "sqliteIntegrity": "ok",
+      "pending": {
+        "receipts": 0,
+        "task_creation_receipts": 0,
+        "task_assignment_receipts": 0,
+        "approval_receipts": 0,
+        "successor_intents": 0,
+        "coordinator_command_intents": 0
+      },
+      "auth": [
+        {
+          "name": "anonymous",
+          "status": 401
+        },
+        {
+          "name": "forged",
+          "status": 401
+        }
+      ],
+      "publicProbes": [
+        {
+          "url": "https://track.pydemia.ai/",
+          "status": 302
+        },
+        {
+          "url": "https://track.pydemia.ai/api/snapshot",
+          "status": 401
+        },
+        {
+          "url": "https://trail.pydemia.ai/",
+          "status": 302
+        }
+      ]
+    },
+    "protectedEventHistory": {
+      "at": "2026-11-16T17:57:35.377Z",
+      "readOnly": true,
+      "oneTrackDatabaseReadTransaction": true,
+      "sourceDatabaseRestored": false,
+      "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+      "events": 8,
+      "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+      "eventMetadataPreserved": true,
+      "historicalBindingPreserved": true,
+      "taskBindingRevision": "3",
+      "cursor": "8",
+      "highWater": "8",
+      "liveAuthorizationOrGuiProof": false
+    }
+  },
+  "protectedReads": {
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "executionId": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "taskId": "e4470864-d249-445b-9f0b-e4516fab6fc9",
+    "taskCurrentRevision": "5",
+    "taskState": "in_review",
+    "historicalBindingRevision": "3",
+    "allNineHttp200": true,
+    "rounds": [
+      {
+        "startedAt": "2026-11-16T17:50:07.868Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-16T17:50:07.869Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 1852,
+            "endedAt": "2026-11-16T17:50:09.722Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-16T17:50:09.731Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 2281,
+            "endedAt": "2026-11-16T17:50:12.012Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-16T17:50:12.413Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 2353,
+            "endedAt": "2026-11-16T17:50:14.766Z"
+          }
+        ]
+      },
+      {
+        "startedAt": "2026-11-16T17:50:22.532Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-16T17:50:22.533Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 1653,
+            "endedAt": "2026-11-16T17:50:24.186Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-16T17:50:24.393Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 2006,
+            "endedAt": "2026-11-16T17:50:26.399Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-16T17:50:26.818Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 2294,
+            "endedAt": "2026-11-16T17:50:29.112Z"
+          }
+        ]
+      },
+      {
+        "startedAt": "2026-11-16T17:50:40.593Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-16T17:50:40.595Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 4969,
+            "endedAt": "2026-11-16T17:50:45.565Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-16T17:50:45.753Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 2397,
+            "endedAt": "2026-11-16T17:50:48.150Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-16T17:50:48.338Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 3752,
+            "endedAt": "2026-11-16T17:50:52.090Z"
+          }
+        ]
+      }
+    ],
+    "sse": {
+      "durationMs": 90000,
+      "snapshots": 26,
+      "connectedWithTarget": 24,
+      "disconnected": [
+        {
+          "at": "2026-11-16T17:50:38.855Z",
+          "sourceState": "disconnected",
+          "targetPresent": false
+        },
+        {
+          "at": "2026-11-16T17:51:20.130Z",
+          "sourceState": "disconnected",
+          "targetPresent": false
+        }
+      ],
+      "authorizationRevoked": false,
+      "ending": "bounded-observation-ended",
+      "stabilityAccepted": false
+    }
+  },
+  "gui": {
+    "existingEntraOwner": true,
+    "browser": "Edge",
+    "traceEvents": 8,
+    "selectedModel": "gpt-6.1-sol",
+    "nodes": 4,
+    "edges": 3,
+    "groups": 3,
+    "lineageInspectorSequences": [
+      "4",
+      "5"
+    ],
+    "usageScopes": [
+      "latest-model-request",
+      "native-session"
+    ],
+    "artifactMetadata": 1,
+    "firstEvents404": true,
+    "selectionLostDuringTransientSourceFailure": true,
+    "reselectionRecovered": true,
+    "allWorkflowAccepted": false
+  },
+  "remaining": {
+    "failureBoundary": "assistant.native-window rpc.nativeMetadata HTTP503 in291ms; queue0 and no10s deadline reached",
+    "underlyingCauseConfirmed": false,
+    "directSignedNativeFollowup": {
+      "samples": 8,
+      "http200": 8,
+      "newCredentials": 0,
+      "workflowAcceptance": false
+    },
+    "nextInvestigation": [
+      "Retain upstream HTTP status/body category through Persona metadata error mapping without logging credentials or payloads",
+      "Correlate short503 with public Demian gateway and dedicated Native API; do not widen authority or deadlines",
+      "Verify fresh-authority recovery of selection and Trace during transient failure"
+    ],
+    "upperAccepted": 15,
+    "upperTotal": 21,
+    "upperPercent": 71.4,
+    "upperDeltaPercentagePoints": 0,
+    "wholeSubresultDenominator": null,
+    "at14Accepted": false,
+    "eta": null
+  },
+  "qaPreparationCorrections": {
+    "sqliteNullPrototypeVsJson": "Full normalized content equality passed; no comparison fields removed",
+    "verificationAssets": "Current owned non-secret public fixture read mode fixed",
+    "failedProofsRetained": true,
+    "candidateNotBootedTwiceWhenResumingCopy": true
+  },
+  "qaCopyCleanup": {
+    "phase": "current-owned-qa-copies-removed",
+    "productionVolumesRemoved": 0,
+    "oldOperationsTouched": false,
+    "removedVolumes": [
+      "agent-track-projects-preview-89aa1266-d2a",
+      "agent-track-projects-preview-v2-89aa1266-d2a",
+      "agent-track-projects-preview-v3-89aa1266-d2a"
+    ],
+    "encryptedBackupRetained": true,
+    "productionStatePreserved": true,
+    "operatingProcessPreserved": true,
+    "finishedAt": 1794851983.0111778
+  },
+  "postNoteOperatingObservation": {
+    "observedAt": "2026-11-16T18:04:01.934897+00:00",
+    "health": 200,
+    "pid": 1894170,
+    "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+    "protectedComponentsUnchanged": 13,
+    "guardsEffective": true,
+    "selectedFilesPreserved": true,
+    "oldImageRetainedStopped": true,
+    "databaseRestored": false,
+    "credentialsRestored": false
+  },
+  "notePublication": {
+    "receipt": "projects-read-transport-deployment-note-publication.json",
+    "url": "https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0",
+    "sourceMatches": true,
+    "indexReady": true
+  }
+}

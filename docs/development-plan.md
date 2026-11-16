@@ -1,8 +1,24 @@
 # Agent Track 개발계획
 
-11월17일 Persona90e0825/image33e19141의 정확한 CI 예외 배포 승인을 받아 작업을 재개했다. 새 백업·후보 기동/복구 검증 후 전환하고 같은 보호 업무의 snapshot/events/evidence·SSE·그룹/Trace를 반복 확인한다. [이전 외부 조건 감사](remaining-gates-audit-20261117.json)와 현재의 승인·배포 상태를 구별한다.
+11월17일 Persona90e0825/image33e19141의 정확한 CI 예외 배포 승인을 받아
+운영 전환과 보호 업무 반복 검증을 진행했다. 현재 Track API047b4d6/web474676f,
+Persona90e0825/33e19141을 운영하며 writer는 비활성이다.
 
-현재 판정(2026-11-17): Persona4a9ad42·Track API047b4d6/web474676f를 운영 중이다. 일반 Native Trace에 이어 명령 이력·같은 ID 복구 GET도 무관한 보호 수집에서 분리했다. 운영916ms/200·not_enabled와 실제 Edge 상태를 확인했으며 writer는 비활성이다. [현재 명령 조회 복구](command-history-scoped-reads.md)를 우선한다. Persona90e 후보는 공간 확보 뒤 Windows 전체1,345개 중1,331통과·실패0·환경 제외14개를 확인했고 CI/예외 승인은 별도로 남는다. 실제 모델 요청302ms/1개·lineage253ms/2개·산출물233ms/1개와 Edge의17events·3nodes/2edges/1group·모델 요청 edge 상세를 확인했다. 모델 요청 종료는 미확인이고 조직화 지원은 disconnected다. [현재 Trace·잔여](ordinary-evidence-scoped-reads.md), [앞선 요약 복구](context-summary-scoped-reads.md), [원본 업무 이동](task-origin-navigation.md)을 따른다. 기존 승인 Persona4a9ad42의 보호 업무 재측정은1차 성공/2차 실패여서 AT-14 반복 안정성은 미수용이다. Persona90e0825/image33e19141의 별도 CI 예외 승인은 대기 중이다. 후보 전환과 동일 보호 업무 반복 검증, 현재 실제 peer 조회 경계가 남는다. 일반 조직화 지원은 원본 capabilities의503/worker_capabilities_unavailable로 확인했으며 worker는 시작하지 않았다. [조회 후보](projects-read-transport.md), [peer 경계](peer-read-path-availability.json), [현재 수용표](goal-status.md)를 우선한다. 수용15/21·71.4% 유지, 전체 하위 분모 미확정·ETA 산정 불가다. 명령/복구·peer/다중 장치·원본 Demian 인증도 남는다. 아래 이전 날짜의 상태는 당시 이력이다.
+새 백업·격리 후보/복구 이미지 기동·현재 계획의 복구 경로 사전 검사와 운영 보존을
+통과했다. 같은 보호 업무의 snapshot/events/evidence9개가 모두200이었고
+Edge에서8events·모델·usage·산출물과4nodes/3edges/3groups·관계 inspector를
+확인했다. 그러나90초 SSE26개 중2개에서 출처가 끊겼고 최초 events404·선택
+해제가 남았다. 한 실패는 metadata RPC291ms/503·queue0이므로 종전10초
+deadline 개선과 구별한다. 다음 작업은 Persona metadata 오류 매핑에서 원본
+HTTP 상태/응답 분류를 비노출로 식별하고 공개 Demian 경로·전용 API와 대조하는
+것이다. 새 인가 확인 뒤 선택·Trace 복구도 검증한다. timeout·권한 범위를 늘리지 않는다.
+
+[현재 배포·반복 검증](projects-read-transport-deployment.md),
+[정확한 운영 근거](projects-read-transport-deployment-verification.json),
+[현재 수용표](goal-status.md)를 따른다. 상위 수용15/21·71.4%, AT-14 미수용을
+유지하며 원본 인증·명령 실기·peer/다중 장치도 남는다. 하위 분모와 ETA는 미확정이다.
+Persona CI 예외 승인은 해소됐지만 CI 자체는 결제/한도에 따른 검사 시작 전 실패다.
+아래의 이전 revision·승인 대기는 당시 이력이다.
 
 최신 [reader 지연·동시 갱신 수정](assistant-reader-coordination.md)은 실제 기존
 업무의 격리 SSE·상세 조회를 통과했다. 후속 Track 운영 API는06dd8c7·web은27e00a8이다.

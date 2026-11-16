@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "b9c08a46-0300-405a-afab-7ae8ebf3a301",
+  "title": "Persona 배포와 보호 업무 재검증 — 2026-11-17",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0",
+  "workspaceId": "personal-note-production",
+  "pageId": "4037a1c3-f092-41d5-90fc-545a92d091f0",
+  "revision": "4c0636feacaa8a99dcd9a35adb97d46931e192b6de01f20574ee85e0039b5360",
+  "sourceSha256": "3f7742e58247e5774065dd0f8e255ba6977d5676d96fc3604a7bc5b8c375cda0",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-16T18:02:23.689Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/projects-read-transport-deployment.md",
+  "markdownSha256": "46a3f34db561eeb98e299eb76b6269c435b2639b467056d5c560fe78068245af",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/ce13cfe6-0325-4010-966c-5bfa290c5b36",
+  "authStateAtDispatch": "Existing Entra owner and Note binding; exact user-approved Persona90e0825/33e19141 is operating; writer disabled; no new consent or credential"
+}
