@@ -18,6 +18,17 @@ interface RunRow {
 }
 interface EventRow { ordinal: number; payload: string; received_at: string }
 
+function projectsBrowserDestination(source: SourceView): string | undefined {
+  const value = source.uiBaseUrl;
+  if (source.kind !== "projects" || source.state !== "connected" ||
+      !source.authorizedProjectIds?.length || !value || value.length > 2000 || value.trim() !== value) return;
+  try {
+    const url = new URL(value);
+    if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return;
+    return url.href;
+  } catch { return; }
+}
+
 export class Store {
   readonly db: DatabaseSync;
   private viewEpoch = randomUUID();
@@ -213,7 +224,11 @@ export class Store {
       viewEpoch: this.viewEpoch, viewVersion: String(++this.viewVersion),
       revision: String(revision.value), generatedAt: new Date(now).toISOString(), user,
       runs: runs.sort((a, b) => b.observedAt.localeCompare(a.observedAt)),
-      sources: sources.map(({ uiBaseUrl: _url, ...source }) => source), relations,
+      sources: sources.map((configured) => {
+        const { uiBaseUrl: _url, ...source } = configured;
+        const uiBaseUrl = projectsBrowserDestination(configured);
+        return uiBaseUrl ? { ...source, uiBaseUrl } : source;
+      }), relations,
     };
   }
 
