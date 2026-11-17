@@ -5,6 +5,7 @@ import { RunBindingPanel } from "./RunBindingPanel.tsx";
 import { RunApprovals } from "./RunApprovals.tsx";
 import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
+import { reconcileRunSelection } from "./run-selection.ts";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { FileEvidencePanel } from "./FileEvidencePanel.tsx";
 import { MissionOverview } from "./MissionOverview.tsx";
@@ -136,6 +137,7 @@ export function App() {
   const sidebarRef = useRef<HTMLElement>(null);
   const source = useRef<EventSource | null>(null);
   const snapshotOrder = useRef(new SnapshotOrder());
+  const snapshotActor = useRef<string | null>(null);
   const snapshotGeneration = useRef(0);
   const snapshotRequest = useRef<AbortController | null>(null);
   const eventGeneration = useRef(0);
@@ -157,6 +159,7 @@ export function App() {
   }, []);
 
   const clearPrivateData = useCallback((reason: string) => {
+    snapshotActor.current = null;
     snapshotGeneration.current += 1;
     snapshotRequest.current?.abort();
     eventGeneration.current += 1;
@@ -189,6 +192,15 @@ export function App() {
     source.current = null;
   }, []);
 
+  const applySnapshot = useCallback((value: Snapshot) => {
+    const actorChanged = snapshotActor.current !== null && snapshotActor.current !== value.user;
+    snapshotActor.current = value.user;
+    setSelectedKey(key => reconcileRunSelection(key, value, actorChanged));
+    setSnapshot(value);
+    setHealth("ok");
+    setPageError("");
+  }, []);
+
   const loadSnapshot = useCallback(async () => {
     snapshotRequest.current?.abort();
     const controller = new AbortController();
@@ -207,14 +219,11 @@ export function App() {
       if (!current()) return;
       if (!checkedSnapshot(result)) throw new Error("스냅샷 응답 형식이 올바르지 않습니다.");
       if (!snapshotOrder.current.accept(result)) return;
-      setSnapshot(result);
-      setHealth("ok");
-      setPageError("");
-      setSelectedKey((current) => current && result.runs.some((item) => item.key === current) ? current : "");
+      applySnapshot(result);
     } catch (error) {
       if (current()) { setHealth("unavailable"); setPageError(error instanceof Error ? error.message : "스냅샷을 불러오지 못했습니다."); }
     }
-  }, [clearPrivateData]);
+  }, [clearPrivateData, applySnapshot]);
 
   const connectStream = useCallback(() => {
     source.current?.close();
@@ -227,9 +236,7 @@ export function App() {
       try {
         const value: unknown = JSON.parse((event as MessageEvent<string>).data);
         if (checkedSnapshot(value) && snapshotOrder.current.accept(value)) {
-          setSnapshot(value);
-          setHealth("ok");
-          setPageError("");
+          applySnapshot(value);
         }
       } catch { /* A malformed stream frame does not replace the last valid snapshot. */ }
     });
@@ -237,7 +244,7 @@ export function App() {
       if (source.current === stream) clearPrivateData("접근 권한이 해제되어 실행 데이터를 지웠습니다.");
     });
     stream.onerror = () => { if (source.current === stream) { setStreamState("disconnected"); void loadSnapshot(); } };
-  }, [clearPrivateData, loadSnapshot]);
+  }, [clearPrivateData, loadSnapshot, applySnapshot]);
 
   useEffect(() => {
     void loadSnapshot();
