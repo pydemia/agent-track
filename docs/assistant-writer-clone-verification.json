@@ -1,0 +1,97 @@
+{
+  "schema": "assistant-writer-clone-verification-v1",
+  "recordedAt": "2026-11-17T16:11:05.654335+00:00",
+  "stage": "implementation-and-isolated-Docker-create",
+  "moduleSha256": "f6965078083c7eea774fe4c6278126cdfe32ca548c65dd36389d9a76ac0cb5a3",
+  "tests": {
+    "new": 8,
+    "newBefore": "8 tests errored because writer clone functions did not exist; not a production bug reproduction",
+    "newAfter": "pass",
+    "relatedNativePython": 61,
+    "relatedFailures": 0,
+    "command": "python3.13 -m unittest discover -s tests -p 'assistant_native_*_test.py'",
+    "scope": "Synthetic Python only; no runtime grant or provider execution"
+  },
+  "liveInput": {
+    "phase": "writer-clone-live-input-prepared",
+    "at": 1794931505.2457442,
+    "readOnly": true,
+    "moduleSha256": "f6965078083c7eea774fe4c6278126cdfe32ca548c65dd36389d9a76ac0cb5a3",
+    "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+    "sourceRevision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+    "sameProcessPid": 266231,
+    "environmentAdditions": 1,
+    "readonlyMountAdditions": 1,
+    "existingMountsPreserved": 13,
+    "imageAndSourceUnchanged": true,
+    "originalInspectUnchanged": true,
+    "dockerCreatePerformed": false,
+    "volumeCreated": false,
+    "credentialCreated": false,
+    "grantActivated": false,
+    "commandsDispatched": 0,
+    "returnedSensitiveRequestSuppressed": true,
+    "verificationScope": "Pure constructor accepted actual current Docker inspect; no Docker create/start or actual writer authorization tested"
+  },
+  "dockerQa": {
+    "operationId": "7f510ac2-7fbb-4d06-baa1-78005acdc8b7",
+    "startedAt": 1794931797.463522,
+    "scope": "Isolated Docker create/inspect only; no app start or writer grant",
+    "moduleSha256": "f6965078083c7eea774fe4c6278126cdfe32ca548c65dd36389d9a76ac0cb5a3",
+    "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+    "modelRequests": 0,
+    "grantActivated": false,
+    "commandsDispatched": 0,
+    "containersStarted": 0,
+    "productionStateMounted": false,
+    "credentialsCreated": false,
+    "phase": "writer-clone-isolated-docker-creation-verified",
+    "exactConstructorAndVerifierPassed": true,
+    "readonlyMount": true,
+    "mountMode": "z",
+    "noCopy": true,
+    "networkMode": "none",
+    "rootFilesystemReadonly": true,
+    "candidatePid": 0,
+    "oldProductionContractPreserved": true,
+    "ownedContainersRemoved": 2,
+    "cleanupPendingContainers": [],
+    "ownedVolumeRemoved": true,
+    "productionStillPreservedAfterCleanup": true,
+    "finishedAt": 1794931798.112967
+  },
+  "actualCandidateSelection": {
+    "at": "2026-11-17T15:59:20.926Z",
+    "readOnly": true,
+    "status": 200,
+    "commandsDispatched": 0,
+    "newCredentials": 0,
+    "executions": 1,
+    "hasMore": false,
+    "states": {
+      "completed": 1
+    },
+    "candidates": []
+  },
+  "operatingWriterActivated": false,
+  "actualProviderCommandVerified": false,
+  "newCredentials": 0,
+  "productionCommandsDispatched": 0,
+  "newEntraConsent": false,
+  "upperAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "at09": "partial"
+  },
+  "remaining": [
+    "Select/create one authorized disposable eligible QA execution and its existing runtime path",
+    "Prepare separate expiring execution-only writer grant/credential; image-only approval preserves original privileges",
+    "Current production lifecycle plan/backup/state verification and actual app writer authentication",
+    "Actual owner/provider dispatch and same-ID lost-response recovery; preserve uncertain receipts"
+  ],
+  "sourceFiles": [
+    "deploy/assistant/native_clone.py",
+    "tests/assistant_native_writer_clone_test.py"
+  ],
+  "previousProductionRollout": "post-reboot-deployment-verification-20261118.json"
+}

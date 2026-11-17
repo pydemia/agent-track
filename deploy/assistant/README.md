@@ -60,3 +60,29 @@ python -m unittest discover -s tests -p 'assistant_native_*_test.py'
 운영 현황은 [수용 기준표](../../docs/goal-status.md)와 현재 검증 기록을 따른다.
 원격 후보 앱 기동, image 배포, native Run 위임, 전체 WorkCoordinator/Projects/
 Note/desktop/Track 업무 수용은 서로 구별한다.
+
+## 별도 writer 설정의 전환 준비
+
+`writer_clone_request`·`verify_writer_clone`는 이미 source stamp가 고정된
+같은 이미지에 다음 두 항목만 추가한다.
+
+- `PERSONA_TRACK_COMMAND_CONFIG_FILE=/run/secrets/agent-track-writer/grant.json`
+- `/run/secrets/agent-track-writer`의 별도 named volume: 읽기 전용·NoCopy
+
+입력 `candidate`는 기존 image clone과 같은 네 필드이며 현재 image와 모든
+source label이 같아야 한다. `addon`은 `volumeName`·`volumeMountpoint`다.
+기존 writer 설정 덮어쓰기, volume 재사용, parent/child mount shadowing,
+관계없는 환경·mount·network·권한 변경을 거절한다. grant·secret·volume을
+생성하거나 Docker API·운영 전환을 실행하는 함수는 아니다. 반환 요청에는
+기존 credential이 포함되므로 출력·파일 저장·커밋하지 않는다.
+
+호출자는 별도로 새 volume의 engine·소유권·실제 mountpoint·파일 무결성과
+권한을 확인해야 한다. writer grant에는 현재 불변 owner·Entra 사용자와
+명시적 execution 범위·유효 기간이 필요하며 기존 reader/proxy key와 다른
+secret을 사용한다. grant의 내용·권한은 이 clone 함수가 검증하지 않는다.
+실제 전환에는 현재 grant·candidate·data·process에 맞는 lifecycle plan과
+보존 검증을 연결한다. 이전 이미지 배포의 같은 권한 유지 승인은 새 writer
+권한을 활성화하는 근거로 사용하지 않는다.
+
+[현재 구현·실제 Docker 생성 검사 범위](../../docs/assistant-writer-clone.md)를
+따른다. 이 준비 코드만으로 AT-09의 실제 명령·복구 수용을 완료하지 않는다.
