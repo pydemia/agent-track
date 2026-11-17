@@ -1,0 +1,75 @@
+{
+  "at": "2026-11-17T15:53:24.787Z",
+  "readOnly": true,
+  "commandsDispatched": 0,
+  "newCredentials": 0,
+  "checks": [
+    {
+      "label": "coordinator",
+      "status": 200,
+      "availability": {
+        "runKey": "WyJkZW1pYW4tYXNzaXN0YW50LW93bmVyIiwiNjBjY2E2OGQtOTVkMS00ZDk5LTk2M2EtYzI1NTRlMGRmMzQ3Il0",
+        "state": "unsupported",
+        "availableKinds": [],
+        "detail": "not_enabled"
+      },
+      "receiptCount": 0
+    },
+    {
+      "label": "execution",
+      "status": 200,
+      "executionState": "completed",
+      "executionRevision": "72",
+      "roleStates": [
+        {
+          "state": "completed",
+          "runtimeState": null
+        }
+      ],
+      "taskState": "in_review",
+      "taskRevision": "5"
+    },
+    {
+      "label": "original-ordinary-command-context",
+      "status": 404,
+      "bodySuppressed": true
+    }
+  ],
+  "writerProviderConfiguration": {
+    "at": 1794930776.5633934,
+    "readOnly": true,
+    "currentImageMatches": true,
+    "writerConfigEnvConfigured": false,
+    "readerConfigEnvConfigured": true,
+    "writerActivated": false,
+    "newCredentials": 0,
+    "rawEnvironmentSuppressed": true
+  },
+  "configurationSummary": {
+    "authMode": "proxy",
+    "allowedActors": 1,
+    "ordinaryRunCommandUsers": 0,
+    "assistantCommandUsers": 0,
+    "assistantCommandCredentialConfigured": false,
+    "assistantCommandPrincipalConfigured": false
+  },
+  "interpretation": {
+    "ordinary": "Track owner source is original API8080; authenticated command-context GET404. Current source server has no command-context route. Dedicated provider upgrade and a permitted writer are distinct from this image rollout.",
+    "protected": "Current operating image contains writer implementation, but provider writer env and Track dedicated credential/principal/allowed user are absent. Current protected Execution completedr72/rolecompleted and Taskr5in_review are not a retry/resume positive-test target.",
+    "authorization": "Approved rollout explicitly retains current auth/privileges. No new writer principal/grant/secret was created; existing reader is not reused as writer.",
+    "nextConcreteConfiguration": [
+      "Choose or create an explicitly scoped disposable eligible test execution instead of re-running the completed business task",
+      "Define a separate agent-track-command principal/secret with explicit owner, execution scope and finite expiry",
+      "Prepare Persona writer grant/env/private transport and matching Track credential/principal/user patch as one reviewed change",
+      "Use explicit review/dispatch once and same-ID GET recovery; observe successor separately from intent_saved"
+    ]
+  },
+  "evidence": {
+    "trackSource": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "personaSource": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+    "personaImage": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+    "originalSourceRouteFile": "demian/apps/api/src/server.ts",
+    "currentSourceRepoInspectionOnly": true,
+    "liveHttp404Observed": true
+  }
+}

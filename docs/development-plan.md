@@ -16,7 +16,9 @@ Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),
-[선택 복구 검증](run-selection-recovery-verification.json)을 우선한다.
+[선택 복구 검증](run-selection-recovery-verification.json),
+[AT-14 원래 조건 대조](at14-acceptance-recheck-20261118.md),
+[명령 설정·제공자 경계](command-boundary-after-reboot-20261118.json)를 우선한다.
 아래의 서버 down·blocked·미배포 문구는 당시 이력이며 현재 상태를 대신하지 않는다.
 
 ### 직전 계획·연결 단절 이력 — 2026-11-17 KST
