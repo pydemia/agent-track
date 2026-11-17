@@ -1,0 +1,164 @@
+{
+  "schema": "agent-track-connectivity-boundary-v1",
+  "classification": "Tunnel connectivity outage confirmed; host outage cause unconfirmed",
+  "dns": {
+    "observedAt": "2026-11-17T08:43:13.712Z",
+    "readOnly": true,
+    "records": [
+      {
+        "hostname": "track.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+            "modifiedAt": "2026-11-11T10:51:53.372525Z"
+          }
+        ]
+      },
+      {
+        "hostname": "trail.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+            "modifiedAt": "2026-11-10T17:00:45.633684Z"
+          }
+        ]
+      },
+      {
+        "hostname": "assistant.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "a6baa705-ff55-49b2-a3c9-112d2d911fcf",
+            "modifiedAt": "2026-10-25T18:52:46.846268Z"
+          }
+        ]
+      },
+      {
+        "hostname": "projects.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+            "modifiedAt": "2026-10-25T17:41:45.069785Z"
+          }
+        ]
+      },
+      {
+        "hostname": "note.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+            "modifiedAt": "2026-10-25T18:00:45.205585Z"
+          }
+        ]
+      },
+      {
+        "hostname": "demian.pydemia.ai",
+        "records": [
+          {
+            "type": "CNAME",
+            "proxied": true,
+            "tunnelId": "ae8a568b-9b78-499f-9cd9-8dcdf396f352",
+            "modifiedAt": "2026-11-11T00:49:23.700381Z"
+          }
+        ]
+      }
+    ]
+  },
+  "tunnels": {
+    "observedAt": "2026-11-17T08:43:14.122Z",
+    "readOnly": true,
+    "tunnels": [
+      {
+        "id": "a6baa705-ff55-49b2-a3c9-112d2d911fcf",
+        "name": "persona-onprem-44f5d65f",
+        "status": "down",
+        "inactiveAt": "2026-11-17T02:22:22.811563Z",
+        "connectors": 0
+      },
+      {
+        "id": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+        "name": "ubuntu-server",
+        "status": "down",
+        "inactiveAt": "2026-11-17T02:22:10.303654Z",
+        "connectors": 0
+      }
+    ]
+  },
+  "ssh": {
+    "alias": "pydemia-server",
+    "port": 12202,
+    "sameBuildObservation": "connection timeout",
+    "restarted": false
+  },
+  "publicHttp": {
+    "observedAtApprox": "2026-11-17T08:40:00Z",
+    "track": 530,
+    "trail": 530,
+    "demian": 401,
+    "demianChallenge": "Basic",
+    "localDemianWeb": 200
+  },
+  "browser": {
+    "destination": "https://demian.pydemia.ai/",
+    "result": "ERR_INVALID_AUTH_CREDENTIALS",
+    "sessionSelected": false,
+    "authenticationChanged": false
+  },
+  "actions": {
+    "readOnlyCloudflare": true,
+    "dnsChanged": false,
+    "tunnelChanged": false,
+    "entraChanged": false,
+    "serverRebooted": false,
+    "productionImageCutover": false
+  },
+  "remaining": [
+    "Restore server/network access or existing connectors; no cause inferred from outage timing",
+    "Inspect the existing build job/result before any retry",
+    "Refresh full preservation baseline and complete production cold QA/preflight",
+    "Deploy approved image/web and repeat actual protected workflow"
+  ],
+  "operatingTrackSnapshot": {
+    "observedAt": "2026-11-17T08:46:16.046Z",
+    "status": 200,
+    "ownerAuthorized": true,
+    "sources": [
+      {
+        "id": "demian-local",
+        "state": "connected"
+      },
+      {
+        "id": "codex-local",
+        "state": "connected"
+      },
+      {
+        "id": "projects-native",
+        "state": "disconnected"
+      },
+      {
+        "id": "assistant-native",
+        "state": "disconnected"
+      },
+      {
+        "id": "desktop",
+        "state": "unsupported"
+      },
+      {
+        "id": "demian-assistant-owner",
+        "state": "disconnected"
+      }
+    ],
+    "protectedRunVisible": false,
+    "nativeCommandsDispatched": 0,
+    "credentialsPrinted": false
+  }
+}

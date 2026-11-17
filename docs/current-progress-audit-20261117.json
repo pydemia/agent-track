@@ -163,10 +163,21 @@
   "notePublication": "not attempted during server outage; new report remains repository document",
   "reportingChange": "Separate cumulative whole-requirement acceptance from the two newly implemented and verified changes; no fabricated whole-subresult percentage.",
   "automatedGoalControl": {
-    "observedStatus": "blocked",
-    "statusWasInheritedFromPriorRun": true,
+    "observedStatus": "active",
+    "statusWasInheritedFromPriorRun": false,
     "resumeControlExposed": false,
     "fullGoalMarkedComplete": false,
-    "workContinuedInCurrentTurn": true
+    "workContinuedInCurrentTurn": true,
+    "priorObservationStatus": "blocked"
+  },
+  "continuedAt": "2026-11-17T08:45:03.260950+00:00",
+  "continuation": {
+    "previousGoalTurnClassification": "progress",
+    "isolatedFrozenPairQa": "completed, both exact manifests; no operating cutover",
+    "connectivityEvidence": "connectivity-boundary-20261117.json",
+    "confirmedBoundary": "Both Linux-side Cloudflare tunnels down, zero connectors since approximately02:22UTC; Windows Demian tunnel healthy",
+    "outageRootCause": "unconfirmed",
+    "sameBuildRestarted": false,
+    "wholeRequirementDelta": 0
   }
 }

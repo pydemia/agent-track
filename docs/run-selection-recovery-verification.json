@@ -54,6 +54,60 @@
     "packages": 27,
     "rollbackManifestVerified": true,
     "coldQaCompleted": false,
-    "reason": "Existing SSH forwarding supervisor PID file changed while the server was unreachable; full production baseline was not frozen. No maintenance/stop/candidate-start phase was run."
+    "reason": "Full production preservation baseline remains required. Separate no-source frozen candidate/rollback cold starts passed; they do not satisfy production preflight.",
+    "isolatedFrozenPairQaCompleted": true
+  },
+  "isolatedFrozenPair": {
+    "qaId": "d52dad82-fa46-4086-93da-1ce4957ae153",
+    "at": "2026-11-17T08:39:59.942Z",
+    "operationId": "357de777-154a-4fd2-87d7-7bc591bebef4",
+    "isolatedFrozenPairOnly": true,
+    "deploymentPreflightSatisfied": false,
+    "fullNativePreservationBaselineVerified": false,
+    "operatingCutoverPerformed": false,
+    "sourceDatabaseRestored": false,
+    "originalApiRestarted": false,
+    "sourceOrModelRequests": 0,
+    "rawProofSha256": "dcfb750a22210e20b344eab9caf75d3bd107b10300b2f83b0d044b37fe67fe9b",
+    "backupSha256": "1ef85c3c19f114a2d5e291651ebd5fb0cf4a13d7145d39fc4b2c4076a536e25e",
+    "trackProcessAndConfigPreserved": true,
+    "releases": {
+      "candidate": {
+        "manifestSha256": "b675ffc95a6ba29410fc21f578767f6c720aaad273e792d7f2160e305fae17ba",
+        "files": 2050,
+        "packages": 27,
+        "rootStatus": 200,
+        "webFilesBytesAndMimeMatched": 18,
+        "emptySourceSnapshot": true,
+        "savedViewStatus": 200,
+        "childStopped": true,
+        "portReleased": true,
+        "allLegacyTablesAndSchemaPreserved": true,
+        "addedSchemaObjects": [],
+        "commandSchemaExact": true,
+        "commandTablesEmpty": true,
+        "retainedCandidateSchema": false,
+        "syntheticUnknownRowRetained": false,
+        "syntheticUnknownRowRemoved": false
+      },
+      "rollback": {
+        "manifestSha256": "143a04a1bffb9f3c760ac033f2f3e4fb14c0a5c9b3d4e3edfd510ff1745dabf8",
+        "files": 2050,
+        "packages": 27,
+        "rootStatus": 200,
+        "webFilesBytesAndMimeMatched": 18,
+        "emptySourceSnapshot": true,
+        "savedViewStatus": 200,
+        "childStopped": true,
+        "portReleased": true,
+        "allLegacyTablesAndSchemaPreserved": true,
+        "addedSchemaObjects": [],
+        "commandSchemaExact": true,
+        "commandTablesEmpty": true,
+        "retainedCandidateSchema": true,
+        "syntheticUnknownRowRetained": true,
+        "syntheticUnknownRowRemoved": true
+      }
+    }
   }
 }

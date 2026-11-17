@@ -78,3 +78,45 @@ Track 웹 후보의 양 OS CI44004816689는 성공했다. 기존 API047b4d6를 �
 [진척 감사 원본](current-progress-audit-20261117.json),
 [선택 복구 검증](run-selection-recovery-verification.json),
 [전체 수용표](goal-status.md)를 따른다.
+
+## 후속 확인 — 2026-11-17 17:43 KST
+
+이전 턴은 코드·검증·원격 반영을 완료한 진전으로 분류했다. 이번에는 준비한
+동결 웹 후보와 복구 버전을 운영과 분리해 실제 기동했다. 현재 Track DB의
+읽기 전용 online backup 복사본을 사용했고, 출처·문맥 reader·provider 요청은
+모두 비활성으로 뒀다. API는 두 버전 모두047b4d6이며 후보 webc52b49d와
+복구 web474676f의 서로 다른 manifest를 각각 검증했다.
+
+두 버전 모두 정적 파일18개의 bytes·MIME, 빈 인가 snapshot, 저장 보기 API,
+기존 전체 테이블·스키마와 명령 원장의 보존을 통과했다. 복구 버전에서는
+격리 DB에 넣은 응답 미확정 명령 행도 유지됐다. 검사 후 소유권을 확인한
+시험 프로세스를 종료하고 포트 반환을 확인했다. 운영 Track 프로세스·설정·
+runtime pointer는 유지됐다. 이 결과는 별도 격리 기동 검사이며 전체 Native
+보존 기준선·운영 배포 사전 검사를 대신하지 않는다. 실제 운영 전환은0건이다.
+
+Cloudflare API의 현재 DNS·Tunnel·연결 목록을 읽어 장애 범위를 좁혔다.
+
+| 경로 | 현재 관측 |
+| --- | --- |
+| Track·Trail·Projects·Note → ubuntu-server Tunnel | down, 연결0. 마지막 연결 종료2026-11-17 11:22:10 KST |
+| Assistant → persona-onprem-44f5d65f Tunnel | down, 연결0. 마지막 연결 종료11:22:22 KST |
+| Demian → demian-desktop-pydemia Tunnel | healthy, 연결4 |
+| 공개 HTTP | Track·Trail530, Demian401/기존 Basic |
+| 원본 Demian 로컬 Web3001 | HTTP200 |
+
+같은 원격 빌드의 조회도 SSH12202 연결 시간 초과였다. Cloudflare 연결0과
+공개530으로 Linux 서버 쪽 연결 단절을 확인했지만, 서버 전원·네트워크·내부
+장애 중 실제 원인이나 이미지 빌드와의 인과관계는 미확정이다. DNS 기록은
+기존 Tunnel을 가리켰으며 이번 작업에서 DNS·Tunnel·Entra를 바꾸지 않았다.
+원본 Demian의 Edge 직접 이동은 기존 인증의 ERR_INVALID_AUTH_CREDENTIALS로
+실패했다. 따라서 동일 Session의 인증된 원본 이동도 아직 통과로 계산하지 않는다.
+
+상위 수용15/21·71.4%는 유지한다. 영역별 현재 상태는 선택 복구 코드·검사
+완료, 동결 후보/복구 격리 기동 완료, 운영 배포 미완료, 실제 교차 앱 안정성
+미수용이다. 전체 하위 분모와 ETA는 미확정이며 서버 연결이 복구될 때 같은
+빌드 결과·최신 보존 기준선·실기 결과를 대조해 다시 산정한다. 배포 승인은
+유효하고, 새 이미지 빌드를 중복 실행하거나 운영 보존 조건을 완화하지 않았다.
+
+[Tunnel·DNS 관측 원본](connectivity-boundary-20261117.json)과
+[격리 기동·복구 검증](run-selection-recovery-verification.json)의
+`isolatedFrozenPair`를 따른다. 전체 배포용 `coldQaCompleted`는 계속 false다.

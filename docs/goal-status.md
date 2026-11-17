@@ -18,6 +18,11 @@ Track API047b4d6/web474676f였다. 새 이미지 빌드 접수 후 서버 SSH122
 못했다. 연결 단절의 원인은 미확정이며 서버 전원·네트워크 확인을 요청했다.
 웹 후보 동결 뒤에는 forward supervisor PID 파일 변화로 기준선 확정이 거부돼
 maintenance·stop을 실행하지 않았다. 원래 인가·보존 검사와 writer 비활성은 유지한다.
+후속17:43 KST 확인에서 Linux 쪽 Tunnel2개는 down·연결0, Windows Demian
+Tunnel은 healthy·연결4였다. 서버 SSH도 계속 연결되지 않는다. 별도 DB 복사본으로
+동결 후보·복구 버전의 격리 기동과 정적 파일18개·기존 원장·스키마 보존을
+검증했다. 운영 배포용 전체 기준선·cold QA·사전 검사는 아직 미완료다.
+[현재 연결 경계](connectivity-boundary-20261117.json)를 함께 따른다.
 [현재 재점검·개발 결과](progress-recheck-20261117.md),
 [현재 감사 원본](current-progress-audit-20261117.json),
 [선택 복구 검증](run-selection-recovery-verification.json)을 우선한다.
