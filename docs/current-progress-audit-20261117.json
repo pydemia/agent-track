@@ -1,0 +1,172 @@
+{
+  "schema": "agent-track-current-progress-audit-v1",
+  "recordedAt": "2026-11-17T02:53:28.002976+00:00",
+  "upperAcceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "deltaPercentagePoints": 0,
+    "meaning": "Equal-weight whole requirement acceptance; partial0; not percentage of engineering work or operating readiness",
+    "wholeSubresultDenominator": null
+  },
+  "staleReportingCorrected": [
+    "AT-14 row still said90e/33e deployment pending after actual deployment",
+    "Development-plan early implementation table used current labels for historical figures"
+  ],
+  "completedEngineeringThisTurn": [
+    {
+      "scope": "Persona metadata/evidence sanitized failure boundary",
+      "revision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+      "pr": "https://github.com/pydemia/persona/pull/24",
+      "relatedTestsPassed": 193,
+      "windowsFull": {
+        "tests": 1349,
+        "passed": 1335,
+        "failed": 0,
+        "skipped": 14
+      },
+      "typecheck": "pass",
+      "serverBuild": "pass",
+      "format": "pass",
+      "ciPassed": false,
+      "ciRun": 44001892036,
+      "ciStepsStarted": 0,
+      "ciReason": "billing/spending annotations on all4 checks",
+      "linuxRuntimeVerified": false,
+      "operatingImageDeployed": false,
+      "liveFailureCauseConfirmed": false
+    },
+    {
+      "scope": "Track selection intent survives temporary source transport loss; denial/actor change clears it",
+      "revision": "c52b49ddc08207726813baba6c222957db5df7fc",
+      "relatedTestsPassed": 5,
+      "fullTests": {
+        "tests": 1285,
+        "pass": 1274,
+        "fail": 0,
+        "skip": 11,
+        "durationMs": 228342.1821,
+        "logSha256": "e32270a18cb15bf079870995d96cd90e34aea7076e1793846218b26ab0b07cfe"
+      },
+      "ci": {
+        "runId": 44004816689,
+        "headSha": "c52b49ddc08207726813baba6c222957db5df7fc",
+        "windows": "success",
+        "ubuntu": "success",
+        "stepsEach": 15
+      },
+      "syntheticBrowser": {
+        "browser": "Edge",
+        "viewport": "857x797",
+        "synthetic": true,
+        "productionAccess": false,
+        "outageHidRunAndDetails": true,
+        "freshSnapshotRestoredSelectionWithoutClick": true,
+        "freshEvidenceFetched": true,
+        "eventFetchesBefore": 1,
+        "eventFetchesAfterRecovery": 2,
+        "denialHidDetails": true,
+        "afterDenialExplicitSelectionRequired": true,
+        "actorRotation": "unit-tested only",
+        "ownedFixtureProcessStopped": true
+      },
+      "operatingWebDeployed": false
+    }
+  ],
+  "liveInvestigation": {
+    "quietSse": {
+      "seconds": 60,
+      "snapshots": 20,
+      "connectedWithRun": 20,
+      "doesNotErasePriorIntermittentFailure": true
+    },
+    "directSignedNativeProbe": {
+      "requests": 40,
+      "http200": 40,
+      "productionModelCommands": 0,
+      "workflowAcceptance": false
+    },
+    "underlyingMetadata503Cause": "unconfirmed",
+    "diagnosticCodeReady": true
+  },
+  "deploymentAuthorization": {
+    "approvedByUserThisTurn": true,
+    "request": "Continue Track; image deployment approved",
+    "approvalIsNotCurrentBlocker": true,
+    "sameOriginalAuthStateAndPrivileges": true
+  },
+  "newExternalBoundary": {
+    "sshAlias": "pydemia-server",
+    "sshPort": 12202,
+    "sshTcp": "unreachable/timeouts",
+    "icmpEcho": "not observed",
+    "projectsSource": "disconnected",
+    "assistantSource": "disconnected",
+    "protectedDemianSource": "disconnected",
+    "ordinaryDemianSource": "connected",
+    "codexLocalSource": "connected",
+    "buildJob": {
+      "rootSuffix": "native-diagnostics-52cd99c",
+      "pid": 2574720,
+      "processStartTick": "170443730",
+      "dispatchedAt": "2026-11-17T02:20:01.929364+00:00",
+      "sameJobRestarted": false,
+      "imageDigest": null,
+      "result": "unobserved after connection loss"
+    },
+    "productionCutoverExecuted": false,
+    "userAskedToCheckServerPowerAndNetwork": true,
+    "deploymentApprovalRequestedAgain": false,
+    "causeOfHostUnreachability": "unconfirmed; no reboot or network/auth changes attempted",
+    "latestObservation": {
+      "observedAt": "2026-11-17T02:58:34.210Z",
+      "sshAlias": "pydemia-server",
+      "port": 12202,
+      "tcpReachable": false,
+      "sourceBuildRestarted": false,
+      "productionCutoverPerformed": false
+    }
+  },
+  "remainingRequirements": [
+    {
+      "id": "AT-06",
+      "remaining": "Authenticated browser selection of the same original Demian Session"
+    },
+    {
+      "id": "AT-09",
+      "remaining": "Real permitted owner/provider command and same-ID lost-response recovery"
+    },
+    {
+      "id": "AT-12",
+      "remaining": "Pointer selection of a peer representative edge through its actual authorized read path"
+    },
+    {
+      "id": "AT-14",
+      "remaining": "Stable real cross-app workflow and fresh-authority selection/Trace recovery"
+    },
+    {
+      "id": "AT-15",
+      "remaining": "Multiple actual devices in one default dashboard; selection/state after filter reset"
+    },
+    {
+      "id": "AT-20",
+      "remaining": "Authenticated original Demian context navigation and public-web fault isolation"
+    }
+  ],
+  "nextOnConnectivityRestored": [
+    "Observe the same build PID/start-tick and build-result; do not launch another build on observation timeout",
+    "Validate immutable source/image compiled delta, Linux checks and current process/state/backup",
+    "Deploy reviewed image with existing auth/state, then capture sanitized metadata failure classification",
+    "Resume frozen web candidate after current forwarding identity stabilizes and full baseline/cold QA passes",
+    "Repeat protected API/SSE/GUI; assess whole requirement acceptance only from the actual result"
+  ],
+  "notePublication": "not attempted during server outage; new report remains repository document",
+  "reportingChange": "Separate cumulative whole-requirement acceptance from the two newly implemented and verified changes; no fabricated whole-subresult percentage.",
+  "automatedGoalControl": {
+    "observedStatus": "blocked",
+    "statusWasInheritedFromPriorRun": true,
+    "resumeControlExposed": false,
+    "fullGoalMarkedComplete": false,
+    "workContinuedInCurrentTurn": true
+  }
+}

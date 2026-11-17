@@ -2,6 +2,28 @@
 
 ## 현재 판정 — 2026-11-17 KST
 
+이번 진척 재점검에서 상위 수용15/21·71.4%는 유지했다. 이 수치는 부분0의 상위
+수용률이며 개발 작업량이나 운영 준비도의 비율이 아니다. 이미 끝난 배포를
+‘준비 중’으로 둔 AT-14 행과 과거 수치를 현재처럼 표시한 표를 바로잡았다.
+
+후속 구현2건을 완료했다. Persona52cd99c는 비노출 Native 실패 분류와 관련193개·
+Windows 전체1,349개 중1,335통과/실패0/제외14, 타입·서버 build·서식 검사를
+통과했다. Trackc52b49d는 단절 뒤 선택 복구·철회 시 제거를 수정했고 관련5개·
+전체1,285개 중1,274통과/실패0/제외11·양 OS CI·격리 Edge 단절/복구 검사를
+통과했다. 두 변경의 운영 반영은 아직0건이며 실제503 원인은 미확정이다.
+
+후속 이미지 배포는 사용자 승인 상태다. 마지막 확인한 운영은 Persona90e/33e,
+Track API047b4d6/web474676f였다. 새 이미지 빌드 접수 후 서버 SSH12202가 시간
+초과되고 Projects·Assistant·보호 source가 함께 끊겨 같은 빌드 결과를 확인하지
+못했다. 연결 단절의 원인은 미확정이며 서버 전원·네트워크 확인을 요청했다.
+웹 후보 동결 뒤에는 forward supervisor PID 파일 변화로 기준선 확정이 거부돼
+maintenance·stop을 실행하지 않았다. 원래 인가·보존 검사와 writer 비활성은 유지한다.
+[현재 재점검·개발 결과](progress-recheck-20261117.md),
+[현재 감사 원본](current-progress-audit-20261117.json),
+[선택 복구 검증](run-selection-recovery-verification.json)을 우선한다.
+
+### 직전 배포 이력 — 2026-11-17 02:49 KST
+
 11월17일 승인된 Persona source90e0825/image33e19141을 운영에 배포했다.
 Track API047b4d6·web474676f와 기존 DB·인증은 유지했고 writer는 비활성이다.
 새 암호화 백업·독립 복원, 격리 새/이전 이미지 기동, 현재 복구 경로의 읽기 전용
@@ -16,7 +38,7 @@ SSE26개 중2개에서 출처가 끊기고 Run이 숨겨졌다. Edge 최초 even
 CI 승인 대기는 해소됐지만 Persona CI 실패를 성공으로 바꾸지 않는다.
 [현재 배포·보호 업무 재검증](projects-read-transport-deployment.md)과
 [정확한 운영·남은 실패 근거](projects-read-transport-deployment-verification.json)를 우선한다.
-[현재 배포·남은 오류 Note](https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0)는 본문과 색인 재확인까지 통과했다.
+[직전 배포·남은 오류 Note](https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0)는 본문과 색인 재확인까지 통과했다.
 이하의 이전 운영 revision·승인 대기는 당시 이력이며 현재 상태를 대신하지 않는다.
 
 일반 Native 문맥의 무관한 Assistant 수집·순차 조회·전체 소유자 투영 비용을 수정했다.
@@ -316,7 +338,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 일반 Native Run 묶음의 네 보기 전환과 실제 Entra 계정의 Task1·Run1 저장/새로고침/접힘 복원을 확인했다. peer 대표선 포인터 선택 성공 확인은 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 실제 실행·Projects 결과·Note 연결과 Entra GUI 그룹·Native8events는 확인했다. 일반 문맥 부하 제거 후 보호 업무의 실제 순차 재측정은1차 성공/2차 disconnected·evidence timeout이었다. 현재 Track API047b4d6/web474676f의 일반 Trace·명령 이력 복구를 보호 안정성 수용으로 계산하지 않는다. 승인 운영 Persona4a9ad42/b68ece66, 새90e/33e 후보의 정확한 CI 예외 승인 후 전환 준비 중. 원본8events·binding r3·Task r5/in_review 보존 (`ordinary-evidence-scoped-reads-verification.json`, `command-history-scoped-reads-verification.json`) |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 실제 실행·Projects 결과·Note 연결과 Entra GUI 그룹·Native8events는 확인했다. 일반 문맥 부하 제거 후 보호 업무의 실제 순차 재측정은1차 성공/2차 disconnected·evidence timeout이었다. 현재 Track API047b4d6/web474676f의 일반 Trace·명령 이력 복구를 보호 안정성 수용으로 계산하지 않는다. 승인된 Persona90e0825/33e19141의 운영 전환·보존과 보호 API9개200을 확인했다. SSE26개 중2개 단절과 metadata RPC291ms/503이 남아 안정성은 미수용이다. 원본8events·binding r3·Task r5/in_review 보존 (`ordinary-evidence-scoped-reads-verification.json`, `command-history-scoped-reads-verification.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

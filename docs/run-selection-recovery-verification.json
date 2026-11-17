@@ -1,0 +1,59 @@
+{
+  "sourceRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+  "recordedAt": "2026-11-17T02:45:30.145074+00:00",
+  "regressionBefore": {
+    "tests": 3,
+    "pass": 1,
+    "fail": 2,
+    "failure": "Transient source loss erased selection; actor/source denial was not distinguished"
+  },
+  "relatedAfter": {
+    "tests": 5,
+    "pass": 5,
+    "fail": 0
+  },
+  "fullWindows": {
+    "tests": 1285,
+    "pass": 1274,
+    "fail": 0,
+    "skip": 11,
+    "durationMs": 228342.1821,
+    "logSha256": "e32270a18cb15bf079870995d96cd90e34aea7076e1793846218b26ab0b07cfe"
+  },
+  "typecheck": "passed",
+  "build": "passed in isolated outDir; operating dist/web untouched",
+  "browser": {
+    "browser": "Edge",
+    "viewport": "857x797",
+    "synthetic": true,
+    "productionAccess": false,
+    "outageHidRunAndDetails": true,
+    "freshSnapshotRestoredSelectionWithoutClick": true,
+    "freshEvidenceFetched": true,
+    "eventFetchesBefore": 1,
+    "eventFetchesAfterRecovery": 2,
+    "denialHidDetails": true,
+    "afterDenialExplicitSelectionRequired": true,
+    "actorRotation": "unit-tested only",
+    "ownedFixtureProcessStopped": true
+  },
+  "deployed": false,
+  "ci": {
+    "runId": 44004816689,
+    "headSha": "c52b49ddc08207726813baba6c222957db5df7fc",
+    "windows": "success",
+    "ubuntu": "success",
+    "stepsEach": 15
+  },
+  "releasePreparation": {
+    "operationId": "357de777-154a-4fd2-87d7-7bc591bebef4",
+    "candidateManifestSha256": "b675ffc95a6ba29410fc21f578767f6c720aaad273e792d7f2160e305fae17ba",
+    "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+    "files": 2050,
+    "packages": 27,
+    "rollbackManifestVerified": true,
+    "coldQaCompleted": false,
+    "reason": "Existing SSH forwarding supervisor PID file changed while the server was unreachable; full production baseline was not frozen. No maintenance/stop/candidate-start phase was run."
+  }
+}

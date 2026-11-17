@@ -1,5 +1,16 @@
 # Agent Track 개발계획
 
+현재 재점검: Persona52cd99c의 Native 실패 비노출 계측과 Trackc52b49d의 일시
+단절 후 선택 복구를 구현·검증했다. Track의 전체1,285개/양 OS CI·격리 Edge,
+Persona의 전체 Windows1,349개 검사는 실패0이다. 원격 서버 SSH와 Projects·
+Assistant가 함께 연결되지 않아 새 이미지 결과와 운영 반영은 미확인이다.
+배포 승인은 받았으며 기준선·cold QA·실기 조건을 완화하지 않는다.
+[현재 진척·다음 실행 경계](progress-recheck-20261117.md)와
+[감사 원본](current-progress-audit-20261117.json)을 우선한다. 상위 수용15/21은
+개발 작업량의 비율이 아니며 이번 두 코드 수정을 별도 진전으로 기록했다.
+
+아래의 배포 설명은 직전 확인 이력이다.
+
 11월17일 Persona90e0825/image33e19141의 정확한 CI 예외 배포 승인을 받아
 운영 전환과 보호 업무 반복 검증을 진행했다. 현재 Track API047b4d6/web474676f,
 Persona90e0825/33e19141을 운영하며 writer는 비활성이다.
@@ -338,9 +349,11 @@ Demian native API 연결 성공을 구별한다. 원본 AgentTrail은 별도 운
 
 2026-11-12 UI 우선순위: [업무·협업 Flow 개편](mission-ui-plan.md)에 따라 Track은 업무별 세션/Run 조직, Trail은 작업 경과, Trace는 호출·도구 실행 분석, Map은 명시된 업무·소속·위임·협업 관계로 나눴다. 실제 Pydemia FlowCanvas와 별도 인가 native lineage·tool 결과 조회를 사용한다. source에 없는 목표/의존 관계를 추정해 완성하지 않는다.
 
-## 구현 구조와 현재 결과
+## 구현 구조와 이전 시점의 결과
 
-| 영역 | 실제 경로 | 현재 결과·남은 검증 |
+이 표는 초기 구현 시점의 기록이다. 현재 운영 revision·검사 수와 남은 조건은 문서 상단과 `goal-status.md`의 현재 판정을 따른다.
+
+| 영역 | 실제 경로 | 당시 결과·남은 검증 |
 | --- | --- | --- |
 | 계약 조사 | `docs/integration-contracts.md` | native API·인가·관계·공백 조사. 독립 worker 결과 수용 |
 | 정규 계약 | `packages/contracts/index.ts` | 외부 ID, string int64, metadata allowlist, Run별 binding |
