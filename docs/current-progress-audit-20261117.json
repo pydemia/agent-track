@@ -34,7 +34,42 @@
       "ciReason": "billing/spending annotations on all4 checks",
       "linuxRuntimeVerified": false,
       "operatingImageDeployed": false,
-      "liveFailureCauseConfirmed": false
+      "liveFailureCauseConfirmed": false,
+      "linuxSourceVerification": {
+        "revision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+        "node": "v24.21.0",
+        "fullBuild": "passed",
+        "typecheck": "passed",
+        "fullTests": {
+          "tests": 1349,
+          "suites": 0,
+          "pass": 1340,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 9,
+          "todo": 0,
+          "duration_ms": 334965.902291
+        },
+        "compiledOutput": {
+          "manifestSha256": "7e7d4e777dcec326092f7e8f0c0140fc3539d76a39f2538597e79133d182ea4c",
+          "files": 752,
+          "roots": {
+            "apps/server/dist": 329,
+            "apps/web/dist": 379,
+            "packages/contracts/dist": 34,
+            "packages/collection-format/dist": 10
+          }
+        },
+        "scope": "Source-only isolated Linux execution; media opt-in, private authorized skill bundle, Windows-specific, browser and native worker cgroup gates not covered",
+        "ciEquivalent": false,
+        "cleanup": {
+          "containerRemoved": true,
+          "volumeRemoved": true,
+          "ownershipVerified": true
+        },
+        "evidence": "persona-linux-source-verification-20261117.json"
+      },
+      "linuxRuntimeVerificationScope": "Operating deployment image/runtime remains unverified; Linux source build/typecheck/full tests now separately verified"
     },
     {
       "scope": "Track selection intent survives temporary source transport loss; denial/actor change clears it",
@@ -163,12 +198,15 @@
   "notePublication": "not attempted during server outage; new report remains repository document",
   "reportingChange": "Separate cumulative whole-requirement acceptance from the two newly implemented and verified changes; no fabricated whole-subresult percentage.",
   "automatedGoalControl": {
-    "observedStatus": "active",
+    "observedStatus": "blocked",
     "statusWasInheritedFromPriorRun": false,
     "resumeControlExposed": false,
     "fullGoalMarkedComplete": false,
     "workContinuedInCurrentTurn": true,
-    "priorObservationStatus": "blocked"
+    "priorObservationStatus": "blocked",
+    "observedAt": "2026-11-17T09:05:41+00:00",
+    "blockedAuditConsecutiveSameConditionTurns": 3,
+    "reason": "Local independent verification completed; same server/network outage prevents observing/deploying the approved image and real workflow acceptance"
   },
   "continuedAt": "2026-11-17T08:45:03.260950+00:00",
   "continuation": {
@@ -178,6 +216,9 @@
     "confirmedBoundary": "Both Linux-side Cloudflare tunnels down, zero connectors since approximately02:22UTC; Windows Demian tunnel healthy",
     "outageRootCause": "unconfirmed",
     "sameBuildRestarted": false,
-    "wholeRequirementDelta": 0
+    "wholeRequirementDelta": 0,
+    "linuxSourceQa": "Full build/typecheck and1349 tests:1340pass/0fail/9skip; compiled752 files; owned container/volume removed",
+    "currentGoalStatus": "blocked",
+    "pr24BodyUpdatedAndReadBack": true
   }
 }

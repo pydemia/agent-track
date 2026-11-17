@@ -160,5 +160,33 @@
     "protectedRunVisible": false,
     "nativeCommandsDispatched": 0,
     "credentialsPrinted": false
+  },
+  "latestRecheck": {
+    "observedAt": "2026-11-17T09:04:49.378Z",
+    "readOnly": true,
+    "tunnels": [
+      {
+        "id": "a6baa705-ff55-49b2-a3c9-112d2d911fcf",
+        "name": "persona-onprem-44f5d65f",
+        "status": "down",
+        "inactiveAt": "2026-11-17T02:22:22.811563Z",
+        "connectors": 0
+      },
+      {
+        "id": "4e23fb56-9e17-4918-95e2-c5b5c4351b5a",
+        "name": "ubuntu-server",
+        "status": "down",
+        "inactiveAt": "2026-11-17T02:22:10.303654Z",
+        "connectors": 0
+      }
+    ]
+  },
+  "sameRemoteBuildObservation": {
+    "observedAt": "2026-11-17T09:04:48.763672+00:00",
+    "sameRemoteJobObserved": false,
+    "jobTerminalStatus": "unobserved",
+    "buildRestarted": false,
+    "operatingCutover": false,
+    "rawErrorSuppressed": true
   }
 }

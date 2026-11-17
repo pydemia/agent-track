@@ -1,0 +1,113 @@
+{
+  "schema": "agent-track-persona-linux-source-verification-v1",
+  "jobId": "0290ce05-0ae5-4e80-b431-7915b479ae90",
+  "sourceRevision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+  "sourceTree": "3f6e90e2a98ea08bc36a24f0239671c578d67203",
+  "sourceArchiveSha256": "2a65efd19a5fcbece66fe27bbb8278bb495d31fd695f7074ba23cbd32bc9fc8c",
+  "baseImage": "sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20",
+  "linux": true,
+  "node": "v24.21.0",
+  "startedAt": "2026-11-17T08:52:57.303Z",
+  "finishedAt": "2026-11-17T08:59:31.871Z",
+  "stages": [
+    {
+      "name": "apt-index",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 2278,
+      "stdoutSha256": "6feb31183b34eeb94f8eb0594739aa9a7244ce080aadd219815c7b9e2cbefe3d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "git-runtime",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 10840,
+      "stdoutSha256": "1a5a41ddfe1308f3d47bc252e5d9388871b99882dfc4b889d786d41e3ce17da9",
+      "stderrSha256": "f77216c41aadf6c667ac1a602069951966cea350daab793ffe11ae0de1225ddc"
+    },
+    {
+      "name": "npm-ci",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 27071,
+      "stdoutSha256": "5e4811e98752980089572181f7b312ec11cff4f688c2a519e8dc5c15f2fd68d4",
+      "stderrSha256": "5c10f9a2632ff5196559f38fdc5e95c437893b02ae154fd780894005e1d63193"
+    },
+    {
+      "name": "build",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 9091,
+      "stdoutSha256": "cab2ab65fe87dcd30ea865cfe66eee8c1f6730e2165115b5d7e1a8a87019e22b",
+      "stderrSha256": "723f124e89b68e0af5b27f36da1b1bbfb06a6ea4e24034517c88b5a8d2362003"
+    },
+    {
+      "name": "typecheck",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 7389,
+      "stdoutSha256": "794db55f8e32328d89a0ea4e07122c6dc480cac0effa03b998fc23cac98c7756",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "tests",
+      "state": "passed",
+      "exitCode": 0,
+      "timedOut": false,
+      "durationMs": 335885,
+      "stdoutSha256": "7cee7d843754ca8b76ad48083e0e0685c2a83007b5b3d9055da1236f086e7065",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "tests": {
+    "tests": 1349,
+    "suites": 0,
+    "pass": 1340,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 9,
+    "todo": 0,
+    "duration_ms": 334965.902291
+  },
+  "compiledOutput": {
+    "manifestSha256": "7e7d4e777dcec326092f7e8f0c0140fc3539d76a39f2538597e79133d182ea4c",
+    "files": 752,
+    "roots": {
+      "apps/server/dist": 329,
+      "apps/web/dist": 379,
+      "packages/contracts/dist": 34,
+      "packages/collection-format/dist": 10
+    }
+  },
+  "externalNetworkDisconnectedBeforeTests": true,
+  "mediaRuntimeEnabled": false,
+  "browserTestsRun": false,
+  "nativeWorkerCgroupTestsRun": false,
+  "ciEquivalent": false,
+  "deploymentImageBuiltByThisJob": false,
+  "productionCutover": false,
+  "newProviderCommands": 0,
+  "rawProofSha256": "a20bee77a8b4fe2909786c10797a64fb8d219f9b27d79a8dc52b3d1ac51bcc7c",
+  "cleanup": {
+    "containerRemoved": true,
+    "volumeRemoved": true,
+    "ownershipVerified": true
+  },
+  "skipNames": [
+    "﹣ real media runtime generates a narrated Korean MP4 validated by ffprobe and full decoding (0.317917ms) # Set PERSONA_REPORT_MEDIA_TEST=1 in the FFmpeg/Supertonic3/Korean-font verification environment (or explicitly inject the legacy eSpeak path); this is not",
+    "﹣ provision: pure plan derives exact app-scoped owner without email or shared-sub inference (0.847544ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: per-product minimal schemas and container paths match consumer contracts (0.085805ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: pinned authorized bundle rejects revision, path, SHA, encoding and byte tampering (0.082705ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: atomically publishes eight private files, isolated fresh keys and no input changes (0.219711ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: explicit skill-bundle input rejects missing, relative, replaced, public and symlink files (0.138007ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: concurrent CLI publishers serialize and preserve the complete winner (0.056803ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: actual CLI prints only metadata and redacts errors and stack traces (0.043002ms) # Private authorized Skill bundle unavailable; set PERSONA_TEST_SKILL_BUNDLE_FILE to its absolute file path.",
+    "﹣ provision: unsupported Windows publication fails closed (0.084305ms) # SKIP"
+  ]
+}

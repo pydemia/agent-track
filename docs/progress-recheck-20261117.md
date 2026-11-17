@@ -120,3 +120,34 @@ Cloudflare API의 현재 DNS·Tunnel·연결 목록을 읽어 장애 범위를 �
 [Tunnel·DNS 관측 원본](connectivity-boundary-20261117.json)과
 [격리 기동·복구 검증](run-selection-recovery-verification.json)의
 `isolatedFrozenPair`를 따른다. 전체 배포용 `coldQaCompleted`는 계속 false다.
+
+## Linux 소스 검사와 외부 장애 대기 — 2026-11-17 18:05 KST
+
+서버와 독립적으로 수행할 검증을 추가로 마쳤다. 원격 빌드에 접수한 것과 같은
+Persona52cd99c/tree3f6e90e의 archive SHA를 확인하고, 로컬의 고정된 Linux
+Node24.21.0 이미지로 별도 컨테이너와 전용 볼륨을 만들었다. 운영 볼륨·인증·
+Docker socket·공개 포트를 연결하지 않았으며 의존성 설치 뒤에는 외부 네트워크도
+끊었다. 현재 worktree나 운영 API/web를 새 build 결과로 교체하지 않았다.
+
+전체 앱 build·타입 검사와 전체 테스트를 통과했다. 테스트1,349개 중1,340통과·
+실패0·취소0·제외9, 실행334.966초다. 제외9개는 media opt-in1·private Skill
+bundle7·Windows 전용1이다. browser·native worker cgroup 검사는 미실행이며
+이 검사를 CI 전체 통과나 원격 이미지 기동 검증으로 확대하지 않는다. 서버·웹·
+contracts·collection-format의 컴파일 파일752개 hash를 보존했고, 소유권 확인 뒤
+시험 컨테이너와 전용 볼륨을 정리했다. [Linux 검사 원본](persona-linux-source-verification-20261117.json)을 따른다.
+
+PR24의 검증 본문도 pydemia 계정으로 갱신하고 재조회했다. head52cd99c와 draft·
+base branch는 유지했다. 이전의 ‘Linux 검사 미검증’ 문구를 새 소스 검사 결과와
+운영 미검증 범위로 구분했으며, 결제/한도로 시작하지 못한 CI 상태는 그대로 뒀다.
+
+18:04 KST의 재확인에서도 Linux Tunnel2개는 down·연결0이고 같은 원격 빌드의
+조회는 실패했다. 빌드의 종료·성공·실패를 추정하거나 중복 접수하지 않았다.
+서버 연결 단절이 세 연속 goal 턴에서 반복됐고 독립적으로 수행할 로컬 검증도
+마쳤으므로, native goal 상태를 blocked로 변경했다. 전체 목표는 미완료이며
+상위 수용15/21·71.4%와 잔여 AT-06/09/12/14/15/20은 유지한다.
+
+현재 영역 상태는 코드·Windows/Linux 소스 검사 완료, 웹 후보/복구 격리 기동
+완료, 운영 배포 외부 대기, 실제 교차 앱 안정성 미수용이다. 배포 승인은 유효하고
+재승인 대기가 아니다. 서버 전원·네트워크/기존 connector 연결이 복구되면 같은
+빌드의 결과부터 확인해야 한다. 다음 산정 근거는 이미지 기동·보존 검증과 실제
+보호 업무의 반복 결과이며, 전체 하위 분모와 완료 ETA는 아직 미확정이다.

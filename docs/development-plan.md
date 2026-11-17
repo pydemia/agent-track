@@ -1,5 +1,10 @@
 # Agent Track 개발계획
 
+18:05 KST 후속: Persona52cd99c의 Linux 전체 build·타입 검사와 전체1,349개 중
+1,340통과/실패0/제외9까지 검증했다. [소스 검사 근거](persona-linux-source-verification-20261117.json)는
+원격 이미지 기동·CI 전체와 구분한다. 독립 로컬 검증은 마쳤으나 Linux Tunnel2개와
+SSH가 계속 연결되지 않아 native goal은 blocked이며 운영 배포가 남았다.
+
 현재 재점검: Persona52cd99c의 Native 실패 비노출 계측과 Trackc52b49d의 일시
 단절 후 선택 복구를 구현·검증했다. Track의 전체1,285개/양 OS CI·격리 Edge,
 Persona의 전체 Windows1,349개 검사는 실패0이다. 원격 서버 SSH와 Projects·
