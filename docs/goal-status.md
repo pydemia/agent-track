@@ -8,11 +8,26 @@
 모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
 확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
 
-native goal은 active이며 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
+운영 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
 새로 활성화하지 않았고 원본 업무 명령·모델 실행0건이다. 상위 수용15/21·71.4%는
 유지하며 두 운영 반영과 반복 안정성 하위 조건을 별도 진전으로 기록한다. 최신 운영
 Edge의 같은 업무 선택·Trace 검토는 창 활성화 도구 실패로 대기 중이다. 이전 실제
 Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/14/15/20은 남는다.
+
+01:25 KST 후속: writer 전환 준비 코드는 pydemia 작성자의 [draft PR1](https://github.com/pydemia/agent-track/pull/1)에 제출했다.
+Python61개와 b748780의 Windows·Ubuntu CI44123024293, 현재 운영 inspect 입력의
+순수 구성 검사·격리 Docker 생성/검증을 통과했다. QA 컨테이너2개·volume1개는
+정리했고 운영 writer·credential·명령은 활성화하지 않았다. 코드는 PR branch에
+있으며 main·운영에 반영한 결과로 표현하지 않는다.
+
+현재 인가된 Assistant 실행은 completed1건뿐이다. 별도 QA 실행1건·2시간의
+writer 권한 허용 요청과 Edge 전면/로그인 준비 요청은 답변 대기다. Edge의 같은
+창 제어 제약이 재기동 재개 후 세 연속 goal 턴에서 남았고 독립 준비·검증은 마쳤다.
+다음 실기에는 사용자 입력 또는 화면 제어 상태 변화가 필요하다. 기본 snapshot의
+1,521Run·연결 프로젝트2개는 확인했지만 Run 장치 두 표기는 같은 PC의 대소문자
+차이이고 과거 Linux peer QA Run은 운영 목록에 없다. 이를 실제 여러 장치 GUI
+수용으로 세지 않는다. peer 실기에는 인가된 대상 데이터 준비도 연결해야 한다.
+상위 수용15/21을 유지하며 전체 ETA는 산정 불가다.
 
 [최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814) — 본문·색인 재확인 완료.
 

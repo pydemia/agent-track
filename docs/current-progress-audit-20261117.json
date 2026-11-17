@@ -224,7 +224,7 @@
   "historicalSnapshotSupersededBy": "post-reboot-deployment-verification-20261118.json",
   "currentFollowup": {
     "recordedAt": "2026-11-17T15:48:43.246055+00:00",
-    "goalStatus": "active",
+    "goalStatus": "external-input-waiting; blocked audit threshold satisfied",
     "operatingRolloutsCompleted": 2,
     "serverConnectivityRecovered": true,
     "upperAcceptance": {
@@ -250,6 +250,42 @@
       "eta": null
     },
     "evidence": "post-reboot-deployment-verification-20261118.json",
-    "notePublication": "post-reboot-deployment-note-publication-20261118.json; published/readback/index verified; previous report unchanged"
+    "notePublication": "post-reboot-deployment-note-publication-20261118.json; published/readback/index verified; previous report unchanged",
+    "writerClonePreparation": {
+      "pr": "https://github.com/pydemia/agent-track/pull/1",
+      "headSha": "b748780356c97aa6ab061df079a0281f1bde822d",
+      "ciRun": 44123024293,
+      "ciBothOsPassed": true,
+      "relatedPythonTestsPassed": 61,
+      "isolatedDockerCreateVerified": true,
+      "ownedQaResourcesCleaned": true,
+      "operatingWriterActivated": false,
+      "merged": false
+    },
+    "externalInputAudit": {
+      "observedAt": "2026-11-17T16:26:32.196140+00:00",
+      "sameEdgeControlBlockConsecutiveGoalTurns": 3,
+      "turns": [
+        "server-reboot resume: activation failed twice; readiness question pending",
+        "writer-clone implementation: same Edge window inventory; readiness unanswered",
+        "current continuation: same returned Edge windows; no new input attempted"
+      ],
+      "writerQuestionPendingSincePreviousTurn": true,
+      "unansweredQuestionIsNotApproval": true,
+      "independentAuthorizedPreparationComplete": true,
+      "nextRequiresUserOrExternalStateChange": true,
+      "currentDashboard": {
+        "runs": 1521,
+        "boundProjects": 2,
+        "historicalLinuxPeerQaRunPresent": false,
+        "deviceCaseVariantsNotIndependentHostProof": true
+      },
+      "requiredInput": [
+        "Edge Track foreground/authenticated readiness or restored UI control",
+        "Answer to proposed execution-only2-hour QA writer authority; new credentials remain uncreated"
+      ],
+      "writerPreparationCiTerminal": true,
+      "noLiveBusinessOrDeploymentJob": true
+    }
   }
 }
