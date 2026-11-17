@@ -1,0 +1,21 @@
+{
+  "phase": "note-progress-audit-published-and-readback-verified",
+  "operationId": "2f133ecb-a56b-4ff0-a532-4dcf2aee5ce7",
+  "title": "서버 재기동 후 배포·진척 재점검 — 2026-11-18",
+  "url": "https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814",
+  "workspaceId": "personal-note-production",
+  "pageId": "b875b9f4-aa19-4298-bbb3-75d2fbb15814",
+  "revision": "36a79cbd698c7cb379a36b5690f9bb00720c7a64f32e00492d598d215a5fbbef",
+  "sourceSha256": "96953c7084f9ca144bd6ac5c9980eb1ab45b24130eca17677cce8228b810c804",
+  "indexReady": true,
+  "sourceMatches": true,
+  "existingPagesEdited": 0,
+  "originalAssistantWorkDatabaseUsed": false,
+  "modelRequests": 0,
+  "verifiedAt": "2026-11-17T15:49:40.333Z",
+  "processExitCode": 0,
+  "markdownFile": "docs/post-reboot-deployment-20261118.md",
+  "markdownSha256": "7c91bba75db7328d4f09bf1567eba200fb85d7ba3e922a85338bc44e8201fed8",
+  "previousUrl": "https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0",
+  "authStateAtDispatch": "Existing Entra owner and Note binding; Persona52cd99c/ea4a4d31 operating; no new consent/credential; writer disabled"
+}

@@ -1,0 +1,660 @@
+{
+  "schema": "agent-track-post-reboot-deployment-v1",
+  "recordedAt": "2026-11-17T15:48:43.246055+00:00",
+  "localDate": "2026-11-18",
+  "timezone": "Asia/Seoul",
+  "goalStatus": "active",
+  "userReportedServerReboot": true,
+  "authorization": {
+    "imageDeploymentApproved": true,
+    "ciExceptionApproved": true,
+    "permissionRequestedAgain": false,
+    "writerEnabled": false,
+    "workerEnabledByThisRollout": false,
+    "newCredentials": 0,
+    "newModelRuns": 0,
+    "originalDemianRuntimeOrAuthChanged": false,
+    "agentTrailChanged": false
+  },
+  "recovery": {
+    "oldBuildIdentityGoneAfterReboot": true,
+    "oldBuildResultAbsent": true,
+    "newBuildStartedOnlyAfterGoneConfirmed": true,
+    "previousHostOutageCause": "unconfirmed",
+    "oldBuildOomCause": "unconfirmed",
+    "sshRecovered": true,
+    "tunnelsObservedHealthy": 3,
+    "connectionsPerTunnel": 4,
+    "dnsTunnelOrAuthChanges": 0
+  },
+  "persona": {
+    "operationId": "a3c581ac-79a2-4d98-89f0-b743472f2666",
+    "sourceRevision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+    "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+    "pid": 266231,
+    "startedAt": "2026-11-17T15:15:24.230715411Z",
+    "planSha256": "9b356c341a6f8317abad9a9b35590a0677b93714155ce1882b6f9153069fb722",
+    "compiledOutput": {
+      "sourceRevision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+      "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+      "compiledFiles": 752,
+      "exactlyMatchesLinuxTestedSourceBuild": true,
+      "compiledImageMapSha256": "9b8febf75d315d1bf4dd1ef4a47400e0f97b1d89113c673d9474857cb2a8317d",
+      "linuxCompiledManifestSha256": "7e7d4e777dcec326092f7e8f0c0140fc3539d76a39f2538597e79133d182ea4c"
+    },
+    "ci": {
+      "runId": 44001892036,
+      "passed": false,
+      "stepsStarted": 0,
+      "reason": "billing/spending before any steps; user-approved exception"
+    },
+    "linuxSourceVerification": "persona-linux-source-verification-20261117.json",
+    "operatingDeployed": true,
+    "oldImageRetainedStopped": true,
+    "databaseRestored": false,
+    "credentialsRestored": false,
+    "backup": {
+      "sourceVolumeReadOnly": true,
+      "sourceWrites": 0,
+      "crossDatabaseAtomicSnapshot": false,
+      "records": [
+        {
+          "database": "work",
+          "startedAt": "2026-11-17T14:49:57.083Z",
+          "finishedAt": "2026-11-17T14:50:01.840Z",
+          "bytes": 45719552,
+          "sha256": "efebf4ab7af6f99baf0c29b76b0a4619885f320c8c110873c7994e0d447a3f63",
+          "pages": 11162,
+          "pageSize": 4096,
+          "backup": {
+            "backupCalls": 1,
+            "heldReadTransaction": true,
+            "sourceWrites": 0,
+            "progressSteps": 43
+          },
+          "measurementSha256": "e7014fb2ac51631ee1fd24b28b187d7b2d093644bccc64fe4a3d66575283f1b0",
+          "cipherBytes": 29946900,
+          "cipherSha256": "926bbfd4cfea6c88c7f3222f5fcd16524dd9ca8554ba99cd3e508a5f4059bb10",
+          "restoreVerified": true,
+          "plainCopiesRemoved": true
+        },
+        {
+          "database": "runtime",
+          "startedAt": "2026-11-17T14:50:01.842Z",
+          "finishedAt": "2026-11-17T15:04:14.916Z",
+          "bytes": 5203685376,
+          "sha256": "5bb71a728f9af2d3497f626305dd738e5f7ce373b1e9002bfc6b626e33cd95a9",
+          "pages": 1270431,
+          "pageSize": 4096,
+          "backup": {
+            "backupCalls": 1,
+            "heldReadTransaction": true,
+            "sourceWrites": 0,
+            "progressSteps": 4962
+          },
+          "measurementSha256": "e366ecf9b185721824944aac94fb3fe10374d29e125069e272336b45291e28ab",
+          "cipherBytes": 806854920,
+          "cipherSha256": "a9977f081976a135814f4edd7a3b2922c48449983f5ab22ccb4f48f5ab49f6ed",
+          "restoreVerified": true,
+          "plainCopiesRemoved": true
+        }
+      ],
+      "initialAggregateTimeoutSeconds": 900,
+      "retryAggregateTimeoutSeconds": 3600,
+      "perStageDeadlineSecondsUnchanged": 900,
+      "nativeReadDeadlinesChanged": false,
+      "encryptedBackupRetained": true,
+      "recoveryKey": "existing preserved key; value not published"
+    },
+    "isolatedPairQa": {
+      "network": "none",
+      "publicPorts": [],
+      "candidateAndRollbackMainHealthy": true,
+      "readerChecks": [
+        {
+          "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+          "anonymous": 401,
+          "authorized": 200,
+          "controls": false,
+          "roleAttemptsSupported": true
+        },
+        {
+          "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+          "anonymous": 401,
+          "authorized": 200,
+          "controls": false,
+          "roleAttemptsSupported": true
+        }
+      ],
+      "fullStartupPayloadChecks": [
+        {
+          "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+          "stoppedSnapshot": true,
+          "fullPayloadsMatched": 6,
+          "readonly": true
+        },
+        {
+          "image": "sha256:33e191418c96de6f95f6451c910c2ac3378889b566e3d3734cc1d371c8a0e449",
+          "stoppedSnapshot": true,
+          "fullPayloadsMatched": 6,
+          "readonly": true
+        }
+      ],
+      "ownedHelpersRemoved": 8,
+      "productionVolumesRemoved": 0
+    },
+    "operatingReadback": {
+      "workTables": 33,
+      "runtimeTables": 65,
+      "exactSourceDdl": true,
+      "workNonLeaseRowsUnchanged": true,
+      "runtimeKnownStartupTaskRevisions": 3,
+      "runtimeKnownStartupUiEvents": 6,
+      "fullPayloadAndInverseVerified": true,
+      "reportPinsPreserved": true,
+      "otherProtectedComponentsPreserved": 13,
+      "selectedFilesPreserved": {
+        "assistant": 33,
+        "avatar": 32,
+        "budget": 3
+      },
+      "sameProcessBootAdopted": true,
+      "rollbackPathChecked": true,
+      "operatingRollbackRehearsed": false
+    },
+    "cleanup": {
+      "phase": "owned-failed-and-preview-volumes-cleaned",
+      "originalVolumesRemoved": 0,
+      "productionRestore": false,
+      "removedNewOwnedVolumes": [
+        "agent-track-reader-recovery-a3c581ac-79a",
+        "agent-track-diagnostics-preview-v2-a3c581ac-79a"
+      ],
+      "retainedEncryptedBackup": "agent-track-reader-recovery-v2-a3c581ac-79a",
+      "allOriginalVolumesPreserved": true,
+      "currentProcessPreserved": true,
+      "otherHistoricalBackupVolumesTouched": false,
+      "finishedAt": 1794929689.9985542
+    }
+  },
+  "track": {
+    "operationId": "357de777-154a-4fd2-87d7-7bc591bebef4",
+    "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+    "manifestSha256": "b675ffc95a6ba29410fc21f578767f6c720aaad273e792d7f2160e305fae17ba",
+    "pid": 40156,
+    "createdAt": "2026-11-17T15:28:06.2508090Z",
+    "committed": true,
+    "operator": "deploy/track/activate-runtime.ps1",
+    "fullProductionBaselineAndColdQaPassed": true,
+    "coldQaRawSha256": "c0a9ff1e4f72f4c0b453a490be0d93177d86bd8e348bf62263601d35e50bc403",
+    "committedRawSha256": "dc5391d6bcf2f6b8be669136f8c08db90430f058d81fa36571ec019e9cd65793",
+    "backupBytes": 33898496,
+    "backupSha256": "7eabe96b724368e57c27670baefce371edc5e16f3bdd218461d831afd44c2dc4",
+    "nativePostgresTablesPreserved": 46,
+    "staticFilesBytesAndMimeMatched": 18,
+    "configRestoredExactly": true,
+    "protectedFilesPreserved": 47,
+    "otherProcessesPreserved": 14,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "operatingCommandTablesEmpty": true,
+    "sourceOrModelCommandsDispatched": 0,
+    "savedViewOwnerProbe": "actual permitted Tasks2; own temporary view read/stale409/deleted; no native work created",
+    "publicAuth": "Track/Trail root302, Track anonymous API401; local forged/anonymous401",
+    "freshActualEntraGuiVerified": false,
+    "compiledSyntheticSelectionRecoveryGuiVerified": true,
+    "previousRealGuiEvidence": "projects-read-transport-deployment-verification.json; unchanged renderer; current selection logic separately regression-tested"
+  },
+  "protectedWorkflow": {
+    "apiRounds": [
+      {
+        "phase": "protected-after-image",
+        "round": "round-1",
+        "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+        "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+        "startedAt": "2026-11-17T15:18:50.889Z",
+        "endedAt": "2026-11-17T15:18:57.624Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-17T15:18:50.891Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 2697,
+            "endedAt": "2026-11-17T15:18:53.589Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-17T15:18:53.606Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 1880,
+            "endedAt": "2026-11-17T15:18:55.486Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-17T15:18:55.496Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 2114,
+            "endedAt": "2026-11-17T15:18:57.610Z"
+          }
+        ],
+        "rawProofSha256": "8a0c62467d7988a980209e3d929493c1f12de1e1e3abfe8fe03fecc5e78bd6e5"
+      },
+      {
+        "phase": "protected-after-image",
+        "round": "round-2",
+        "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+        "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+        "startedAt": "2026-11-17T15:20:20.312Z",
+        "endedAt": "2026-11-17T15:20:26.177Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-17T15:20:20.313Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 2096,
+            "endedAt": "2026-11-17T15:20:22.410Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-17T15:20:22.424Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 1583,
+            "endedAt": "2026-11-17T15:20:24.007Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-17T15:20:24.211Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 1954,
+            "endedAt": "2026-11-17T15:20:26.165Z"
+          }
+        ],
+        "rawProofSha256": "163cdf5eada77d9439a54feccc54966871c52ce7f5e7b6e6c784d1fa025847b1"
+      },
+      {
+        "phase": "protected-after-image",
+        "round": "round-3",
+        "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+        "webRevision": "474676f66f276fafd00c9325e3bfcfb2f30bd78b",
+        "startedAt": "2026-11-17T15:20:26.288Z",
+        "endedAt": "2026-11-17T15:20:31.900Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-17T15:20:26.290Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 1719,
+            "endedAt": "2026-11-17T15:20:28.010Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-17T15:20:28.204Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 1628,
+            "endedAt": "2026-11-17T15:20:29.832Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-17T15:20:30.049Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 1839,
+            "endedAt": "2026-11-17T15:20:31.887Z"
+          }
+        ],
+        "rawProofSha256": "95ebc9749ab9c8de11df878b8451afae31b66617d87883beb1bf9a5e4caab3dd"
+      },
+      {
+        "phase": "protected-after-web",
+        "round": "round-1",
+        "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+        "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+        "startedAt": "2026-11-17T15:35:46.347Z",
+        "endedAt": "2026-11-17T15:35:51.969Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-17T15:35:46.349Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 1417,
+            "endedAt": "2026-11-17T15:35:47.767Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-17T15:35:47.781Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 1740,
+            "endedAt": "2026-11-17T15:35:49.521Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-17T15:35:49.758Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 2188,
+            "endedAt": "2026-11-17T15:35:51.946Z"
+          }
+        ],
+        "rawProofSha256": "fbcdabbf2ae604651a4426390199452f85c2e8732e7ab621247d49c8bd48b931"
+      },
+      {
+        "phase": "protected-after-web",
+        "round": "round-2",
+        "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+        "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+        "startedAt": "2026-11-17T15:46:16.340Z",
+        "endedAt": "2026-11-17T15:46:22.224Z",
+        "samples": [
+          {
+            "label": "snapshot",
+            "startedAt": "2026-11-17T15:46:16.342Z",
+            "status": 200,
+            "source": [
+              {
+                "id": "demian-assistant-owner",
+                "state": "connected"
+              }
+            ],
+            "run": [
+              {
+                "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+                "sessionId": "9a70082b-3a90-4044-847f-35dce72f2414",
+                "status": "succeeded",
+                "cursor": "8",
+                "highWater": "8",
+                "bindingRevision": "3"
+              }
+            ],
+            "durationMs": 2124,
+            "endedAt": "2026-11-17T15:46:18.467Z"
+          },
+          {
+            "label": "events",
+            "startedAt": "2026-11-17T15:46:18.481Z",
+            "status": 200,
+            "events": 8,
+            "metadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+            "durationMs": 1672,
+            "endedAt": "2026-11-17T15:46:20.152Z"
+          },
+          {
+            "label": "evidence",
+            "startedAt": "2026-11-17T15:46:20.165Z",
+            "status": 200,
+            "state": "connected",
+            "events": 8,
+            "sameExecution": true,
+            "models": [
+              {
+                "sequence": "3",
+                "selectedModel": "gpt-6.1-sol"
+              }
+            ],
+            "usageObservations": 4,
+            "usageScopes": [
+              "latest-model-request",
+              "native-session"
+            ],
+            "lineageSequences": [
+              "4",
+              "5"
+            ],
+            "artifacts": 1,
+            "timings": 2,
+            "through": "8",
+            "hasMore": false,
+            "durationMs": 2047,
+            "endedAt": "2026-11-17T15:46:22.212Z"
+          }
+        ],
+        "rawProofSha256": "871c1ea01ab43d98be86a5647a85f622f0c3b6e3731d2aac8e7525ccb62bbc64"
+      }
+    ],
+    "sse": [
+      {
+        "phase": "protected-after-image",
+        "startedAt": "2026-11-17T15:20:17.014Z",
+        "finishedAt": "2026-11-17T15:21:47.020Z",
+        "requestedDurationMs": 90000,
+        "snapshots": 30,
+        "connectedWithTarget": 30,
+        "authorizationRevoked": false,
+        "newRuns": 0,
+        "httpStatus": 200,
+        "rawProofSha256": "0084edb0270a3c377729790f5859cb20bdd881d42d4650e2cd6cb3a39a4676fa"
+      },
+      {
+        "phase": "protected-after-web",
+        "startedAt": "2026-11-17T15:35:36.663Z",
+        "finishedAt": "2026-11-17T15:40:36.682Z",
+        "requestedDurationMs": 300000,
+        "snapshots": 100,
+        "connectedWithTarget": 100,
+        "authorizationRevoked": false,
+        "newRuns": 0,
+        "httpStatus": 200,
+        "rawProofSha256": "fbde7a25ed5a9d10f282e03dffbd7cf4854984ce47ab8f44cf4db6fc93c5639a"
+      }
+    ],
+    "history": {
+      "at": "2026-11-17T15:35:52.064Z",
+      "readOnly": true,
+      "oneTrackDatabaseReadTransaction": true,
+      "sourceDatabaseRestored": false,
+      "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+      "events": 8,
+      "eventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+      "eventMetadataPreserved": true,
+      "historicalBindingPreserved": true,
+      "taskBindingRevision": "3",
+      "cursor": "8",
+      "highWater": "8",
+      "liveAuthorizationOrGuiProof": false
+    },
+    "nativeFailureDiagnostics": {
+      "at": 1794930395.2190492,
+      "sourceRevision": "52cd99c58e1d0f831c9dc03567f20a2e82079e3d",
+      "image": "sha256:ea4a4d31ce8b7d7f7b1a391f2ead1a6db7f5c5689aa54de106dfac2d39616393",
+      "startedAt": "2026-11-17T15:15:24.230715411Z",
+      "diagnosticFailures": [],
+      "count": 0,
+      "rawLogsSuppressed": true
+    },
+    "task": "revision5/in_review; not automatically accepted",
+    "execution": "same existing completed execution",
+    "rootCauseConfirmed": false,
+    "noFailuresInBoundedObservationDoesNotProvePermanentResolution": true
+  },
+  "acceptance": {
+    "accepted": 15,
+    "total": 21,
+    "percent": 71.4,
+    "meaning": "whole-requirement acceptance, partial0; not engineering work percentage",
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-14",
+      "AT-15",
+      "AT-20"
+    ],
+    "closedSubconditions": [
+      "Approved Persona source52/imageEA operating with current data/auth preserved",
+      "Track c52 selection recovery web operating as paired frozen release",
+      "Protected API repeated reads and 5-minute SSE stable in this bounded observation"
+    ],
+    "freshGui": "Edge activation failed twice; no URL/input submitted; user asked to leave Track foreground and authenticated; not a product auth failure",
+    "at14": "Actual business execution/Projects/Note and previous real Entra group/Trace proof retained; latest API stability now passed; current actual selection/Trace review remains pending; no extra desktop app or re-login requirement added",
+    "eta": null
+  },
+  "immutablePreviousPublication": {
+    "markdown": "projects-read-transport-deployment.md",
+    "markdownSha256": "46a3f34db561eeb98e299eb76b6269c435b2639b467056d5c560fe78068245af",
+    "url": "https://note.pydemia.ai/#/w/personal-note-production/page/4037a1c3-f092-41d5-90fc-545a92d091f0"
+  },
+  "next": [
+    "Review same existing business selection/Trace in actual authenticated GUI when foreground control is available",
+    "Inspect existing command capability and source routing without enabling writer or dispatching commands",
+    "Complete peer edge pointer selection and multiple-device default/filter-reset scenario",
+    "Validate original Demian Session/context navigation and fault isolation using existing authorization"
+  ]
+}

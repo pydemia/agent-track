@@ -188,5 +188,17 @@
     "buildRestarted": false,
     "operatingCutover": false,
     "rawErrorSuppressed": true
+  },
+  "historicalOutageSnapshot": true,
+  "currentRecovery": {
+    "recordedAt": "2026-11-17T15:48:43.246055+00:00",
+    "sshRecovered": true,
+    "healthyTunnels": 3,
+    "connectionsEach": 4,
+    "sameOldBuildIdentityGoneAfterReboot": true,
+    "newBuildAndBothOperatingRolloutsCompleted": true,
+    "dnsTunnelOrAuthChanges": 0,
+    "outageCause": "unconfirmed",
+    "evidence": "post-reboot-deployment-verification-20261118.json"
   }
 }

@@ -37,7 +37,7 @@
     "actorRotation": "unit-tested only",
     "ownedFixtureProcessStopped": true
   },
-  "deployed": false,
+  "deployed": true,
   "ci": {
     "runId": 44004816689,
     "headSha": "c52b49ddc08207726813baba6c222957db5df7fc",
@@ -53,8 +53,8 @@
     "files": 2050,
     "packages": 27,
     "rollbackManifestVerified": true,
-    "coldQaCompleted": false,
-    "reason": "Full production preservation baseline remains required. Separate no-source frozen candidate/rollback cold starts passed; they do not satisfy production preflight.",
+    "coldQaCompleted": true,
+    "reason": "Full current production preservation baseline, backup, candidate/rollback cold QA and reviewed operator committed after server reboot; current operating readback passed.",
     "isolatedFrozenPairQaCompleted": true
   },
   "isolatedFrozenPair": {
@@ -109,5 +109,35 @@
         "syntheticUnknownRowRemoved": true
       }
     }
+  },
+  "operatingDeployment": {
+    "evidence": "post-reboot-deployment-verification-20261118.json",
+    "operationId": "357de777-154a-4fd2-87d7-7bc591bebef4",
+    "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+    "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+    "manifestSha256": "b675ffc95a6ba29410fc21f578767f6c720aaad273e792d7f2160e305fae17ba",
+    "pid": 40156,
+    "createdAt": "2026-11-17T15:28:06.2508090Z",
+    "committed": true,
+    "operator": "deploy/track/activate-runtime.ps1",
+    "fullProductionBaselineAndColdQaPassed": true,
+    "coldQaRawSha256": "c0a9ff1e4f72f4c0b453a490be0d93177d86bd8e348bf62263601d35e50bc403",
+    "committedRawSha256": "dc5391d6bcf2f6b8be669136f8c08db90430f058d81fa36571ec019e9cd65793",
+    "backupBytes": 33898496,
+    "backupSha256": "7eabe96b724368e57c27670baefce371edc5e16f3bdd218461d831afd44c2dc4",
+    "nativePostgresTablesPreserved": 46,
+    "staticFilesBytesAndMimeMatched": 18,
+    "configRestoredExactly": true,
+    "protectedFilesPreserved": 47,
+    "otherProcessesPreserved": 14,
+    "historyPreserved": true,
+    "sqliteIntegrity": "ok",
+    "operatingCommandTablesEmpty": true,
+    "sourceOrModelCommandsDispatched": 0,
+    "savedViewOwnerProbe": "actual permitted Tasks2; own temporary view read/stale409/deleted; no native work created",
+    "publicAuth": "Track/Trail root302, Track anonymous API401; local forged/anonymous401",
+    "freshActualEntraGuiVerified": false,
+    "compiledSyntheticSelectionRecoveryGuiVerified": true,
+    "previousRealGuiEvidence": "projects-read-transport-deployment-verification.json; unchanged renderer; current selection logic separately regression-tested"
   }
 }

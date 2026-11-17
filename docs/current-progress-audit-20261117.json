@@ -220,5 +220,36 @@
     "linuxSourceQa": "Full build/typecheck and1349 tests:1340pass/0fail/9skip; compiled752 files; owned container/volume removed",
     "currentGoalStatus": "blocked",
     "pr24BodyUpdatedAndReadBack": true
+  },
+  "historicalSnapshotSupersededBy": "post-reboot-deployment-verification-20261118.json",
+  "currentFollowup": {
+    "recordedAt": "2026-11-17T15:48:43.246055+00:00",
+    "goalStatus": "active",
+    "operatingRolloutsCompleted": 2,
+    "serverConnectivityRecovered": true,
+    "upperAcceptance": {
+      "accepted": 15,
+      "total": 21,
+      "percent": 71.4,
+      "meaning": "whole-requirement acceptance, partial0; not engineering work percentage",
+      "remaining": [
+        "AT-06",
+        "AT-09",
+        "AT-12",
+        "AT-14",
+        "AT-15",
+        "AT-20"
+      ],
+      "closedSubconditions": [
+        "Approved Persona source52/imageEA operating with current data/auth preserved",
+        "Track c52 selection recovery web operating as paired frozen release",
+        "Protected API repeated reads and 5-minute SSE stable in this bounded observation"
+      ],
+      "freshGui": "Edge activation failed twice; no URL/input submitted; user asked to leave Track foreground and authenticated; not a product auth failure",
+      "at14": "Actual business execution/Projects/Note and previous real Entra group/Trace proof retained; latest API stability now passed; current actual selection/Trace review remains pending; no extra desktop app or re-login requirement added",
+      "eta": null
+    },
+    "evidence": "post-reboot-deployment-verification-20261118.json",
+    "notePublication": "post-reboot-deployment-note-publication-20261118.json; published/readback/index verified; previous report unchanged"
   }
 }

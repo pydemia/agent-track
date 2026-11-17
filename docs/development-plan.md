@@ -1,5 +1,26 @@
 # Agent Track 개발계획
 
+서버 재기동 후 승인된 Persona52cd99c/imageea4a4d31과 Track API047b4d6/webc52b49d를
+운영에 반영했다. 현재 backup·후보/이전 버전 cold QA·검토된 전환·데이터/설정 보존을
+통과했다. 보호 snapshot/events/evidence15개는 모두200,90초30개·5분100개 SSE는
+모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
+확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
+
+native goal은 active이며 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
+새로 활성화하지 않았고 원본 업무 명령·모델 실행0건이다. 상위 수용15/21·71.4%는
+유지하며 두 운영 반영과 반복 안정성 하위 조건을 별도 진전으로 기록한다. 최신 운영
+Edge의 같은 업무 선택·Trace 검토는 창 활성화 도구 실패로 대기 중이다. 이전 실제
+Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/14/15/20은 남는다.
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814) — 본문·색인 재확인 완료.
+
+[재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
+[현재 검증 원본](post-reboot-deployment-verification-20261118.json),
+[선택 복구 검증](run-selection-recovery-verification.json)을 우선한다.
+아래의 서버 down·blocked·미배포 문구는 당시 이력이며 현재 상태를 대신하지 않는다.
+
+### 직전 계획·연결 단절 이력 — 2026-11-17 KST
+
 18:05 KST 후속: Persona52cd99c의 Linux 전체 build·타입 검사와 전체1,349개 중
 1,340통과/실패0/제외9까지 검증했다. [소스 검사 근거](persona-linux-source-verification-20261117.json)는
 원격 이미지 기동·CI 전체와 구분한다. 독립 로컬 검증은 마쳤으나 Linux Tunnel2개와
