@@ -51,9 +51,11 @@ export class TaskAssignments {
     return { source, projectSource, project, identity };
   }
   async review(user: string, sourceId: string, projectId: string, taskId: string) {
-    await this.sources.refreshProjectGrants(user); const before = this.project(user, sourceId, projectId); const stamp = sourceIdentity(before.source);
+    // Reviewing a Projects Task does not require collecting unrelated Native
+    // Runs. Keep both native Project fences without blocking on that window.
+    await this.sources.projects.refresh(user); const before = this.project(user, sourceId, projectId); const stamp = sourceIdentity(before.source);
     const value = await this.sources.projects.client(sourceId, user).taskReview(taskId, projectId);
-    await this.sources.refreshProjectGrants(user); const after = this.project(user, sourceId, projectId);
+    await this.sources.projects.refresh(user); const after = this.project(user, sourceId, projectId);
     if (sourceIdentity(after.source) !== stamp) throw new CommandError(403, "source_identity_changed", "업무 읽기 연결이 변경됐습니다.");
     return { ...value, reviewSha256: value.complete ? taskReviewFingerprint(sourceId, value) : null };
   }

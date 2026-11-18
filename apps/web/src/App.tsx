@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import type { ComponentProps, ContextType, CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
 import { RunBindingPanel } from "./RunBindingPanel.tsx";
+import { RunContentLinks } from "./ExecutionContentLinks.tsx";
 import { RunApprovals } from "./RunApprovals.tsx";
 import { RunTrace } from "./RunTrace.tsx";
 import { SnapshotOrder } from "../../../packages/projection/snapshot-order.ts";
@@ -646,6 +647,7 @@ function RunInspector({ run, relations, events, source, sources, onUnauthorized,
   const sourceHref = originUrl(run.sourceUrl);
   return <aside className="inspector" aria-label="선택한 실행 상세"><div className="inspector-title"><span className="overline">RUN DETAILS</span><h2>{run.title || "제목 없는 실행"}</h2><DisplayState run={run} /><Freshness run={run} /></div>
     <dl className="detail-list"><dt>Run ID</dt><dd>{run.runId}</dd><dt>세션 ID</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>장치</dt><dd>{run.device}</dd><dt>프로젝트 / 저장소</dt><dd>{run.binding ? `${run.binding.projectTitle} / ${run.binding.taskTitle ?? "업무 미지정"}` : run.workspaceId ? `업무 미연결 · ${workspaceName(run.workspaceId)}` : "Projects 업무 미연결"}</dd><dt>시작</dt><dd>{timestamp(run.startedAt)}</dd><dt>종료</dt><dd>{timestamp(run.completedAt)}</dd><dt>마지막 관측</dt><dd>{timestamp(run.observedAt)}</dd><dt>관계 증거</dt><dd>{relations.length}건</dd></dl>
+    <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />
     <RunBindingPanel key={run.key} run={run} sources={sources} onUnauthorized={onUnauthorized} onSaved={onSaved} />
     <section className="evidence-group"><h3>에이전트 보고</h3><p>{reportEvents.length ? `${reportEvents.length}개 관련 이벤트 관측` : "별도 보고 정보 없음"}</p><small>보고 본문은 표시하지 않습니다.</small></section>
     <section className="evidence-group"><h3>검증</h3><p>{verifyEvents.length ? `${verifyEvents.length}개 검증 관련 이벤트 관측` : "검증 근거 없음"}</p><small>실행 종료 상태와 검증 결과는 별도입니다.</small></section>

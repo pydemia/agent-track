@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView, SourceView } from "../../../packages/contracts/index.ts";
-import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
+import { TaskContent } from "./TaskContent.tsx";
+import { RunContentLinks } from "./ExecutionContentLinks.tsx";
 import { missionFlow, missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
@@ -100,6 +101,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     {scopeNodeKeys && <p className="graph-legend">선택한 하위 묶음의 관측 항목만 표시합니다. 현재 조회에서 찾지 못한 항목은 전체 실행으로 넓히지 않습니다. 전체 원장 근거는 아래에서 별도로 확인할 수 있습니다.</p>}
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
+    <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />
     <ArtifactSupport value={artifacts} />
     {nativeEvidence.native && <NativeRunEvidence value={nativeEvidence} />}
     {lineage.native && <p className="graph-legend">Native lineage {lineage.observations.length}개 · {lineage.detail}{lineage.hasMore && <button className="text-button" disabled={lineage.capped} onClick={lineage.more}>{lineage.capped ? "1,000개 조회 한도" : "Native 근거 더 불러오기"}</button>}</p>}
@@ -117,7 +119,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
         {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
           <dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
-          {selectedNode.kind === "task" && selectedNode.taskRef && <ProjectsTaskLink sources={sources} task={selectedNode.taskRef} />}
+          {selectedNode.kind === "task" && selectedNode.taskRef && <TaskContent sources={sources} task={selectedNode.taskRef} title={selectedNode.label} onUnauthorized={onUnauthorized} />}
           {selectedNode.sequences.length > 0 && <p className="flow-evidence">근거 seq {selectedNode.sequences.join(", ")}</p>}
           {selectedNode.runKey && selectedNode.runKey !== run.key && <button className="button-secondary" onClick={() => onSelectRun(selectedNode.runKey!)}>이 Run의 실행 근거 보기</button>}
           <h4>연결 {neighbours.length}건</h4><div className="flow-neighbours">{neighbours.map((edge) => <button className="flow-list-choice" key={edge.key} onClick={() => grouping.revealEdge(edge.key)}><strong>{edge.label}</strong><span>{nodeName(edge.from)} → {nodeName(edge.to)}</span></button>)}</div>
