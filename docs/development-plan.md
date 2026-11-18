@@ -4,9 +4,9 @@
 
 [현재 완료 보고](writer-qa-completion-20261118.md)와 [실기 검증 원본](writer-command-completion-verification-20261118.json)을 우선합니다. 21/21은 기존 조건의 수용이며 향후 전체 제품 개발량의 비율이 아닙니다. 지원하지 않는 desktop 연동과 보관 Linux 기록의 범위는 기존 판정을 유지합니다.
 
-기존 수용 조건에 대한 구현·운영 검증은 완료했습니다. 사후 암호화 백업·복원 검증을 완료했고, 최종 Note·PR 기록을 정리 중입니다. 후속 기능 확장은 별도 로드맵으로 관리합니다.
+기존 수용 조건에 대한 구현·운영 검증은 완료했습니다. 사후 암호화 백업·복원 검증을 완료했고, 최종 Note 게시·검증을 완료했습니다. PR에는 같은 수용·검증 근거를 반영했습니다. 후속 기능 확장은 별도 로드맵으로 관리합니다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 20/21 시점 검증된 보고.
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/2c6af3c1-0e77-4790-82f7-12ddd5775d78) — 21/21 완료 보고의 본문·색인·소스 해시 재확인 완료.
 
 ### 20/21 이전 계획 이력
 

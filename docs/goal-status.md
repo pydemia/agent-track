@@ -13,7 +13,7 @@
 | 관계 (12,18,19) | 🟩3 | 0 | 없음 |
 | 운영·앱 연동 (13,14,20,21) | 🟩4 | 0 | 없음 |
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 20/21 시점 본문·색인 검증 완료; 21/21 후속 보고 준비 중.
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/2c6af3c1-0e77-4790-82f7-12ddd5775d78) — 21/21 완료 보고의 본문·색인·소스 해시 재확인 완료.
 
 ### 20/21 시점의 진행 이력
 
