@@ -144,7 +144,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         json(response, 200, { version: 1, observedAt: new Date().toISOString(),
           operations: sources.readDiagnostics.snapshot(user, config().sources) }); return;
       }
-      const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36})?$/.test(url.pathname);
+      const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36}(?:\/review)?)?$/.test(url.pathname);
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);
       const evidenceRun = evidenceRead ? store.run(evidenceRead[1]!) : undefined;
       const nativeRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/(?:files|orchestration|tools|lineage)$/.exec(url.pathname);
