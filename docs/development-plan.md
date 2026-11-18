@@ -30,7 +30,10 @@ grant는 아직 disabled이며2시간은 시작하지 않았다. ACL 경계 수�
 업무/Entra·현재 운영 API/SSE 근거와 연결해 AT-14를 수용했고 **16/21개**가 됐다.
 이는 새 SSO 로그인·기존 사용자 창 제어·합성 회복 검사의 실제 장애 전환을 뜻하지
 않는다. [현재 수용표](goal-status.md)와 [실기 원본](operating-flow-review-verification-20261118.json)을 따른다.
-AT-06/09/12/15/20이 남으며 전체 작업량 비율·완료 ETA는 미확정이다.
+후속 실제 공개 Demian의 동일 Session 이동·3Run 요약·요약 요청 실패 중 초안 유지와
+재연결·token 없는 링크를 확인해 AT-06/20도 수용했다. 현재 **18/21개**이며
+AT-09/12/15가 남는다. [앱 간 실기 원본](session-context-operating-verification-20261118.json)을 따른다.
+전체 작업량 비율·완료 ETA는 미확정이다.
 
 [최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.
 

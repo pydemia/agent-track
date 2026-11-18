@@ -8,7 +8,7 @@
 모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
 확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
 
-현재 상위 수용은 **16/21개·76.2%**다(동일21개 요구, 부분0의 기존 집계 유지).
+현재 상위 수용은 **18/21개·85.7%**다(동일21개 요구, 부분0의 기존 집계 유지).
 새로 확인한 것은 현재 운영 데이터를 연결한 Edge157의 Trace 실기다. 4개 node·
 3개 edge·3개 그룹, node 상세·edge seq4/5·그룹 접기/펼치기·내부 탐색·이전 복귀를
 실제로 조작했다. fixture 응답은 사용하지 않았다. 기존 같은 Execution의 실제 업무·
@@ -17,12 +17,20 @@ Projects/Note·Entra desktop 근거와 현재 운영 보존·API/SSE 근거를 �
 입력 도구가 거절한 기존 사용자 창 제어나 새 Entra 로그인 성공으로 표현하지 않는다.
 [현재 화면·관계 검증 원본](operating-flow-review-verification-20261118.json)을 따른다.
 
+추가로 실제 Track 링크→공개 Demian의 동일 QA Session 이동과3Run/1Session 요약을
+확인했다. 해당 브라우저의 요약 GET만 끊어도 입력창을 쓸 수 있었고, 전송하지 않은
+임시 초안은 복구 뒤 유지됐다. 실제4개 Track 링크의 출처·Run과 token 없는 URL도
+대조했다. 기존 Projects 동일 Task 이동·편집 격리·원본 인가 검사를 함께 연결해
+AT-06/20을 수용했다. 테스트는 기존 legacy gate credential을 격리 QA에만 사용했고
+기본 Track Entra·Demian auth/runtime/DB·OS ACL을 변경하지 않았다.
+[앱 간 이동·요약 실기 원본](session-context-operating-verification-20261118.json)을 따른다.
+
 | 기존 요구 영역 | 완료 | 부분 | 현재 잔여 |
 | --- | --- | --- | --- |
-| 조회·기본 UI (01–08,15–17) | 🟩9 | 🟨2 | AT-06,15 |
+| 조회·기본 UI (01–08,15–17) | 🟩10 | 🟨1 | AT-15 |
 | 제어 (09–11) | 🟩2 | 🟨1 | AT-09 |
 | 관계 (12,18,19) | 🟩2 | 🟨1 | AT-12 |
-| 운영·앱 연동 (13,14,20,21) | 🟩3 | 🟨1 | AT-20 |
+| 운영·앱 연동 (13,14,20,21) | 🟩4 | 0 | 없음 |
 
 사용자는 QA Execution1건·활성화부터2시간 writer를 승인했다. [PR1](https://github.com/pydemia/agent-track/pull/1)은
 양 OS CI 통과 후 pydemia 작성자로 병합했다(main f8fea06). 기존 전용 worker를
@@ -393,7 +401,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-03 | durable cursor·중복·역순·gap·재시작 복구 | 검증 완료. 실제 HTTP 단절 후 DB 재시작·cursor1 재수신·gap2 보충·3 dedupe. stale/forbidden/재인가 fixture와 실제 native cursor17 재시작 확인 |
 | AT-04 | Trail·파일·산출물 근거와 수집 범위 | 검증 완료. 실제 answer.txt metadata·원본/공개 Trail 대조와 native 파일 편집4Run 조회. 성공3파일의30byte/hash·요청/완료seq, 거절/만료는 실패·파일 없음 구분. 공개 Trail·390px/Tab·Project 철회404/경로 제거→복구, 원문 비노출·이벤트 digest 불변·조회 한도 검사 |
 | AT-05 | 실제 Run·step·tool Trace, unknown 보존 | 검증 완료. 실제 Codex Run13event/5개 paired tool·관측 구간 공개 대조. 실제 native17event와 없는 step/호출 ID unknown 표시. invocation/call tuple·int64·모호함·시각 역행 fixture 통과. native212event·lineage9·도구3결과(실패1/성공2)와 Flow 대조·원장 불변, 요청≠실행 시작 구별 |
-| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 부분. 실제 Edge의 Track 업무 inspector→Projects 동일 Project/Task 선택을 확인했다 (`task-origin-navigation-verification.json`). Demian Session href·Run link 미지원 안내도 제공한다. 원본 웹의 무인증 Basic401과 후속 인증 root/context200을 구별하며, 동일 Session의 브라우저 선택 성공은 남는다. 무인증401만으로 새 인증 구현이 필수라고 단정하지 않으며 공개 Track Entra 정책은 유지 |
+| AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 검증 완료(현재 소유자·QA 범위). 기존 실제 Edge의 Track inspector→Projects 동일 Project/Task 이동과 미지원 Run 안내를 유지한다. 후속 Edge157/headless에서 실제 운영 Track의 source href를 클릭해 공개 Demian 동일 Session6e26fd8b를 열고, 그 Session의 원본 요약3Run/1Session을 대조했다. 기존 legacy credential은 격리 읽기 QA에만 사용했고 auth 설정·기본 Track Entra는 보존했다 (`session-context-operating-verification-20261118.json`) |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
 | AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. 실제 취소·receipt/중복 방어, 일반 Native와 보호 owner 명령·검토/전송/같은 ID 복구·원장·Flow source를 구현했다. 현재 Track API047b4d6/webc52b49d와 두 원장 테이블은 운영에 있으며, 일반 GET의 무관한 보호 수집을 분리해 운영916ms/200·not_enabled와 실제 Edge 상태를 확인했다. ACK 유실 후 같은 ID 복구·POST1회 유지 등 관련53개는 합성 Native HTTP/SQLite 검사다. 원본 command-context GET404·writer 비활성이며 실제 provider/owner 명령·복구 수용은 남는다 (`command-history-scoped-reads-verification.json`) |
@@ -407,7 +415,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |
 | AT-18 | invocation/cowork/managed-child/peer를 구별·고유 Run 집계 | 검증 완료(현재 인가된 QA 범위, 이번 감사에서 정정). 실제 native lineage9·도구 join3·managed-child17event·nested coordinator63event·cowork 병렬/합류77event·Windows→Linux peer49event의 원본 ID/receipt·명시 관계와 source-qualified 고유 Run 집계를 대조. 조회 전후 인가·grant 재검증 구현 확인. 운영 SDK/worker 전환·전체 업무는 AT-14/15의 통합 잔여 작업이며 본 요구의 완료 조건에 추가하지 않음. protected Assistant 위임 Run metadata 수집은 운영 연결됐으나 이번 원본 이벤트에는 invocation/tool 식별자가 없어 상세 관계·Trace 근거로 확대하지 않음 (`session-relations-verification.json`, `native-managed-child-verification.json`, `native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `workflow-observation-2026-11-14.json`) |
 | AT-19 | Projects 원본·Run 단위 binding 이력·서로 다른 완료 | 검증 완료. 실제 native QA Task A→B로 명시 Run 연결·재연결, A 원본 revision2와 당시 revision1 보존, stale revision409·동일 receipt·재시작 이력2건. Run 성공/Task todo·agent report/검증/수용 unknown 구별. bound Project 철회 시 공개 비노출·네 API404→복구 |
-| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 부분. 실제 Projects UI/동일 Map 이동·장애 중 편집/복구, 후속2초 초과 오류 수정 뒤 Task1Run·Project4Run 요약과 실제 Entra 계정의 배지·상세 복구를 확인했다 (`context-summary-scoped-reads-verification.json`). Demian 분리 웹의 실제 Run/장애 격리와 원본 Web3001의 context200·connected·동일 Session/Run3·wrong actor403도 대조했다. 기존 Basic gate의 원본 브라우저 GUI·동일 Session 선택 이동·공개 웹 장애 격리 실기는 남는다. 과거 Docker 장애를 현재 보류 원인으로 사용하지 않음 |
+| AT-20 | Demian/Projects 문맥 요약·인증 조회·Track 장애 격리 | 검증 완료(기존 owner-bound QA 범위). 기존 실제 Projects 동일 Task/Map·편집 격리·복구, 인가 교집합·wrong actor403과 Native 분리 웹의 실제 실행 근거를 유지한다. 후속 실제 공개 Demian GUI에서 같은 Session6e26fd8b/성공3Run 요약을 확인하고, 격리 브라우저의 요약 GET 실패 중 입력창·미전송 초안 유지→실제 요약 재연결을 대조했다. Track 링크4개는 같은 source/Run의 token 없는 URL이었다. 범위 밖 Session095abfb9는200/disabled·요약 비노출이었다. 운영 서비스 장애를 유발하거나 대화를 전송하지 않았으며, legacy credential QA·현재 Track Entra·원본 auth 불변을 구별한다 (`session-context-operating-verification-20261118.json`) |
 | AT-21 | 실제 Demian 실행을 Track에서 관측하고 재접속 대조 | 검증 완료. 실제 native Run `82f7e1fd-8fe2-4da1-8307-99f3e016f48c` 성공, canonical SSE17개·cursor17/highWater17. 제품 재시작 후 동일 원장·공개 Trace seq17 대조 |
 
 ## 시점별 이력
