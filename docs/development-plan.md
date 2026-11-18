@@ -6,28 +6,33 @@
 모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
 확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
 
-운영 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
-새로 활성화하지 않았고 원본 업무 명령·모델 실행0건이다. 상위 수용15/21·71.4%는
-유지하며 두 운영 반영과 반복 안정성 하위 조건을 별도 진전으로 기록한다. 최신 운영
-Edge의 같은 업무 선택·Trace 검토는 창 활성화 도구 실패로 대기 중이다. 이전 실제
-Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/14/15/20은 남는다.
+2026-11-18 재개: 사용자가 전용 QA 실행1건·활성화부터2시간 writer 권한을 승인했다.
+승인 대기가 현재 장애 원인은 아니다. [PR1](https://github.com/pydemia/agent-track/pull/1)은
+b748780의 Windows·Ubuntu CI 통과 후 pydemia 작성자로 병합했고 main은 f8fea06이다.
+기존 전용 worker를 같은 동결 release로 시작해 runtime 등록 가능 상태를 복구했다.
 
-01:25 KST 후속: writer 전환 준비 코드는 pydemia 작성자의 [draft PR1](https://github.com/pydemia/agent-track/pull/1)에 제출했다.
-Python61개와 b748780의 Windows·Ubuntu CI44123024293, 현재 운영 inspect 입력의
-순수 구성 검사·격리 Docker 생성/검증을 통과했다. QA 컨테이너2개·volume1개는
-정리했고 운영 writer·credential·명령은 활성화하지 않았다. 코드는 PR branch에
-있으며 main·운영에 반영한 결과로 표현하지 않는다.
+새 QA Execution a1d1af60의 Native Run 2b1d7577은 실제 생성·시작 후10.2초에 실패했다.
+새 Execution을 반복 생성하지 않았으며 기존 완료 업무도 재생하지 않았다. Track의
+현재 인가된 API에서 QA의 Projects Task 연결·실패 상태·3events·executionRef를 확인했다.
+Demian 개발 세션은 일치하는 기존 snapshot/설정과 PowerShell 기반 ACL 조회 무응답을
+대조하고 있다. 공개 오류만으로 권한 만료·로그인 실패를 확정하지 않는다.
 
-현재 인가된 Assistant 실행은 completed1건뿐이다. 별도 QA 실행1건·2시간의
-writer 권한 허용 요청과 Edge 전면/로그인 준비 요청은 답변 대기다. Edge의 같은
-창 제어 제약이 재기동 재개 후 세 연속 goal 턴에서 남았고 독립 준비·검증은 마쳤다.
-다음 실기에는 사용자 입력 또는 화면 제어 상태 변화가 필요하다. 기본 snapshot의
-1,521Run·연결 프로젝트2개는 확인했지만 Run 장치 두 표기는 같은 PC의 대소문자
-차이이고 과거 Linux peer QA Run은 운영 목록에 없다. 이를 실제 여러 장치 GUI
-수용으로 세지 않는다. peer 실기에는 인가된 대상 데이터 준비도 연결해야 한다.
-상위 수용15/21을 유지하며 전체 ETA는 산정 불가다.
+QA Execution 하나만 허용하는 별도 writer principal·credential·readonly volume과
+같은 이미지의 후보를 준비해 운영 설정 전환을 마쳤다. 새 Work/Runtime 암호화
+백업·복원·기동 후 전체 데이터/설정 보존과 기존 컨테이너 복귀 경로를 확인했다.
+grant는 아직 disabled이며2시간은 시작하지 않았다. ACL 경계 수정·검증 뒤 같은 QA의
+단일 retry 전송과 같은 operationId GET 복구를 진행한다. [현재 QA 작업 기록](writer-qa-20261118.md)을 따른다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814) — 본문·색인 재확인 완료.
+사용자 요청으로 기존 Edge 실행 파일에 보호 업무 Trace URL을 전달했고 Agent Track
+창 제목을 확인했다. Windows 입력의 GetCursorPos Access denied와 오래된 접근성
+내용 때문에 기존 사용자 창의 조작은 미검증이다. 후속 별도 Edge157에서 실제 운영
+데이터의4nodes/3edges/3groups와 선택·상세·그룹 탐색7동작을 검증했다. 기존 실제
+업무/Entra·현재 운영 API/SSE 근거와 연결해 AT-14를 수용했고 **16/21개**가 됐다.
+이는 새 SSO 로그인·기존 사용자 창 제어·합성 회복 검사의 실제 장애 전환을 뜻하지
+않는다. [현재 수용표](goal-status.md)와 [실기 원본](operating-flow-review-verification-20261118.json)을 따른다.
+AT-06/09/12/15/20이 남으며 전체 작업량 비율·완료 ETA는 미확정이다.
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),

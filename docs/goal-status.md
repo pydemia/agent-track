@@ -8,28 +8,41 @@
 모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
 확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
 
-운영 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
-새로 활성화하지 않았고 원본 업무 명령·모델 실행0건이다. 상위 수용15/21·71.4%는
-유지하며 두 운영 반영과 반복 안정성 하위 조건을 별도 진전으로 기록한다. 최신 운영
-Edge의 같은 업무 선택·Trace 검토는 창 활성화 도구 실패로 대기 중이다. 이전 실제
-Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/14/15/20은 남는다.
+현재 상위 수용은 **16/21개·76.2%**다(동일21개 요구, 부분0의 기존 집계 유지).
+새로 확인한 것은 현재 운영 데이터를 연결한 Edge157의 Trace 실기다. 4개 node·
+3개 edge·3개 그룹, node 상세·edge seq4/5·그룹 접기/펼치기·내부 탐색·이전 복귀를
+실제로 조작했다. fixture 응답은 사용하지 않았다. 기존 같은 Execution의 실제 업무·
+Projects/Note·Entra desktop 근거와 현재 운영 보존·API/SSE 근거를 연결해 AT-14를
+수용했다. 별도 headless Edge의 기존 인가된 로컬 proxy identity를 사용했으며,
+입력 도구가 거절한 기존 사용자 창 제어나 새 Entra 로그인 성공으로 표현하지 않는다.
+[현재 화면·관계 검증 원본](operating-flow-review-verification-20261118.json)을 따른다.
 
-01:25 KST 후속: writer 전환 준비 코드는 pydemia 작성자의 [draft PR1](https://github.com/pydemia/agent-track/pull/1)에 제출했다.
-Python61개와 b748780의 Windows·Ubuntu CI44123024293, 현재 운영 inspect 입력의
-순수 구성 검사·격리 Docker 생성/검증을 통과했다. QA 컨테이너2개·volume1개는
-정리했고 운영 writer·credential·명령은 활성화하지 않았다. 코드는 PR branch에
-있으며 main·운영에 반영한 결과로 표현하지 않는다.
+| 기존 요구 영역 | 완료 | 부분 | 현재 잔여 |
+| --- | --- | --- | --- |
+| 조회·기본 UI (01–08,15–17) | 🟩9 | 🟨2 | AT-06,15 |
+| 제어 (09–11) | 🟩2 | 🟨1 | AT-09 |
+| 관계 (12,18,19) | 🟩2 | 🟨1 | AT-12 |
+| 운영·앱 연동 (13,14,20,21) | 🟩3 | 🟨1 | AT-20 |
 
-현재 인가된 Assistant 실행은 completed1건뿐이다. 별도 QA 실행1건·2시간의
-writer 권한 허용 요청과 Edge 전면/로그인 준비 요청은 답변 대기다. Edge의 같은
-창 제어 제약이 재기동 재개 후 세 연속 goal 턴에서 남았고 독립 준비·검증은 마쳤다.
-다음 실기에는 사용자 입력 또는 화면 제어 상태 변화가 필요하다. 기본 snapshot의
-1,521Run·연결 프로젝트2개는 확인했지만 Run 장치 두 표기는 같은 PC의 대소문자
-차이이고 과거 Linux peer QA Run은 운영 목록에 없다. 이를 실제 여러 장치 GUI
-수용으로 세지 않는다. peer 실기에는 인가된 대상 데이터 준비도 연결해야 한다.
-상위 수용15/21을 유지하며 전체 ETA는 산정 불가다.
+사용자는 QA Execution1건·활성화부터2시간 writer를 승인했다. [PR1](https://github.com/pydemia/agent-track/pull/1)은
+양 OS CI 통과 후 pydemia 작성자로 병합했다(main f8fea06). 기존 전용 worker를
+시작했고, 새 QA Execution a1d1af60/Native Run2b1d7577은 시작 후10.2초에 실패했다.
+실제 Task·실행 연결·실패3events는 Track에서 읽혔다. 원본 완료 업무는 재생하지 않았다.
+현재 유력한 실패 경계는 PowerShell 기반 ACL 조회 무응답이며, 원본·동결 runtime·
+OS ACL을 보존하는 별도 worktree의 최소 수정·검사를 Demian 개발 세션에서 진행한다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814) — 본문·색인 재확인 완료.
+같은 Persona52cd99c/imageea4a4d31에 별도 readonly writer volume을 추가해 운영에
+반영했다. 새 Work/Runtime 암호화 backup·별도 복원·현재 baseline·guarded lifecycle·
+이전 컨테이너 복귀 경로·기동 후 전체 업무/보고서/설정 보존을 확인했다. 새 컨테이너
+39bab532/PID1436636, 기존13개 보호 구성요소는 그대로다. grant는 disabled이고
+활성2시간과 writer 명령 전송은 아직 시작하지 않았다. [현재 writer QA 기록](writer-qa-20261118.md)을 따른다.
+
+전체 개발 작업량 비율·전체 하위 결과 분모와 ETA는 확정하지 않았다. 다음 재산정은
+ACL 수정 artifact의 검증과 같은 QA의 실제 retry/receipt 복구 시점이다. 기존 사용자
+창 제어의 GetCursorPos Access denied는 남지만 승인 대기를 원인으로 쓰지 않는다.
+여러 장치 동시 대시보드와 peer 대표선 선택은 현재 실기로 세지 않는다.
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),
@@ -388,7 +401,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 부분. 중첩 그룹·업무 묶음·상세·접기·내부 선택·상위/깊이 탐색·네 보기 범위·저장/복원 구현과 운영 배포, 실제 managed-child·nested coordinator·병렬 합류·Windows→Linux peer의 node/edge/그룹 대조. 병렬 대표선 마우스 선택은 통과. 일반 Native Run 묶음의 네 보기 전환과 실제 Entra 계정의 Task1·Run1 저장/새로고침/접힘 복원을 확인했다. peer 대표선 포인터 선택 성공 확인은 남는다(기존 시도는 viewport 제약, 제품 결함 여부 미확정). 기존 합성 GUI·운영 owner API 근거를 재사용하며 특정 Entra 재로그인·스크린샷 export·추가 기기 재접속·전체 desktop/SDK 업무를 독립 추가 게이트로 삼지 않음 (`native-parallel-flow-verification.json`, `native-peer-processing-verification.json`, `saved-flow-views-verification.json`, `model-request-trace-verification.json`) |
 | AT-13 | 보존·backup/restore·cursor/receipt 정합 | 검증 완료. 실제 online backup→별도 복원 DB→API232Run·17,456event 대조. binding/pending receipt·archive tombstone fixture. 자동 삭제 비활성·명시 archive 정책. 운영 DB 전환/재난 훈련과 구별 |
-| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 부분. 기존 같은 Execution의 실제 실행·Projects 결과·Note 연결과 현재 PC의 Entra 그룹/Trace 검토 근거를 유지한다. Persona52cd99c/imageea4a4d31·Track API047b4d6/webc52b49d 운영 전환·보존 완료. 보호 API15개200·90초30개/5분100개 SSE 전부 connected로 이번 반복 안정성 조건을 통과했다. 최신 운영 선택/Trace 실기는 Edge 창 활성화 실패로 대기이며 제품 인증 실패로 판정하지 않는다. 원본8events·binding r3·Task r5/in_review 유지. 과거503 원인은 미확정 (`post-reboot-deployment-verification-20261118.json`) |
+| AT-14 | Assistant→Demian→desktop→Track 실제 업무 | 검증 완료(현재 소유자·Windows 범위). 기존 같은 Execution의 실제 실행·Projects/Note 결과·Entra desktop 근거, 현재 Persona52/imageea4a4d31·Track API047b4d6/webc52b49d 운영 보존·API/SSE 반복 안정성, 현재 운영 데이터를 연결한 Edge157 1440×960의 선택/Trace·node/edge 상세·그룹 탐색7동작을 연결했다. 원본8events·binding r3·Task r5/in_review 유지. 별도 headless Edge/기존 로컬 proxy identity의 실기이며 기존 사용자 창 제어·새 SSO 로그인은 수행하지 않았다. 단절/철회 회귀는 기존 단위·합성 UI 범위이고 과거503 원인은 미확정이다. 원래 조건에 새 로그인·운영 장애 유발을 추가하지 않는다 (`operating-flow-review-verification-20261118.json`) |
 | AT-15 | 전체 프로젝트 기본·필터·장치/수집 누락 | 부분. 여러 저장소/native workspace·필터/해제·선택 유지 및 Windows↔Linux 실제 peer 전송/ACK·두 번째 호스트의 처리 Run1/49event를 대조. 남은 조건은 같은 기본 대시보드의 여러 장치 동시 조회·필터 해제 후 선택/상태 보존. 특정 desktop 구현이나 전체 업무 수용을 이 요구에 추가하지 않음 (`native-peer-transport-verification.json`, `native-peer-processing-verification.json`) |
 | AT-16 | SNB 접힘/크기/키보드/보존/모바일 실기 | 검증 완료. CUA 로컬 QA 960px: sidebar244/main700→접힘main944; pointer272·keyboard+4·reload272; 390px drawer340·Tab 순환·Escape focus 복귀 |
 | AT-17 | Track Entra 로그인/API/SSE/logout·공개 Basic 차단 | 검증 완료. 본인 consent(조직 동의 제외), 공개 로그인·snapshot/SSE·logout 후 비노출·재로그인. `track-server-verification.json` 공개401/위조·Basic 거부 |

@@ -1,0 +1,123 @@
+{
+  "schema": "agent-track-operating-flow-review-v1",
+  "recordedAt": "2026-11-18T04:15:03.748624+00:00",
+  "apiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+  "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+  "browser": "Microsoft Edge 157.0.4341.46",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "url": "http://127.0.0.1:14345/?view=trace&source=demian-assistant-owner&run=WyJkZW1pYW4tYXNzaXN0YW50LW93bmVyIiwiNjBjY2E2OGQtOTVkMS00ZDk5LTk2M2EtYzI1NTRlMGRmMzQ3Il0",
+  "authentication": {
+    "currentInspection": "Existing authorized local proxy identity, no browser cookie or fresh Entra login",
+    "interactiveUserWindowControlled": false,
+    "freshEntraLoginPerformed": false,
+    "existingActualEntraEvidence": [
+      "assistant-workflow-observation-20261116.json",
+      "projects-read-transport-deployment-verification.json",
+      "track-server-verification.json"
+    ],
+    "reuseReason": "Default Entra client/owner/proxy auth unchanged; changed web selection/detail inspected against actual current operating API and frozen assets"
+  },
+  "scope": {
+    "fixtureResponses": false,
+    "actualOperatingData": true,
+    "leafNodes": 4,
+    "edges": 3,
+    "groups": 3,
+    "renderedNodesIncludingGroups": 7,
+    "events": 8,
+    "executionId": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "runId": "60cca68d-95d1-4d99-963a-c2554e0df347",
+    "taskId": "e4470864-d249-445b-9f0b-e4516fab6fc9",
+    "taskState": "in_review",
+    "historicalBindingRevision": "3",
+    "newWorkExecutionsCreated": 0,
+    "newNativeRunsCreated": 0,
+    "sourceOrModelCommands": 0
+  },
+  "actions": [
+    {
+      "action": "native-turn-node-select",
+      "detail": "Native turn 참조 · 관계 참조\nNative turn · 52703ce94c\n\n원본 thread·turn 참조 · SDK 식별자는 출처 범위 hash로 표시합니다.\n\nNative thread key (hash)\n6ab7083ee308b83275c130bb294cc78c9936b5d33185c02df69fa3edca827520\nNative turn key (hash)\n52703ce94c441522ddfd92d709a17032126266c2c3fa6a213e75c7d212bb348d\nExecutor / provider\ncodex-app-server / agent-track-native\n관측 · seq 4\nturn_started · 2026-11-13T17:52:45.965Z · 시도 1\n관측 · seq 5\nmessage_completed · 2026-11-13T17:52:53.643Z · 시도 1\n\n근거 seq 4, 5\n\n연결 2건\nNative turn 참조\nNative 호출 60cca68d-95d1-4d99-963a-c2554e0df347 → Native turn · 52703ce94c\nNative item 참조\nNative turn · 52703ce94c → message_completed · 04478233e5"
+    },
+    {
+      "action": "native-turn-edge-select",
+      "detail": "관계 상세\nNative turn 참조\n\n동일 Run의 원본 lineage가 명시한 식별자 참조입니다. 실행 순서·의존관계·호출 생명주기를 뜻하지 않습니다.\n\n출발\nNative 호출 60cca68d-95d1-4d99-963a-c2554e0df347\n도착\nNative turn · 52703ce94c\n관계 종류\nnative-lineage\n출처\ndemian-assistant-owner\n\n근거 seq 4, 5"
+    },
+    {
+      "action": "native-item-edge-select",
+      "detail": "관계 상세\nNative item 참조\n\n동일 Run의 원본 lineage가 명시한 식별자 참조입니다. 실행 순서·의존관계·호출 생명주기를 뜻하지 않습니다.\n\n출발\nNative turn · 52703ce94c\n도착\nmessage_completed · 04478233e5\n관계 종류\nnative-item-reference\n출처\ndemian-assistant-owner\n\n근거 seq 5"
+    },
+    {
+      "action": "attempt-group-collapse",
+      "nodes": 1,
+      "edges": 0
+    },
+    {
+      "action": "attempt-group-expand",
+      "nodes": 7,
+      "edges": 3
+    },
+    {
+      "action": "run-group-enter",
+      "breadcrumb": "이전 탐색 복원\n전체 흐름\n/ 실행 시도 · Assistant · 업무 운영 가이드 작성 및 진행 보고\n/ Run · Assistant · 업무 운영 가이드 작성 및 진행 보고\n상위 묶음",
+      "nodes": 7,
+      "edges": 3
+    },
+    {
+      "action": "previous-group-navigation-restored",
+      "breadcrumb": "전체 흐름",
+      "nodes": 7,
+      "edges": 3
+    }
+  ],
+  "actualApiResponses": 9,
+  "allActualApiResponses200": true,
+  "artifacts": [
+    {
+      "path": ".runtime/writer-qa-resume-20261118/live-flow-browser-actions-v2.json",
+      "bytes": 11397,
+      "sha256": "0f1c5ecc6dc5bb28bb5e21bd310c979c5e319a117a4381de977aa0004951f380"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/live-edge-detail.png",
+      "bytes": 90276,
+      "sha256": "e40ecdefb797564882bf17c1740d112810f0237520eaa10e24e614ab1a4327a6"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/live-group-depth.png",
+      "bytes": 106338,
+      "sha256": "40d321396b8ebfcca29d89bac9178be723230b6f675b9229e6a89e4c5e01c83f"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/live-trace-actions-v2-initial.png",
+      "bytes": 220309,
+      "sha256": "17c41889b2cac5c57807a7da11946f1a679b9d02b3dd3a602273b58b1e938098"
+    }
+  ],
+  "limitations": [
+    "Headless Edge with existing authorized local proxy identity; current existing user window input remains inaccessible",
+    "Temporary source-loss/denial selection recovery continues to use regression tests and prior synthetic GUI; no new operating outage was induced",
+    "Earlier intermittent metadata503 cause remains unconfirmed",
+    "Fresh Entra login, multi-device dashboard and peer representative-edge pointer selection not claimed"
+  ],
+  "acceptance": {
+    "requirement": "AT-14",
+    "originalCondition": "Assistant instruction -> Demian execution -> current desktop access -> Track review",
+    "state": "accepted",
+    "basis": "Previous actual same Execution/Projects/Note workflow and Entra desktop proof, unchanged auth/renderer scope, current operating release preservation/API/SSE proof, and new actual operating-data Edge selection/node/edge/group review",
+    "previousAccepted": 15,
+    "accepted": 16,
+    "total": 21,
+    "remaining": [
+      "AT-06",
+      "AT-09",
+      "AT-12",
+      "AT-15",
+      "AT-20"
+    ],
+    "notWholeDevelopmentPercent": true
+  }
+}
