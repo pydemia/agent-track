@@ -1,33 +1,55 @@
 # Agent Track 개발계획
 
+현재 운영은 **Track API/web77b8d54 · Persona04bbbd9/image6b3a1591**입니다. 마지막 AT-09를 같은 QA 실행에서 검증해 기존 상위 조건 **21/21개**를 수용했습니다. 미확정 요청의 영구 미접수 확정, 단일 retry·실제 후속 Run 취소·resume, 두 명령의 응답 유실 후 같은 ID 복구, 최종 completed r269·Note 검증·같은 Task in_review r6을 확인했습니다. writer는 원 만료 전15:55:39 KST에 종료했습니다. 원래 완료 업무와8events 해시·기본 Entra를 보존했습니다.
+
+[현재 완료 보고](writer-qa-completion-20261118.md)와 [실기 검증 원본](writer-command-completion-verification-20261118.json)을 우선합니다. 21/21은 기존 조건의 수용이며 향후 전체 제품 개발량의 비율이 아닙니다. 지원하지 않는 desktop 연동과 보관 Linux 기록의 범위는 기존 판정을 유지합니다.
+
+기존 수용 조건에 대한 구현·운영 검증은 완료했습니다. 사후 암호화 백업·복원 검증을 완료했고, 최종 Note 게시·검증을 완료했습니다. PR에는 같은 수용·검증 근거를 반영했습니다. 후속 기능 확장은 별도 로드맵으로 관리합니다.
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/2c6af3c1-0e77-4790-82f7-12ddd5775d78) — 21/21 완료 보고의 본문·색인·소스 해시 재확인 완료.
+
+### 20/21 이전 계획 이력
+
 서버 재기동 후 승인된 Persona52cd99c/imageea4a4d31과 Track API047b4d6/webc52b49d를
 운영에 반영했다. 현재 backup·후보/이전 버전 cold QA·검토된 전환·데이터/설정 보존을
 통과했다. 보호 snapshot/events/evidence15개는 모두200,90초30개·5분100개 SSE는
 모두 connected·같은 Run을 유지했다. 원본8events·binding r3·Task r5/in_review 보존을
 확인했다. Persona 계측 실패0건은 관측 구간의 결과이며 과거503 원인은 미확정이다.
 
-운영 배포 승인 대기와 서버 연결 장애는 해소됐다. writer·worker를
-새로 활성화하지 않았고 원본 업무 명령·모델 실행0건이다. 상위 수용15/21·71.4%는
-유지하며 두 운영 반영과 반복 안정성 하위 조건을 별도 진전으로 기록한다. 최신 운영
-Edge의 같은 업무 선택·Trace 검토는 창 활성화 도구 실패로 대기 중이다. 이전 실제
-Entra 화면 근거와 합성 선택 복구 검사를 구별한다. AT-06/09/12/14/15/20은 남는다.
+2026-11-18 재개: 사용자가 전용 QA 실행1건·활성화부터2시간 writer 권한을 승인했다.
+승인 대기가 현재 장애 원인은 아니다. [PR1](https://github.com/pydemia/agent-track/pull/1)은
+b748780의 Windows·Ubuntu CI 통과 후 pydemia 작성자로 병합했고 main은 f8fea06이다.
+기존 전용 worker를 같은 동결 release로 시작해 runtime 등록 가능 상태를 복구했다.
 
-01:25 KST 후속: writer 전환 준비 코드는 pydemia 작성자의 [draft PR1](https://github.com/pydemia/agent-track/pull/1)에 제출했다.
-Python61개와 b748780의 Windows·Ubuntu CI44123024293, 현재 운영 inspect 입력의
-순수 구성 검사·격리 Docker 생성/검증을 통과했다. QA 컨테이너2개·volume1개는
-정리했고 운영 writer·credential·명령은 활성화하지 않았다. 코드는 PR branch에
-있으며 main·운영에 반영한 결과로 표현하지 않는다.
+새 QA Execution a1d1af60의 Native Run 2b1d7577은 실제 생성·시작 후10.2초에 실패했다.
+새 Execution을 반복 생성하지 않았으며 기존 완료 업무도 재생하지 않았다. Track의
+현재 인가된 API에서 QA의 Projects Task 연결·실패 상태·3events·executionRef를 확인했다.
+Demian 개발 세션은 일치하는 기존 snapshot/설정과 PowerShell 기반 ACL 조회 무응답을
+대조하고 있다. 공개 오류만으로 권한 만료·로그인 실패를 확정하지 않는다.
 
-현재 인가된 Assistant 실행은 completed1건뿐이다. 별도 QA 실행1건·2시간의
-writer 권한 허용 요청과 Edge 전면/로그인 준비 요청은 답변 대기다. Edge의 같은
-창 제어 제약이 재기동 재개 후 세 연속 goal 턴에서 남았고 독립 준비·검증은 마쳤다.
-다음 실기에는 사용자 입력 또는 화면 제어 상태 변화가 필요하다. 기본 snapshot의
-1,521Run·연결 프로젝트2개는 확인했지만 Run 장치 두 표기는 같은 PC의 대소문자
-차이이고 과거 Linux peer QA Run은 운영 목록에 없다. 이를 실제 여러 장치 GUI
-수용으로 세지 않는다. peer 실기에는 인가된 대상 데이터 준비도 연결해야 한다.
-상위 수용15/21을 유지하며 전체 ETA는 산정 불가다.
+QA Execution 하나만 허용하는 별도 writer principal·credential·readonly volume과
+같은 이미지의 후보를 준비해 운영 설정 전환을 마쳤다. 새 Work/Runtime 암호화
+백업·복원·기동 후 전체 데이터/설정 보존과 기존 컨테이너 복귀 경로를 확인했다.
+grant는13:58:02~15:58:02 KST에 QA1건만 활성화됐다. 전용 worker/core는 ACL 최소
+수정2b86fff로 교체했고, Track API는 metadata 수집 경합 수정cc55468로 전환했다.
+실제 retry 검토 prepared·전송1회 뒤 unknown/provider404·command/plan0을 보존 중이다.
+같은 QA의 실제 실행과 원본 영수증 복구를 확인해야 한다. [현재 QA 작업 기록](writer-qa-20261118.md)을 따른다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/b875b9f4-aa19-4298-bbb3-75d2fbb15814) — 본문·색인 재확인 완료.
+사용자 요청으로 기존 Edge 실행 파일에 보호 업무 Trace URL을 전달했고 Agent Track
+창 제목을 확인했다. Windows 입력의 GetCursorPos Access denied와 오래된 접근성
+내용 때문에 기존 사용자 창의 조작은 미검증이다. 후속 별도 Edge157에서 실제 운영
+데이터의4nodes/3edges/3groups와 선택·상세·그룹 탐색7동작을 검증했다. 기존 실제
+업무/Entra·현재 운영 API/SSE 근거와 연결해 AT-14를 수용했고 **16/21개**가 됐다.
+이는 새 SSO 로그인·기존 사용자 창 제어·합성 회복 검사의 실제 장애 전환을 뜻하지
+않는다. [현재 수용표](goal-status.md)와 [실기 원본](operating-flow-review-verification-20261118.json)을 따른다.
+후속 실제 공개 Demian의 동일 Session 이동·3Run 요약·요약 요청 실패 중 초안 유지와
+재연결·token 없는 링크를 확인해 AT-06/20도 수용했다. 당시 **18/21개**가 됐다. [앱 간 실기 원본](session-context-operating-verification-20261118.json)을 따른다.
+후속 실제 Linux 보관 SQL/공식 API와 Windows Native를 같은 동결 대시보드에 연결해
+peer 대표선 마우스/원본 상세·20Run/두 장치·출처/상태 필터 해제·선택 복원을 확인했다.
+AT-12/15도 수용해 현재 **20/21개**, 잔여는 AT-09다. [실기 원본](peer-group-dashboard-verification-20261118.json)을 따른다.
+전체 작업량 비율·완료 ETA는 미확정이다.
+
+[당시 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 본문·색인 재확인 완료.
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),

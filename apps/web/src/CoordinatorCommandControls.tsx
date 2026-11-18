@@ -16,7 +16,7 @@ const unresolved = (receipt: CoordinatorReceipt) => ["prepared", "dispatching", 
 export function CoordinatorCommandControls({ run, onUnauthorized }: { run: RunView; onUnauthorized: (reason: string) => void }) {
   const [panel, setPanel] = useState<CoordinatorPanel | null>(null), [error, setError] = useState("");
   const [kind, setKind] = useState<CoordinatorReviewInput["kind"]>("retry"), [refresh, setRefresh] = useState(0);
-  const [pending, setPending] = useState<{ id: string; action: "review" | "dispatch" | "discard" } | null>(null);
+  const [pending, setPending] = useState<{ id: string; action: "review" | "dispatch" | "discard" | "reconcile-expired" } | null>(null);
   const inFlight = useRef(false), pendingRef = useRef(pending), lifetime = useRef<AbortController | null>(null);
   const changeVersion = useRef(0);
   useEffect(() => { const controller = new AbortController(); lifetime.current = controller; return () => controller.abort(); }, []);
@@ -46,7 +46,7 @@ export function CoordinatorCommandControls({ run, onUnauthorized }: { run: RunVi
     void poll(); return () => { controller.abort(); clearTimeout(timer); };
   }, [run.key, onUnauthorized, refresh]);
 
-  async function act(action: "review" | "dispatch" | "discard", selected?: CoordinatorReceipt) {
+  async function act(action: "review" | "dispatch" | "discard" | "reconcile-expired", selected?: CoordinatorReceipt) {
     if (inFlight.current || !lifetime.current || lifetime.current.signal.aborted) return;
     const id = selected?.id ?? crypto.randomUUID(), signal = lifetime.current.signal;
     inFlight.current = true; changeVersion.current++; const active = { id, action }; pendingRef.current = active; setPending(active); setError("");
@@ -94,12 +94,16 @@ export function CoordinatorCommandControls({ run, onUnauthorized }: { run: RunVi
     {pending && <p>요청 ID: <code>{pending.id}</code> <button onClick={() => void recover(pending.id)}>같은 ID 조회</button></p>}
     {panel?.hasMore && <p>현재 표시 범위를 넘는 이전 요청 기록이 있습니다.</p>}
     <ol aria-label="조정자 요청 기록" aria-live="polite">{panel?.receipts.map(receipt => <li key={receipt.id}>
-      <strong>{kinds[receipt.kind]} · {states[receipt.state]}</strong> <code>{receipt.id}</code>
+      <strong>{kinds[receipt.kind]} · {receipt.detail === "native_not_accepted" ? "원본 미접수 확인" : states[receipt.state]}</strong> <code>{receipt.id}</code>
       {receipt.state === "prepared" && <div><p>Run {run.runId} · 현재 역할의 {run.assistantAttempt?.ordinal}번째 시도에서 새 시도를 요청합니다. 검토 기한: {receipt.expiresAt}</p>
         <button disabled={pending !== null || panel.availability.state !== "available"} onClick={() => void act("dispatch", receipt)}>확인하고 조정자에 전송</button>
         <button disabled={pending !== null} onClick={() => void act("discard", receipt)}>검토 폐기</button></div>}
       {receipt.state === "intent_saved" && <p>조정자 {receipt.coordinatorReceipt?.command.attempt}번째 시도 요청을 저장했습니다. 실제 후속 Run은 Flow·Trace에서 별도로 관측합니다.</p>}
       {["dispatching", "unknown"].includes(receipt.state) && <button onClick={() => void recover(receipt.id)}>같은 ID로 저장 결과 조회</button>}
+      {receipt.state === "unknown" && Date.parse(receipt.expiresAt) <= Date.now() && panel.availability.expiredReceiptResolution &&
+        <div><p>만료된 요청의 미접수 여부를 원본에서 확정합니다. 실행을 다시 전송하지 않으며, 확정할 수 없으면 미확정으로 남습니다.</p>
+          <button disabled={pending !== null} onClick={() => void act("reconcile-expired", receipt)}>만료 요청의 접수 여부 확인</button></div>}
+      {receipt.detail === "native_not_accepted" && <p>원본이 이 요청을 수락하지 않았음을 확정했습니다. 이 요청 ID는 앞으로 실행되지 않습니다.</p>}
     </li>)}</ol>
   </section>;
 }

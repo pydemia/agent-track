@@ -4,6 +4,7 @@ import { isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 import { assistantCommandCapabilitiesSchema, assistantCommandInputSchema, assistantCommandReceiptSchema,
   assistantCommandKindSchema, type AssistantCommandInput, type AssistantCommandKind } from "../../contracts/assistant-commands.ts";
+import { assistantReceiptCapabilitiesSchema, assistantReceiptOutcomeSchema } from "../../contracts/assistant-command-receipts.ts";
 const bodyLimit = 16_384;
 const timeoutMs = 10_000;
 const credentialSchema = z.strictObject({
@@ -106,7 +107,9 @@ export class AssistantCommandClient {
   private confirm(credential: Credential): void {
     if (this.credential().fingerprint !== credential.fingerprint) throw new AssistantCommandError(401);
   }
-  private async request<T>(path: string, schema: z.ZodType<T>, credential: Credential, body?: string, beforeDispatch?: () => void): Promise<T> {
+  private async request<T>(path: string, schema: z.ZodType<T>, credential: Credential, body?: string, beforeDispatch?: () => void,
+    wire?: { prefix: string; successStatus?: number }): Promise<T> {
+    const prefix = wire?.prefix ?? this.prefix;
     let dispatched = false;
     const controller = new AbortController();
     let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -134,13 +137,13 @@ export class AssistantCommandClient {
         if (result !== undefined) throw new AssistantCommandError(400);
       }
       dispatched = body !== undefined;
-      const pending = transport(this.origin + this.prefix + path, init);
+      const pending = transport(this.origin + prefix + path, init);
       // Also discard late responses from an injected transport that ignores abort.
       void pending.then(response => { if (expired) cancel(response.body); }, () => {});
       const response = await Promise.race([pending, deadline]);
       try { this.confirm(credential); } catch (error) { cancel(response.body); throw error; }
-      if (response.status !== (body === undefined ? 200 : 202) || response.redirected ||
-          (response.url && response.url !== this.origin + this.prefix + path)) {
+      if (response.status !== (wire?.successStatus ?? (body === undefined ? 200 : 202)) || response.redirected ||
+          (response.url && response.url !== this.origin + prefix + path)) {
         cancel(response.body);
         const status = [400, 401, 403, 404, 409, 429, 503].includes(response.status) ? response.status : 502;
         throw new AssistantCommandError(status);
@@ -219,5 +222,38 @@ export class AssistantCommandClient {
     const credential = this.credential();
     await this.handshake(credential);
     return this.request(`${path}/${operationId}`, this.receiptSchema(executionId, roleId, operationId, kind), credential);
+  }
+
+  private async receiptHandshake(credential: Credential) {
+    const value = await this.request("/capabilities", assistantReceiptCapabilitiesSchema, credential, undefined, undefined,
+      { prefix: "/api/integrations/track-command/v2" });
+    if (value.ownerId !== credential.config.ownerId || value.principalId !== credential.config.principalId ||
+        value.trackUser !== credential.config.user || value.grantRevision !== credential.config.revision) throw new AssistantCommandError(401);
+    return value;
+  }
+  async receiptCapabilities() { return this.receiptHandshake(this.credential()); }
+  private outcomeSchema(executionId: string, roleId: string, input: AssistantCommandInput) {
+    return assistantReceiptOutcomeSchema.refine(value => value.outcome === "accepted"
+      ? value.command.operationId === input.operationId && value.command.executionId === executionId &&
+        value.command.roleId === roleId && value.command.kind === input.kind
+      : value.operationId === input.operationId && value.executionId === executionId && value.roleId === roleId &&
+        value.request.kind === input.kind && value.request.expectedRevision === input.expectedRevision &&
+        value.request.expiresAt === new Date(input.expiresAt).toISOString());
+  }
+  async resolvedReceipt(executionId: string, roleId: string, raw: AssistantCommandInput) {
+    const input = assistantCommandInputSchema.parse(raw), path = this.path(executionId, roleId);
+    if (input.operationId !== input.operationId.toLowerCase()) throw new AssistantCommandError(400);
+    const credential = this.credential(); await this.receiptHandshake(credential);
+    return this.request(`${path}/${input.operationId}`, this.outcomeSchema(executionId, roleId, input), credential,
+      undefined, undefined, { prefix: "/api/integrations/track-command/v2" });
+  }
+  /** Explicit receipt closure, never execution dispatch or automatic POST recovery. */
+  async reconcileExpired(executionId: string, roleId: string, raw: AssistantCommandInput, beforeDispatch?: () => void) {
+    const input = assistantCommandInputSchema.parse(raw), path = this.path(executionId, roleId);
+    if (input.operationId !== input.operationId.toLowerCase() || Date.parse(input.expiresAt) > (this.options.now ?? Date.now)())
+      throw new AssistantCommandError(400);
+    const credential = this.credential(); await this.receiptHandshake(credential);
+    return this.request(`${path}/${input.operationId}/reconcile-expired`, this.outcomeSchema(executionId, roleId, input),
+      credential, JSON.stringify(input), beforeDispatch, { prefix: "/api/integrations/track-command/v2", successStatus: 200 });
   }
 }

@@ -14,7 +14,8 @@ import { sourceIdentity } from "./source-identity.ts";
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const binding = (run: RunView) => run.binding ? bindingSchema.parse(run.binding) : null;
 const fail = (status: number, code: string) => new CommandError(status, code, "현재 조정자 실행과 명령 권한을 다시 확인해 주세요.");
-type Writer = Pick<AssistantCommandClient, "capabilities" | "command" | "receipt">;
+type Writer = Pick<AssistantCommandClient, "capabilities" | "command" | "receipt"> &
+  Partial<Pick<AssistantCommandClient, "receiptCapabilities" | "resolvedReceipt" | "reconcileExpired">>;
 
 /** Protected Runs are controlled only through their current owning coordinator. */
 export class AssistantRoleCommands {
@@ -55,7 +56,9 @@ export class AssistantRoleCommands {
   }
 
   private async current(user: string, runKey: string, confirmed: () => boolean, writing: boolean) {
-    await this.sources.refreshProjectGrants?.(user);
+    // The HTTP boundary acquired this Run's fresh native window before entering
+    // the Assistant queue. Recollecting here would withdraw it (or deadlock on
+    // that admission). detail() still rechecks producer, Project and Task access.
     const initial = this.target(user, runKey, confirmed, writing);
     const local = this.localStamp(user, runKey, confirmed, writing);
     const attempt = initial.run.assistantAttempt!;
@@ -103,10 +106,13 @@ export class AssistantRoleCommands {
     if (!run.assistantAttempt) return result("unsupported", "attempt_history_unavailable");
     try {
       const current = await this.current(user, runKey, confirmed, false);
-      await this.client(user, current.source).capabilities();
+      const writer = this.client(user, current.source); await writer.capabilities();
+      let resolution = false;
+      try { resolution = (await writer.receiptCapabilities?.())?.reconcileExpiredReceipts === true; }
+      catch { /* Optional namespace denial does not advertise receipt closure. */ }
       if (this.localStamp(user, runKey, confirmed, false) !== current.local) throw fail(409, "coordinator_review_changed");
       return { runKey, state: "available", availableKinds: current.kinds,
-        detail: current.kinds.length ? "ready" : "not_current_attempt" };
+        detail: current.kinds.length ? "ready" : "not_current_attempt", ...(resolution ? { expiredReceiptResolution: true } : {}) };
     } catch {
       if (!confirmed()) throw fail(403, "coordinator_forbidden");
       return result("unavailable", "coordinator_unavailable");
@@ -174,8 +180,21 @@ export class AssistantRoleCommands {
       lookup: async prepared => {
         await authorize(prepared, false);
         const current = this.target(user, runKey, confirmed, false);
-        try { return await this.client(user, current.source).receipt(prepared.target.executionId, prepared.target.roleId, prepared.command.operationId, prepared.command.kind); }
-        catch (error) { if (error instanceof AssistantCommandError && error.status === 404) return null; throw error; }
+        const writer = this.client(user, current.source);
+        try { return await writer.receipt(prepared.target.executionId, prepared.target.roleId, prepared.command.operationId, prepared.command.kind); }
+        catch (error) { if (!(error instanceof AssistantCommandError && error.status === 404)) throw error; }
+        if (!writer.resolvedReceipt) return null;
+        try { return await writer.resolvedReceipt(prepared.target.executionId, prepared.target.roleId, prepared.command); }
+        catch (error) { if (error instanceof AssistantCommandError && [401,403,404].includes(error.status)) return null; throw error; }
+      },
+      reconcileExpired: async prepared => {
+        await authorize(prepared, false);
+        const current = this.target(user, runKey, confirmed, true), stamp = this.localStamp(user, runKey, confirmed, true);
+        const writer = this.client(user, current.source);
+        if (!writer.reconcileExpired) throw fail(503, "receipt_resolution_unavailable");
+        return writer.reconcileExpired(prepared.target.executionId, prepared.target.roleId, prepared.command, () => {
+          if (this.localStamp(user, runKey, confirmed, true) !== stamp) throw new CoordinatorDispatchWithheld("authority_changed");
+        });
       },
     };
   }

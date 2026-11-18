@@ -12,6 +12,9 @@ const owner = "sso-sub:" + "a".repeat(64);
 const input = { operationId: id(3), kind: "retry" as const, expectedRevision: 1, expiresAt: "2026-11-14T00:01:00Z" };
 const caps = { version: 1, audience: "agent-track-command", ownerId: owner, principalId: "writer", trackUser: "me@example.com", grantRevision: 1, commands: ["retry", "resume"], receiptRead: true };
 const receipt = { version: 1, command: { operationId: id(3), executionId: id(1), roleId: id(2), kind: "retry", attempt: 1, intentState: "saved", createdAt: "2026-11-14T00:00:00Z" } };
+const receiptCaps = { ...caps, version: 2, commands: ["reconcile-expired"], reconcileExpiredReceipts: true };
+const closed = { version: 2, outcome: "not_accepted", reason: "expired_without_saved_intent", operationId: id(3),
+  executionId: id(1), roleId: id(2), request: { ...input, expiresAt: "2026-11-14T00:01:00.000Z" }, resolvedAt: "2026-11-14T00:02:00.000Z" };
 function failure(disposition: "withheld" | "ambiguous") { return (error: unknown) => {
   assert.ok(error instanceof AssistantCommandError); assert.equal(error.disposition, disposition);
   assert.equal(error.message, "assistant_command_unavailable"); return true;
@@ -33,6 +36,45 @@ function fixture(t: test.TestContext, baseUrl = "http://127.0.0.1:12345") {
   const options = { sourceId: "persona", baseUrl, credentialFile, readerCredentialFile, user: caps.trackUser, ownerId: owner, principalId: "writer", proxySecretFile: proxy, fetch: transport, now: () => clock };
   return { options, edit, calls, secretFile, readerKey, proxy, readerCredentialFile, setClock: (n: number) => { clock = n; }, respond: (fn: typeof respond) => { respond = fn; } };
 }
+
+test("explicit v2 resolution uses a separate non-dispatch route and same-ID GET after lost ACK", async t => {
+  let posts = 0; const methods: string[] = [];
+  const server = createServer(async (req, res) => {
+    assert(req.url!.startsWith("/api/integrations/track-command/v2/")); methods.push(req.method!);
+    assert.equal(req.headers.authorization, "Bearer " + "w".repeat(43)); assert.equal(req.headers["x-agent-track-user"], caps.trackUser);
+    for (const header of ["cookie", "origin", "x-track-proxy-key", "x-forwarded-email"]) assert.equal(req.headers[header], undefined);
+    if (req.url!.endsWith("capabilities")) { res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(receiptCaps)); return; }
+    if (req.method === "POST") {
+      assert(req.url!.endsWith("/" + id(3) + "/reconcile-expired")); posts++;
+      const parts: Buffer[] = []; for await (const part of req) parts.push(Buffer.from(part));
+      assert.deepEqual(JSON.parse(Buffer.concat(parts).toString()), input); req.socket.destroy(); return;
+    }
+    assert(req.url!.endsWith("/" + id(3))); res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify(closed));
+  });
+  const origin = await listenHttp(server); t.after(() => new Promise<void>(resolve => { server.closeAllConnections(); server.close(() => resolve()); }));
+  const f = fixture(t, origin); f.setClock(instant + 120_000); const client = new AssistantCommandClient({ ...f.options, fetch });
+  await assert.rejects(client.reconcileExpired(id(1), id(2), input), failure("ambiguous"));
+  assert.deepEqual(await client.resolvedReceipt(id(1), id(2), input), closed); assert.equal(posts, 1);
+  assert.deepEqual(methods, ["GET", "POST", "GET", "GET"]);
+});
+
+test("v2 resolution rejects a live deadline, capability drift, wrong descriptor and missing receipt without retry", async t => {
+  const early = fixture(t), earlyClient = new AssistantCommandClient(early.options);
+  await assert.rejects(earlyClient.reconcileExpired(id(1), id(2), input), failure("withheld")); assert.equal(early.calls.length, 0);
+  const denied = fixture(t); denied.setClock(instant + 120_000); denied.respond(async () => Response.json({ ...receiptCaps, grantRevision: 2 }));
+  await assert.rejects(new AssistantCommandClient(denied.options).reconcileExpired(id(1), id(2), input), failure("withheld"));
+  assert.equal(denied.calls.filter(c => c.init.method === "POST").length, 0);
+  for (const wrong of [{ ...closed, roleId: id(9) }, { ...closed, request: { ...closed.request, expectedRevision: 2 } },
+    { ...closed, resolvedAt: "2026-11-14T00:00:00Z" }]) {
+    const f = fixture(t); f.setClock(instant + 120_000); f.respond(async url => Response.json(url.endsWith("capabilities") ? receiptCaps : wrong));
+    await assert.rejects(new AssistantCommandClient(f.options).reconcileExpired(id(1), id(2), input), failure("ambiguous"));
+    assert.equal(f.calls.filter(c => c.init.method === "POST").length, 1);
+  }
+  const missing = fixture(t); missing.setClock(instant + 120_000);
+  missing.respond(async url => url.endsWith("capabilities") ? Response.json(receiptCaps) : Response.json({}, { status: 404 }));
+  await assert.rejects(new AssistantCommandClient(missing.options).resolvedReceipt(id(1), id(2), input), failure("withheld"));
+  assert.equal(missing.calls.filter(c => c.init.method === "POST").length, 0);
+});
 test("actual HTTP machine headers, exact POST and deadline-independent receipt recovery", async t => {
   const requests: string[] = [];
   const server = createServer(async (req, res) => {

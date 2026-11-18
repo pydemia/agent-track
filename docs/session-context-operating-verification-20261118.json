@@ -1,0 +1,169 @@
+{
+  "schema": "agent-track-operating-session-context-review-v1",
+  "recordedAt": "2026-11-18T04:38:30.530588+00:00",
+  "browser": "Microsoft Edge 157.0.4341.46",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "trackApiRevision": "047b4d61a8e4d803741dfc67031109d2265f1152",
+  "trackWebRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+  "authentication": {
+    "track": "Existing authorized local proxy identity; existing Entra proof reused",
+    "demian": "Existing legacy gate credential for isolated read-only QA; no authentication setting change",
+    "newAccountsOrCredentials": false
+  },
+  "scope": {
+    "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+    "selectedRunId": "b8a56508-8629-4fd8-b3ca-b29324111a0c",
+    "nativeSourceId": "demian-local",
+    "actualPublicDemianWeb": "https://demian.pydemia.ai",
+    "actualOperatingTrackApi": "http://127.0.0.1:14345",
+    "newNativeRuns": 0,
+    "newWorkExecutions": 0,
+    "newModelRequests": 0,
+    "sourceMutationsSent": 0,
+    "nativeRuntimeDatabaseAuthSettingsChanged": false,
+    "osAclChanged": false
+  },
+  "actions": [
+    {
+      "action": "track-selected-original-session-link",
+      "href": "https://demian.pydemia.ai/sessions/6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "source": "demian-local"
+    },
+    {
+      "action": "same-session-public-web-selected",
+      "url": "https://demian.pydemia.ai/sessions/6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "contextText": "연결된 실행 요약\n연결된 실행 요약\n\nRun 3개 · 세션 1개\n\n성공 3개\n\n관측 구간 · 일부일 수 있음\n\nRun b8a56508 · 세션 6e26fd8b · 상태 성공 Track에서 보기\n원본 식별자\nRun 865dd2b3 · 세션 6e26fd8b · 상태 성공 Track에서 보기\n원본 식별자\nRun 04787151 · 세션 6e26fd8b · 상태 성공 Track에서 보기\n원본 식별자\n\nTrack에서 컨텍스트 보기"
+    },
+    {
+      "action": "context-request-failed-editor-remained-usable",
+      "draftTypedWithoutSubmission": true,
+      "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "allBrowserMutationsBlocked": true
+    },
+    {
+      "action": "actual-context-request-recovered",
+      "draftPreserved": true,
+      "sessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94"
+    }
+  ],
+  "contextResponses": [
+    {
+      "status": 200,
+      "requestedSessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "state": "connected",
+      "sessionIdPresent": true,
+      "counts": {
+        "runs": 3,
+        "sessions": 1,
+        "byStatus": {
+          "queued": 0,
+          "leasing": 0,
+          "running": 0,
+          "waiting_for_permission": 0,
+          "cancelling": 0,
+          "succeeded": 3,
+          "failed": 0,
+          "cancelled": 0,
+          "expired": 0,
+          "interrupted": 0,
+          "unknown": 0
+        }
+      }
+    },
+    {
+      "status": 200,
+      "requestedSessionId": "6e26fd8b-76ff-43ec-8b55-1c42fd86da94",
+      "state": "connected",
+      "sessionIdPresent": true,
+      "counts": {
+        "runs": 3,
+        "sessions": 1,
+        "byStatus": {
+          "queued": 0,
+          "leasing": 0,
+          "running": 0,
+          "waiting_for_permission": 0,
+          "cancelling": 0,
+          "succeeded": 3,
+          "failed": 0,
+          "cancelled": 0,
+          "expired": 0,
+          "interrupted": 0,
+          "unknown": 0
+        }
+      }
+    }
+  ],
+  "links": [
+    {
+      "href": "https://track.pydemia.ai/?view=map&run=WyJkZW1pYW4tbG9jYWwiLCJiOGE1NjUwOC04NjI5LTRmZDgtYjNjYS1iMjkzMjQxMTFhMGMiXQ",
+      "selectedRunKeyMatchesCurrentScope": true
+    },
+    {
+      "href": "https://track.pydemia.ai/?view=map&run=WyJkZW1pYW4tbG9jYWwiLCI4NjVkZDJiMy1lMzYyLTRmNjAtOWI3Yi03MjhmZjFjOGFlY2EiXQ",
+      "selectedRunKeyMatchesCurrentScope": true
+    },
+    {
+      "href": "https://track.pydemia.ai/?view=map&run=WyJkZW1pYW4tbG9jYWwiLCIwNDc4NzE1MS1kZmE2LTRhOWEtYjM1Zi1mNmY0YmRmMzMyNjgiXQ",
+      "selectedRunKeyMatchesCurrentScope": true
+    },
+    {
+      "href": "https://track.pydemia.ai/?view=trace&run=WyJkZW1pYW4tbG9jYWwiLCJiOGE1NjUwOC04NjI5LTRmZDgtYjNjYS1iMjkzMjQxMTFhMGMiXQ",
+      "selectedRunKeyMatchesCurrentScope": true
+    }
+  ],
+  "outOfScopeSession": {
+    "sessionId": "095abfb9-01ad-41b9-beff-38c7e76bb05e",
+    "state": "disabled",
+    "summaryExposed": false,
+    "expectation": "Existing opt-in lists two QA sessions; unlisted session is deliberately hidden, not a transport failure"
+  },
+  "artifacts": [
+    {
+      "path": ".runtime/writer-qa-resume-20261118/demian-scoped-session-browser-v2.json",
+      "sha256": "d80b6548510af0e858a9e59ff21a2dea59420d35f3fc30efb399e5a513468f87",
+      "bytes": 2980
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/demian-context-links.json",
+      "sha256": "e8ea6024fac4af5c1c0e6d63fb1890dc758f6f425467d0aaa3b2e51806b8a3a2",
+      "bytes": 964
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/demian-scoped-session-context.png",
+      "sha256": "5a4a9472b9e080fa2da2a495e6140e90fe8412b0b9a8190bf5401f40ff0d5e79",
+      "bytes": 18633
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/demian-scoped-context-unavailable.png",
+      "sha256": "b742de17f9e44b1d55ecf097c3236814830e475c4a31721881a9990b5b41f93b",
+      "bytes": 2893
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/demian-session-browser.json",
+      "sha256": "951d38730a597a7637589cc6d2d242c40fe13e14780a53e3687d53b9682f0b4e",
+      "bytes": 1872
+    }
+  ],
+  "acceptance": {
+    "AT-06": "accepted; same Session opened through actual Track source href; earlier actual Projects same Task navigation retained",
+    "AT-20": "accepted within existing owner/QA scope; earlier Projects UI/edit isolation and Native BFF actor403/authorization proof retained; actual public Demian same Session summary, isolated browser transport loss/editor draft/recovery and token-free links verified",
+    "accepted": 18,
+    "total": 21,
+    "remaining": [
+      "AT-09",
+      "AT-12",
+      "AT-15"
+    ]
+  },
+  "limitations": [
+    "Headless Edge; current existing user Edge input not controlled and fresh Entra login not performed",
+    "Existing legacy Demian Basic gate credential used only in isolated read-only QA; default Track Entra and original Demian authentication not changed",
+    "Failure was injected only for this test browser summary GET; no operating Track or Demian service was stopped",
+    "Temporary draft was never submitted; no model execution or source edit acceptance claimed",
+    "Other native users require their own delegation contract; no broader access inferred"
+  ]
+}

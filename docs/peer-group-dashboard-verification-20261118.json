@@ -1,0 +1,151 @@
+{
+  "schema": "agent-track-peer-group-and-multi-device-dashboard-review-v1",
+  "recordedAt": "2026-11-18T05:54:27.404916+00:00",
+  "browser": "Microsoft Edge 157.0.4341.46",
+  "viewport": {
+    "width": 1440,
+    "height": 960
+  },
+  "apiRevision": "cc55468fe247ce39a5dd7a21013d68bdc258c52f",
+  "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+  "scope": {
+    "sameFrozenProductAsOperating": true,
+    "isolatedLoopbackDashboard": true,
+    "windows": "Existing authorized ordinary Native API, 19 actual Runs",
+    "linux": "Historical real QA SQL restored into a new owned database on the Linux host; official Native API with read-only DB connection, 1 succeeded Run / 49 events / 1 receipt",
+    "archiveSha256": "293f27460de7d8a1dbeaca2da54fc051d9185d617d0066201e9cf14a31aaccb4",
+    "sourceInputsVerified": 717,
+    "fixtureResponseBodies": false,
+    "newRuns": 0,
+    "newModels": 0,
+    "operatingTrackConfigurationChanged": false,
+    "operatingEntraChanged": false,
+    "existingUserWindowControlled": false,
+    "newEntraLogin": false,
+    "currentTwoHostAgentExecutionClaimed": false
+  },
+  "peerRepresentative": {
+    "realPointerUsed": true,
+    "forcedClick": false,
+    "hitClass": "react-flow__edge-interaction",
+    "representativeConfirmedByDataId": true,
+    "originalRelationDrilldownMatched": true,
+    "operationId": "8c247953-0d59-4bbd-a9d7-7807451fa5ec",
+    "sessionId": "3f3d393c-7781-42c7-8ff5-5d2ed0347eda",
+    "runId": "cf8cb5b9-b745-4bd8-b9da-76bb5f857137",
+    "messageId": "c4bde98f-d11b-48f1-b6d5-516934803825",
+    "receiptStatus": "succeeded"
+  },
+  "dashboard": {
+    "sources": 2,
+    "runs": 20,
+    "windowsRuns": 19,
+    "linuxHistoricalRuns": 1,
+    "nativeWorkspaces": 3,
+    "defaultProjectFilter": "all",
+    "defaultSourceFilter": "all",
+    "runListExpanded": true,
+    "linuxArchiveLabelVisible": true,
+    "actions": [
+      {
+        "action": "fresh-default-all-projects-all-sources-expanded-run-list",
+        "runCount": 20,
+        "sources": 2,
+        "actualDevices": [
+          "PYDEMIA-DESKTOP",
+          "pydemia-server (Linux 보관)"
+        ],
+        "linuxIsHistoricalArchive": true
+      },
+      {
+        "action": "windows-source-filter-hides-selected-linux-run",
+        "selectedKeyPreserved": true
+      },
+      {
+        "action": "clear-source-filter-restores-same-linux-selection",
+        "selectedKeyPreserved": true
+      },
+      {
+        "action": "failed-status-filter-clear-restores-selected-successful-run",
+        "selectedKeyPreserved": true
+      },
+      {
+        "action": "reload-keeps-same-selection-and-all-source-scope",
+        "selectedKeyPreserved": true
+      }
+    ]
+  },
+  "acceptance": {
+    "AT-12": "accepted in the existing authorized QA scope; prior typed/group/managed-child/parallel/Entra saved-view proof retained; remaining peer representative pointer and original receipt drilldown verified",
+    "AT-15": "accepted for same-product multi-device historical/current metadata display and filter/selection restoration; source configuration and default all-source scope exercised in an isolated dashboard, not a new live two-host agent execution",
+    "accepted": 20,
+    "total": 21,
+    "remaining": [
+      "AT-09"
+    ]
+  },
+  "artifacts": [
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-start-v2.json",
+      "sha256": "2653b46973f0b6b8505e020fbf792747110060a5152426a0a62370f6bf4b48a9",
+      "bytes": 631
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-browser-initial-v2.json",
+      "sha256": "6d08ef07563a058ec86cf25bf40f4124906b48631ecbac4ea1d01d6173a8284c",
+      "bytes": 25812
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-pointer-v2.json",
+      "sha256": "cf1a9fb85084c3658ace5bee8917634e500d4dbc7771492c7d74f335223521ee",
+      "bytes": 2156
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-dashboard-v2.json",
+      "sha256": "810e80201b66d803e35217fb48e09770bc8d175e530f1c06c18812e772c8418d",
+      "bytes": 5696
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-pointer.png",
+      "sha256": "9a081390e29ffaef7f8e02b3b8881a259122545e047d80bbb70f68751dcf2f49",
+      "bytes": 109867
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-original-edge.png",
+      "sha256": "c5a9c134ac920800fb8ac203831bf64d40e4dfb1aae4632c67d09de3a5f0eb42",
+      "bytes": 104578
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-dashboard-all-v2.png",
+      "sha256": "a48860114e7513fd2e48ca188bc2b94febed04dbf289cd85d7f5a411998b84fc",
+      "bytes": 279687
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-dashboard-restored-v2.png",
+      "sha256": "074a87b206d7fd0b5a10101ddc1075e7e82c32acb00607ce0785393a8f49b4ed",
+      "bytes": 140568
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-local-cleanup.json",
+      "sha256": "9f7b30cb100c8ae47a076e93a05eb812bdb12740b505bfe01584cec464f1d8f6",
+      "bytes": 217
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/peer-history-remote-cleanup.json",
+      "sha256": "e84b419299415f9e33a2839c5acebd07163d0e5c4a30edc5af69e6a3ce034668",
+      "bytes": 478
+    }
+  ],
+  "cleanup": {
+    "ownedLocalDashboardAndForwardStopped": true,
+    "ownedLoopbackPortsReleased": true,
+    "ownedLinuxContainersRemoved": 2,
+    "ownedNewVolumeRemoved": true,
+    "oldArchiveAnd717SourceInputsPreserved": true,
+    "historicalOutputHashMatched": true,
+    "nonGetApiRejectedStatus": 405,
+    "newRuns": 0,
+    "newModels": 0,
+    "originalServicesStopped": false
+  }
+}

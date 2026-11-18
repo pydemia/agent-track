@@ -675,6 +675,34 @@ for (const route of ["list", "detail", "events"] as const) {
   });
 }
 
+test("coordinator HTTP read keeps its real native window while a background collection waits", { timeout: 5000 }, async t => {
+  const f = await fixture(t), root = dirname(f.config.database), proxyFile = join(root, "proxy.key");
+  const proxy = randomBytes(32).toString("base64url"); writeFileSync(proxyFile, proxy);
+  f.config.auth = { mode: "proxy", users: [user], secretFile: proxyFile };
+  Object.assign(f.config.sources[0]!, { assistantCommandUsers: [user], assistantCommandPrincipalId: "writer",
+    assistantCommandCredentialFile: join(root, "unconfigured-writer.json") });
+  f.attemptPage = attempts(true);
+  await f.sources.refreshProjectGrants(user);
+  let refresh: Promise<void> | undefined, collecting = false, entered = false, release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const detail = f.sources.assistant.detail.bind(f.sources.assistant);
+  f.sources.assistant.detail = async (...args) => {
+    entered = true;
+    f.hook = async (_after, limit) => { if (limit === 250) { collecting = true; await gate; } };
+    refresh = f.sources.assistantNative.refresh(user);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(collecting, false, "background collection must wait outside the coordinator's metadata window");
+    assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+    return detail(...args);
+  };
+  try {
+    const response = await fetch(`${f.origin}/api/runs/${key}/coordinator-commands`,
+      { headers: { "x-track-proxy-key": proxy, "x-forwarded-email": user } });
+    assert.equal(response.status, 200); await response.json(); assert.equal(entered, true);
+  } finally { release(); await refresh; }
+  assert.equal(f.sources.views(user).find(source => source.id === "protected")!.state, "connected");
+});
+
 test("a queued refresh captures authority after the reader settles and precedes later readers", { timeout: 5000 }, async t => {
   const f = await fixture(t); await f.snapshot();
   let releaseRead!: () => void, releaseRefresh!: () => void, enterRead!: () => void, enterRefresh!: () => void;

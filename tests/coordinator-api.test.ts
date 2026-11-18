@@ -22,7 +22,7 @@ const runKey = externalKey("native", runId);
 async function stop(server: Server) {
   server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
 }
-async function fixture(t: test.TestContext) {
+async function fixture(t: test.TestContext, collectDuringDetail = false, resolutionEnabled = false) {
   const root = mkdtempSync(join(realpathSync(tmpdir()), "track-coordinator-api-")), proxyFile = join(root, "proxy.key");
   const cleanup: Array<() => Promise<void>> = [];
   t.after(async () => {
@@ -35,11 +35,30 @@ async function fixture(t: test.TestContext) {
   writeFileSync(readerFile, JSON.stringify({ secretFile: readerKey }));
   let posts = 0, caps = 0, reads = 0, lostAck = false, capHook = () => {}, readHook = (_count: number) => {};
   const receipts = new Map<string, AssistantCommandReceipt>();
+  let resolutionPosts = 0, unresolvedInput: ReturnType<typeof assistantCommandInputSchema.parse> | undefined;
+  let resolution: unknown;
   const upstream = createServer(async (request, response) => {
     assert.equal(request.headers.authorization, "Bearer " + writer);
     assert.equal(request.headers["x-agent-track-user"], actor);
     for (const key of ["cookie", "origin", "x-agent-track-principal", "x-forwarded-email", "x-track-proxy-key"]) assert.equal(request.headers[key], undefined);
     response.setHeader("content-type", "application/json");
+    if (request.url?.startsWith("/api/integrations/track-command/v2/")) {
+      if (!resolutionEnabled) { response.writeHead(404); response.end("{}"); return; }
+      if (request.url.endsWith("/capabilities")) {
+        response.end(JSON.stringify({ version: 2, audience: "agent-track-command", ownerId,
+          principalId: "writer", trackUser: actor, grantRevision: 1, commands: ["reconcile-expired"], receiptRead: true, reconcileExpiredReceipts: true })); return;
+      }
+      if (request.method === "POST") {
+        const parts: Buffer[] = []; for await (const part of request) parts.push(Buffer.from(part));
+        const input = assistantCommandInputSchema.parse(JSON.parse(Buffer.concat(parts).toString("utf8")));
+        assert.deepEqual(input, unresolvedInput); assert(Date.parse(input.expiresAt) <= Date.now());
+        resolutionPosts++;
+        resolution = { version: 2, outcome: "not_accepted", reason: "expired_without_saved_intent",
+          operationId: input.operationId, executionId, roleId, request: input, resolvedAt: new Date().toISOString() };
+        request.socket.destroy(); return; // Durable source evidence survives a lost resolution ACK.
+      }
+      response.writeHead(resolution ? 200 : 404); response.end(JSON.stringify(resolution ?? {})); return;
+    }
     if (request.url === "/api/integrations/track-command/v1/capabilities") {
       caps++; capHook(); response.end(JSON.stringify({ version: 1, audience: "agent-track-command", ownerId,
         principalId: "writer", trackUser: actor, grantRevision: 1, commands: ["retry", "resume"], receiptRead: true })); return;
@@ -48,6 +67,7 @@ async function fixture(t: test.TestContext) {
       const parts: Buffer[] = []; for await (const part of request) parts.push(Buffer.from(part));
       const input = assistantCommandInputSchema.parse(JSON.parse(Buffer.concat(parts).toString("utf8")));
       assert.equal(input.expectedRevision, 2); posts++;
+      if (resolutionEnabled) { unresolvedInput = input; request.socket.destroy(); return; }
       const receipt: AssistantCommandReceipt = { version: 1, command: { operationId: input.operationId,
         executionId, roleId, kind: input.kind, attempt: 2, intentState: "saved", createdAt: new Date().toISOString() } };
       receipts.set(input.operationId, receipt);
@@ -87,10 +107,23 @@ async function fixture(t: test.TestContext) {
         membershipId: "member", membershipRevision: "1", label: "Role", teamLabel: "Team", agentLabel: "Agent", responsibility: "accountable",
         state: "failed", attempts: 1, runtime: { taskId: "runtime-one", threadId: null, turnId: null }, observation: {
           queuedAt: time, startedAt: time, endedAt: time, seconds: null, timingComplete: false, basis: "server_dispatch_to_terminal_including_sdk_preparation" } }] } };
+  let stableDepth = 0, collecting = false, deferredCollections = 0;
   const views = (): SourceView[] => config.sources.map(source => ({ id: source.id, kind: source.kind, label: source.label,
-    device: source.device, state: "connected", lastObservedAt: time, detail: "Fixture", capabilities: ["run.read", "events.read"] }));
+    device: source.device, state: source.id === "native" && collecting ? "forbidden" : "connected",
+    lastObservedAt: time, detail: "Fixture", capabilities: ["run.read", "events.read"] }));
   const sources = { refreshProjectGrants: async () => {}, views,
-    assistant: { detail: async () => { reads++; readHook(reads); return structuredClone(execution); } } } as unknown as Sources;
+    assistantNative: { withStableViews: async <T>(_user: string, ids: string[], read: () => Promise<T>) => {
+      assert.deepEqual(ids, ["native"]);
+      stableDepth++;
+      try { return await read(); } finally { stableDepth--; }
+    } },
+    assistant: { detail: async () => {
+      reads++; readHook(reads);
+      // A collection temporarily withdraws its metadata window. The real
+      // collector's admission lease defers this mutation while a read holds it.
+      if (collectDuringDetail) { if (stableDepth) deferredCollections++; else collecting = true; }
+      return structuredClone(execution);
+    } } } as unknown as Sources;
   let app = createTrackServer(store, () => config, root, sources).server, origin = await listenHttp(app);
   cleanup.push(() => stop(app));
   const headers = { "x-track-proxy-key": proxy, "x-forwarded-email": actor };
@@ -104,12 +137,34 @@ async function fixture(t: test.TestContext) {
   };
   const input = () => ({ id: crypto.randomUUID(), runKey, kind: "retry", expiresAt: new Date(Date.now() + 90_000).toISOString() });
   return { config, execution, send, get, input, headers, path,
-    counts: () => ({ posts, caps, reads }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
+    counts: () => ({ posts, caps, reads, deferredCollections, resolutionPosts }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
     setReadHook: (hook: (count: number) => void) => { readHook = hook; },
     journal: () => JSON.stringify(store.events(runKey)),
     rawFetch: (suffix: string, init: RequestInit) => fetch(origin + path + suffix, init),
     restart: async () => { await stop(app); store.close(); store = new Store(config.database); app = createTrackServer(store, () => config, root, sources).server; origin = await listenHttp(app); } };
 }
+
+test("explicit expired HTTP resolution survives lost ACK and restart without dispatching again", async t => {
+  const f = await fixture(t, false, true), input = { ...f.input(), expiresAt: new Date(Date.now() + 700).toISOString() };
+  assert.equal((await f.get()).body.availability.expiredReceiptResolution, true);
+  assert.equal((await f.send("/reviews", input)).status, 200);
+  assert.equal((await f.send(`/${input.id}/dispatch`, {})).body.receipt.state, "unknown");
+  assert.equal((await f.send(`/${input.id}/reconcile-expired`, {})).status, 409);
+  assert.equal(f.counts().resolutionPosts, 0);
+  await new Promise(resolve => setTimeout(resolve, 750));
+  assert.equal((await f.get(`/${input.id}`)).body.receipt.state, "unknown");
+  const foreign = await f.rawFetch(`/${input.id}/reconcile-expired`, { method: "POST", headers: { ...f.headers,
+    origin: "https://foreign.example", "content-type": "application/json" }, body: "{}" });
+  assert.equal(foreign.status, 403); await foreign.body?.cancel();
+  assert.equal((await f.send(`/${input.id}/reconcile-expired`, {})).status, 503);
+  await f.restart();
+  const recovered = await f.get(`/${input.id}`);
+  assert.equal(recovered.status, 200); assert.equal(recovered.body.receipt.state, "rejected");
+  assert.equal(recovered.body.receipt.detail, "native_not_accepted");
+  assert.equal(recovered.body.receipt.resolutionReceipt.request.operationId, input.id);
+  assert.equal(f.counts().posts, 1); assert.equal(f.counts().resolutionPosts, 1);
+  assert.equal((await f.send("/reviews", f.input())).status, 200);
+});
 
 test("protected HTTP review sends no command; explicit confirmation stores a coordinator intent and preserves source events", async t => {
   const f = await fixture(t), original = f.journal(), input = f.input();
@@ -185,4 +240,14 @@ test("an owner can discard an unsent review after the role advances without send
   f.execution.native.roles[0]!.state = "queued";
   const result = await f.send(`/${input.id}/discard`, {});
   assert.equal(result.status, 200); assert.equal(result.body.receipt.state, "discarded"); assert.equal(f.counts().posts, 0);
+});
+
+test("background metadata collection cannot withdraw a coordinator window mid-review or same-ID receipt recovery", async t => {
+  const f = await fixture(t, true), input = f.input();
+  const available = await f.get(); assert.equal(available.status, 200);
+  assert.deepEqual(available.body.availability.availableKinds, ["retry"]);
+  assert.equal((await f.send("/reviews", input)).body.receipt.state, "prepared");
+  assert.equal((await f.send(`/${input.id}/dispatch`, {})).body.receipt.state, "intent_saved");
+  assert.equal((await f.get(`/${input.id}`)).body.receipt.state, "intent_saved");
+  assert.equal(f.counts().posts, 1); assert.ok(f.counts().deferredCollections >= 4);
 });
