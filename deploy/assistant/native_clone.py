@@ -8,7 +8,8 @@ import re
 
 __all__ = ["CloneError", "clone_request", "verify_clone",
            "image_clone_request", "verify_image_clone",
-           "projects_read_clone_request", "verify_projects_read_clone"]
+           "projects_read_clone_request", "verify_projects_read_clone",
+           "writer_clone_request", "verify_writer_clone"]
 
 DESTINATION = "/run/secrets/agent-track-demian"
 ENV_KEY = "PERSONA_DEMIAN_RUNTIME_CONFIG_FILE"
@@ -20,6 +21,9 @@ PROJECTS_READ_TRANSPORT_KEY = "PERSONA_PROJECTS_READ_TRANSPORT_ORIGIN"
 PROJECTS_READ_TRANSPORT_ENTRY = (
     PROJECTS_READ_TRANSPORT_KEY + "=http://172.25.0.1:14325"
 )
+WRITER_DESTINATION = "/run/secrets/agent-track-writer"
+WRITER_ENV_KEY = "PERSONA_TRACK_COMMAND_CONFIG_FILE"
+WRITER_ENV_ENTRY = WRITER_ENV_KEY + "=" + WRITER_DESTINATION + "/grant.json"
 
 
 class CloneError(ValueError):
@@ -428,4 +432,118 @@ def verify_projects_read_clone(
     _require(matching == [PROJECTS_READ_TRANSPORT_ENTRY])
     image_actual = deepcopy(actual)
     image_actual["Config"]["Env"].remove(PROJECTS_READ_TRANSPORT_ENTRY)
+    verify_image_clone(image_actual, current, candidate)
+
+
+def _writer_addon(current: dict, addon: dict) -> None:
+    _require(type(addon) is dict)
+    _json(addon)
+    _require(set(addon) == {"volumeName", "volumeMountpoint"})
+    name = addon["volumeName"]
+    _require(type(name) is str and len(name) <= 255)
+    _require(re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]*", name) is not None)
+    mountpoint = _path(addon["volumeMountpoint"])
+    config, host = current["Config"], current["HostConfig"]
+    _require("HostConfig" not in config and "NetworkingConfig" not in config)
+    _require(all(entry.partition("=")[0] != WRITER_ENV_KEY
+                 for entry in config["Env"]))
+    destinations = []
+    for mount in current["Mounts"]:
+        _require(mount.get("Name") != name)
+        _require(mount.get("Source") != mountpoint)
+        destinations.append(mount.get("Destination"))
+    requested = host.get("Mounts")
+    _require(requested is None or type(requested) is list)
+    for mount in requested or []:
+        _require(type(mount) is dict and mount.get("Source") != name)
+        destinations.append(mount.get("Target"))
+    binds = host.get("Binds")
+    _require(binds is None or type(binds) is list)
+    for bind in binds or []:
+        _require(type(bind) is str)
+        parts = bind.split(":")
+        _require(len(parts) in (2, 3) and bool(parts[0]))
+        _require(parts[0] != name)
+        destinations.append(parts[1])
+    for mapping in (host.get("Tmpfs"), config.get("Volumes")):
+        _require(mapping is None or type(mapping) is dict)
+        destinations.extend(mapping or {})
+    for destination in destinations:
+        path = _path(destination)
+        _require(path != WRITER_DESTINATION
+                 and not path.startswith(WRITER_DESTINATION + "/")
+                 and not WRITER_DESTINATION.startswith(
+                     path.rstrip("/") + "/"
+                 ))
+
+
+def writer_clone_request(
+    current: dict, candidate: dict, addon: dict,
+) -> dict:
+    """Prepare a same-image clone with one explicit writer config/mount delta.
+
+    Pure construction only: no grant/secret/volume creation or activation.
+    The caller must verify the scoped grant and sealed volume separately.
+    Existing credentials remain in the request; never log or persist it.
+    """
+    request = image_clone_request(current, candidate)
+    # A writer rollout cannot implicitly upgrade the image or its source stamps.
+    _require(request["Image"] == current.get("Image"))
+    config = {key: value for key, value in request.items()
+              if key not in ("HostConfig", "NetworkingConfig")}
+    _require(_same(config, current["Config"]))
+    _writer_addon(current, addon)
+    request["Env"].append(WRITER_ENV_ENTRY)
+    if request["HostConfig"].get("Mounts") is None:
+        request["HostConfig"]["Mounts"] = []
+    request["HostConfig"]["Mounts"].append({
+        "Type": "volume", "Source": addon["volumeName"],
+        "Target": WRITER_DESTINATION, "ReadOnly": True,
+        "VolumeOptions": {"NoCopy": True},
+    })
+    return request
+
+
+def verify_writer_clone(
+    actual: dict, current: dict, candidate: dict, addon: dict,
+) -> None:
+    """Allow only the writer delta, then reuse strict image clone checks."""
+    request = writer_clone_request(current, candidate, addon)
+    _require(type(actual) is dict)
+    _json(actual)
+    config, host = actual.get("Config"), actual.get("HostConfig")
+    _require(type(config) is dict and type(host) is dict)
+    env = config.get("Env")
+    requested = host.get("Mounts")
+    mounts = actual.get("Mounts")
+    _require(type(env) is list and all(type(entry) is str for entry in env))
+    _require([entry for entry in env
+              if entry.partition("=")[0] == WRITER_ENV_KEY]
+             == [WRITER_ENV_ENTRY])
+    _require(type(requested) is list
+             and all(type(mount) is dict for mount in requested))
+    matching = [mount for mount in requested
+                if mount.get("Target") == WRITER_DESTINATION]
+    _require(_same(matching, [request["HostConfig"]["Mounts"][-1]]))
+    _require(type(mounts) is list
+             and all(type(mount) is dict for mount in mounts))
+    metadata = [mount for mount in mounts
+                if mount.get("Destination") == WRITER_DESTINATION]
+    _require(len(metadata) == 1 and metadata[0].get("Mode") in ("", "z"))
+    _require(_same(metadata[0], {
+        "Type": "volume", "Name": addon["volumeName"],
+        "Source": addon["volumeMountpoint"],
+        "Destination": WRITER_DESTINATION, "Driver": "local",
+        "Mode": metadata[0]["Mode"], "RW": False, "Propagation": "",
+    }))
+    image_actual = deepcopy(actual)
+    image_actual["Config"]["Env"].remove(WRITER_ENV_ENTRY)
+    image_actual["HostConfig"]["Mounts"].remove(matching[0])
+    if current["HostConfig"].get("Mounts") is None:
+        _require(not image_actual["HostConfig"]["Mounts"])
+        if "Mounts" in current["HostConfig"]:
+            image_actual["HostConfig"]["Mounts"] = None
+        else:
+            del image_actual["HostConfig"]["Mounts"]
+    image_actual["Mounts"].remove(metadata[0])
     verify_image_clone(image_actual, current, candidate)
