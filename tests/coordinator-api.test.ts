@@ -22,7 +22,7 @@ const runKey = externalKey("native", runId);
 async function stop(server: Server) {
   server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
 }
-async function fixture(t: test.TestContext) {
+async function fixture(t: test.TestContext, collectDuringDetail = false) {
   const root = mkdtempSync(join(realpathSync(tmpdir()), "track-coordinator-api-")), proxyFile = join(root, "proxy.key");
   const cleanup: Array<() => Promise<void>> = [];
   t.after(async () => {
@@ -87,10 +87,23 @@ async function fixture(t: test.TestContext) {
         membershipId: "member", membershipRevision: "1", label: "Role", teamLabel: "Team", agentLabel: "Agent", responsibility: "accountable",
         state: "failed", attempts: 1, runtime: { taskId: "runtime-one", threadId: null, turnId: null }, observation: {
           queuedAt: time, startedAt: time, endedAt: time, seconds: null, timingComplete: false, basis: "server_dispatch_to_terminal_including_sdk_preparation" } }] } };
+  let stableDepth = 0, collecting = false, deferredCollections = 0;
   const views = (): SourceView[] => config.sources.map(source => ({ id: source.id, kind: source.kind, label: source.label,
-    device: source.device, state: "connected", lastObservedAt: time, detail: "Fixture", capabilities: ["run.read", "events.read"] }));
+    device: source.device, state: source.id === "native" && collecting ? "forbidden" : "connected",
+    lastObservedAt: time, detail: "Fixture", capabilities: ["run.read", "events.read"] }));
   const sources = { refreshProjectGrants: async () => {}, views,
-    assistant: { detail: async () => { reads++; readHook(reads); return structuredClone(execution); } } } as unknown as Sources;
+    assistantNative: { withStableViews: async <T>(_user: string, ids: string[], read: () => Promise<T>) => {
+      assert.deepEqual(ids, ["native"]);
+      stableDepth++;
+      try { return await read(); } finally { stableDepth--; }
+    } },
+    assistant: { detail: async () => {
+      reads++; readHook(reads);
+      // A collection temporarily withdraws its metadata window. The real
+      // collector's admission lease defers this mutation while a read holds it.
+      if (collectDuringDetail) { if (stableDepth) deferredCollections++; else collecting = true; }
+      return structuredClone(execution);
+    } } } as unknown as Sources;
   let app = createTrackServer(store, () => config, root, sources).server, origin = await listenHttp(app);
   cleanup.push(() => stop(app));
   const headers = { "x-track-proxy-key": proxy, "x-forwarded-email": actor };
@@ -104,7 +117,7 @@ async function fixture(t: test.TestContext) {
   };
   const input = () => ({ id: crypto.randomUUID(), runKey, kind: "retry", expiresAt: new Date(Date.now() + 90_000).toISOString() });
   return { config, execution, send, get, input, headers, path,
-    counts: () => ({ posts, caps, reads }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
+    counts: () => ({ posts, caps, reads, deferredCollections }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
     setReadHook: (hook: (count: number) => void) => { readHook = hook; },
     journal: () => JSON.stringify(store.events(runKey)),
     rawFetch: (suffix: string, init: RequestInit) => fetch(origin + path + suffix, init),
@@ -185,4 +198,14 @@ test("an owner can discard an unsent review after the role advances without send
   f.execution.native.roles[0]!.state = "queued";
   const result = await f.send(`/${input.id}/discard`, {});
   assert.equal(result.status, 200); assert.equal(result.body.receipt.state, "discarded"); assert.equal(f.counts().posts, 0);
+});
+
+test("background metadata collection cannot withdraw a coordinator window mid-review or same-ID receipt recovery", async t => {
+  const f = await fixture(t, true), input = f.input();
+  const available = await f.get(); assert.equal(available.status, 200);
+  assert.deepEqual(available.body.availability.availableKinds, ["retry"]);
+  assert.equal((await f.send("/reviews", input)).body.receipt.state, "prepared");
+  assert.equal((await f.send(`/${input.id}/dispatch`, {})).body.receipt.state, "intent_saved");
+  assert.equal((await f.get(`/${input.id}`)).body.receipt.state, "intent_saved");
+  assert.equal(f.counts().posts, 1); assert.ok(f.counts().deferredCollections >= 4);
 });

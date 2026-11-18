@@ -55,7 +55,9 @@ export class AssistantRoleCommands {
   }
 
   private async current(user: string, runKey: string, confirmed: () => boolean, writing: boolean) {
-    await this.sources.refreshProjectGrants?.(user);
+    // The HTTP boundary acquired this Run's fresh native window before entering
+    // the Assistant queue. Recollecting here would withdraw it (or deadlock on
+    // that admission). detail() still rechecks producer, Project and Task access.
     const initial = this.target(user, runKey, confirmed, writing);
     const local = this.localStamp(user, runKey, confirmed, writing);
     const attempt = initial.run.assistantAttempt!;

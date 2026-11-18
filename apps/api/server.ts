@@ -244,6 +244,11 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (url.search || !snapshot(user).runs.some(run => run.key === runKey)) {
           json(response, url.search ? 400 : 404, { error: url.search ? "invalid_command_query" : "run_not_found" }); return;
         }
+        const sourceId = snapshot(user).runs.find(run => run.key === runKey)!.sourceId;
+        // Acquire the selected metadata window before the shared Assistant queue.
+        // Collection must not temporarily withdraw this Run between authorization,
+        // review and receipt checks; actual policy/config revocations still apply.
+        await sources.assistantNative.withStableViews(user, [sourceId], async () => {
         const confirm = () => authenticate(request, config()) === user && !request.aborted && !response.destroyed;
         if (request.method === "GET" && !action && id !== "reviews") {
           if (request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
@@ -286,6 +291,8 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         }
         if (!confirmMutation()) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
+        });
+        return;
       }
       const successorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/successor-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);
       if (successorRoute) {
