@@ -20,8 +20,10 @@ Demian 개발 세션은 일치하는 기존 snapshot/설정과 PowerShell 기반
 QA Execution 하나만 허용하는 별도 writer principal·credential·readonly volume과
 같은 이미지의 후보를 준비해 운영 설정 전환을 마쳤다. 새 Work/Runtime 암호화
 백업·복원·기동 후 전체 데이터/설정 보존과 기존 컨테이너 복귀 경로를 확인했다.
-grant는 아직 disabled이며2시간은 시작하지 않았다. ACL 경계 수정·검증 뒤 같은 QA의
-단일 retry 전송과 같은 operationId GET 복구를 진행한다. [현재 QA 작업 기록](writer-qa-20261118.md)을 따른다.
+grant는13:58:02~15:58:02 KST에 QA1건만 활성화됐다. 전용 worker/core는 ACL 최소
+수정2b86fff로 교체했고, Track API는 metadata 수집 경합 수정cc55468로 전환했다.
+실제 retry 검토 prepared·전송1회 뒤 unknown/provider404·command/plan0을 보존 중이다.
+같은 QA의 실제 실행과 원본 영수증 복구를 확인해야 한다. [현재 QA 작업 기록](writer-qa-20261118.md)을 따른다.
 
 사용자 요청으로 기존 Edge 실행 파일에 보호 업무 Trace URL을 전달했고 Agent Track
 창 제목을 확인했다. Windows 입력의 GetCursorPos Access denied와 오래된 접근성
@@ -31,8 +33,10 @@ grant는 아직 disabled이며2시간은 시작하지 않았다. ACL 경계 수�
 이는 새 SSO 로그인·기존 사용자 창 제어·합성 회복 검사의 실제 장애 전환을 뜻하지
 않는다. [현재 수용표](goal-status.md)와 [실기 원본](operating-flow-review-verification-20261118.json)을 따른다.
 후속 실제 공개 Demian의 동일 Session 이동·3Run 요약·요약 요청 실패 중 초안 유지와
-재연결·token 없는 링크를 확인해 AT-06/20도 수용했다. 현재 **18/21개**이며
-AT-09/12/15가 남는다. [앱 간 실기 원본](session-context-operating-verification-20261118.json)을 따른다.
+재연결·token 없는 링크를 확인해 AT-06/20도 수용했다. 당시 **18/21개**가 됐다. [앱 간 실기 원본](session-context-operating-verification-20261118.json)을 따른다.
+후속 실제 Linux 보관 SQL/공식 API와 Windows Native를 같은 동결 대시보드에 연결해
+peer 대표선 마우스/원본 상세·20Run/두 장치·출처/상태 필터 해제·선택 복원을 확인했다.
+AT-12/15도 수용해 현재 **20/21개**, 잔여는 AT-09다. [실기 원본](peer-group-dashboard-verification-20261118.json)을 따른다.
 전체 작업량 비율·완료 ETA는 미확정이다.
 
 [최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.

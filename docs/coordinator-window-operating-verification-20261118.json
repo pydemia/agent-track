@@ -1,0 +1,67 @@
+{
+  "schema": "agent-track-coordinator-window-operating-verification-v1",
+  "operationId": "74f0d863-3141-48cf-9165-8a9aa9233ba4",
+  "apiRevision": "cc55468fe247ce39a5dd7a21013d68bdc258c52f",
+  "webRevision": "c52b49ddc08207726813baba6c222957db5df7fc",
+  "manifestSha256": "1dd88b3d5d0f9f3ebe38ba7656f778bb14bc6ea6190148c304bfa37fd686045c",
+  "process": {
+    "pid": 33160,
+    "name": "node.exe",
+    "executable": "C:\\Program Files\\nodejs\\node.exe",
+    "created": "2026-11-18T05:17:23.5396020Z",
+    "command": "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx C:\\Users\\pydemia\\.local\\share\\agent-track\\releases\\runtime-upgrade-cc55468fe247-07df618d-b559-463f-82c1-afa12c409356\\apps\\api\\main.ts"
+  },
+  "sourceCi": {
+    "headSha": "cc55468fe247ce39a5dd7a21013d68bdc258c52f",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "verify (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "name": "verify (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "runId": 44241939617
+  },
+  "localRelatedTests": {
+    "passed": 152,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typecheckPassed": true,
+  "coldQa": {
+    "candidateAndRollbackVerified": true,
+    "webFilesEach": 18,
+    "commandSchemaAndHistoryPreserved": true,
+    "foreignCreationDriftRejected": true
+  },
+  "preservation": {
+    "backupBytes": 34013184,
+    "trackTables": 14,
+    "protectedFiles": 51,
+    "protectedProcesses": 16,
+    "nativeDatabaseAndProcessesPreserved": true,
+    "existingHistoryPreserved": true,
+    "originalConfigRestored": true,
+    "bridgesRestarted": false
+  },
+  "operator": "Existing phase predicates and source pins preserved; bounded WMI/netstat reads, retained Win32 process-handle stop and conditional FileShare.None write used because PowerShell is unresponsive; original startup mutex and config read guard retained",
+  "actualCommand": {
+    "review": "prepared",
+    "dispatchPosts": 1,
+    "operationId": "0a6d0d63-fcbd-4f28-910b-480a378a3266",
+    "receipt": "unknown",
+    "providerReceiptStatus": 404,
+    "savedCoordinatorCommands": 0,
+    "successorPlans": 0,
+    "executionState": "failed",
+    "executionRevision": 58,
+    "attempts": 1,
+    "signedNativeCommandContextStatus": 200,
+    "automaticPostRetry": false,
+    "acceptance": "AT-09 remains partial"
+  }
+}
