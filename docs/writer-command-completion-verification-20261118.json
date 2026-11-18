@@ -1,0 +1,236 @@
+{
+  "version": 1,
+  "verifiedAt": "2026-11-18T07:02:37.210405+00:00",
+  "acceptance": {
+    "accepted": 21,
+    "total": 21,
+    "newlyAccepted": [
+      "AT-09"
+    ],
+    "meaning": "Original equal-weight requirement acceptance; not an estimate of all future product development"
+  },
+  "track": {
+    "apiRevision": "77b8d540a06bb1298d4616ab12a3a800dcf280d0",
+    "webRevision": "77b8d540a06bb1298d4616ab12a3a800dcf280d0",
+    "manifestSha256": "243903deabd9ec9d2cd7106493670ec774d390ea2a6f9883f24bc79fd9caa7f8",
+    "ci": {
+      "headSha": "77b8d540a06bb1298d4616ab12a3a800dcf280d0",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "name": "verify (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "name": "verify (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "runId": 44251168288,
+      "otherWorkflowInitialFailure": {
+        "runId": 44251175795,
+        "test": "demian-api-start-child adoption process creation timestamp mismatch",
+        "retryRequested": true
+      }
+    },
+    "relatedTestsPassed": 53
+  },
+  "persona": {
+    "sourceRevision": "04bbbd986d3d932cf6acf80d4c9ebd7851ae66e1",
+    "image": "sha256:6b3a15915bc2e1f3f715ccb19a7eca7d8f0d772bac8020aaced7ad099d6f6591",
+    "containerId": "1b701e7dde873e7fba297c6eb8a603481954a1c0839b8904865f99f6ffe96022",
+    "pid": 1731740,
+    "sourceTestsPassed": 332,
+    "readerTestsPassed": 60,
+    "sourceCiPassed": false,
+    "sourceCiExceptionApproved": true,
+    "newWorkTables": [
+      "work_execution_role_command_resolutions"
+    ],
+    "newSchemaObjects": 2,
+    "bootPlanSha256": "1fcfd5f77d7c941ea3f6dea5e209dae805c1e6bb613e494d0de8cc0298fc6151",
+    "rollbackSourceSha256": "2b81a182a005fa24b20418d1e91dc02c07934a0f928ce7c990963e7cb6842cd8"
+  },
+  "qa": {
+    "executionId": "a1d1af60-79c3-4f74-9575-6bb21d2bf48e",
+    "originalExecutionPosts": 1,
+    "extraExecutionPostsForRetryOrResume": 0,
+    "expiredRequest": {
+      "version": 2,
+      "outcome": "not_accepted",
+      "reason": "expired_without_saved_intent",
+      "operationId": "0a6d0d63-fcbd-4f28-910b-480a378a3266",
+      "executionId": "a1d1af60-79c3-4f74-9575-6bb21d2bf48e",
+      "roleId": "b4ac8edd-0c51-4fbc-bc2b-21c9143c84eb",
+      "request": {
+        "operationId": "0a6d0d63-fcbd-4f28-910b-480a378a3266",
+        "kind": "retry",
+        "expectedRevision": 58,
+        "expiresAt": "2026-11-18T05:20:19.851Z"
+      },
+      "resolvedAt": "2026-11-18T06:50:43.625Z"
+    },
+    "retry": {
+      "operationId": "d6728cd3-f7bc-4373-a10a-226519ed73a2",
+      "dispatchPosts": 1,
+      "providerAttempt": 2,
+      "runId": "c25136af-ba8c-4d72-b93f-b9c4d91c9c40",
+      "nativeCancellation": "confirmed",
+      "receiptRecovery": "Response body deliberately discarded; same-ID GET recovered intent_saved"
+    },
+    "resume": {
+      "operationId": "88c59159-2b1a-43e0-a027-eb19598a6437",
+      "dispatchPosts": 1,
+      "providerAttempt": 3,
+      "runId": "9694d7d5-e5b9-4eff-b8b6-11ad91e80595",
+      "nativeState": "succeeded",
+      "receiptRecovery": "Response body deliberately discarded; same-ID GET recovered intent_saved"
+    },
+    "final": {
+      "state": "completed",
+      "revision": 269,
+      "note": {
+        "operationId": "a1a3ea22-b20e-410f-b7d9-04dfd391cee2",
+        "workspaceId": "personal-note-production",
+        "pageId": "2a1f45e8-53c6-4759-8d64-894f4b7cb6a5",
+        "url": "https://note.pydemia.ai/#/w/personal-note-production/page/2a1f45e8-53c6-4759-8d64-894f4b7cb6a5",
+        "revision": "45654049988772ca797d366d484ee992eebd8b6417192ac21874f0248bf317a2",
+        "contentSha256": "16ef1500896e339ac3e857eb5257253ab093fcdb06d01ac30c625b368f1129ca",
+        "verifiedAt": "2026-11-18T06:54:46.156Z"
+      },
+      "taskRef": {
+        "sourceService": "projects",
+        "sourceId": "9ca7a13d-f8b4-4627-8b4f-239c29292edd",
+        "projectId": "c06bb4d0-1d79-4417-a3e5-9df6466f8f7a",
+        "revision": 6,
+        "state": "in_review",
+        "url": "https://projects.pydemia.ai/?project=c06bb4d0-1d79-4417-a3e5-9df6466f8f7a&view=tasks&item=9ca7a13d-f8b4-4627-8b4f-239c29292edd",
+        "asOf": "2026-11-18T06:54:56.923902+00:00"
+      },
+      "roleResults": [
+        {
+          "keys": [
+            "responseText",
+            "document"
+          ],
+          "historyLength": 2
+        }
+      ],
+      "successMarkerPresent": true,
+      "responseSha256": "a3a581c50d209eb0fb5ea06717c3a2d0da6627cb3a7e43234091847dfbdd77fa"
+    }
+  },
+  "originalProtected": {
+    "id": "f8a9e44f-a45a-4e33-a87d-a238c5039fde",
+    "state": "completed",
+    "revision": 72,
+    "taskRevision": 5,
+    "taskState": "in_review"
+  },
+  "originalEventMetadataSha256": "dc8f4af8af4009f653280130f6fba752cd4237197ecfb790867b22a1b6c18f15",
+  "writer": {
+    "providerEnabled": false,
+    "trackUsers": [],
+    "disabledAt": "2026-11-18T06:55:39.634Z",
+    "originalNotBefore": "2026-11-18T04:58:02.197Z",
+    "originalExpiresAt": "2026-11-18T06:58:02.197Z",
+    "extensionSeconds": 0,
+    "projectWideGrant": false,
+    "liveMutators": 0
+  },
+  "browser": {
+    "channel": "Installed Edge157 headless",
+    "actualOperatingData": true,
+    "mockedResponse": false,
+    "negativeReceiptDetailShown": true,
+    "freshEntraLoginClaimed": false,
+    "existingInteractiveWindowControlClaimed": false
+  },
+  "postQaRecoveryBackup": {
+    "state": "running",
+    "operationId": "a92a04c4-5029-4761-a9c7-a47ca44e25e5"
+  },
+  "limitations": [
+    "Original high-level requirements are accepted within their documented scopes; unsupported desktop integration remains explicitly unsupported.",
+    "Historical Linux peer archive validation is not a fresh simultaneous two-host agent execution.",
+    "QA Task in_review is not a claim of human approval or accepted business output."
+  ],
+  "artifacts": [
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-ci-gate.json",
+      "sha256": "dea3b9aec2e616c265b9b88cc803e1027849d5280bb7278d22f546e683efd7d5"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-source-checks.json",
+      "sha256": "23de3ad349295bac09e837836efe06ece6ec5e21beb2b4f4b5b452e42d44b6f9"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-build-result.json",
+      "sha256": "82012e9e624bb37ddcf36c61b69ca15d8c0d6c9c4a5d7bb6e4fa33f1bf7be61e"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/fresh-receipt-backup-result.json",
+      "sha256": "bb855aefea0994fb34b2961b69c50a97b17b59f23a4a7382db3a565c3c9ec324"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-preview-v2-preview-result.json",
+      "sha256": "b3e15146773be681e06a1d580ba7ed820c94f3077993d698bb864ec305818553"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-activation-v2-result.json",
+      "sha256": "ecae36b0c5583e3b6a832aadc541572469ed0fb5c7068b2d3b5789450718e9b7"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-verify-result.json",
+      "sha256": "82fb2c39e33b81a8abaa4e0e908111beede4d449a0a4501c83bad90b734b3419"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-rollback-postcutover-v2.json",
+      "sha256": "800c0507726a5770b66a78c4f1a4471382f617233bbfc12872de77b3773bebfd"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/expired-resolution-actual.json",
+      "sha256": "6560b5a23e7a5f9aa66d0bf404c42a5f2dfc2a9ecd0816b0af2fb61d49897fc3"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/command-receipt-v3.json",
+      "sha256": "df5b1c82527aec14617d6bdb1cb721af4c8e26386039f48affe107970d845bc6"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/qa-retry-v3-cancel-receipt.json",
+      "sha256": "50b36f73b22529a9f275ecf44edb7dd497e2fde4b3d108a7cc916689ea544d69"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/resume-receipt-v1.json",
+      "sha256": "e659b4cdefdd110ce6c8aeb2c07e96a3c098b96dd81983e33fc95c976fb5d532"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/qa-resume-final-readback.json",
+      "sha256": "5cad73b62d046998d45ddd0cff736a318e358ae1108cacf819da1c427d5c8276"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/qa-final-marker-proof.json",
+      "sha256": "cd5b8c7dae4cb1aa707755681e1606290f0b8e4511b90b0f720e98dda51eece8"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/actual-expired-receipt-browser-v2.json",
+      "sha256": "41ebc836a4c0dc0762eb51cdf15074ff26f7c0310f2a79986bfe9e995f849772"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/actual-expired-receipt-v2.png",
+      "sha256": "3ccb13c0ca8ee278bf26e279f794b22cb7acee4ee54eae3c7c700ddeb7b5fd5c"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/protected-after-receipts/round-final.json",
+      "sha256": "384e180edea664afce2471e9b5082471147999a569270b8c79fda020628bca02"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-grant-final-disable-result.json",
+      "sha256": "90e5637a63c8679d9d3f2c69eb73992c29361f1b2779d821ce4cbb6e285ebf36"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/track-writer-disable.json",
+      "sha256": "d8f0be3507212192e5d0a9e84aec76275d84a741b811779d8e4e642660380ecc"
+    }
+  ]
+}

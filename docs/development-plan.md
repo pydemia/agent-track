@@ -1,5 +1,15 @@
 # Agent Track 개발계획
 
+현재 운영은 **Track API/web77b8d54 · Persona04bbbd9/image6b3a1591**입니다. 마지막 AT-09를 같은 QA 실행에서 검증해 기존 상위 조건 **21/21개**를 수용했습니다. 미확정 요청의 영구 미접수 확정, 단일 retry·실제 후속 Run 취소·resume, 두 명령의 응답 유실 후 같은 ID 복구, 최종 completed r269·Note 검증·같은 Task in_review r6을 확인했습니다. writer는 원 만료 전15:55:39 KST에 종료했습니다. 원래 완료 업무와8events 해시·기본 Entra를 보존했습니다.
+
+[현재 완료 보고](writer-qa-completion-20261118.md)와 [실기 검증 원본](writer-command-completion-verification-20261118.json)을 우선합니다. 21/21은 기존 조건의 수용이며 향후 전체 제품 개발량의 비율이 아닙니다. 지원하지 않는 desktop 연동과 보관 Linux 기록의 범위는 기존 판정을 유지합니다.
+
+기존 수용 조건에 대한 구현·운영 검증은 완료했습니다. 사후 백업·최종 Note·PR 통합 기록을 정리 중입니다. 후속 기능 확장은 별도 로드맵으로 관리합니다.
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 20/21 시점 검증된 보고.
+
+### 20/21 이전 계획 이력
+
 서버 재기동 후 승인된 Persona52cd99c/imageea4a4d31과 Track API047b4d6/webc52b49d를
 운영에 반영했다. 현재 backup·후보/이전 버전 cold QA·검토된 전환·데이터/설정 보존을
 통과했다. 보호 snapshot/events/evidence15개는 모두200,90초30개·5분100개 SSE는
@@ -39,7 +49,7 @@ peer 대표선 마우스/원본 상세·20Run/두 장치·출처/상태 필터 �
 AT-12/15도 수용해 현재 **20/21개**, 잔여는 AT-09다. [실기 원본](peer-group-dashboard-verification-20261118.json)을 따른다.
 전체 작업량 비율·완료 ETA는 미확정이다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.
+[당시 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 본문·색인 재확인 완료.
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),

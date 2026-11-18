@@ -2,6 +2,21 @@
 
 ## 현재 판정 — 2026-11-18 KST
 
+현재 운영은 **Track API/web77b8d54 · Persona04bbbd9/image6b3a1591**입니다. 마지막 AT-09를 같은 QA 실행에서 검증해 기존 상위 조건 **21/21개**를 수용했습니다. 미확정 요청의 영구 미접수 확정, 단일 retry·실제 후속 Run 취소·resume, 두 명령의 응답 유실 후 같은 ID 복구, 최종 completed r269·Note 검증·같은 Task in_review r6을 확인했습니다. writer는 원 만료 전15:55:39 KST에 종료했습니다. 원래 완료 업무와8events 해시·기본 Entra를 보존했습니다.
+
+[현재 완료 보고](writer-qa-completion-20261118.md)와 [실기 검증 원본](writer-command-completion-verification-20261118.json)을 우선합니다. 21/21은 기존 조건의 수용이며 향후 전체 제품 개발량의 비율이 아닙니다. 지원하지 않는 desktop 연동과 보관 Linux 기록의 범위는 기존 판정을 유지합니다.
+
+| 기존 요구 영역 | 완료 | 부분 | 현재 잔여 |
+| --- | --- | --- | --- |
+| 조회·기본 UI (01–08,15–17) | 🟩11 | 0 | 없음 |
+| 제어 (09–11) | 🟩3 | 0 | 없음 |
+| 관계 (12,18,19) | 🟩3 | 0 | 없음 |
+| 운영·앱 연동 (13,14,20,21) | 🟩4 | 0 | 없음 |
+
+[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 20/21 시점 본문·색인 검증 완료; 21/21 후속 보고 준비 중.
+
+### 20/21 시점의 진행 이력
+
 서버 재기동 후 승인된 Persona52cd99c/imageea4a4d31과 Track API047b4d6/webc52b49d를
 운영에 반영했다. 현재 backup·후보/이전 버전 cold QA·검토된 전환·데이터/설정 보존을
 통과했다. 보호 snapshot/events/evidence15개는 모두200,90초30개·5분100개 SSE는
@@ -69,7 +84,7 @@ Track backup·후보/복구 cold QA·51파일/16프로세스·원본 DB/이력/�
 Persona 수정 artifact와 같은 QA의 실제 명령·영수증 복구 시점이다. 기존 사용자
 창 제어의 GetCursorPos Access denied는 남지만 승인 대기를 원인으로 쓰지 않는다.
 
-[최신 Note](https://note.pydemia.ai/#/w/personal-note-production/page/f2cd61a6-30cf-4091-8481-94da667f7503) — 본문·색인 재확인 완료.
+[당시 Note](https://note.pydemia.ai/#/w/personal-note-production/page/1872f6c6-b95e-4693-ad54-70d723662779) — 본문·색인 재확인 완료.
 
 [재기동 후 배포·진척 보고](post-reboot-deployment-20261118.md),
 [현재 검증 원본](post-reboot-deployment-verification-20261118.json),
@@ -423,7 +438,7 @@ writer 구분도 반영했다. Persona9382c9c의 Note 수정은 관련260개·�
 | AT-06 | 동일 원본 선택 deep link와 미지원 안내 | 검증 완료(현재 소유자·QA 범위). 기존 실제 Edge의 Track inspector→Projects 동일 Project/Task 이동과 미지원 Run 안내를 유지한다. 후속 Edge157/headless에서 실제 운영 Track의 source href를 클릭해 공개 Demian 동일 Session6e26fd8b를 열고, 그 Session의 원본 요약3Run/1Session을 대조했다. 기존 legacy credential은 격리 읽기 QA에만 사용했고 auth 설정·기본 Track Entra는 보존했다 (`session-context-operating-verification-20261118.json`) |
 | AT-07 | 계정/프로젝트 권한 교집합·metadata allowlist | 검증 완료(현재 소유자 배포). 별도 owner-bound Projects reader·현재 native ACL/Project ID 교집합. 실제 scope7→6에서 API404·공개 업무 비노출→7 복원. 다른 Track actor의 owner key 차용 거부·bound Run 비노출·원문 제외 fixture. 추가 사용자 native principal은 별도 구성 필요 |
 | AT-08 | 네 화면·빈/오류·접근성·favicon 실기 | 검증 완료. 공개 네 보기·favicon bytes/hash·SNB/Map keyboard/mobile. 분리 QA의 네 빈 보기·503/재시도·stale·철회·401 만료 후 private cache/URL 제거 실기. 실제 Entra membership 철회와 구별 |
-| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 부분. 운영 APIcc55468의 수집/명령 확인 경합을 수정하고 실제 available/retry→검토 prepared→단일 dispatch POST까지 확인했다. 같은 ID GET은 unknown, provider404·command row0·plan0·QA r58/attempt1이므로 수락/실행 성공으로 세지 않는다. 정상 서명 Native command-context200과 Persona10초 readiness cache source-unit 회귀를 확인해 수정 중이며, 만료된 원본 unknown의 authoritative 미접수 종료와 같은 QA retry/resume·실기 복구가 남는다. 기존 합성53개·단절/권한/원장 근거는 유지한다 (`coordinator-window-operating-verification-20261118.json`, `writer-qa-20261118.md`) |
+| AT-09 | capability 기반 명령·idempotency·receipt·단절 | 검증 완료. 원본 미접수 영수증으로 기존 unknown을 종료하고 같은 QA에서 retry→Native 취소→resume→completed r269·검증된 Note·같은 Task in_review r6을 확인했다. 단일 POST 응답 유실 후 같은 ID로 attempt2/3 접수 기록을 복구했고, 실제 API 교체 후 원장 보존·UI 원본 미접수 표시·writer 만료 전 종료·원업무 보존을 대조했다 (`writer-command-completion-verification-20261118.json`) |
 | AT-10 | 범위·만료·철회·runtime 재검증 승인 | 검증 완료(현재 소유자 배포). 실제 native fileChange allow_once·동일 receipt·30byte 파일, 공개 UI deny·파일 비생성, 원본 자동만료/결정0·late 요청 차단. bound Project reader 철회 시 원문/세 API404→복구, 모바일/Tab·만료 후 인자 제거. 실제 allow_session 후 도구2회/승인 요청1건·새 QA 파일2개, 다른 실행/업무 상태와 구별 |
 | AT-11 | 원본 업무 생성/배정·수락 확인·실패 보존 | 검증 완료(현재 소유자·명시 QA 범위). 공개 UI Task1건 생성·최신 내용/정책 검토 후 기존 native Session2개에 Run2건 배정, exact input hash·request-status·binding·실제 성공·cursor 대조. Task r1/todo 불변. unknown/새 UUID 차단·접수 후 binding 복구·재시작/backup·철회 직전 무전송 fixture.390px/Tab·미제출 초안 보존·실제 reader 철회 시 본문/초안/Run ID 제거→복원. `task-assignment-verification.md` |
 | AT-12 | typed Map·근거·목록·순환/고립·node group과 깊이 탐색 | 검증 완료(기존 인가 QA 범위). 기존 중첩 그룹·업무 묶음·상세·접기·상위/깊이 탐색·네 보기·저장/복원·실제 managed-child/nested coordinator/병렬 합류·Entra 저장 보기 근거를 유지한다. 마지막 peer 대표선 포인터는 현재 동결 제품과 실제 Linux 보관 SQL의 공식 Native API에서 검증했다. 실제 마우스로 대표선을 클릭하고 원본 관계 상세의 Operation8c247953/Session3f3d393c/Run cf8cb5b9를 대조했다. 과거 viewport 실패를 제품 결함으로 확정하지 않으며 새 peer 실행/SSO 로그인으로 확대하지 않는다 (`peer-group-dashboard-verification-20261118.json`) |
