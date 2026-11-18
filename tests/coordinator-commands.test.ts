@@ -11,6 +11,7 @@ import { type AssistantCommandReceipt } from "../packages/contracts/assistant-co
 import { CommandError } from "../packages/commands/index.ts";
 import { externalKey } from "../packages/contracts/index.ts";
 import { Store } from "../packages/storage/store.ts";
+import type { AssistantNotAcceptedReceipt } from "../packages/contracts/assistant-command-receipts.ts";
 
 const epoch = Date.parse("2026-11-14T00:00:00.000Z");
 const runId = randomUUID(), sessionId = randomUUID(), executionId = randomUUID(), roleId = randomUUID();
@@ -41,6 +42,67 @@ function setup(path = ":memory:") {
   };
   return { store, service, ports, counts: () => ({ posts, lookups, prepares }), tick: (ms: number) => { clock += ms; } };
 }
+
+const notAccepted = (p: PreparedCoordinator): AssistantNotAcceptedReceipt => ({ version: 2, outcome: "not_accepted",
+  reason: "expired_without_saved_intent", operationId: p.command.operationId, executionId: p.target.executionId,
+  roleId: p.target.roleId, request: { ...p.command }, resolvedAt: new Date(epoch + 120_000).toISOString() });
+async function unresolved(h: ReturnType<typeof setup>) {
+  const i = input(); let descriptor!: PreparedCoordinator;
+  h.ports.dispatch = async p => { descriptor = p; throw new Error("Outcome not observed"); };
+  await h.service.review("alice", i, h.ports); assert.equal((await h.service.dispatch("alice", i.id, h.ports)).state, "unknown");
+  return { i, descriptor };
+}
+
+test("expired unknown stays blocked on absence and settles only with matching durable native rejection", async t => {
+  const h = setup(); t.after(() => h.store.close()); const { i, descriptor } = await unresolved(h);
+  h.tick(120_000); assert.equal((await h.service.get("alice", i.id, h.ports)).state, "unknown");
+  await assert.rejects(h.service.review("alice", { ...input(), expiresAt: new Date(epoch + 180_000).toISOString() }, h.ports), code("coordinator_pending"));
+  let resolutions = 0; h.ports.reconcileExpired = async () => { resolutions++; return notAccepted(descriptor); };
+  const result = await h.service.reconcileExpired("alice", i.id, h.ports);
+  assert.equal(result.state, "rejected"); assert.equal(result.detail, "native_not_accepted"); assert.equal(result.coordinatorReceipt, null);
+  assert.deepEqual(result.resolutionReceipt, notAccepted(descriptor));
+  assert.deepEqual(await new CoordinatorCommands(h.store).get("alice", i.id, h.ports), result);
+  assert.deepEqual(await h.service.reconcileExpired("alice", i.id, h.ports), result); assert.equal(resolutions, 1);
+  assert.equal((await h.service.review("alice", { ...input(), expiresAt: new Date(epoch + 180_000).toISOString() }, h.ports)).state, "prepared");
+});
+
+test("lost resolution ACK recovers through same-ID lookup without a second resolution POST", async t => {
+  const h = setup(); t.after(() => h.store.close()); const { i, descriptor } = await unresolved(h); h.tick(120_000);
+  let resolutions = 0; h.ports.reconcileExpired = async () => { resolutions++; throw new Error("ACK lost after tombstone"); };
+  await assert.rejects(h.service.reconcileExpired("alice", i.id, h.ports));
+  assert.equal(h.store.db.prepare("SELECT state FROM coordinator_command_intents WHERE id=?").get(i.id)!.state, "unknown");
+  h.ports.lookup = async () => notAccepted(descriptor);
+  const recovered = await new CoordinatorCommands(h.store).get("alice", i.id, h.ports);
+  assert.equal(recovered.detail, "native_not_accepted"); assert.equal(resolutions, 1);
+});
+
+test("unexpired, unsupported, foreign and mismatching receipt resolution cannot settle an unknown", async t => {
+  const h = setup(); t.after(() => h.store.close()); const { i, descriptor } = await unresolved(h);
+  await assert.rejects(h.service.reconcileExpired("alice", i.id, h.ports), code("command_not_expired"));
+  h.tick(120_000); await assert.rejects(h.service.reconcileExpired("bob", i.id, h.ports), code("receipt_not_found"));
+  await assert.rejects(h.service.reconcileExpired("alice", i.id, h.ports), code("receipt_resolution_unavailable"));
+  const edits: ((r: AssistantNotAcceptedReceipt) => void)[] = [r => { r.roleId = randomUUID(); },
+    r => { r.executionId = randomUUID(); }, r => { r.request.expectedRevision++; },
+    r => { r.request.expiresAt = new Date(epoch + 50_000).toISOString(); }, r => { r.resolvedAt = new Date(epoch).toISOString(); }];
+  for (const edit of edits) {
+    const receipt = notAccepted(descriptor); edit(receipt); h.ports.reconcileExpired = async () => receipt;
+    await assert.rejects(h.service.reconcileExpired("alice", i.id, h.ports));
+    assert.equal(h.store.db.prepare("SELECT state FROM coordinator_command_intents WHERE id=?").get(i.id)!.state, "unknown");
+  }
+});
+
+test("resolution evidence survives caller withdrawal without being returned, and accepted evidence wins a race", async t => {
+  const h = setup(); t.after(() => h.store.close()); const { i, descriptor } = await unresolved(h); h.tick(120_000);
+  let withdrawn = false; h.ports.authorize = async () => { if (withdrawn) throw Error("Actor withdrawn"); };
+  h.ports.reconcileExpired = async () => { withdrawn = true; return notAccepted(descriptor); };
+  await assert.rejects(h.service.reconcileExpired("alice", i.id, h.ports), code("authority_changed"));
+  assert.equal(h.store.db.prepare("SELECT detail FROM coordinator_command_intents WHERE id=?").get(i.id)!.detail, "native_not_accepted");
+  const other = setup(); t.after(() => other.store.close()); const pending = await unresolved(other); other.tick(120_000);
+  other.ports.reconcileExpired = async p => {
+    other.ports.lookup = async () => saved(p); await other.service.get("alice", pending.i.id, other.ports); return notAccepted(p);
+  };
+  assert.equal((await other.service.reconcileExpired("alice", pending.i.id, other.ports)).state, "intent_saved");
+});
 
 test("strict public review, canonical offset digest, exact same ID and no POST", async t => {
   const h = setup(); t.after(() => h.store.close()); const i = input();

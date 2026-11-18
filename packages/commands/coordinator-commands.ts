@@ -7,6 +7,8 @@ import { coordinatorReviewInputSchema, coordinatorReceiptSchema, coordinatorRece
   type CoordinatorReviewInput, type CoordinatorReceipt, type CoordinatorReceiptPage } from "../contracts/coordinator-commands.ts";
 import { Store } from "../storage/store.ts";
 import { CommandError } from "./index.ts";
+import { assistantReceiptOutcomeSchema, assistantNotAcceptedReceiptSchema,
+  type AssistantReceiptOutcome, type AssistantNotAcceptedReceipt } from "../contracts/assistant-command-receipts.ts";
 
 const targetUuid = z.uuid().transform(value => value.toLowerCase());
 export const coordinatorTargetSchema = z.strictObject({
@@ -29,7 +31,8 @@ export interface CoordinatorPorts {
   prepare(input: CoordinatorReviewInput): Promise<PreparedCoordinator>;
   authorize(prepared: PreparedCoordinator | null, writing: boolean): Promise<void>;
   dispatch(prepared: PreparedCoordinator): Promise<AssistantCommandReceipt>;
-  lookup(prepared: PreparedCoordinator): Promise<AssistantCommandReceipt | null>;
+  lookup(prepared: PreparedCoordinator): Promise<AssistantCommandReceipt | AssistantReceiptOutcome | null>;
+  reconcileExpired?(prepared: PreparedCoordinator): Promise<AssistantReceiptOutcome>;
   now?: () => number;
 }
 /** Only a final adapter fence that proves zero POST may throw this error. */
@@ -51,6 +54,7 @@ const now = (ports: CoordinatorPorts) => (ports.now ?? Date.now)();
 const stamp = (ports: CoordinatorPorts) => new Date(now(ports)).toISOString();
 
 export class CoordinatorCommands {
+  private readonly resolving = new Set<string>();
   constructor(private readonly store: Store) {
     store.db.exec(`CREATE TABLE IF NOT EXISTS coordinator_command_intents (
       actor TEXT NOT NULL, id TEXT NOT NULL, run_key TEXT NOT NULL, digest TEXT NOT NULL,
@@ -150,12 +154,12 @@ export class CoordinatorCommands {
     await this.auth(ports, prepared, false);
     row = this.expire(this.require(actor, id), ports);
     if (row.state === "dispatching" || row.state === "unknown") {
-      let receipt: AssistantCommandReceipt | null = null;
+      let receipt: AssistantCommandReceipt | AssistantReceiptOutcome | null = null;
       try { receipt = await ports.lookup(structuredClone(prepared)); }
       catch { /* A missing receipt or transport failure cannot prove zero POST. */ }
       // Evidence is durable even when the post-await authorization fails.
       try {
-        if (receipt !== null) this.record(row, prepared, receipt, ports);
+        if (receipt !== null) this.recordOutcome(row, prepared, receipt, ports);
         else this.change(row, "unknown", "outcome_unknown", ports, "dispatching");
       } catch { this.change(row, "unknown", "outcome_unknown", ports, "dispatching"); }
     }
@@ -184,6 +188,24 @@ export class CoordinatorCommands {
     this.expire(this.require(actor, id), ports);
     this.change(row, "discarded", "review_discarded", ports, "prepared");
     return this.dto(this.require(actor, id));
+  }
+
+  /** Owner-confirmed receipt closure. A 404 alone can never release the slot. */
+  async reconcileExpired(actor: string, id: string, ports: CoordinatorPorts): Promise<CoordinatorReceipt> {
+    const row = this.require(actor, id), prepared = this.prepared(row), key = JSON.stringify([actor, id]);
+    await this.auth(ports, prepared, false);
+    if (row.state !== "unknown" || this.resolving.has(key)) return this.get(actor, id, ports);
+    if (Date.parse(prepared.command.expiresAt) > now(ports)) throw fail(409, "command_not_expired");
+    if (!ports.reconcileExpired) throw fail(503, "receipt_resolution_unavailable");
+    this.resolving.add(key);
+    try {
+      // Authorization and upstream capability are rechecked by the dedicated
+      // port. Failure stays unknown; only authenticated durable evidence settles it.
+      const outcome = await ports.reconcileExpired(structuredClone(prepared));
+      this.recordOutcome(row, prepared, outcome, ports);
+      await this.auth(ports, prepared, false);
+      return this.dto(this.require(actor, id));
+    } finally { this.resolving.delete(key); }
   }
 
   private actor(actor: string): void {
@@ -260,12 +282,30 @@ export class CoordinatorCommands {
       WHERE actor=? AND id=? AND state IN ('dispatching','unknown')`)
       .run(JSON.stringify(receipt), stamp(ports), row.actor, row.id);
   }
+  private checkedNotAccepted(p: PreparedCoordinator, raw: unknown): AssistantNotAcceptedReceipt {
+    const receipt = assistantNotAcceptedReceiptSchema.parse(raw), c = receipt.request;
+    if (receipt.operationId !== p.command.operationId || receipt.executionId !== p.target.executionId ||
+        receipt.roleId !== p.target.roleId || c.kind !== p.command.kind || c.expectedRevision !== p.command.expectedRevision ||
+        c.expiresAt !== p.command.expiresAt) throw fail(502, "invalid_coordinator_resolution");
+    return receipt;
+  }
+  private recordOutcome(row: Row, p: PreparedCoordinator, raw: unknown, ports: CoordinatorPorts): void {
+    if (raw && typeof raw === "object" && "version" in raw && raw.version === 1) { this.record(row, p, raw, ports); return; }
+    const outcome = assistantReceiptOutcomeSchema.parse(raw);
+    if (outcome.outcome === "accepted") { this.record(row, p, { version: 1, command: outcome.command }, ports); return; }
+    const receipt = this.checkedNotAccepted(p, outcome);
+    this.store.db.prepare(`UPDATE coordinator_command_intents SET state='rejected',detail='native_not_accepted',receipt_json=?,updated_at=?
+      WHERE actor=? AND id=? AND state IN ('dispatching','unknown')`)
+      .run(JSON.stringify(receipt), stamp(ports), row.actor, row.id);
+  }
   private dto(row: Row): CoordinatorReceipt {
     try {
       const p = this.prepared(row);
+      const resolution = row.detail === "native_not_accepted" ? this.checkedNotAccepted(p, JSON.parse(row.receipt_json!)) : undefined;
       return coordinatorReceiptSchema.parse({ id: row.id, runKey: row.run_key, kind: p.command.kind,
         expiresAt: p.command.expiresAt, state: row.state, detail: row.detail,
-        coordinatorReceipt: row.receipt_json === null ? null : this.checkedReceipt(p, JSON.parse(row.receipt_json)),
+        coordinatorReceipt: row.receipt_json === null || resolution ? null : this.checkedReceipt(p, JSON.parse(row.receipt_json)),
+        ...(resolution ? { resolutionReceipt: resolution } : {}),
         createdAt: row.created_at, updatedAt: row.updated_at });
     } catch { throw fail(500, "invalid_stored_intent"); }
   }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { idSchema, timestampSchema } from "./index.ts";
 import { assistantCommandKindSchema, assistantCommandReceiptSchema } from "./assistant-commands.ts";
+import { assistantNotAcceptedReceiptSchema } from "./assistant-command-receipts.ts";
 
 const lowerUuid = z.uuid().refine(value => value === value.toLowerCase());
 const canonicalTime = timestampSchema.refine(value =>
@@ -15,20 +16,25 @@ export const coordinatorStateSchema = z.enum([
 ]);
 export const coordinatorDetailSchema = z.enum([
   "review_ready", "outcome_unknown", "intent_saved", "review_changed",
-  "authority_changed", "review_discarded", "deadline_passed",
+  "authority_changed", "review_discarded", "deadline_passed", "native_not_accepted",
 ]);
 export const coordinatorReceiptSchema = z.strictObject({
   id: lowerUuid, runKey: idSchema, kind: assistantCommandKindSchema,
   expiresAt: canonicalTime, state: coordinatorStateSchema, detail: coordinatorDetailSchema,
   coordinatorReceipt: assistantCommandReceiptSchema.nullable(),
+  resolutionReceipt: assistantNotAcceptedReceiptSchema.optional(),
   createdAt: canonicalTime, updatedAt: canonicalTime,
 }).refine(value => {
   const details = {
     prepared: ["review_ready"], dispatching: ["outcome_unknown"], unknown: ["outcome_unknown"],
-    intent_saved: ["intent_saved"], rejected: ["review_changed", "authority_changed"],
+    intent_saved: ["intent_saved"], rejected: ["review_changed", "authority_changed", "native_not_accepted"],
     discarded: ["review_discarded"], expired: ["deadline_passed"],
   };
-  return details[value.state].includes(value.detail) &&
+  const resolved = value.resolutionReceipt;
+  return (value.detail === "native_not_accepted"
+    ? value.state === "rejected" && resolved !== undefined && resolved.operationId === value.id &&
+      resolved.request.kind === value.kind && resolved.request.expiresAt === value.expiresAt
+    : resolved === undefined) && details[value.state].includes(value.detail) &&
     (value.state === "intent_saved"
       ? value.coordinatorReceipt !== null && value.coordinatorReceipt.command.operationId === value.id &&
         value.coordinatorReceipt.command.kind === value.kind &&

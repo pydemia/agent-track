@@ -22,7 +22,7 @@ const runKey = externalKey("native", runId);
 async function stop(server: Server) {
   server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
 }
-async function fixture(t: test.TestContext, collectDuringDetail = false) {
+async function fixture(t: test.TestContext, collectDuringDetail = false, resolutionEnabled = false) {
   const root = mkdtempSync(join(realpathSync(tmpdir()), "track-coordinator-api-")), proxyFile = join(root, "proxy.key");
   const cleanup: Array<() => Promise<void>> = [];
   t.after(async () => {
@@ -35,11 +35,30 @@ async function fixture(t: test.TestContext, collectDuringDetail = false) {
   writeFileSync(readerFile, JSON.stringify({ secretFile: readerKey }));
   let posts = 0, caps = 0, reads = 0, lostAck = false, capHook = () => {}, readHook = (_count: number) => {};
   const receipts = new Map<string, AssistantCommandReceipt>();
+  let resolutionPosts = 0, unresolvedInput: ReturnType<typeof assistantCommandInputSchema.parse> | undefined;
+  let resolution: unknown;
   const upstream = createServer(async (request, response) => {
     assert.equal(request.headers.authorization, "Bearer " + writer);
     assert.equal(request.headers["x-agent-track-user"], actor);
     for (const key of ["cookie", "origin", "x-agent-track-principal", "x-forwarded-email", "x-track-proxy-key"]) assert.equal(request.headers[key], undefined);
     response.setHeader("content-type", "application/json");
+    if (request.url?.startsWith("/api/integrations/track-command/v2/")) {
+      if (!resolutionEnabled) { response.writeHead(404); response.end("{}"); return; }
+      if (request.url.endsWith("/capabilities")) {
+        response.end(JSON.stringify({ version: 2, audience: "agent-track-command", ownerId,
+          principalId: "writer", trackUser: actor, grantRevision: 1, commands: ["reconcile-expired"], receiptRead: true, reconcileExpiredReceipts: true })); return;
+      }
+      if (request.method === "POST") {
+        const parts: Buffer[] = []; for await (const part of request) parts.push(Buffer.from(part));
+        const input = assistantCommandInputSchema.parse(JSON.parse(Buffer.concat(parts).toString("utf8")));
+        assert.deepEqual(input, unresolvedInput); assert(Date.parse(input.expiresAt) <= Date.now());
+        resolutionPosts++;
+        resolution = { version: 2, outcome: "not_accepted", reason: "expired_without_saved_intent",
+          operationId: input.operationId, executionId, roleId, request: input, resolvedAt: new Date().toISOString() };
+        request.socket.destroy(); return; // Durable source evidence survives a lost resolution ACK.
+      }
+      response.writeHead(resolution ? 200 : 404); response.end(JSON.stringify(resolution ?? {})); return;
+    }
     if (request.url === "/api/integrations/track-command/v1/capabilities") {
       caps++; capHook(); response.end(JSON.stringify({ version: 1, audience: "agent-track-command", ownerId,
         principalId: "writer", trackUser: actor, grantRevision: 1, commands: ["retry", "resume"], receiptRead: true })); return;
@@ -48,6 +67,7 @@ async function fixture(t: test.TestContext, collectDuringDetail = false) {
       const parts: Buffer[] = []; for await (const part of request) parts.push(Buffer.from(part));
       const input = assistantCommandInputSchema.parse(JSON.parse(Buffer.concat(parts).toString("utf8")));
       assert.equal(input.expectedRevision, 2); posts++;
+      if (resolutionEnabled) { unresolvedInput = input; request.socket.destroy(); return; }
       const receipt: AssistantCommandReceipt = { version: 1, command: { operationId: input.operationId,
         executionId, roleId, kind: input.kind, attempt: 2, intentState: "saved", createdAt: new Date().toISOString() } };
       receipts.set(input.operationId, receipt);
@@ -117,12 +137,34 @@ async function fixture(t: test.TestContext, collectDuringDetail = false) {
   };
   const input = () => ({ id: crypto.randomUUID(), runKey, kind: "retry", expiresAt: new Date(Date.now() + 90_000).toISOString() });
   return { config, execution, send, get, input, headers, path,
-    counts: () => ({ posts, caps, reads, deferredCollections }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
+    counts: () => ({ posts, caps, reads, deferredCollections, resolutionPosts }), setLostAck: () => { lostAck = true; }, setCapHook: (hook: () => void) => { capHook = hook; },
     setReadHook: (hook: (count: number) => void) => { readHook = hook; },
     journal: () => JSON.stringify(store.events(runKey)),
     rawFetch: (suffix: string, init: RequestInit) => fetch(origin + path + suffix, init),
     restart: async () => { await stop(app); store.close(); store = new Store(config.database); app = createTrackServer(store, () => config, root, sources).server; origin = await listenHttp(app); } };
 }
+
+test("explicit expired HTTP resolution survives lost ACK and restart without dispatching again", async t => {
+  const f = await fixture(t, false, true), input = { ...f.input(), expiresAt: new Date(Date.now() + 700).toISOString() };
+  assert.equal((await f.get()).body.availability.expiredReceiptResolution, true);
+  assert.equal((await f.send("/reviews", input)).status, 200);
+  assert.equal((await f.send(`/${input.id}/dispatch`, {})).body.receipt.state, "unknown");
+  assert.equal((await f.send(`/${input.id}/reconcile-expired`, {})).status, 409);
+  assert.equal(f.counts().resolutionPosts, 0);
+  await new Promise(resolve => setTimeout(resolve, 750));
+  assert.equal((await f.get(`/${input.id}`)).body.receipt.state, "unknown");
+  const foreign = await f.rawFetch(`/${input.id}/reconcile-expired`, { method: "POST", headers: { ...f.headers,
+    origin: "https://foreign.example", "content-type": "application/json" }, body: "{}" });
+  assert.equal(foreign.status, 403); await foreign.body?.cancel();
+  assert.equal((await f.send(`/${input.id}/reconcile-expired`, {})).status, 503);
+  await f.restart();
+  const recovered = await f.get(`/${input.id}`);
+  assert.equal(recovered.status, 200); assert.equal(recovered.body.receipt.state, "rejected");
+  assert.equal(recovered.body.receipt.detail, "native_not_accepted");
+  assert.equal(recovered.body.receipt.resolutionReceipt.request.operationId, input.id);
+  assert.equal(f.counts().posts, 1); assert.equal(f.counts().resolutionPosts, 1);
+  assert.equal((await f.send("/reviews", f.input())).status, 200);
+});
 
 test("protected HTTP review sends no command; explicit confirmation stores a coordinator intent and preserves source events", async t => {
   const f = await fixture(t), original = f.journal(), input = f.input();

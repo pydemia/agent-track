@@ -238,7 +238,7 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;
       }
-      const coordinatorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/coordinator-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard))?)?$/.exec(url.pathname);
+      const coordinatorRoute = /^\/api\/runs\/([A-Za-z0-9_-]+)\/coordinator-commands(?:\/(reviews|[0-9a-f-]{36})(?:\/(dispatch|discard|reconcile-expired))?)?$/.exec(url.pathname);
       if (coordinatorRoute) {
         const [, runKey, id, action] = coordinatorRoute;
         if (url.search || !snapshot(user).runs.some(run => run.key === runKey)) {
@@ -287,7 +287,9 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           if (!body || typeof body !== "object" || Array.isArray(body) || Object.keys(body).length) {
             json(response, 400, { error: "invalid_command" }); return;
           }
-          receipt = action === "dispatch" ? await coordinatorCommands.dispatch(user, id, ports) : await coordinatorCommands.discard(user, id, ports);
+          receipt = action === "dispatch" ? await coordinatorCommands.dispatch(user, id, ports)
+            : action === "reconcile-expired" ? await coordinatorCommands.reconcileExpired(user, id, ports)
+            : await coordinatorCommands.discard(user, id, ports);
         }
         if (!confirmMutation()) { json(response, 401, { error: "authentication_required" }); return; }
         json(response, 200, { receipt }); return;

@@ -19,7 +19,7 @@ export async function readCoordinatorCommand(runKey: string, id: string, signal:
   if (receipt.runKey !== runKey || receipt.id !== uuid(id)) throw new Error("Command identity mismatch");
   return receipt;
 }
-export async function writeCoordinatorCommand(runKey: string, action: "review" | "dispatch" | "discard",
+export async function writeCoordinatorCommand(runKey: string, action: "review" | "dispatch" | "discard" | "reconcile-expired",
   value: CoordinatorReviewInput | string, signal: AbortSignal, fetcher: typeof fetch = fetch) {
   const input = typeof value === "string" ? null : coordinatorReviewInputSchema.parse(value);
   if (action === "review" ? !input || input.runKey !== runKey : typeof value !== "string") throw new Error("Invalid command action");
@@ -37,6 +37,7 @@ export function mergeCoordinatorCommands(previous: CoordinatorReceipt[], incomin
     const old = previous.find(item => item.id === receipt.id && item.runKey === receipt.runKey);
     if (!old) return receipt;
     if (old.state === "intent_saved" && receipt.state !== "intent_saved") return old;
+    if (old.detail === "native_not_accepted" && receipt.state !== "intent_saved" && receipt.detail !== "native_not_accepted") return old;
     return Date.parse(old.updatedAt) > Date.parse(receipt.updatedAt) ? old : receipt;
   });
 }
