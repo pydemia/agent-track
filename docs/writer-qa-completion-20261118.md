@@ -23,6 +23,8 @@
 
 [실제 QA 결과 Note](https://note.pydemia.ai/#/w/personal-note-production/page/2a1f45e8-53c6-4759-8d64-894f4b7cb6a5)
 
+전체 출처의 실제 완료 화면에서도 같은 QA와 원래 보호 업무의 완료·Task 검토 r6/r5를 확인했습니다. 선택한 최종 Run의 흐름에는 내용 node4개·edge3개·group3개가 표시됩니다. DOM node7개는 group3개를 포함하는 집계입니다.
+
 ## 배포와 보존
 
 Track API·web77b8d54를 함께 동결 배포했습니다. 관련53검사·typecheck·분리 web build와 Windows/Ubuntu CI가 통과했습니다. Persona04bbbd9/image6b3a1591은 승인된 CI 예외로 배포했고, 관련332검사·reader60검사·전체 build 및 실제 컴파일752파일의 변경 범위를 대조했습니다. Persona의 현재 source CI 전체 통과로 표현하지 않습니다.
@@ -35,6 +37,6 @@ writer는 **15:55:39 KST에 provider=false·Track users=[]로 종료**했습니�
 
 ## 사후 복구 기록
 
-새 영수증·결과를 포함하는 Work/runtime 암호화 백업과 별도 공간 복원 검증을 진행 중입니다. 배포 전 백업과 사후 결과의 시점을 구별하며, 원본 DB를 복원하거나 과거 데이터로 되돌리지 않습니다.
+사후 Work45,719,552B/runtime5,203,808,256B 암호화 백업과 별도 공간 복원 검증을 완료했습니다. snapshot에는 새 영구 미접수 기록1건·명령 접수 기록2건·successor plan2건이 포함됩니다. 암호문2개의 해시·복원본·34/65개 테이블을 검증했고 평문 사본·검증 helper는 제거했습니다. 배포 전 백업과 사후 결과의 시점을 구별하며, 원본 DB를 복원하거나 과거 데이터로 되돌리지 않았습니다. 두 DB의 snapshot은 각각 일관되며 원자적인 동시 snapshot으로 주장하지 않습니다.
 
 [수용 조건 기준표](goal-status.md) · [개발계획](development-plan.md) · [검증 원본](writer-command-completion-verification-20261118.json)

@@ -144,11 +144,89 @@
     "mockedResponse": false,
     "negativeReceiptDetailShown": true,
     "freshEntraLoginClaimed": false,
-    "existingInteractiveWindowControlClaimed": false
+    "existingInteractiveWindowControlClaimed": false,
+    "completedRunFlow": {
+      "runId": "9694d7d5-e5b9-4eff-b8b6-11ad91e80595",
+      "nodes": 4,
+      "edges": 3,
+      "groups": 3,
+      "source": "actual operating API; all-source dashboard; completed WorkExecution and current Task displayed",
+      "domNodesIncludingGroups": 7,
+      "countMeaning": "4 content nodes plus 3 group nodes = 7 React Flow DOM nodes; 3 explicit edges"
+    }
   },
   "postQaRecoveryBackup": {
-    "state": "running",
-    "operationId": "a92a04c4-5029-4761-a9c7-a47ca44e25e5"
+    "state": "verified",
+    "operationId": "a92a04c4-5029-4761-a9c7-a47ca44e25e5",
+    "sourceRevision": "04bbbd986d3d932cf6acf80d4c9ebd7851ae66e1",
+    "sourceImage": "sha256:6b3a15915bc2e1f3f715ccb19a7eca7d8f0d772bac8020aaced7ad099d6f6591",
+    "crossDatabaseAtomicSnapshot": false,
+    "productionRestorePerformed": false,
+    "sourceWrites": 0,
+    "records": [
+      {
+        "database": "work",
+        "startedAt": "2026-11-18T07:00:24.188Z",
+        "finishedAt": "2026-11-18T07:00:28.653Z",
+        "bytes": 45719552,
+        "sha256": "6d1e8307c65067719814ea43e689b6e6b1ae7ef2cba95877a3bc90809c23f36c",
+        "pages": 11162,
+        "pageSize": 4096,
+        "backup": {
+          "backupCalls": 1,
+          "heldReadTransaction": true,
+          "sourceWrites": 0,
+          "progressSteps": 43
+        },
+        "measurementSha256": "670cef13f4a459d0845f90b21a30ab466dc6b555ffef17c4468dcf3551024464",
+        "cipherBytes": 29752742,
+        "cipherSha256": "6605914786940310b8347caba4b7269cf78dd5058cd11f5c8be01dc88ecbf3e9",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      },
+      {
+        "database": "runtime",
+        "startedAt": "2026-11-18T07:00:28.654Z",
+        "finishedAt": "2026-11-18T07:11:24.797Z",
+        "bytes": 5203808256,
+        "sha256": "3e3f61850c19132f66be7ad37891ce8d41b581f68a46c5d869e9d56ec3fb33ff",
+        "pages": 1270461,
+        "pageSize": 4096,
+        "backup": {
+          "backupCalls": 1,
+          "heldReadTransaction": true,
+          "sourceWrites": 0,
+          "progressSteps": 4962
+        },
+        "measurementSha256": "1f4f552ef56d7fff8cdb59aed1de0eb0469e625954c3bed34d194e6cc5e39bf9",
+        "cipherBytes": 806873620,
+        "cipherSha256": "5f363956c615ffd35642c4a72b59456b5d174a17ff76c7962b61f17e93e20106",
+        "restoreVerified": true,
+        "plainCopiesRemoved": true
+      }
+    ],
+    "encryptedOnly": true,
+    "liveOwnedHelpers": 0,
+    "snapshotContent": {
+      "negativeReceipts": {
+        "name": "work_execution_role_command_resolutions",
+        "rows": 1,
+        "sha256": "8b21e9503fb1a07dc4609bda28d51e78035a898cbe42865dd6b2c458bc9051cc"
+      },
+      "savedRoleCommands": {
+        "name": "work_execution_role_commands",
+        "rows": 2,
+        "sha256": "d30cb052bb88bced6c79a20f5f81ee4cd9b5e08fc77b4644e3740d89449b6617"
+      },
+      "successorPlans": {
+        "name": "work_demian_successor_plans",
+        "rows": 2,
+        "sha256": "b34ab604dd579d024cb997010a3e0e6e7398a0d9cc64ff1d6bcb2a0cb3cf1db5"
+      },
+      "workTables": 34,
+      "runtimeTables": 65
+    },
+    "preservedProtectedComponents": 13
   },
   "limitations": [
     "Original high-level requirements are accepted within their documented scopes; unsupported desktop integration remains explicitly unsupported.",
@@ -231,6 +309,26 @@
     {
       "path": ".runtime/writer-qa-resume-20261118/track-writer-disable.json",
       "sha256": "d8f0be3507212192e5d0a9e84aec76275d84a741b811779d8e4e642660380ecc"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/actual-completed-flow-browser.json",
+      "sha256": "9e725289c8466e215c6b1a41b66b278218caefa32ffc6f9345e56ca45f328a65"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/actual-completed-flow.png",
+      "sha256": "a160106d8b4130f842d12d56949f791e826f001516628171ddeb25e4d2fbe7bd"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/receipt-preview-volume-cleanup.json",
+      "sha256": "dc6d8ba9f95af9e0bb3f0bb97058b94729c069b234bff7833bb923962a2064c2"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/post-qa-backup-result.json",
+      "sha256": "83605166bc4d394f540bd8591ee71e0c430efb316d9ca3e50b8fb1fbc910c76e"
+    },
+    {
+      "path": ".runtime/writer-qa-resume-20261118/post-qa-content-proof.json",
+      "sha256": "0368cc187f6e29e2979332466579bbc5ced6d722643148e90373a0957725d5a9"
     }
   ]
 }
