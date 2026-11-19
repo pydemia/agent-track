@@ -11,6 +11,10 @@ import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEv
 import { AssistantWebError, fetchAssistantExecution, fetchAssistantEvents } from "./assistant-client.ts";
 import { assistantLinkScope, currentAssistantDetail } from "./assistant-window-state.ts";
 import { assistantMatches, type useAssistantExecutions } from "./useAssistantExecutions.ts";
+import { TaskContent } from "./TaskContent.tsx";
+import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
+import { ExecutionContentLinks } from "./ExecutionContentLinks.tsx";
+import { executionFailureMessage } from "./execution-origin.ts";
 import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
 import "./mission-flow.css";
@@ -130,7 +134,10 @@ export function AssistantSelectionView({ mode, initial, sources, runs, onSelect,
     <div className="section-heading"><h3>{scopeNodeKeys ? "선택한 하위 역할 · 부모 WorkExecution 문맥" : "원본 WorkExecution 상세"}</h3><button className="text-button" onClick={() => setRefresh(value => value + 1)}>상세 다시 조회</button></div>
     {scopeNodeKeys && <p className="graph-legend">아래 실행·업무 상태는 부모 실행의 문맥입니다. 역할 표와 실행 연결은 선택한 하위 범위만 표시합니다. 원본 상태 이력에는 역할별 귀속이 없어 이 범위의 이력으로 표시하지 않습니다.</p>}
     {busy && <p role="status" className="graph-legend">현재 원본 권한과 실행을 확인하고 있습니다.</p>}{error && <p role="alert" className="inline-error">{error}</p>}
-    {detail && <><dl className="assistant-summary"><div><dt>Execution ID</dt><dd>{detail.native.id}</dd></div><div><dt>Assistant 실행 상태</dt><dd>{states[detail.native.state] ?? detail.native.state} · r{detail.native.revision}</dd></div>
+    {detail && <>{detail.currentTask && <TaskContent sources={sources} task={{ sourceId: detail.currentTask.projectsSourceId, projectId: detail.currentTask.project.id, taskId: detail.currentTask.task.id }} title={detail.currentTask.task.title} revision={detail.currentTask.task.revision} onUnauthorized={onUnauthorized} />}
+      <ExecutionContentLinks execution={detail} sources={sources} />
+      <details className="flow-raw-evidence"><summary>실행 식별자</summary><p>Execution {detail.native.id}</p><p>Instruction {detail.native.instructionId}</p></details>
+      <dl className="assistant-summary"><div><dt>Assistant 실행 상태</dt><dd>{states[detail.native.state] ?? detail.native.state} · r{detail.native.revision}</dd></div>
       <div><dt>업무 연결 당시</dt><dd>{detail.native.task ? `${detail.native.task.state} · r${detail.native.task.revision} · ${time(detail.native.task.observedAt)}` : "연결 없음"}</dd></div>
       <div><dt>현재 Projects 업무</dt><dd>{detail.currentTask ? <>{states[detail.currentTask.task.state] ?? detail.currentTask.task.state} · r{detail.currentTask.task.revision} <button className="text-button" onClick={() => onTaskMap(detail.currentTask!.projectsSourceId, detail.currentTask!.project.id, detail.currentTask!.task.id)}>{taskMapLabel ?? "업무·실행 통합 Map"}</button></> : "원본 연결 없음"}</dd></div></dl>
       {detail.demianLinks && <section aria-label="Demian 원본 실행 연결"><h4>Demian 원본 실행</h4><p className="graph-legend">{nativeLinks.length ? detail.demianLinks.detail : "현재 접근 가능한 Demian 실행 연결을 확인하지 못했습니다. 미구성·원본 참조 없음·철회·단절은 전체 실행이 없다는 뜻이 아닙니다."}</p>
@@ -138,7 +145,7 @@ export function AssistantSelectionView({ mode, initial, sources, runs, onSelect,
           {onSelectRun && <button className="text-button" onClick={() => onSelectRun(link.runKey)}>Demian Trace의 호출·도구·산출물 보기</button>}</div>)}</section>}
       <div className="table-wrap"><table><caption>원본 역할별 시간 관측 · 외부 runtime 시각은 미검증이며 측정 시간으로 합산하지 않습니다.</caption><thead><tr><th>역할 · Agent</th><th>책임</th><th>상태</th><th>시도</th><th>관측 시간</th></tr></thead><tbody>{scopedRoles.map(role => <tr key={role.id}><td>{role.label}<small>{role.teamLabel} · {role.agentLabel}</small></td><td>{role.responsibility}</td><td>{states[role.state] ?? role.state}</td><td>{role.attempts}</td><td>{role.observation.seconds === null ? "미확인" : `${role.observation.seconds}초`}{!role.observation.timingComplete && " · 부분 관측"}</td></tr>)}</tbody></table></div>
       {showEvents && <section className="assistant-events" aria-label="Assistant 원본 상태 이력"><h4>{mode === "trail" ? "상태 경과" : "실행 상태 Trace"}</h4><p className="graph-legend">원본 execution sequence · 현재 계약은 상태 metadata만 제공합니다. 도구 호출·산출물 내용은 이 이력에 포함되지 않습니다.</p>
-        {events.length ? <ol>{events.map(event => <li key={event.sequence}><strong>#{event.sequence} · {states[event.state] ?? event.state}</strong><span>{time(event.occurredAt)} · 실행 r{event.revision}{event.errorCode ? ` · ${event.errorCode}` : ""}</span></li>)}</ol> : <p className="empty-inline">현재 조회 창에 원본 상태 이벤트가 없습니다.</p>}
+        {events.length ? <ol>{events.map(event => <li key={event.sequence}><strong>#{event.sequence} · {states[event.state] ?? event.state}</strong><span>{time(event.occurredAt)} · 실행 r{event.revision}</span>{event.errorCode && <p>{executionFailureMessage(event.errorCode)} <code>{event.errorCode}</code></p>}</li>)}</ol> : <p className="empty-inline">현재 조회 창에 원본 상태 이벤트가 없습니다.</p>}
         {hasMore && <button className="button-secondary" disabled={busy || events.length >= 500} onClick={() => setMore(value => value + 1)}>다음 상태 이력</button>}
         {hasMore && events.length >= 500 && <p className="graph-legend">현재 화면의 500개 상태 이력 한도에 도달했습니다.</p>}
         <p className="graph-legend">관측 cursor {cursor} · {events.length}개 · 전체 기록을 보장하지 않습니다.</p></section>}
@@ -186,7 +193,7 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
         : node ? <><small>{kinds[node.kind] ?? node.kind}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map((item, index) => <div key={`${item.label}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
           {executionId && <button className="button-secondary" onClick={() => onSelect({ sourceId: node.sourceId, executionId })}>이 실행의 원본 상세 보기</button>}
           {node.runKey && onSelectRun && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Demian Trace의 호출·도구·산출물 보기</button>}
-          {projectId && <button className="button-secondary" onClick={() => onTaskMap(node.sourceId, projectId, node.id)}>업무·실행 통합 Map</button>}</>
+          {projectId && <><ProjectsTaskLink sources={sources} task={{ sourceId: node.sourceId, projectId, taskId: node.id }} /><button className="button-secondary" onClick={() => onTaskMap(node.sourceId, projectId, node.id)}>업무·실행 통합 Map</button></>}</>
           : edge ? <><small>원본 관계 · {edge.kind}</small><h3>{edge.label}</h3><p>{name(edge.from)} → {name(edge.to)}</p><p style={{ whiteSpace: "pre-wrap" }}>{edge.detail}</p><FlowGroupEdgeEvidence edgeKey={edge.key} state={grouping} nodes={model.nodes} /></>
             : <><h3>Node·edge·group을 선택하세요</h3><p>역할과 원본 runtime 참조, 업무 연결 당시와 현재 revision을 구별합니다.</p></>}</aside></div>
     <details className="flow-accessible-list"><summary>Node·edge 목록으로 탐색</summary><div className="flow-list-columns"><section><h4>Nodes</h4>{model.nodes.map(item => <button key={item.key} className="flow-list-choice" onClick={() => grouping.revealNode(item.key)}><strong>{item.label}</strong><span>{kinds[item.kind] ?? item.kind} · {states[item.status] ?? item.status}</span></button>)}</section>

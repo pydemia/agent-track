@@ -7,7 +7,8 @@ import { missionFlow } from "../../../packages/projection/mission-flow.ts";
 import { fetchGroupTaskMetadata, GroupWorkspaceReadError } from "./group-workspace-client.ts";
 import { fetchGroupRunEvents, GroupRunEventsError } from "./group-run-events-client.ts";
 import { groupStatusLabel } from "./FlowGrouping.tsx";
-import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
+import { TaskContent } from "./TaskContent.tsx";
+import { RunContentLinks } from "./ExecutionContentLinks.tsx";
 import { ActivityTrail } from "./ActivityTrail.tsx";
 import { FileEvidencePanel } from "./FileEvidencePanel.tsx";
 import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
@@ -72,7 +73,7 @@ export function GroupWorkspace({ actor, scope, runs, executions, sources, relati
       <p>업무 {records.length}개 · 고유 Run {runs.length}개 · Assistant 실행 {executions.length}개</p></div><button type="button" className="button-secondary" onClick={onClose}>묶음 범위 해제</button></div>
     <p className="graph-legend">상단 Track·Trail·Trace·Map을 전환해도 같은 구성원을 유지합니다. 현재 접속의 선택이며 새로고침 시 저장되지 않습니다. 업무 수용과 실행 종료는 별도로 읽습니다.</p>
     {records.length > 0 && <section aria-label="묶음의 현재 원본 업무"><h3>현재 원본 업무</h3><div className="group-task-list">{records.slice(0, limit).map(({ ref, task }) => <div key={groupTaskKey(ref)}>
-      <strong>{task.title}</strong><span>{groupStatusLabel("task", task.state)} · revision {task.revision}</span><small>{ref.sourceId} · Task {task.id}</small><ProjectsTaskLink sources={sources} task={ref} /></div>)}</div>
+      <span>{groupStatusLabel("task", task.state)} · revision {task.revision}</span><TaskContent sources={sources} task={ref} title={task.title} revision={task.revision} onUnauthorized={onUnauthorized} /></div>)}</div>
       {records.length > limit && <button type="button" onClick={() => setLimit(value => value + 20)}>업무 더 보기</button>}</section>}
     {mode === "map" && !detailed && <Suspense fallback={<p role="status">묶음 연결 구조를 불러오는 중…</p>}><LazyGroupWorkspaceMap tasks={records} runs={runs} executions={executions} sources={sources} relations={relations}
       onRun={chooseRun} onAssistant={chooseAssistant} onUnavailable={onUnavailable} onUnauthorized={onUnauthorized} onTaskMap={onTaskMap} /></Suspense>}
@@ -136,6 +137,7 @@ function RunEvidenceLane({ actor, run, runs, sources, relations, mode, scopeNode
     {relatedRoleRun && <p className="graph-legend">선택한 역할에 명시적으로 연결된 Run의 전체 실행 근거입니다. 역할 묶음의 시각적 소속과 구분한 실행 문맥이며, 원본에서 역할별로 더 나눌 수는 없습니다.</p>}
     <p className="graph-legend">현재 원장 {page.events.length}개{scopeNodeKeys ? ` · 선택한 하위 항목과 연결된 근거 ${selectedEvents.length}개` : ""}{busy ? " · 조회 중…" : ""}{page.more ? " · 추가 근거 있음" : ""}</p>
     {error && <p role="alert">이 실행의 현재 근거를 확인하지 못해 이전 이력을 지웠습니다.<button type="button" onClick={() => setRequest(previous => ({ serial: previous.serial + 1, after: null }))}>다시 조회</button></p>}
+    {mode === "trail" && <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />}
     {mode === "trail" ? <><ActivityTrail run={run} events={selectedEvents} hasMore={page.more} onUnauthorized={onUnauthorized} onTrace={() => onView("trace")}
       {...(sequences ? { scopeSequences: sequences } : {})} />{!scopeNodeKeys && <><FileEvidencePanel run={run} onUnauthorized={onUnauthorized} /><ArtifactEvidencePanel actor={actor} run={run} onUnauthorized={onUnauthorized} /></>}
       {scopeNodeKeys && <p className="graph-legend">파일·산출물의 하위 호출별 귀속은 현재 계약에 없어 전체 Run의 결과로 채우지 않습니다.</p>}</>

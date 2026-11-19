@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { BindingRequest, BindingView, ProjectMetadata, ProjectTaskMetadata, ProjectTaskPage, RunView, SourceView } from "../../../packages/contracts/index.ts";
+import { TaskContent } from "./TaskContent.tsx";
 
 interface ProjectOption extends ProjectMetadata { sourceId: string; sourceLabel: string }
 const projectKey = (sourceId: string, projectId: string) => `${sourceId}/${projectId}`;
@@ -125,11 +126,12 @@ export function RunBindingPanel({ run, sources, onUnauthorized, onSaved }: {
   }
 
   return <section className="run-binding"><h3>원본 업무 연결</h3><p>이 Run에만 연결하고 당시 업무 revision을 보존합니다. 업무 배정·완료·수용은 별도입니다.</p>
+    {run.binding?.taskId && allowed.has(projectKey(run.binding.projectSourceId, run.binding.projectId)) && <TaskContent sources={sources} task={{ sourceId: run.binding.projectSourceId, projectId: run.binding.projectId, taskId: run.binding.taskId }} {...(run.binding.taskTitle ? { title: run.binding.taskTitle } : {})} onUnauthorized={onUnauthorized} />}
     <details><summary>연결 이력 {view ? `${history.length}건` : error ? "조회 필요" : "조회 중"}</summary>{history.length ? <ol className="binding-history">{history.map((item) => <li key={item.version}><strong>{item.binding.taskTitle ?? "프로젝트 연결"}</strong><small>{item.binding.projectTitle} · revision {item.binding.taskRevision ?? "미지정"}</small><small>{new Date(item.recordedAt).toLocaleString("ko-KR")} · 연결 version {item.version}</small></li>)}</ol> : <p>{view ? "현재 접근 가능한 연결 이력이 없습니다." : "현재 연결 이력을 확인해야 합니다."}</p>}{view?.incomplete && <small>최근50개 이력입니다.</small>}</details>
     {canWrite ? <><label>연결할 프로젝트<select aria-label="연결할 프로젝트" value={chosenProject ? project : ""} disabled={busy || !!pending} onChange={(event) => { setProject(event.target.value); setError(""); }}><option value="">프로젝트 선택</option>{visibleProjects.map((item) => <option key={projectKey(item.sourceId, item.id)} value={projectKey(item.sourceId, item.id)}>{item.title} · {item.sourceLabel}</option>)}</select></label>
       <label>연결할 원본 업무<select aria-label="연결할 원본 업무" value={chosenTask ? task : ""} disabled={!chosenProject || loading || busy || !!pending} onChange={(event) => setTask(event.target.value)}><option value="">{loading ? "조회 중…" : "업무 선택"}</option>{(chosenProject ? tasks.filter((item) => item.projectId === chosenProject.id) : []).map((item) => <option key={item.id} value={item.id}>{item.title} · revision {item.revision}</option>)}</select></label>
       {next && <button className="text-button" disabled={loading || busy || !!pending} onClick={() => void more()}>원본 업무 더 불러오기</button>}
-      <button className="button-secondary" disabled={busy || !view || (!pending && !chosenTask)} onClick={() => void save()}>{busy ? "연결 기록 중…" : pending ? "같은 요청 확인·재시도" : "이 Run에 업무 연결"}</button></> : <small>현재 출처·계정에서는 업무 연결을 지원하지 않습니다.</small>}
+      <button className="button-secondary" disabled={busy || !view || (!pending && !chosenTask)} onClick={() => void save()}>{busy ? "연결 기록 중…" : pending ? "같은 요청 확인·재시도" : "이 Run에 업무 연결"}</button></> : <small>업무 연결 변경은 이 출처에서 지원하지 않습니다. 현재 연결된 업무 내용은 위에서 확인할 수 있습니다.</small>}
     <button className="text-button" disabled={busy || !!pending} onClick={() => { setError(""); setRefresh((value) => value + 1); }}>연결·업무 다시 조회</button>
     {error && <p className="command-error" role="alert">{error}</p>}{message && <p role="status">{message}</p>}
   </section>;

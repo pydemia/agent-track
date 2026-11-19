@@ -18,10 +18,10 @@ interface RunRow {
 }
 interface EventRow { ordinal: number; payload: string; received_at: string }
 
-function projectsBrowserDestination(source: SourceView): string | undefined {
+function sourceBrowserDestination(source: SourceView): string | undefined {
   const value = source.uiBaseUrl;
-  if (source.kind !== "projects" || source.state !== "connected" ||
-      !source.authorizedProjectIds?.length || !value || value.length > 2000 || value.trim() !== value) return;
+  if (!["projects", "assistant", "demian"].includes(source.kind) || source.state !== "connected" ||
+      (source.kind === "projects" && !source.authorizedProjectIds?.length) || !value || value.length > 2000 || value.trim() !== value) return;
   try {
     const url = new URL(value);
     if (!["https:", "http:"].includes(url.protocol) || url.username || url.password || url.search || url.hash) return;
@@ -206,8 +206,9 @@ export class Store {
         if (projectSource?.kind !== "projects" || projectSource.state !== "connected" ||
             !projectSource.authorizedProjectIds?.includes(binding.projectId)) continue;
       }
-      const sourceUrl = source.kind === "demian" && source.uiBaseUrl
-        ? new URL(`sessions/${encodeURIComponent(observation.sessionId)}`, `${source.uiBaseUrl.replace(/\/$/, "")}/`).href : null;
+      const browserDestination = sourceBrowserDestination(source);
+      const sourceUrl = source.kind === "demian" && browserDestination
+        ? new URL(`sessions/${encodeURIComponent(observation.sessionId)}`, `${browserDestination.replace(/\/$/, "")}/`).href : null;
       runs.push({
         ...observation, key: row.key, cursor: row.cursor, highWater: row.high_water,
         incomplete: row.cursor !== row.high_water || row.history_pruned === 1,
@@ -226,7 +227,7 @@ export class Store {
       runs: runs.sort((a, b) => b.observedAt.localeCompare(a.observedAt)),
       sources: sources.map((configured) => {
         const { uiBaseUrl: _url, ...source } = configured;
-        const uiBaseUrl = projectsBrowserDestination(configured);
+        const uiBaseUrl = sourceBrowserDestination(configured);
         return uiBaseUrl ? { ...source, uiBaseUrl } : source;
       }), relations,
     };

@@ -1,0 +1,8 @@
+.task-content { margin-block: 1rem; min-width: 0; }
+.task-content > strong, .task-content > .source-link { display: block; margin-block: .4rem; }
+.task-content-body { padding-block: .5rem; }
+.task-content-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.65; max-height: 26rem; overflow-y: auto; }
+.task-content-body li, .task-content-body dd, .execution-content-links { overflow-wrap: anywhere; }
+.execution-content-links { padding-block: .65rem; }
+.execution-content-links > a { display: inline-block; margin-block: .4rem; }
+.task-content h5 { margin-block: 1rem .4rem; font-size: inherit; }
