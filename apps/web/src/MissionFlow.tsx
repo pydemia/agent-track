@@ -55,8 +55,9 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   const [choice, setChoice] = useState<Choice>(null);
   const [fitVersion, setFitVersion] = useState(0);
   const [filter, setFilter] = useState("");
+  const [technicalOpen, setTechnicalOpen] = useState(false);
   const lineage = useNativeLineage(run, onUnauthorized);
-  const nativeEvidence = useNativeRunEvidence(actor, run, onUnauthorized);
+  const nativeEvidence = useNativeRunEvidence(actor, run, onUnauthorized, technicalOpen);
   const tools = useToolEvidence(run, onUnauthorized, actor);
   const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
   const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
@@ -106,7 +107,8 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.fitAll(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
     {scopeNodeKeys && <p className="graph-legend">선택한 하위 묶음의 관측 항목만 표시합니다. 현재 조회에서 찾지 못한 항목은 전체 실행으로 넓히지 않습니다. 전체 원장 근거는 아래에서 별도로 확인할 수 있습니다.</p>}
-    <details className="flow-source-evidence"><summary>모델·도구·산출물의 추가 근거</summary>
+    <details className="flow-source-evidence" onToggle={event => setTechnicalOpen(event.currentTarget.open)}><summary>모델·도구·산출물의 추가 근거</summary>
+    {technicalOpen && <>
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
     <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />
@@ -116,6 +118,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     {tools.native && <p className="graph-legend">{tools.page ? `도구 결과 ${tools.page.calls.length}건 · 실패 보고 ${tools.page.calls.filter((call) => call.outcome === "failed").length}건 · 원본 seq ${tools.page.throughSequence}/${tools.page.targetSequence}${tools.page.complete ? "까지 조회" : " · 부분 조회"}` : tools.detail}</p>}
     {tools.native && <ModelRequestSupport evidence={tools.page} windowComplete={tools.page?.complete} />}
     {!!tools.page?.unidentifiedEvents && <p className="inline-warning">호출 ID가 없어 구조에 연결하지 못한 원본 도구 이벤트 {tools.page.unidentifiedEvents}건이 있습니다.</p>}
+    </>}
     </details>
     {(model.incomplete || model.hiddenNodes > 0) && <p className="inline-warning">현재 관측·조회 범위의 흐름입니다.{model.hiddenNodes > 0 ? ` 표시 범위 밖 node ${model.hiddenNodes}개.` : ""} 연결이 없거나 대기 중인 근거를 완료로 해석하지 않습니다.</p>}
     {dependencyCycles.size > 0 && <p className="inline-warning">명시된 의존 관계에 순환이 있습니다. 관련 node {dependencyCycles.size}개의 출발·도착과 원본 근거를 확인하세요.</p>}

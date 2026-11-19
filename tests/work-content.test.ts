@@ -40,6 +40,15 @@ test("content graph names the work and connects the exact request, role work and
   assert.ok(flow.nodes.filter(node => node.kind.startsWith("work-")).every(node => node.runKey === r.key));
   assert.ok(!flow.edges.some(edge => edge.kind === "dependency"));
 });
+test("source-bound work is a readable Task node only for the exact selected run", () => {
+  const r = run(), flow = missionFlow(r, [r], [], [], { mode: "mission" });
+  const task = flow.nodes.find(node => node.kind === "task");
+  assert.equal(task?.label, "결과 게시");
+  assert.deepEqual(task?.taskRef, { sourceId: "projects", projectId: "project", taskId: "task" });
+  assert.ok(task?.details.some(detail => detail.label === "프로젝트 이름" && detail.value === "보호 업무"));
+  assert.ok(flow.edges.some(edge => edge.kind === "task-binding" && edge.from === task?.key));
+  assert.equal(missionFlow({ ...r, binding: { ...r.binding!, runId: id(99) } }, [r], [], [], { mode: "mission" }).nodes.some(node => node.kind === "task"), false);
+});
 test("inline protected reads use only exact attempt authority and discard bodies after Project withdrawal", async () => {
   for (const withdraw of [false, true]) {
     const r = run(); let reads = 0, refreshes = 0;

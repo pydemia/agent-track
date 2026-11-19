@@ -121,7 +121,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
     if (current) {
       const task = add(current.projectsSourceId, "task", current.task.id, current.task.title || current.task.id,
         current.task.state, "현재 Projects 원본 업무 상태 · Assistant 실행 상태와 별도", details({
-          "Source ID": current.projectsSourceId, "Project ID": current.project.id, "Task ID": current.task.id,
+          "Source ID": current.projectsSourceId, "Project ID": current.project.id, "프로젝트 이름": current.project.title, "Task ID": current.task.id,
           "현재 원본 revision": current.task.revision, "현재 원본 상태": current.task.state,
           "현재 관측 시각": current.observedAt, "테스트 필요": current.task.requiresTest,
         }), dependencyEntityKey(current.projectsSourceId, "task", current.task.id));

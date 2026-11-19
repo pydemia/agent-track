@@ -43,6 +43,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
   const [label, setLabel] = useState("");
   const [taskKeys, setTaskKeys] = useState<Set<string>>(new Set());
   const [stateScope, setStateScope] = useState(options.scopeKey);
+  const [savedRequested, setSavedRequested] = useState(false);
   const sameScope = stateScope === options.scopeKey;
   const availableTasks = model.nodes.filter(node => node.kind === "task");
   const taskIdentity = JSON.stringify(availableTasks.map(node => node.key).sort());
@@ -53,6 +54,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
   }, [taskIdentity]);
   useEffect(() => {
     setStateScope(options.scopeKey); setBy(options.defaultBy); setDepth(options.defaultDepth ?? "structure");
+    setSavedRequested(false);
     setOverrides(new Map()); setBundles([]); setFocus(null); setFocusTargets([]); setFormOpen(false); setLabel(""); setTaskKeys(new Set());
   }, [options.scopeKey]);
   const definitions = useMemo(() => withTaskBundles(model, nativeFlowGroupDefinitions(model, sameScope ? by : options.defaultBy),
@@ -195,7 +197,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     options.chooseNode(key); setFocus(key); setFocusTargets([]); requestView([key]);
   };
   const removeBundle = (key: string) => { setBundles(previous => previous.filter(bundle => bundle.key !== key)); fitAll(); };
-  const saved = useFlowViews(sameScope ? workspace?.actor ?? null : null, input.scopeKey, model,
+  const saved = useFlowViews(sameScope && savedRequested ? workspace?.actor ?? null : null, input.scopeKey, model,
     { by, depth, bundles: validBundles, overrides: [...overrides].filter(([key]) => groupByKey.has(key)), focus: activeFocus }, restored => {
       clearHistory(); view.current = null; options.clearSelection?.();
       setBy(restored.by); setDepth(restored.depth); setBundles(restored.bundles); setOverrides(new Map(restored.overrides));
@@ -213,7 +215,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     projection, collapsed, groupByKey, decorate, inspectNodes, inspectEdges, topology, focusNodeIds, fitVersion,
     enter, toggle, resetFocus, fitAll, back: () => restoreSaved(), canGoBack: sameScope && safeHistory.frames.length > 0,
     canvasProps, revealNode, revealEdge, breadcrumb, activeFocus, formOpen, setFormOpen, label, setLabel, taskKeys, setTaskKeys,
-    availableTasks, validBundles, occupied, createBundle, removeBundle, saved, partial: Boolean(model.incomplete), chooseNode: options.chooseNode, chooseEdge: options.chooseEdge };
+    availableTasks, validBundles, occupied, createBundle, removeBundle, saved, savedRequested, requestSaved: () => setSavedRequested(true), partial: Boolean(model.incomplete), chooseNode: options.chooseNode, chooseEdge: options.chooseEdge };
 }
 type Grouping = ReturnType<typeof useFlowGrouping>;
 
@@ -223,7 +225,7 @@ export function FlowGroupControls({ state }: { state: Grouping }) {
       <div role="group" aria-label="흐름 탐색 깊이">{([["overview", "묶음 개요"], ["structure", "실행 구조"], ["detail", "상세 근거"]] as const).map(([key, name]) => <button key={key} type="button" aria-pressed={state.depth === key} onClick={() => state.selectDepth(key)}>{name}</button>)}</div>
       {state.availableTasks.length >= 2 && <button type="button" aria-expanded={state.formOpen} onClick={() => state.setFormOpen(!state.formOpen)}>업무 묶음 만들기</button>}
       <span>{state.projection.groups.length}개 그룹 · 다음 접속에서 다시 보려면 저장 보기를 만드세요.</span></div>
-    <details className="flow-saved-views"><summary>계정별 저장 보기 · {state.saved.views.length}개</summary>
+    <details className="flow-saved-views" onToggle={event => { if (event.currentTarget.open) state.requestSaved(); }}><summary>계정별 저장 보기 · {state.savedRequested ? `${state.saved.views.length}개` : "목록 보기"}</summary>
       <p>묶음 이름·구성·접힘과 탐색 깊이를 계정에 저장합니다. 불러올 때 현재 원본 접근을 다시 확인합니다.</p>
       <label>저장 보기 이름<input maxLength={80} value={state.saved.name} onChange={event => state.saved.setName(event.target.value)} /></label>
       <button type="button" disabled={!state.saved.ready || state.saved.busy || !state.saved.name.trim()} onClick={() => state.saved.save(true)}>새 보기 저장</button>
