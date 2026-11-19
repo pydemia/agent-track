@@ -17,8 +17,8 @@ export function requestTitle(text: string): string {
 /** One known turn inside a current allowed repository; no reasoning/system records. */
 export async function readCodexContent(options: CodexOptions, sessionId: string, runId: string, signal?: AbortSignal): Promise<WorkContent> {
   if (!/^[a-zA-Z0-9_-]{1,200}$/.test(sessionId) || !/^[a-zA-Z0-9_-]{1,200}$/.test(runId)) throw new Error("Local content unavailable");
-  const root = resolve(options.logRoot), canonical = await realpath(root);
-  if (relative(root, canonical) || (await lstat(root)).isSymbolicLink()) throw new Error("Local content unavailable");
+  const configuredRoot = resolve(options.logRoot), root = await realpath(configuredRoot);
+  if ((await lstat(configuredRoot)).isSymbolicLink()) throw new Error("Local content unavailable");
   let visited = 0; const files: string[] = [];
   async function walk(directory: string): Promise<void> {
     if (signal?.aborted) throw new Error("Aborted");
@@ -106,6 +106,7 @@ export async function readCodexContent(options: CodexOptions, sessionId: string,
     } } finally { lines.close(); stream.destroy(); }
     const after = await handle.stat();
     if (after.nlink !== 1 || after.ino !== before.ino || after.dev !== before.dev || after.size < before.size || after.size === before.size && after.mtimeMs !== before.mtimeMs || relative(file, await realpath(file))) throw new Error("Local file changed");
+    if (relative(root, await realpath(configuredRoot))) throw new Error("Local log root changed");
     if (!sessionAllowed || !found) throw new Error("Local turn not found");
     const prompt = messages.find(item => item.role === "user" && requestTitle(item.text.text)) ?? messages.find(item => item.role === "user");
     const result = messages.findLast(item => item.role === "assistant")?.text ?? null;
