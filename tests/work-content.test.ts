@@ -134,3 +134,31 @@ test("browser content parser rejects a different attempt even when run IDs match
   const ok = await fetchRunContent(r, new AbortController().signal, get); assert.equal(ok.content?.title, "권한 오류 수정");
   value.attempt.attemptId = id(7); await assert.rejects(fetchRunContent(r, new AbortController().signal, get));
 });
+
+test("protected HTTP content enters the stable collection window before its first snapshot and keeps admission across async reads", async t => {
+  let admitted = false, refreshes = 0, reads = 0;
+  const r = run(), store = new Store(":memory:");
+  const config = { port: 14345, database: ":memory:", publicOrigin: "http://localhost", auth: { mode: "local", user },
+    sources: [{ id: r.sourceId, kind: "demian", label: "Protected", device: "test", users: [user], assistantNativeSourceId: "assistant", repositoryRoots: [] }] } as unknown as Config;
+  const key = store.observeRun({ sourceId: r.sourceId, runId: r.runId, sessionId: r.sessionId, workspaceId: r.workspaceId, title: "보호 업무", status: "failed",
+    createdAt: at, startedAt: at, completedAt: at, observedAt: new Date().toISOString(), assistantAttempt: r.assistantAttempt! });
+  const sources = { views: () => [{ id: r.sourceId, kind: "demian", label: "Protected", device: "test", state: admitted ? "connected" : "forbidden",
+    capabilities: [], lastObservedAt: at, detail: "", authorizedRunIds: admitted ? [r.runId] : [] }],
+    projects: { refresh: async () => {} }, refreshProjectGrants: async () => { throw Error("Unrelated collector forbidden"); },
+    assistantNative: {
+      hasFreshReadView: () => false,
+      refresh: async (actor: string, sourceId: string) => { assert.equal(actor, user); assert.equal(sourceId, r.sourceId); refreshes++; },
+      withStableView: async (_actor: string, sourceId: string, read: () => Promise<unknown>) => {
+        assert.equal(sourceId, r.sourceId); admitted = true; try { return await read(); } finally { admitted = false; }
+      },
+    }, assistant: { attemptContent: async () => {
+      assert.equal(admitted, true); reads++; await Promise.resolve(); assert.equal(admitted, true);
+      return { version: 1, executionId: id(4), roleId: id(5), attemptId: id(6), ordinal: 1, current: false, state: "failed", run: { id: id(1), sessionId: id(2), workspaceId: id(3) }, content: content() };
+    } },
+  };
+  const { server } = createTrackServer(store, () => config, "dist/web", sources as never), origin = await listenHttp(server);
+  t.after(async () => { server.closeAllConnections(); await new Promise<void>(done => server.close(() => done())); store.close(); });
+  const response = await fetch(`${origin}/api/runs/${key}/content`), body = await response.json();
+  assert.equal(response.status, 200); assert.equal(body.content.failure.message.text, "게시 권한이 철회되었습니다");
+  assert.equal(refreshes, 1); assert.equal(reads, 1); assert.equal(admitted, false);
+});

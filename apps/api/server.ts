@@ -154,7 +154,19 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         const controller = new AbortController(), cancel = () => { if (!response.writableEnded) controller.abort(); };
         request.once("aborted", cancel); response.once("close", cancel);
         try {
-          const value = await runContent(config, snapshot, sources, user, contentRead[1]!, controller.signal);
+          const key = contentRead[1]!, row = store.run(key);
+          const source = config().sources.find(item => item.id === row?.source_id && item.users.includes(user));
+          const read = () => runContent(config, snapshot, sources, user, key, controller.signal);
+          // The protected collector removes its grant while checking a new
+          // window. Use the same bounded admission/lease as Native evidence;
+          // a periodic collection cannot erase scope halfway through this read.
+          if (source?.assistantNativeSourceId) {
+            await sources.projects.refresh(user);
+            if (!sources.assistantNative.hasFreshReadView(source, user))
+              await sources.assistantNative.refresh(user, source.id);
+          }
+          const value = source?.assistantNativeSourceId
+            ? await sources.assistantNative.withStableView(user, source.id, read) : await read();
           if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
           if (!response.destroyed) json(response, 200, value);
         } finally { request.removeListener("aborted", cancel); response.removeListener("close", cancel); }

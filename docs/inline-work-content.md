@@ -31,3 +31,4 @@
 - Edge headless 1440×1000, 900×1000에서 합성 본문과 실제 metadata로 node 선택·실패/성공 시도 분리·거부 후 제거·HTML 문자열 표시·가로 넘침 없음 확인. 합성 UI 검증을 운영 본문 검증으로 간주하지 않는다.
 - 운영의 실제 기존 실패·성공 시도 및 paired API/web 반영은 현재 후보 검증·전환 증거를 별도로 대조한다. GitHub Persona CI는 결제/사용 한도 때문에 step 0에서 중단됐으며 로컬 통과로 CI 성공을 대신하지 않는다.
 - 누적된 Native nonce 10만 건 초과로 보존 검사 수집 한도에 도달한 운영 조건을 반영해 검사 한도를 100만 건으로 확장한다. 기존 nonce의 삭제·갱신 허용은 추가하지 않으며, 100,001번째 행의 변경도 거부하는 회귀를 적용한다. Native 서비스·DB·인증 설정 변경은 없다.
+- 실제 운영 본문 조회에서 주기적 collection의 grant 교체와 읽기가 겹치는 404를 재현했다. 보호 출처는 기존 Native evidence의 fresh lease·`withStableView` admission을 재사용해 최초 snapshot부터 마지막 현재 권한 검사까지 collection과 분리한다. 일반 Demian/Codex 읽기는 해당 출처만 조회한다. HTTP 회귀는 admission 밖에서 Run을 숨기는 fixture로 선행 동기화 누락을 검출한다.
