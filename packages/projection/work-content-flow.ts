@@ -1,4 +1,4 @@
-import type { WorkContent } from "../contracts/work-content.ts";
+import { contentText, type WorkContent } from "../contracts/work-content.ts";
 import type { RunView } from "../contracts/index.ts";
 import type { MissionFlow, MissionNode } from "./mission-flow.ts";
 
@@ -7,6 +7,27 @@ export function readableTitle(text: string, fallback: string, limit = 86): strin
 }
 export function runWorkTitle(run: RunView): string {
   return run.binding?.taskTitle || (run.title && !/^[0-9a-f-]{20,}$/i.test(run.title) ? run.title : "내용을 확인할 업무 실행");
+}
+
+/** Present known coordinator inputs as authored work, without machine references. */
+export function presentWorkContent(content: WorkContent): WorkContent {
+  return { ...content, steps: content.steps.map(step => {
+    const parts = step.title.split(" · ");
+    const title = parts.filter((part, index) => index === 0 || part !== parts[index - 1]).join(" · ");
+    let detail = step.detail;
+    if (detail && !detail.truncated) {
+      try {
+        const value: unknown = JSON.parse(detail.text);
+        if (value && typeof value === "object" && !Array.isArray(value) &&
+            "currentInstruction" in value && typeof value.currentInstruction === "string" && value.currentInstruction.trim()) {
+          const criteria = "acceptanceCriteria" in value && Array.isArray(value.acceptanceCriteria)
+            ? value.acceptanceCriteria.filter((item): item is string => typeof item === "string" && !!item.trim()) : [];
+          detail = contentText(value.currentInstruction + (criteria.length ? "\n\n수용 기준\n" + criteria.map(item => `• ${item}`).join("\n") : ""));
+        }
+      } catch { /* Ordinary text and partial JSON retain their original meaning. */ }
+    }
+    return { ...step, title, detail };
+  }) };
 }
 
 /** Request/result edges are exact; reported plan order never becomes a dependency. */

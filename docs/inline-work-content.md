@@ -34,4 +34,5 @@
 - 실제 운영 본문 조회에서 주기적 collection의 grant 교체와 읽기가 겹치는 404를 재현했다. 보호 출처는 기존 Native evidence의 fresh lease·`withStableView` admission을 재사용해 최초 snapshot부터 마지막 현재 권한 검사까지 collection과 분리한다. 일반 Demian/Codex 읽기는 해당 출처만 조회한다. HTTP 회귀는 admission 밖에서 Run을 숨기는 fixture로 선행 동기화 누락을 검출한다.
 - 전체 화면에서는 접힌 실행 제어·추가 근거·저장 보기까지 동시에 조회해 본문 요청이 시간 제한에 걸렸다. 이 패널들은 펼칠 때 조회하며 업무 본문을 먼저 읽는다. 접힌 reader가 mount되지 않는 회귀를 포함한다.
 - 원본 연결 Task도 업무 node로 표시하지만 동일 Task라는 이유만으로 다른 역할·workspace·오래된 실행을 선택 범위에 추가하지 않는다. 명시적 operator 업무 연결과 Native 역할 이력의 확장 범위를 구별한다.
+- 역할 입력의 알려진 `currentInstruction`·`acceptanceCriteria` 구조는 요청 문장과 수용 기준으로 표시한다. 내부 work package·이전 역할 식별자와 JSON 문법을 수행 작업 본문에 나열하지 않으며 실제 대화·응답 원문은 변경하지 않는다. 작업 제목에서 바로 반복되는 같은 역할 이름도 한 번만 표시한다.
 - 실제 출처를 연결한 후보의 Edge 화면에서 첫 실패 시도의 원문과 세 번째 성공 응답 2,535자, 수행 작업 node·관계 edge 선택, Task 설명·수용 기준 자동 열기를 확인했다. 중간 대화 미제공과 실제 응답 없음도 별도 표기하며 1440px/900px 가로 넘침 검사를 통과했다.

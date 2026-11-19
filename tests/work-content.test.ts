@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { contentText, workContentSchema } from "../packages/contracts/work-content.ts";
 import { readCodexContent } from "../packages/adapters/codex/content.ts";
-import { withWorkContent } from "../packages/projection/work-content-flow.ts";
+import { withWorkContent, presentWorkContent } from "../packages/projection/work-content-flow.ts";
 import { missionFlow } from "../packages/projection/mission-flow.ts";
 import { externalKey, type RunView, type Snapshot } from "../packages/contracts/index.ts";
 import type { Config } from "../apps/api/config.ts";
@@ -48,6 +48,17 @@ test("source-bound work is a readable Task node only for the exact selected run"
   assert.ok(task?.details.some(detail => detail.label === "프로젝트 이름" && detail.value === "보호 업무"));
   assert.ok(flow.edges.some(edge => edge.kind === "task-binding" && edge.from === task?.key));
   assert.equal(missionFlow({ ...r, binding: { ...r.binding!, runId: id(99) } }, [r], [], [], { mode: "mission" }).nodes.some(node => node.kind === "task"), false);
+});
+test("known structured role input reads as instructions and criteria without changing actual messages or results", () => {
+  const c = content(); c.steps[0]!.title = "게시 권한 수정 · 검증 · 검증";
+  c.steps[0]!.detail = contentText(JSON.stringify({ currentInstruction: "게시 권한을 검증한다", acceptanceCriteria: ["이전 권한 재사용 금지"], workPackageId: id(99) }));
+  c.result = contentText("실제 응답 원문"); const before = JSON.stringify(c), display = presentWorkContent(c);
+  assert.equal(display.steps[0]!.title, "게시 권한 수정 · 검증");
+  assert.equal(display.steps[0]!.detail?.text, "게시 권한을 검증한다\n\n수용 기준\n• 이전 권한 재사용 금지");
+  assert.doesNotMatch(display.steps[0]!.detail!.text, /workPackageId|00000000/);
+  assert.deepEqual(display.messages, c.messages); assert.deepEqual(display.result, c.result); assert.equal(JSON.stringify(c), before);
+  c.steps[0]!.detail = contentText('{"other":"원본 데이터"}');
+  assert.deepEqual(presentWorkContent(c).steps[0]!.detail, c.steps[0]!.detail);
 });
 test("inline protected reads use only exact attempt authority and discard bodies after Project withdrawal", async () => {
   for (const withdraw of [false, true]) {
