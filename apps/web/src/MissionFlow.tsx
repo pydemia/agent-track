@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView, SourceView } from "../../../packages/contracts/index.ts";
-import { TaskContent } from "./TaskContent.tsx";
+import { NodeWorkContent } from "./NodeWorkContent.tsx";
 import { RunContentLinks } from "./ExecutionContentLinks.tsx";
+import { WorkContentPanel } from "./WorkContentPanel.tsx";
+import { useRunContent } from "./useRunContent.ts";
+import { withWorkContent } from "../../../packages/projection/work-content-flow.ts";
 import { missionFlow, missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
@@ -30,7 +33,7 @@ import "@xyflow/react/dist/style.css";
 import "./ui/flow-canvas.css";
 import "./mission-flow.css";
 
-const kinds: Record<string, string> = { task: "업무", workspace: "Workspace", session: "Session", run: "Run", invocation: "Agent 호출", "invocation-reference": "호출 참조 · 생명주기 미관측",
+const kinds: Record<string, string> = { "work-request": "업무 요청", "work-step": "수행 작업", "work-response": "실제 응답", "work-failure": "실패 원인", task: "업무", workspace: "Workspace", session: "Session", run: "실행 시도", invocation: "Agent 호출", "invocation-reference": "호출 참조 · 생명주기 미관측",
   tool: "도구 호출", "native-turn": "Native turn 참조", "native-item": "Native item 참조", "model-request": "모델 요청", permission: "승인", artifact: "산출물", group: "협업 그룹", member: "협업 멤버", lifecycle: "실행 단계", event: "관측", reference: "원본 참조", unknown: "미확인 참조",
   "managed-parent-reference": "부모 호출 참조 · Run 미확인", "peer-connection": "peer 연결 참조", "peer-conversation": "처리 대화 참조", "peer-message": "처리 메시지 참조", "session-relation-receipt": "관계 영수증" };
 const statuses: Record<string, string> = { bound: "명시 연결", observed: "관측됨", "observed-reference": "관계 참조", unobserved: "미조회 참조", queued: "대기", leasing: "할당 중", running: "실행 중", started: "실행 중", waiting_for_permission: "승인 대기",
@@ -41,7 +44,7 @@ function cardStatus(value: string): "idle" | "running" | "complete" | "error" {
   if (["completed", "complete", "succeeded", "done"].includes(value)) return "complete";
   return ["failed", "error"].includes(value) ? "error" : "idle";
 }
-type Choice = { kind: "node" | "edge"; key: string } | null;
+type Choice = { kind: "node" | "edge"; key: string; runKey?: string } | null;
 
 export function MissionFlow({ actor, run, runs, relations, events, sources = [], mode = "mission", hasMore = false, onSelectRun, onUnauthorized, scopeNodeKeys }: {
   actor: string; run: RunView; runs: RunView[]; relations: RelationView[]; events: EventView[];
@@ -57,10 +60,14 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   const tools = useToolEvidence(run, onUnauthorized, actor);
   const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
   const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
-  const fullModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeRunEvidence(withNativeLineage(withModelRequests(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run, tools.page), run,
+  const detailRun = runs.find(item => item.key === choice?.runKey) ?? run;
+  const content = useRunContent(actor, detailRun, onUnauthorized);
+  const rawModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeRunEvidence(withNativeLineage(withModelRequests(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run, tools.page), run,
     lineage.observations, lineage.hasMore || lineage.capped), run, nativeEvidence.records, nativeEvidence.hasMore || nativeEvidence.native && nativeEvidence.state !== "connected"), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, nativeEvidence.records, nativeEvidence.hasMore, nativeEvidence.native, nativeEvidence.state, sessionRelations.evidence, artifacts.evidence]);
+  const fullModel = useMemo(() => scopeNodeKeys ? rawModel : withWorkContent(rawModel, detailRun, content.value?.content ?? null), [rawModel, scopeNodeKeys, detailRun, content.value]);
   const model = useMemo(() => scopeNodeKeys ? groupModelSubset(fullModel, scopeNodeKeys) : fullModel, [fullModel, scopeNodeKeys]);
-  const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key }), []);
+  const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key,
+    ...(fullModel.nodes.find(node => node.key === key)?.runKey ? { runKey: fullModel.nodes.find(node => node.key === key)!.runKey! } : {}) }), [fullModel]);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
   const grouping = useFlowGrouping(model, { scopeKey: `${actor}:${run.key}:${mode}`, defaultBy: mode === "execution" ? "run" : run.binding?.taskId ? "task" : "session",
     defaultDepth: mode === "execution" ? "detail" : "structure", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
@@ -68,8 +75,8 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   const selectedEdge = grouping.inspectEdges.find((edge) => choice?.kind === "edge" && choice.key === edge.key);
   const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
   useEffect(() => {
-    if (choice && !selectedNode && !selectedEdge && !selectedGroup) setChoice(null);
-  }, [choice, selectedNode, selectedEdge, selectedGroup]);
+    if (choice && !selectedNode && !selectedEdge && !selectedGroup && !content.busy) setChoice(null);
+  }, [choice, selectedNode, selectedEdge, selectedGroup, content.busy]);
   const dependencyCycles = useMemo(() => analyseGraph({ nodes: model.nodes,
     edges: model.edges.filter((edge) => ["dependency", "cowork-dependency"].includes(edge.kind)).map((edge) => ({ ...edge, kind: "dependency" as const })) }).cyclic, [model]);
   // Refit when asynchronously loaded evidence changes topology, while preserving
@@ -99,6 +106,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.fitAll(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
     {scopeNodeKeys && <p className="graph-legend">선택한 하위 묶음의 관측 항목만 표시합니다. 현재 조회에서 찾지 못한 항목은 전체 실행으로 넓히지 않습니다. 전체 원장 근거는 아래에서 별도로 확인할 수 있습니다.</p>}
+    <details className="flow-source-evidence"><summary>모델·도구·산출물의 추가 근거</summary>
     <OrchestrationSupport run={run} onUnauthorized={onUnauthorized} />
     <SessionRelationsSupport value={sessionRelations} />
     <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />
@@ -108,6 +116,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     {tools.native && <p className="graph-legend">{tools.page ? `도구 결과 ${tools.page.calls.length}건 · 실패 보고 ${tools.page.calls.filter((call) => call.outcome === "failed").length}건 · 원본 seq ${tools.page.throughSequence}/${tools.page.targetSequence}${tools.page.complete ? "까지 조회" : " · 부분 조회"}` : tools.detail}</p>}
     {tools.native && <ModelRequestSupport evidence={tools.page} windowComplete={tools.page?.complete} />}
     {!!tools.page?.unidentifiedEvents && <p className="inline-warning">호출 ID가 없어 구조에 연결하지 못한 원본 도구 이벤트 {tools.page.unidentifiedEvents}건이 있습니다.</p>}
+    </details>
     {(model.incomplete || model.hiddenNodes > 0) && <p className="inline-warning">현재 관측·조회 범위의 흐름입니다.{model.hiddenNodes > 0 ? ` 표시 범위 밖 node ${model.hiddenNodes}개.` : ""} 연결이 없거나 대기 중인 근거를 완료로 해석하지 않습니다.</p>}
     {dependencyCycles.size > 0 && <p className="inline-warning">명시된 의존 관계에 순환이 있습니다. 관련 node {dependencyCycles.size}개의 출발·도착과 원본 근거를 확인하세요.</p>}
     <FlowGroupControls state={grouping} />
@@ -117,14 +126,16 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
         onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
         height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" readOnly />
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
-        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p>
-          <dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>
-          {selectedNode.kind === "task" && selectedNode.taskRef && <TaskContent sources={sources} task={selectedNode.taskRef} title={selectedNode.label} onUnauthorized={onUnauthorized} />}
+        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small>
+          {!selectedNode.runKey && <><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p></>}
+          {(selectedNode.runKey === detailRun.key || selectedNode.kind === "run" && selectedNode.id === detailRun.runId) && <WorkContentPanel run={detailRun} read={content} node={selectedNode} />}
+          {selectedNode.kind === "task" && selectedNode.taskRef && <NodeWorkContent key={selectedNode.key} sources={sources} node={selectedNode} runs={runs} />}
+          <details><summary>관계 근거·기술 식별자</summary><dl>{selectedNode.details.map((detail, index) => <div key={`${detail.label}:${index}`}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl></details>
           {selectedNode.sequences.length > 0 && <p className="flow-evidence">근거 seq {selectedNode.sequences.join(", ")}</p>}
           {selectedNode.runKey && selectedNode.runKey !== run.key && <button className="button-secondary" onClick={() => onSelectRun(selectedNode.runKey!)}>이 Run의 실행 근거 보기</button>}
           <h4>연결 {neighbours.length}건</h4><div className="flow-neighbours">{neighbours.map((edge) => <button className="flow-list-choice" key={edge.key} onClick={() => grouping.revealEdge(edge.key)}><strong>{edge.label}</strong><span>{nodeName(edge.from)} → {nodeName(edge.to)}</span></button>)}</div>
         </> : selectedEdge ? <><small>관계 상세</small><h3>{selectedEdge.label}</h3><p style={{ whiteSpace: "pre-wrap" }}>{selectedEdge.detail}</p><dl><div><dt>출발</dt><dd><button className="text-button" onClick={() => chooseNode(selectedEdge.from)}>{nodeName(selectedEdge.from)}</button></dd></div><div><dt>도착</dt><dd><button className="text-button" onClick={() => chooseNode(selectedEdge.to)}>{nodeName(selectedEdge.to)}</button></dd></div><div><dt>관계 종류</dt><dd>{selectedEdge.kind}</dd></div><div><dt>출처</dt><dd>{selectedEdge.sourceId}</dd></div></dl><p className="flow-evidence">{selectedEdge.sequences.length ? `근거 seq ${selectedEdge.sequences.join(", ")}` : "원본 식별자와 명시된 소속·업무 연결 근거"}</p></>
-          : <><small>흐름 탐색</small><h3>Node 또는 edge를 선택하세요</h3><p>실행 상태·담당 호출·연결 대상과 원본 근거를 여기에 표시합니다. 캔버스의 연결선과 아래 목록에서 같은 관계를 선택할 수 있습니다.</p><p>관계가 없는 node는 미연결·미관측 상태로 남깁니다.</p></>}
+          : <><WorkContentPanel run={detailRun} read={content} /><p className="graph-legend">Node를 선택하면 해당 작업이나 시도의 내용을, edge를 선택하면 연결의 의미를 확인할 수 있습니다.</p></>}
         {selectedEdge && <FlowGroupEdgeEvidence edgeKey={selectedEdge.key} state={grouping} nodes={model.nodes} />}
       </aside>
     </div>

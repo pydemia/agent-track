@@ -81,6 +81,13 @@ test("actual Persona producer and Main client agree on attempt schemas and exact
     roleAttempts: async (owner: string, executionId: string, roleId: string) => {
       assert.equal(owner, f.ownerId); assert.equal(executionId, id(1)); assert.equal(roleId, id(2)); return history();
     },
+    attemptContent: async (_owner: string, executionId: string, roleId: string, attemptId: string) => {
+      const attempt = history().attempts.find(row => row.id === attemptId)!;
+      return { version: 1, executionId, roleId, attemptId, ordinal: attempt.ordinal, current: attempt.current, state: "failed",
+        run: { id: attempt.demian!.runId, sessionId: attempt.demian!.sessionId, workspaceId: attempt.demian!.workspaceId },
+        content: { title: "권한 오류 확인", purpose: { text: "결과 게시", truncated: false }, acceptanceCriteria: [], steps: [], messages: [], result: null,
+          failure: { code: "permission_denied", message: { text: "이전 시도에서 권한이 거부됨", truncated: false }, basis: "native" }, coverage: "request-response", incomplete: false, observedAt: at } };
+    },
     nativeMetadata: async (_owner: string, _execution: string, _role: string, after: string, limit: number, attemptId: string) => {
       reads++; const attempt = history().attempts.find(row => row.id === attemptId)!; assert.ok(attempt); const ref = attempt.demian!;
       const page: NativeMetadataPage = { version: 1, object: "demian.work_runtime.metadata_page", api_version: "2026-09-01",
@@ -96,4 +103,8 @@ test("actual Persona producer and Main client agree on attempt schemas and exact
   const selected = await f.client.nativeMetadata(id(1), id(2), "0", 100, id(10));
   assert.equal(selected.page.run.id, id(40)); assert.equal(selected.page.run.correlation_id, id(10)); assert.equal(reads, 1);
   assert.ok(calls.some(path => path.includes(`/attempts/${id(10)}/native?`)));
+  const content = await f.client.attemptContent(id(1), id(2), id(10));
+  assert.equal(content.run?.id, id(40)); assert.equal(content.current, false);
+  assert.equal(content.content.failure?.message?.text, "이전 시도에서 권한이 거부됨");
+  assert.ok(calls.some(path => path.endsWith(`/attempts/${id(10)}/content`)));
 });

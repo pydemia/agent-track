@@ -1,3 +1,4 @@
+import { runWorkTitle } from "./work-content-flow.ts";
 import type { AssistantRunAttempt, EventView, RelationKind, RelationView, RunView } from "../contracts/index.ts";
 import { projectTrace } from "./trace.ts";
 import { missionEntityKey, coworkMemberKey } from "./mission-identity.ts";
@@ -112,7 +113,7 @@ export function missionFlow(
     edges.set(key, { key, from: from.key, to: to.key, kind, label, detail, sourceId, sequences: merged });
   };
   const actualRunNode = (run: RunView): MissionNode => {
-    const node = getNode(run.sourceId, "run", run.runId, run.title || run.runId, run.status, "실제로 관측된 실행", run);
+    const node = getNode(run.sourceId, "run", run.runId, runWorkTitle(run), run.status, "실제로 관측된 실행", run);
     addDetail(node, "실행 ID", run.runId); addDetail(node, "세션 ID", run.sessionId); addDetail(node, "출처", run.sourceLabel);
     addDetail(node, "장치", run.device); addDetail(node, "Workspace ID", run.workspaceId);
     addDetail(node, "시작", run.startedAt); addDetail(node, "종료", run.completedAt); addDetail(node, "마지막 관측", run.observedAt);

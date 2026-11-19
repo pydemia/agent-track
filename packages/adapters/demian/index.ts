@@ -15,6 +15,7 @@ import { parseNativeSessionRelationsPage, readBoundedSessionRelationsJson } from
 import { relationUuidSchema, type SessionRelationKind, type NativeSessionRelationPage } from "../../contracts/session-relations.ts";
 import { readBoundedNativeJson } from "./json.ts";
 import { coworkPlanSchema } from "../../contracts/cowork.ts";
+import { contentText, workContentSchema, type WorkContent } from "../../contracts/work-content.ts";
 import { nativeCommandContextSchema, nativeCommandDescriptorSchema, nativeCommandReceiptSchema, nativeCommandStatusSchema,
   nativeCommandWriteSchema, type NativeCommandContext, type NativeCommandReceipt, type NativeCommandStatus,
   type NativeCommandWrite } from "../../contracts/native-run-commands.ts";
@@ -151,6 +152,26 @@ export class DemianClient {
     const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`);
     const session = z.object({ id: idSchema, workspace_id: idSchema }).parse(await response.json());
     if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
+  }
+  /** One authorized Run only; never reads another Run's Session conversation. */
+  async content(runId: string, sessionId: string): Promise<WorkContent> {
+    const id = relationUuidSchema.parse(runId), session = relationUuidSchema.parse(sessionId);
+    const signal = this.options.signal ?? AbortSignal.timeout(10_000);
+    const response = await this.request(`/api/v1/runs/${id}`, signal);
+    const value = z.object({ id: relationUuidSchema, session_id: relationUuidSchema, status: statusSchema,
+      input: z.array(z.object({ type: z.string(), text: z.string().optional() })).max(100),
+      output_text: z.string().nullable(), error: z.object({ code: z.string().min(1).max(200), message: z.string() }).nullable(),
+      created_at: z.string().datetime({ offset: true }), completed_at: z.string().datetime({ offset: true }).nullable(),
+    }).parse(await readBoundedNativeJson(response, signal));
+    if (value.id !== id || value.session_id !== session) throw new SourceError(403);
+    const prompt = value.input.filter(item => item.type === "input_text" && typeof item.text === "string").map(item => item.text).join("\n\n");
+    const result = value.output_text === null ? null : contentText(value.output_text);
+    const messages = [...(prompt ? [{ id: `${id}:request`, role: "user" as const, text: contentText(prompt), occurredAt: value.created_at, tool: null, callId: null }] : []),
+      ...(result ? [{ id: `${id}:response`, role: "assistant" as const, text: result, occurredAt: value.completed_at, tool: null, callId: null }] : [])];
+    return workContentSchema.parse({ title: prompt.trim().split(/\r?\n/).find(line => line.trim())?.slice(0, 240) || "업무 실행",
+      purpose: prompt ? contentText(prompt) : null, acceptanceCriteria: [], steps: [], messages, result,
+      failure: value.error ? { code: value.error.code, message: contentText(value.error.message), basis: "native" } : null,
+      coverage: "request-response", incomplete: messages.some(message => message.text.truncated), observedAt: new Date().toISOString() });
   }
 
   /** Ordinary-owner transport only. Protected runs use the Assistant owner path. */

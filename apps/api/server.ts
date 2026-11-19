@@ -25,6 +25,7 @@ import { contextSummary, parseContextPath } from "./context-summary.ts";
 import { projectTaskMetadata } from "./project-task-metadata.ts";
 import { toolEvidence } from "./tools.ts";
 import { nativeRunEvidence } from "./native-run-evidence.ts";
+import { runContent } from "./run-content.ts";
 import { projectDependencies } from "./project-dependencies.ts";
 import { AssistantAuthorityError } from "./assistant-authority.ts";
 import { SessionRelations } from "./session-relations.ts";
@@ -143,6 +144,21 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
         }
         json(response, 200, { version: 1, observedAt: new Date().toISOString(),
           operations: sources.readDiagnostics.snapshot(user, config().sources) }); return;
+      }
+      const contentRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/content$/.exec(url.pathname);
+      if (contentRead) {
+        if (request.method !== "GET") { json(response, 405, { error: "read_only_content" }); return; }
+        if (url.search || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_content_query" }); return;
+        }
+        const controller = new AbortController(), cancel = () => { if (!response.writableEnded) controller.abort(); };
+        request.once("aborted", cancel); response.once("close", cancel);
+        try {
+          const value = await runContent(config, snapshot, sources, user, contentRead[1]!, controller.signal);
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          if (!response.destroyed) json(response, 200, value);
+        } finally { request.removeListener("aborted", cancel); response.removeListener("close", cancel); }
+        return;
       }
       const projectTaskRead = /^\/api\/projects\/[a-z0-9_-]{1,80}\/[0-9a-f-]{36}\/tasks(?:\/[0-9a-f-]{36}(?:\/review)?)?$/.test(url.pathname);
       const evidenceRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/evidence$/.exec(url.pathname);

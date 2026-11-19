@@ -12,6 +12,7 @@ import { AssistantWebError, fetchAssistantExecution, fetchAssistantEvents } from
 import { assistantLinkScope, currentAssistantDetail } from "./assistant-window-state.ts";
 import { assistantMatches, type useAssistantExecutions } from "./useAssistantExecutions.ts";
 import { TaskContent } from "./TaskContent.tsx";
+import { NodeWorkContent } from "./NodeWorkContent.tsx";
 import { ProjectsTaskLink } from "./ProjectsTaskLink.tsx";
 import { ExecutionContentLinks } from "./ExecutionContentLinks.tsx";
 import { executionFailureMessage } from "./execution-origin.ts";
@@ -46,7 +47,7 @@ export function AssistantWorkspace({ mode, sources, runs = [], collection, selec
   const chosen = visible.find(view => selectedKey(selection) === JSON.stringify([view.sourceId, view.native.id]));
   if (!configured.length) return null;
   return <section className="assistant-workspace" aria-label="Assistant 원본 업무 실행">
-    <div className="section-heading"><div><h2>Assistant 업무 실행</h2><p>WorkExecution·역할·Runtime 참조를 원본 식별자로 연결합니다. Demian Run 수에 합산하지 않습니다.</p></div>
+    <div className="section-heading"><div><h2>Assistant 업무 실행</h2><p>업무별 역할과 실행 시도를 따라가며 목적·응답·실패 원인을 확인합니다.</p></div>
       <button className="text-button" onClick={collection.refresh}>원본 다시 조회</button></div>
     <p className="graph-legend">현재 조회 창 · 최대 출처별 {collection.maxPages * 50}개 · 15초마다 확인 · 실행 완료와 Projects 업무 수용은 별도입니다.</p>
     {configured.map(source => {
@@ -59,7 +60,7 @@ export function AssistantWorkspace({ mode, sources, runs = [], collection, selec
     })}
     {visible.length ? <div className="table-wrap"><table><caption className="sr-only">현재 허용된 Assistant 실행</caption><thead><tr><th>업무 · 원본 실행</th><th>Assistant 상태</th><th>현재 업무 상태</th><th>역할</th><th>갱신</th></tr></thead>
       <tbody>{visible.map(view => <tr key={JSON.stringify([view.sourceId, view.native.id])} className={chosen === view ? "selected-row" : ""}>
-        <td><button className="run-select" aria-pressed={chosen === view} onClick={() => onSelect({ sourceId: view.sourceId, executionId: view.native.id })}><strong>{view.currentTask?.task.title ?? `업무 미연결 · ${view.native.instructionId.slice(0, 8)}`}</strong><small>{view.sourceLabel} · WorkExecution {view.native.id}</small></button></td>
+        <td><button className="run-select" aria-pressed={chosen === view} onClick={() => onSelect({ sourceId: view.sourceId, executionId: view.native.id })}><strong>{view.currentTask?.task.title || view.native.roles.map(role => role.label).filter(Boolean).join(" · ") || "업무 제목 미제공"}</strong><small>{view.sourceLabel} · 역할 {view.native.roles.length}개</small></button></td>
         <td>{states[view.native.state] ?? view.native.state}</td><td>{view.currentTask ? `${states[view.currentTask.task.state] ?? view.currentTask.task.state} · r${view.currentTask.task.revision}` : "원본 업무 연결 없음"}</td>
         <td>{view.native.roles.length}개{view.demianLinks && <small>Demian 실행 연결 {authorizedAssistantLinks(view, sources, runs).length}개</small>}</td><td>{time(view.native.updatedAt)}</td></tr>)}</tbody></table></div>
       : <p className="empty-inline" role="status">현재 허용된 조회 창과 필터에 표시할 Assistant 실행이 없습니다. 전체 이력에 실행이 없다는 뜻은 아닙니다.</p>}
@@ -190,7 +191,9 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
       height="clamp(500px, 65vh, 700px)" onNodeClick={chooseNode} onEdgeClick={chooseEdge} onNodesChange={changeNodes} onEdgesChange={changeEdges} onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter}
       {...grouping.canvasProps} />
       <aside className="flow-inspector" aria-label="Assistant node 또는 edge 상세" aria-live="polite">{group ? <FlowGroupInspector group={group} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} />
-        : node ? <><small>{kinds[node.kind] ?? node.kind}</small><h3>{node.label}</h3><p>{node.description}</p><dl>{node.details.map((item, index) => <div key={`${item.label}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl>
+        : node ? <><small>{kinds[node.kind] ?? node.kind}</small><h3>{node.label}</h3><p>{node.description}</p>
+          <NodeWorkContent key={node.key} node={node} runs={runs} sources={sources} />
+          <details><summary>관계 근거·기술 식별자</summary><dl>{node.details.map((item, index) => <div key={`${item.label}:${index}`}><dt>{item.label}</dt><dd>{item.value}</dd></div>)}</dl></details>
           {executionId && <button className="button-secondary" onClick={() => onSelect({ sourceId: node.sourceId, executionId })}>이 실행의 원본 상세 보기</button>}
           {node.runKey && onSelectRun && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Demian Trace의 호출·도구·산출물 보기</button>}
           {projectId && <><ProjectsTaskLink sources={sources} task={{ sourceId: node.sourceId, projectId, taskId: node.id }} /><button className="button-secondary" onClick={() => onTaskMap(node.sourceId, projectId, node.id)}>업무·실행 통합 Map</button></>}</>

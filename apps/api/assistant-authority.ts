@@ -17,8 +17,9 @@ import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type N
 import type { AssistantRunAttempt, RunBinding } from "../../packages/contracts/index.ts";
 import { assistantNativeRunEvidencePageSchema, type NativeRunEvidencePage } from "../../packages/contracts/native-run-evidence.ts";
 import { assistantRoleAttemptsPageSchema, type AssistantRoleAttempt } from "../../packages/contracts/assistant-attempts.ts";
+import { assistantAttemptContentSchema, type AssistantAttemptContent } from "../../packages/contracts/work-content.ts";
 
-export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts" | "credentialFence">>;
+export type AssistantReader = Pick<AssistantClient, "capabilities" | "executions" | "execution" | "events"> & Partial<Pick<AssistantClient, "nativeMetadata" | "nativeEvidence" | "roleAttempts" | "credentialFence" | "attemptContent">>;
 export interface AssistantNativeEvidence { page: NativeRunEvidencePage; executionId: string; roleId: string; observedAt: string; confirmAuthority: () => void }
 export interface AssistantNativeObservation { page: NativeMetadataPage; throughSequence: string; observedAt: string; title: string; binding: RunBinding; assistantAttempt?: AssistantRunAttempt }
 export interface AssistantNativeWindow { observations: AssistantNativeObservation[]; partial: boolean; attemptCoverage?: "coordinator-history" | "current-role-only" }
@@ -504,6 +505,51 @@ export class AssistantAuthority {
     });
   }
 
+  /** Direct exact-attempt read, independent of the bounded discovery window. */
+  async attemptContent(user: string, sourceId: string, executionId: string, roleId: string, attemptId: string,
+    expected?: { sourceId: string; runId: string; sessionId: string; workspaceId: string | null }): Promise<AssistantAttemptContent> {
+    if (![executionId, roleId, attemptId].every(value => z.uuid().safeParse(value).success)) throw new AssistantAuthorityError(400);
+    return this.request(user, sourceId, "assistant.detail", async (scope, client) => {
+      if (scope.source.assistantProtocol !== 2 || !client.attemptContent || !client.roleAttempts || !client.credentialFence)
+        throw new AssistantAuthorityError(404);
+      const confirmCredential = client.credentialFence();
+      await this.refreshProjects(scope);
+      const execution = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(executionId)));
+      const role = execution.roles.find(item => item.id === roleId);
+      if (execution.id !== executionId || !role || execution.task && !await this.currentTask(scope, execution, new Map())) throw new AssistantAuthorityError(404);
+      const before = assistantRoleAttemptsPageSchema.parse(await this.guarded(scope, () => client.roleAttempts!(executionId, roleId)));
+      if (before.executionId !== executionId || before.roleId !== roleId) throw new AssistantAuthorityError(503);
+      const attempt = before.attempts.find(item => item.id === attemptId);
+      if (!attempt) throw new AssistantAuthorityError(404);
+      const mappings = scope.source.assistantDemianMappings?.filter(item => item.sourceId === expected?.sourceId) ?? [];
+      const target = expected && this.config().sources.find(item => item.id === expected.sourceId);
+      const targetStamp = target ? JSON.stringify(target) : null;
+      if (expected && (!target || target.kind !== "demian" || target.assistantNativeSourceId !== sourceId ||
+          !target.users.includes(user) || !this.store.pinSourceIdentity(target.id, sourceIdentity(target)) ||
+          mappings.length !== 1 || target.baseUrl !== mappings[0]!.origin || target.organizationId !== mappings[0]!.organizationId ||
+          !attempt.demian || attempt.demian.origin !== mappings[0]!.origin || attempt.demian.organizationId !== mappings[0]!.organizationId ||
+          attempt.demian.workspaceId !== mappings[0]!.workspaceId || attempt.demian.runId !== expected.runId ||
+          attempt.demian.sessionId !== expected.sessionId || attempt.demian.workspaceId !== expected.workspaceId))
+        throw new AssistantAuthorityError(404);
+      const value = assistantAttemptContentSchema.parse(await this.guarded(scope, () => client.attemptContent!(executionId, roleId, attemptId)));
+      if (value.executionId !== executionId || value.roleId !== roleId || value.attemptId !== attemptId || value.ordinal !== attempt.ordinal ||
+          (expected && (!value.run || value.run.id !== expected.runId || value.run.sessionId !== expected.sessionId || value.run.workspaceId !== expected.workspaceId)))
+        throw new AssistantAuthorityError(503);
+      const current = assistantExecutionMetadataV2Schema.parse(await this.guarded(scope, () => client.execution(executionId)));
+      if (current.id !== executionId || JSON.stringify(current.task) !== JSON.stringify(execution.task) || !current.roles.some(item => item.id === roleId) ||
+          current.task && !await this.currentTask(scope, current, new Map())) throw new AssistantAuthorityError(404);
+      const after = assistantRoleAttemptsPageSchema.parse(await this.guarded(scope, () => client.roleAttempts!(executionId, roleId)));
+      if (after.executionId !== executionId || after.roleId !== roleId) throw new AssistantAuthorityError(503);
+      const latest = after.attempts.find(item => item.id === attemptId);
+      if (!latest || JSON.stringify([latest.id, latest.ordinal, latest.demian, latest.command]) !==
+          JSON.stringify([attempt.id, attempt.ordinal, attempt.demian, attempt.command])) throw new AssistantAuthorityError(404);
+      await this.finish(scope, client);
+      confirmCredential(); this.confirm(scope);
+      if (expected && JSON.stringify(this.config().sources.find(item => item.id === expected.sourceId)) !== targetStamp)
+        throw new AssistantAuthorityError(403);
+      return value;
+    });
+  }
   private async finish(scope: RequestScope, client: AssistantReader): Promise<void> {
     await this.capabilities(scope, client);
     await this.refreshProjects(scope);
