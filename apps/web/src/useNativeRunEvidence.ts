@@ -10,13 +10,13 @@ const empty = (scope: string, state = "unknown", detail = "원본 상세 근거 
   ({ scope, state, page: null, records: [], hasMore: false, detail });
 
 /** Fresh authorization per page; no private evidence survives a scope change or failed read. */
-export function useNativeRunEvidence(actor: string, run: RunView, onUnauthorized: (reason: string) => void) {
+export function useNativeRunEvidence(actor: string, run: RunView, onUnauthorized: (reason: string) => void, enabled = true) {
   const native = run.capabilities.includes("run.evidence");
-  const scope = JSON.stringify([actor, run.key, run.sourceId, run.workspaceId, run.sessionId, run.sourceState, run.stale, native]);
+  const scope = JSON.stringify([actor, run.key, run.sourceId, run.workspaceId, run.sessionId, run.sourceState, run.stale, native, enabled]);
   const [value, setValue] = useState<NativeRunEvidenceState>(() => empty(scope));
   useEffect(() => {
     setValue(empty(scope));
-    if (!native || run.sourceState !== "connected" || run.stale) return;
+    if (!enabled || !native || run.sourceState !== "connected" || run.stale) return;
     const controller = new AbortController(); let timer: ReturnType<typeof setTimeout> | undefined;
     async function read() {
       try {
@@ -50,6 +50,6 @@ export function useNativeRunEvidence(actor: string, run: RunView, onUnauthorized
       } finally { if (!controller.signal.aborted) timer = setTimeout(() => void read(), 15_000); }
     }
     void read(); return () => { controller.abort(); if (timer) clearTimeout(timer); };
-  }, [scope, native, run.key, run.runId, run.sourceId, run.workspaceId, run.sessionId, run.sourceState, run.stale, onUnauthorized]);
+  }, [scope, enabled, native, run.key, run.runId, run.sourceId, run.workspaceId, run.sessionId, run.sourceState, run.stale, onUnauthorized]);
   return { ...(value.scope === scope ? value : empty(scope)), native };
 }

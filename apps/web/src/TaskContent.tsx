@@ -6,9 +6,10 @@ import { fetchTaskContent, type TaskContent as Content } from "./task-content-cl
 import { PrivateReadError } from "./private-json.ts";
 import "./task-content.css";
 
-export function TaskContent({ sources, task, title, revision, onUnauthorized }: {
+export function TaskContent({ sources, task, title, revision, onUnauthorized, autoOpen = false }: {
   sources: SourceView[]; task: ProjectTaskRef; title?: string; revision?: string;
   onUnauthorized: (reason: string) => void;
+  autoOpen?: boolean;
 }) {
   const matches = sources.filter(source => source.id === task.sourceId);
   const source = matches.length === 1 ? matches[0] : undefined;
@@ -17,13 +18,13 @@ export function TaskContent({ sources, task, title, revision, onUnauthorized }: 
   return <section className="task-content" aria-label="연결된 업무 내용">
     <strong>{title || "연결된 Projects 업무"}</strong>
     <ProjectsTaskLink sources={sources} task={task} />
-    {allowed ? <TaskContentRead key={stamp} task={task} onUnauthorized={onUnauthorized} />
+    {allowed ? <TaskContentRead key={stamp} task={task} onUnauthorized={onUnauthorized} autoOpen={autoOpen} />
       : <p className="graph-legend">현재 원본 업무 접근을 확인할 수 없어 설명을 표시하지 않습니다.</p>}
   </section>;
 }
 
-function TaskContentRead({ task, onUnauthorized }: { task: ProjectTaskRef; onUnauthorized: (reason: string) => void }) {
-  const [open, setOpen] = useState(false), [retry, setRetry] = useState(0);
+function TaskContentRead({ task, onUnauthorized, autoOpen }: { task: ProjectTaskRef; onUnauthorized: (reason: string) => void; autoOpen: boolean }) {
+  const [open, setOpen] = useState(autoOpen), [retry, setRetry] = useState(0);
   const [content, setContent] = useState<Content | null>(null), [error, setError] = useState(false), [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -51,9 +52,9 @@ function TaskContentRead({ task, onUnauthorized }: { task: ProjectTaskRef; onUna
       {busy && <p role="status">현재 원본 업무를 읽는 중…</p>}
       {error && <p role="alert">원본 내용을 확인하지 못했습니다. 이전 본문은 지웠습니다. <button type="button" onClick={() => setRetry(value => value + 1)}>다시 조회</button></p>}
       {content && <><h4>{content.task.title}</h4><small>현재 원본 상태 {content.task.state} · revision {content.task.revision}</small>
-        {!content.complete ? <p className="inline-warning">본문이 조회 한도를 초과했습니다. 전체 내용은 원본 업무에서 확인하세요.</p>
-          : <><h5>업무 설명</h5><p className="task-content-text">{content.body || "원본에 업무 설명이 없습니다."}</p><h5>수용 기준</h5>
-            {content.acceptanceCriteria.length ? <ul>{content.acceptanceCriteria.map((criterion, index) => <li key={index}>{criterion}</li>)}</ul> : <p>원본에 수용 기준이 없습니다.</p>}</>}
+        {!content.complete && <p className="inline-warning">조회 한도까지의 부분 본문입니다. 아래 내용이 전체 설명은 아닙니다.</p>}
+        <h5>업무 설명</h5><p className="task-content-text">{content.body || "원본에 업무 설명이 없습니다."}</p><h5>수용 기준</h5>
+        {content.acceptanceCriteria.length ? <ul>{content.acceptanceCriteria.map((criterion, index) => <li key={index}>{criterion}</li>)}</ul> : <p>원본에 수용 기준이 없습니다.</p>}
         <details><summary>업무 식별자</summary><dl><dt>Project</dt><dd>{task.projectId}</dd><dt>Task</dt><dd>{task.taskId}</dd></dl></details>
       </>}
     </div>}

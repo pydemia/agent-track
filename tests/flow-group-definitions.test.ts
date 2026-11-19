@@ -46,10 +46,11 @@ test("a named view bundle changes presentation only and disappears entirely if a
 
 test("Project groups retain source identity and native Task IDs; grouping does not create business edges", () => {
   const tasks = [node("a", "task", undefined, "one"), node("b", "task", undefined, "two")]
-    .map(n => ({ ...n, id: "same-task", details: [{ label: "Project ID", value: "same-project" }] }));
+    .map(n => ({ ...n, id: "same-task", details: [{ label: "Project ID", value: "same-project" }, { label: "프로젝트 이름", value: "게시 권한 개선" }] }));
   const model = { nodes: tasks, edges: [edge("a", "b", "dependency")] };
   const defs = nativeFlowGroupDefinitions(model, "project");
   assert.equal(defs.length, 2); assert.notEqual(defs[0]!.key, defs[1]!.key);
+  assert.ok(defs.every(group => group.label === "게시 권한 개선"));
   const result = projectFlowGroups(model, defs, new Set()); assert.deepEqual(result.edges, model.edges);
   assert.equal(nativeFlowGroupDefinitions(model, "none").length, 0);
 });

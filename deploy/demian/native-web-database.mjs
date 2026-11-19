@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 const sha=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
 const freshnessTables=['deployment_services','managed_child_catalogs','worker_runtime_capabilities'];
 const digestPattern=/^[a-f0-9]{64}$/;
-const nonceTable='work_runtime_delegation_nonces',nonceLimit=100000;
+const nonceTable='work_runtime_delegation_nonces',nonceLimit=1000000;
 const micros=value=>{assert(typeof value==='string'&&/^(0|[1-9][0-9]{0,18})$/.test(value));const n=BigInt(value);assert(n<=9223372036854775807n);return n;};
 function transactionSnapshot(value){
  assert(typeof value==='string'&&value.length<=2000000);

@@ -8,6 +8,7 @@ import { dependencyGrants, projectDependenciesFlow } from "../../../packages/pro
 import { pollTaskDependencies, type DependencySnapshot } from "./task-dependencies-client.ts";
 import { FlowCanvas, type FlowNode, type FlowEdge } from "./ui/flow-canvas.tsx";
 import { TaskContent } from "./TaskContent.tsx";
+import { NodeWorkContent } from "./NodeWorkContent.tsx";
 import { layoutGroupedFlow } from "./flow-group-layout.ts";
 import { useFlowGrouping, FlowGroupControls, FlowGroupInspector, FlowGroupEdgeEvidence } from "./FlowGrouping.tsx";
 import "@xyflow/react/dist/style.css";
@@ -125,8 +126,9 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
           height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" />
         <aside className="flow-inspector" aria-label="선택한 업무 또는 관계 상세" aria-live="polite">
           {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={model.nodes} edges={model.edges} /> : node ? <><small>{kindLabels[node.kind] ?? node.kind} · {stateLabels[node.status] ?? node.status}</small><h3>{node.label}</h3><p>{node.description}</p>
-            <dl>{node.details.map((d) => <div key={d.label}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}</dl>
-            {node.kind === "task" && node.taskRef && <TaskContent sources={sources} task={node.taskRef} title={node.label} onUnauthorized={onUnauthorized} />}
+            <NodeWorkContent key={node.key} node={node} runs={runs} />
+            <details><summary>관계 근거·기술 식별자</summary><dl>{node.details.map((d) => <div key={d.label}><dt>{d.label}</dt><dd>{d.value}</dd></div>)}</dl></details>
+            {node.kind === "task" && node.taskRef && <TaskContent sources={sources} task={node.taskRef} title={node.label} onUnauthorized={onUnauthorized} autoOpen />}
             {node.runKey && <button className="button-secondary" onClick={() => onSelectRun(node.runKey!)}>Run 실행 근거 보기</button>}
             {onSelectAssistant && (node.kind === "assistant-execution" || node.kind === "assistant-role") && <button className="button-secondary" onClick={() => onSelectAssistant({ sourceId: node.sourceId,
               executionId: node.kind === "assistant-execution" ? node.id : node.details.find(detail => detail.label === "Execution ID")!.value })}>Assistant 실행 Trace 보기</button>}

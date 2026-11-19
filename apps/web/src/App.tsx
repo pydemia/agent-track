@@ -1,3 +1,6 @@
+import { DeferredDetails } from "./DeferredDetails.tsx";
+import { RunWorkContent } from "./NodeWorkContent.tsx";
+import { runWorkTitle } from "../../../packages/projection/work-content-flow.ts";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentProps, ContextType, CSSProperties, ReactNode } from "react";
 import { ProjectsCatalog } from "./ProjectsCatalog.tsx";
@@ -533,9 +536,9 @@ export function App() {
         <div className="context-block source-context"><span className="context-label">관측 출처</span>
           {snapshot?.sources.length ? snapshot.sources.map((item) => <div className="source-row" key={item.id}><span>{item.label}</span><SourceState state={item.state} /></div>) : <p className="muted">아직 연결된 출처가 없습니다.</p>}
         </div>
-        {run && <div className="context-block selected-context"><span className="context-label">선택한 실행</span><strong>{run.title || run.runId}</strong><small>{run.sourceLabel} · {run.device}</small>{originUrl(run.sourceUrl) ? <a className="source-link" href={originUrl(run.sourceUrl)!} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a> : <span className="source-link unsupported-link">원본 세션 링크 미지원</span>}<small>Run 전용 딥링크는 지원되지 않습니다.</small></div>}
+        {run && <div className="context-block selected-context"><span className="context-label">선택한 실행</span><strong>{runWorkTitle(run)}</strong><small>{run.sourceLabel} · {run.device}</small>{originUrl(run.sourceUrl) ? <a className="source-link" href={originUrl(run.sourceUrl)!} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a> : <span className="source-link unsupported-link">원본 세션 링크 미지원</span>}<small>Run 전용 딥링크는 지원되지 않습니다.</small></div>}
         <label className="width-control">사이드바 너비 <input type="range" min="180" max="360" step="4" value={sidebarWidth} onChange={(event) => saveSidebarWidth(Number(event.target.value))} aria-label="사이드바 너비 조절" /><span>{sidebarWidth}px</span></label>
-        <div className="sidebar-footer">원본 관측만 표시합니다.<br />대화 원문을 저장하거나 표시하지 않습니다.</div>
+        <div className="sidebar-footer">업무·시도를 선택해 요청과 응답을 읽습니다.<br />본문은 현재 권한으로 조회하며 Track 원장에 저장하지 않습니다.</div>
       </aside>
       {sidebarOpen && <button className="drawer-scrim" aria-label="사이드바 닫기" onClick={closeMobileSidebar} />}
       <main className="main">
@@ -592,7 +595,7 @@ export function App() {
               {tab === "trail" && <>{run && <><ActivityTrail key={`trail:${run.key}`} run={run} events={events} hasMore={hasMore} onUnauthorized={clearPrivateData} onTrace={() => setLocation({ tab: "trace" })} /><FileEvidencePanel key={`files:${run.key}`} run={run} onUnauthorized={clearPrivateData} /><ArtifactEvidencePanel key={`${snapshot.user}:${run.key}`} actor={snapshot.user} run={run} onUnauthorized={clearPrivateData} /></>}<details className="flow-raw-evidence"><summary>정규 이벤트 근거 목록</summary><EventViewPanel title="Trail · 관측 이력" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></details></>}
               {tab === "trace" && <>{run && <><MissionFlow key={`trace:${snapshot.user}:${run.key}`} actor={snapshot.user} run={run} runs={accessibleRuns} sources={snapshot.sources} relations={accessibleRelations} events={events} mode="execution" hasMore={hasMore} onSelectRun={(key) => setLocation({ selected: key })} onUnauthorized={clearPrivateData} /><details className="flow-raw-evidence"><summary>호출 구간 표와 단계별 근거</summary><RunTrace run={run} events={events} hasMore={hasMore} /></details></>}<details className="flow-raw-evidence"><summary>정규 이벤트 근거 목록</summary><EventViewPanel title="Trace · 실행 근거" run={run} events={events} loading={loadingEvents} error={eventsError} hasMore={hasMore} onMore={loadMoreEvents} onRetry={() => setEventsRefresh((value) => value + 1)} renderMeta={renderMeta} /></details></>}
             </section>
-            {run && (tab === "map" || tab === "trace" ? <details className="flow-run-controls"><summary>선택한 Run의 실행 제어와 원본 상세</summary><RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} /></details> : <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />)}
+            {run && (tab === "map" || tab === "trace" ? <DeferredDetails className="flow-run-controls" summary="선택한 Run의 실행 제어와 원본 상세"><RunInspector inlineContent={false} onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} /></DeferredDetails> : <RunInspector onUnauthorized={clearPrivateData} onSaved={loadSnapshot} sources={snapshot.sources} run={run} relations={related} events={events} source={snapshot.sources.find((item) => item.id === run.sourceId) ?? null} />)}
           </div>}
         </>}
         <footer className="page-footer">상태, 관계, 경로는 수집된 근거만 반영합니다. 실행 종료·에이전트 보고·검증·Projects 수용은 각각 별도 정보입니다.</footer>
@@ -607,7 +610,7 @@ function MissionFlow(props: ComponentProps<typeof LazyMissionFlow>) {
 
 function TrackView({ runs, selected, onSelect }: { runs: RunView[]; selected: string; onSelect: (key: string) => void }) {
   return <div className="table-wrap"><table><caption className="sr-only">관측된 에이전트 실행 목록</caption><thead><tr><th scope="col">실행</th><th scope="col">프로젝트 · 업무</th><th scope="col">상태</th><th scope="col">출처</th><th scope="col">관측 시각</th></tr></thead><tbody>{runs.map((run) => <tr className={run.key === selected ? "selected-row" : ""} key={run.key}>
-    <td><button className="run-select" onClick={() => onSelect(run.key)} aria-pressed={run.key === selected}><strong>{run.title || "제목 없는 실행"}</strong><small>{run.runId}</small><Freshness run={run} /></button></td>
+    <td><button className="run-select" onClick={() => onSelect(run.key)} aria-pressed={run.key === selected}><strong>{runWorkTitle(run)}</strong><small>{run.sourceLabel} · {run.assistantAttempt ? `시도 ${run.assistantAttempt.ordinal}` : "실행"}</small><Freshness run={run} /></button></td>
     <td>{run.binding ? <><span>{run.binding.projectTitle}</span><small>{run.binding.taskTitle ?? "업무 연결 정보 없음"}</small></> : <span className="muted">{run.workspaceId ? `업무 미연결 · ${workspaceName(run.workspaceId)}` : "업무 미연결"}</span>}</td>
     <td><DisplayState run={run} /></td><td><span>{run.sourceLabel}</span><small>{run.device}</small></td><td>{timestamp(run.observedAt)}</td>
   </tr>)}</tbody></table></div>;
@@ -618,7 +621,7 @@ function MapView({ actor, sources, runs, relations, events, hasMore, mode, onMod
   const selectedRelations = selected ? relations.filter((item) => item.runKey === selected.key) : relations;
   const paths = selected ? events.flatMap((event) => event.data.path ? [{ path: event.data.path, event }] : []) : [];
   return <div className="map-view">{selected ? <MissionFlow key={`map:${actor}:${selected.key}`} actor={actor} run={selected} runs={runs} sources={sources} relations={relations} events={events} hasMore={hasMore} onSelectRun={onSelect} onUnauthorized={onUnauthorized} /> : <p className="empty-inline">실행을 선택하면 업무·소속·관측 관계를 지도로 확인할 수 있습니다.</p>}<details className="flow-run-picker"><summary>다른 실행 선택 · {runs.length}개 Run</summary>
-    <ol className="execution-list">{runs.map((run) => <li key={run.key}><button className={`execution-row ${run.key === selected?.key ? "chosen" : ""}`} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected?.key}><span className="execution-index">{run.key === selected?.key ? "●" : "○"}</span><span className="execution-copy"><strong>{run.title || run.runId}</strong><small>{run.sourceLabel} · {run.device} · {run.runId}</small></span><DisplayState run={run} /></button></li>)}</ol>
+    <ol className="execution-list">{runs.map((run) => <li key={run.key}><button className={`execution-row ${run.key === selected?.key ? "chosen" : ""}`} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected?.key}><span className="execution-index">{run.key === selected?.key ? "●" : "○"}</span><span className="execution-copy"><strong>{runWorkTitle(run)}</strong><small>{run.sourceLabel} · {run.device}{run.assistantAttempt ? ` · 시도 ${run.assistantAttempt.ordinal}` : ""}</small></span><DisplayState run={run} /></button></li>)}</ol>
     </details><details className="flow-raw-evidence"><summary>관계·파일 경로의 원본 근거 목록</summary><section className="relation-section"><div className="map-switch" role="group" aria-label="Map 표시 방식"><button aria-pressed={mode === "relations"} onClick={() => onMode("relations")}>실행 관계</button><button aria-pressed={mode === "paths"} onClick={() => onMode("paths")}>코드 활동 · 관측 경로</button></div>
       {mode === "relations" ? <><div className="section-heading"><div><span className="overline">EVIDENCE LINKS</span><h2>관측된 관계</h2></div><span>관계 종류를 구분해 표시</span></div>
         {selectedRelations.length ? <div className="relation-list" aria-label="실행 관계 목록">{selectedRelations.map((relation) => <article className="relation-row" key={relation.key}><span className={`relation-tag ${relation.kind}`}>{relationNames[relation.kind]}</span><span className="relation-endpoints"><code>{relation.from}</code><span aria-hidden="true">→</span><code>{relation.to}</code></span><small>증거 seq {relation.evidenceSequence} · {timestamp(relation.observedAt)}</small></article>)}</div> : <p className="empty-inline">이 실행에 연결된 관계 관측이 없습니다. 누락된 관계 정보는 관계가 없다는 뜻이 아닙니다.</p>}</>
@@ -630,7 +633,7 @@ function MapView({ actor, sources, runs, relations, events, hasMore, mode, onMod
 
 function EventViewPanel({ title, run, events, loading, error, hasMore, onMore, onRetry, renderMeta }: { title: string; run: RunView | null; events: EventView[]; loading: boolean; error: string; hasMore: boolean; onMore: () => void; onRetry: () => void; renderMeta: (event: EventView) => ReactNode }) {
   if (!run) return <section className="empty-inline select-prompt">실행을 선택하면 해당 실행의 관측 데이터가 표시됩니다.</section>;
-  return <section className="events-panel"><div className="section-heading"><div><span className="overline">{title.startsWith("Trail") ? "CHRONOLOGICAL OBSERVATIONS" : "RUN EVIDENCE"}</span><h2>{title}</h2></div><small>{run.title || run.runId}</small></div>
+  return <section className="events-panel"><div className="section-heading"><div><span className="overline">{title.startsWith("Trail") ? "CHRONOLOGICAL OBSERVATIONS" : "RUN EVIDENCE"}</span><h2>{title}</h2></div><small>{runWorkTitle(run)}</small></div>
     {run.incomplete && <p className="inline-warning">이 실행의 이벤트 기록이 불완전합니다.</p>}
     {loading && !events.length && <p className="loading-state">관측 데이터를 불러오는 중…</p>}
     {error && <div className="inline-error" role="alert">{error}<button onClick={onRetry}>다시 시도</button></div>}
@@ -641,15 +644,16 @@ function EventViewPanel({ title, run, events, loading, error, hasMore, onMore, o
   </section>;
 }
 
-function RunInspector({ run, relations, events, source, sources, onUnauthorized, onSaved }: { onUnauthorized: (reason: string) => void; onSaved: () => Promise<void>; sources: SourceView[]; run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
+function RunInspector({ run, relations, events, source, sources, onUnauthorized, onSaved, inlineContent = true }: { inlineContent?: boolean; onUnauthorized: (reason: string) => void; onSaved: () => Promise<void>; sources: SourceView[]; run: RunView; relations: RelationView[]; events: EventView[]; source: SourceView | null }) {
   const reportEvents = events.filter((item) => /report|result|handoff/i.test(item.type));
   const verifyEvents = events.filter((item) => /verif|test|check/i.test(item.type));
   const sourceHref = originUrl(run.sourceUrl);
-  return <aside className="inspector" aria-label="선택한 실행 상세"><div className="inspector-title"><span className="overline">RUN DETAILS</span><h2>{run.title || "제목 없는 실행"}</h2><DisplayState run={run} /><Freshness run={run} /></div>
-    <dl className="detail-list"><dt>Run ID</dt><dd>{run.runId}</dd><dt>세션 ID</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>장치</dt><dd>{run.device}</dd><dt>프로젝트 / 저장소</dt><dd>{run.binding ? `${run.binding.projectTitle} / ${run.binding.taskTitle ?? "업무 미지정"}` : run.workspaceId ? `업무 미연결 · ${workspaceName(run.workspaceId)}` : "Projects 업무 미연결"}</dd><dt>시작</dt><dd>{timestamp(run.startedAt)}</dd><dt>종료</dt><dd>{timestamp(run.completedAt)}</dd><dt>마지막 관측</dt><dd>{timestamp(run.observedAt)}</dd><dt>관계 증거</dt><dd>{relations.length}건</dd></dl>
+  return <aside className="inspector" aria-label="선택한 실행 상세"><div className="inspector-title"><span className="overline">RUN DETAILS</span><h2>{runWorkTitle(run)}</h2><DisplayState run={run} /><Freshness run={run} /></div>
+    {inlineContent && <RunWorkContent run={run} />}
+    <details><summary>실행 정보·식별자</summary><dl className="detail-list"><dt>Run ID</dt><dd>{run.runId}</dd><dt>세션 ID</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>장치</dt><dd>{run.device}</dd><dt>프로젝트 / 저장소</dt><dd>{run.binding ? `${run.binding.projectTitle} / ${run.binding.taskTitle ?? "업무 미지정"}` : run.workspaceId ? `업무 미연결 · ${workspaceName(run.workspaceId)}` : "Projects 업무 미연결"}</dd><dt>시작</dt><dd>{timestamp(run.startedAt)}</dd><dt>종료</dt><dd>{timestamp(run.completedAt)}</dd><dt>마지막 관측</dt><dd>{timestamp(run.observedAt)}</dd><dt>관계 증거</dt><dd>{relations.length}건</dd></dl></details>
     <RunContentLinks run={run} sources={sources} onUnauthorized={onUnauthorized} />
     <RunBindingPanel key={run.key} run={run} sources={sources} onUnauthorized={onUnauthorized} onSaved={onSaved} />
-    <section className="evidence-group"><h3>에이전트 보고</h3><p>{reportEvents.length ? `${reportEvents.length}개 관련 이벤트 관측` : "별도 보고 정보 없음"}</p><small>보고 본문은 표시하지 않습니다.</small></section>
+    <section className="evidence-group"><h3>에이전트 보고</h3><p>{reportEvents.length ? `${reportEvents.length}개 관련 이벤트 관측` : "별도 보고 정보 없음"}</p><small>원장 이벤트의 개수입니다. 실제 요청·응답은 업무 내용에서 별도로 읽습니다.</small></section>
     <section className="evidence-group"><h3>검증</h3><p>{verifyEvents.length ? `${verifyEvents.length}개 검증 관련 이벤트 관측` : "검증 근거 없음"}</p><small>실행 종료 상태와 검증 결과는 별도입니다.</small></section>
     <section className="evidence-group acceptance"><h3>Projects 수용</h3><p>알 수 없음</p><small>수용 데이터 연결 근거가 제공되지 않았습니다.</small></section>
     <section className="capabilities"><h3>기능 범위</h3><SourceState state={source?.state ?? run.sourceState} /><p>{source?.detail ?? "출처 설명을 사용할 수 없습니다."}</p>

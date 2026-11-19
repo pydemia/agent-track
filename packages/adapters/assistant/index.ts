@@ -5,6 +5,7 @@ import { z } from "zod";
 import { assistantRoleAttemptsPageSchema, type AssistantRoleAttemptsPage } from "../../contracts/assistant-attempts.ts";
 import { assistantNativeMetadataPageSchema, nativeMetadataSequenceSchema, type AssistantNativeMetadataPage } from "../../contracts/native-metadata.ts";
 import { assistantNativeRunEvidencePageSchema, type AssistantNativeRunEvidencePage } from "../../contracts/native-run-evidence.ts";
+import { assistantAttemptContentSchema, type AssistantAttemptContent } from "../../contracts/work-content.ts";
 import {
   assistantCapabilitiesSchema, assistantExecutionMetadataSchema,
   assistantExecutionPageSchema, assistantExecutionEventsPageSchema,
@@ -248,6 +249,12 @@ export class AssistantClient {
       throw new AssistantSourceError(400);
     return this.data(`/executions/${executionId}/roles/${roleId}/attempts`,
       assistantRoleAttemptsPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId));
+  }
+  async attemptContent(executionId: string, roleId: string, attemptId: string): Promise<AssistantAttemptContent> {
+    if (this.protocol !== 2 || ![executionId, roleId, attemptId].every(value => z.uuid().safeParse(value).success))
+      throw new AssistantSourceError(400);
+    return this.data(`/executions/${executionId}/roles/${roleId}/attempts/${attemptId}/content`,
+      assistantAttemptContentSchema.refine(value => value.executionId === executionId && value.roleId === roleId && value.attemptId === attemptId));
   }
 
   async nativeMetadata(executionId: string, roleId: string, after = "0", limit = 100, attemptId?: string): Promise<AssistantNativeMetadataPage> {

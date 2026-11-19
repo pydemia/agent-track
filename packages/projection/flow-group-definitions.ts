@@ -149,7 +149,7 @@ export function nativeFlowGroupDefinitions(model: { nodes: MissionNode[]; edges:
       const key = flowGroupKey("project", JSON.stringify([task.sourceId, projectId]));
       let project = groups.get(key);
       if (!project) {
-        project = { key, kind: "project", label: `Project · ${projectId.slice(0, 8)}`, sourceId: task.sourceId,
+        project = { key, kind: "project", label: task.details.find(detail => detail.label === "프로젝트 이름")?.value || "프로젝트", sourceId: task.sourceId,
           basis: "binding", memberKeys: [], description: "동일 원본 Project의 Task와 명시적 업무 연결 실행을 함께 표시합니다." };
         groups.set(key, project);
       }

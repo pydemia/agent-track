@@ -20,6 +20,13 @@ test('live signed metadata reads may append valid nonces without rewriting any o
  const {before,after}=appended();assert.equal(assertNativeWebDatabasePreserved(before,after),true);
 });
 test('nonce mode also accepts byte-identical unchanged snapshots',()=>{const before=fixture();assert.equal(assertNativeWebDatabasePreserved(before,structuredClone(before)),true);});
+test('retained nonce history above 100000 rows remains exact and includes the last row',()=>{
+ const before=fixture();before.data.delegationNonces!.rows=Array.from({length:100001},(_,i)=>({...row(1,900n),keySha256:i.toString(16).padStart(64,'0')}));
+ before.data.tables[1]!.count='100001';const after=structuredClone(before);
+ assert.equal(assertNativeWebDatabasePreserved(before,after),true);
+ after.data.delegationNonces!.rows[100000]!.rowSha256='f'.repeat(64);
+ assert.throws(()=>assertNativeWebDatabasePreserved(before,after));
+});
 test('concurrent accepted nonce can commit after the first snapshot clock',()=>{
  const {before,after}=appended();before.data.delegationNonces!.snapshot='10:20:15';
  after.data.delegationNonces!.rows[1]={...row(3,999n),transactionId:'15'};

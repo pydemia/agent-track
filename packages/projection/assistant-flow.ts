@@ -103,7 +103,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
     if (current && !currentTasks.has(dependencyEntityKey(current.projectsSourceId, "task", current.task.id))) continue;
     // Repeated role identity is invalid even if the repeated payload is identical.
     if (new Set(native.roles.map(role => role.id)).size !== native.roles.length) continue;
-    const execution = add(view.sourceId, "assistant-execution", native.id, `Assistant 실행 · ${native.id.slice(0, 8)}`,
+    const execution = add(view.sourceId, "assistant-execution", native.id, current?.task.title || native.roles.map(role => role.label).filter(Boolean).join(" · ") || "제목 미제공 업무 실행",
       native.state, "원본 WorkExecution 상태 · 실행 완료는 업무 완료를 뜻하지 않습니다.", details({
         "Source ID": view.sourceId, "출처": view.sourceLabel, "장치": view.device,
         "Execution ID": native.id, "Execution revision": native.revision, "원본 실행 상태": native.state,
@@ -121,7 +121,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
     if (current) {
       const task = add(current.projectsSourceId, "task", current.task.id, current.task.title || current.task.id,
         current.task.state, "현재 Projects 원본 업무 상태 · Assistant 실행 상태와 별도", details({
-          "Source ID": current.projectsSourceId, "Project ID": current.project.id, "Task ID": current.task.id,
+          "Source ID": current.projectsSourceId, "Project ID": current.project.id, "프로젝트 이름": current.project.title, "Task ID": current.task.id,
           "현재 원본 revision": current.task.revision, "현재 원본 상태": current.task.state,
           "현재 관측 시각": current.observedAt, "테스트 필요": current.task.requiresTest,
         }), dependencyEntityKey(current.projectsSourceId, "task", current.task.id));
@@ -130,8 +130,8 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
         `WorkExecution.task; Project ID: ${current.project.id}; Task ID: ${current.task.id}; Projects Source ID: ${current.projectsSourceId}; 현재 식별자·권한 대조; 실행 의존·업무 완료 근거 아님`);
     }
     for (const role of [...native.roles].sort((a, b) => compare(a.id, b.id))) {
-      const roleNode = add(view.sourceId, "assistant-role", role.id, role.label || `역할 · ${role.id.slice(0, 8)}`,
-        role.state, "이 WorkExecution에 기록된 역할과 관측 시간", details({
+      const roleNode = add(view.sourceId, "assistant-role", role.id, role.label || "담당 역할",
+        role.state, `${role.teamLabel} · ${role.agentLabel} · ${role.responsibility}`, details({
           "Source ID": view.sourceId, "Execution ID": native.id, "Role ID": role.id,
           "역할": role.label, "팀": role.teamLabel, "에이전트": role.agentLabel,
           "Team ID": role.teamId, "책임": role.responsibility, "Assignment ID": role.assignmentId,
@@ -151,7 +151,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
         ["assistant-turn", role.runtime.turnId, "턴 참조", "turnId"],
       ] as const) {
         if (!id) continue;
-        const ref = add(view.sourceId, kind, id, `${label} · ${id}`, "observed",
+        const ref = add(view.sourceId, kind, id, `${role.label || "담당 역할"} · ${label}`, "observed",
           "원본 runtime ID 참조만 관측됨 · 런타임 상태는 확인 불가", details({ "Source ID": view.sourceId, "Runtime ID": id, "런타임 상태": "unknown" }));
         if (!ref.details.some(item => item.label === "Referencing execution key" && item.value === execution.key))
           ref.details.push({ label: "Referencing execution key", value: execution.key });
@@ -168,7 +168,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
           sourceById.get(run.sourceId)?.state !== "connected") continue;
       const role = nodes.get(assistantRoleKey(view.sourceId, native.id, attempt.data.roleId));
       if (!role) continue;
-      const runNode = add(run.sourceId, "run", run.runId, run.title || run.runId, run.status,
+      const runNode = add(run.sourceId, "run", run.runId, `시도 ${attempt.data.ordinal} · ${run.binding?.taskTitle || run.title || "업무 실행"}`, run.status,
         "현재 보호 reader에서 관측한 역할의 실행 시도 · coordinator intent와 Native 접수는 별도",
         details({ "Source ID": run.sourceId, "Run ID": run.runId, "Session ID": run.sessionId,
           "Workspace ID": run.workspaceId, "원본 Run 상태": run.status, "관측 시각": run.observedAt }),
@@ -181,7 +181,7 @@ export function assistantFlow(executions: AssistantExecutionView[], sources: Sou
       const role = nodes.get(assistantRoleKey(view.sourceId, native.id, link.roleId));
       if (!role) continue;
       const known = options.runs?.find(run => run.key === link.runKey);
-      const runNode = add(link.sourceId, "run", link.runId, `${known?.title || "Demian Run"} · ${link.runId.slice(0, 8)}`, link.status,
+      const runNode = add(link.sourceId, "run", link.runId, known?.binding?.taskTitle || known?.title || "업무 실행", link.status,
         "현재 native 접근과 원본 operation 영수증을 대조한 실제 Run · Assistant 실행/업무 완료와 별도",
         details({ "Source ID": link.sourceId, "Run ID": link.runId, "Session ID": link.sessionId, "Workspace ID": link.workspaceId,
           "원본 Run 상태": link.status, "현재 native 관측 시각": link.observedAt }), dependencyEntityKey(link.sourceId, "run", link.runId));
