@@ -245,6 +245,20 @@ for (const endpoint of ["metadata", "evidence"]) test(`${endpoint} forwarding pr
   } finally { await f.close(); }
 });
 
+test("conversation forwarding preserves opaque cursors and refuses aliases or writes", async () => {
+  const f = await fixture();
+  try {
+    for (const path of [`${run}/conversation`, `${run}/conversation?after=0&limit=20`, `${run}/conversation?after=WzEsMl0&limit=50`]) {
+      assert.equal((await send(f.port, path)).status, 201); assert.equal(f.seen.at(-1)!.url, path);
+    }
+    const allowed = f.seen.length;
+    for (const query of ["?limit=20&after=0", "?after=%30&limit=20", "?after=0&limit=51", "?after=0&limit=0", "?after=0&limit=01", "?after=0&limit=20&extra=1", `?after=${"a".repeat(513)}&limit=1`])
+      assert.equal((await send(f.port, `${run}/conversation${query}`)).status, 403);
+    assert.equal((await send(f.port, `${run}/conversation?after=0&limit=20`, validHeaders, "POST")).status, 403);
+    assert.equal(f.seen.length, allowed);
+  } finally { await f.close(); }
+});
+
 test("validates fixed destination and resolver options", () => {
   const options = { hostname, organizationId, upstreamPort: 12345, resolveBearer: async () => bearer };
   for (const bad of [{ hostname: "http://bad" }, { hostname: "a:443" }, { hostname: "a..b" }, { hostname: "-bad" },

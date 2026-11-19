@@ -8,6 +8,7 @@ const RUN = `/api/v1/runs/${UUID}`;
 const GET_ROUTE = new RegExp(`^(?:/api/v1/(?:capabilities|me)|${SESSION}|${SESSION}/requests/([^/]+)|${SESSION}/commands/${UUID}|${RUN}|${RUN}/command-context|${RUN}/artifacts/${UUID}/content)$`);
 const POST_ROUTE = new RegExp(`^(?:${SESSION}/runs|${RUN}/(?:cancel|commands))$`);
 const METADATA_ROUTE = new RegExp(`^${RUN}/(?:metadata|evidence)(?:\\?after=(0|[1-9][0-9]{0,18})&limit=([1-9][0-9]{0,2}))?$`);
+const CONVERSATION_ROUTE = new RegExp(`^${RUN}/conversation(?:\\?after=[A-Za-z0-9_-]{1,512}&limit=([1-9]|[1-4][0-9]|50))?$`);
 const ENVELOPE = /^DemianWork v1\.[A-Za-z0-9_-]{1,128}\.[A-Za-z0-9_-]{1,16384}\.[A-Za-z0-9_-]{43}$/;
 const RESPONSE_HEADERS = ["content-type", "content-length", "content-encoding", "content-disposition", "content-range", "accept-ranges", "etag", "last-modified", "digest", "content-digest", "x-content-sha256", "x-artifact-sha256"];
 
@@ -21,6 +22,7 @@ function rawValues(req, name) {
 
 function allowedTarget(method, target) {
   if (typeof target !== "string" || target.length > 2048) return false;
+  if (method === "GET" && CONVERSATION_ROUTE.test(target)) return true;
   const metadata = method === "GET" ? METADATA_ROUTE.exec(target) : null;
   if (metadata) return metadata[1] === undefined || BigInt(metadata[1]) <= 9223372036854775807n && Number(metadata[2]) <= 250;
   if (/[?#\\]|\/\/|%2f|%5c/i.test(target)) return false;

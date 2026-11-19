@@ -1,3 +1,4 @@
+import { attemptConversationPageSchema, conversationCursorSchema, nativeConversationPageSchema, type AttemptConversationPage, type ConversationPage } from "../../contracts/conversation.ts";
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import {
@@ -152,6 +153,15 @@ export class DemianClient {
     const response = await this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`);
     const session = z.object({ id: idSchema, workspace_id: idSchema }).parse(await response.json());
     if (session.id !== sessionId) throw new Error("Source Session identity mismatch");
+  }
+  async conversation(runId: string, sessionId: string, after: string, limit = 20): Promise<ConversationPage> {
+    const id = relationUuidSchema.parse(runId), session = relationUuidSchema.parse(sessionId);
+    conversationCursorSchema.parse(after);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 50) throw new SourceError(400);
+    const response = await this.request(`/api/v1/runs/${id}/conversation?after=${after}&limit=${limit}`);
+    const { authority, ...page } = nativeConversationPageSchema.parse(await readBoundedNativeJson(response, this.options.signal));
+    if (authority !== null || page.run.id !== id || page.run.sessionId !== session || page.after !== after || page.limit !== limit) throw new SourceError(503);
+    return page;
   }
   /** One authorized Run only; never reads another Run's Session conversation. */
   async content(runId: string, sessionId: string): Promise<WorkContent> {

@@ -1,4 +1,7 @@
 .work-content-panel { min-width: 0; }
+.conversation-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-block: .75rem; }
+.conversation-actions label { display: inline-flex; align-items: center; gap: .4rem; }
+.conversation-panel .work-message > small { display: block; margin-block-end: .5rem; }
 .work-content-heading h3 { margin-block: .5rem; line-height: 1.4; overflow-wrap: anywhere; }
 .work-reading-section { padding-block: 1rem; border-bottom: 1px solid var(--border, #333); }
 .work-reading-section h4 { margin-block: 0 .65rem; }
