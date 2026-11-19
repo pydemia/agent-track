@@ -1,4 +1,5 @@
 import { DeferredDetails } from "./DeferredDetails.tsx";
+import { SidebarResize } from "./SidebarResize.tsx";
 import { RunWorkContent } from "./NodeWorkContent.tsx";
 import { runWorkTitle } from "../../../packages/projection/work-content-flow.ts";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -132,6 +133,7 @@ export function App() {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [eventsRefresh, setEventsRefresh] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(240);
+  const [sidebarPreviewWidth, setSidebarPreviewWidth] = useState<number | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mapMode, setMapMode] = useState<"relations" | "paths">("relations");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -517,7 +519,7 @@ export function App() {
       : "전체 프로젝트";
   const sidebarExpanded = isMobile ? sidebarOpen : !sidebarCollapsed;
 
-  return <GroupWorkspaceContext.Provider value={{ open: openGroup, actor: snapshot?.user ?? null, onUnauthorized: clearPrivateData }}><div className="app" style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
+  return <GroupWorkspaceContext.Provider value={{ open: openGroup, actor: snapshot?.user ?? null, onUnauthorized: clearPrivateData }}><div className="app" style={{ "--sidebar-width": `${sidebarPreviewWidth ?? sidebarWidth}px` } as CSSProperties}>
     <header className="topbar">
       <button className="sidebar-toggle" ref={sidebarToggle} aria-controls="context-sidebar" aria-label={sidebarExpanded ? "문맥 사이드바 닫기" : "문맥 사이드바 열기"} aria-expanded={sidebarExpanded} title={sidebarExpanded ? "사이드바 접기" : "사이드바 펼치기"} onClick={toggleSidebar}>{sidebarExpanded ? "‹" : "☰"}</button>
       <a className="brand" href="/" aria-label="Agent Track 홈"><span className="brand-mark">A</span><span>Agent <b>Track</b></span></a>
@@ -530,6 +532,7 @@ export function App() {
     </header>
     <div className={`layout ${sidebarOpen ? "drawer-open" : ""} ${sidebarCollapsed ? "sidebar-collapsed" : ""}`}>
       <aside id="context-sidebar" ref={sidebarRef} tabIndex={-1} className="sidebar" aria-label="연결 문맥" aria-labelledby="sidebar-title" role={sidebarOpen ? "dialog" : undefined} aria-modal={sidebarOpen || undefined}>
+        <div className="sidebar-scroll">
         <div className="sidebar-head"><div><span className="overline">WORKSPACE</span><strong id="sidebar-title">실행 문맥</strong></div><button className="close-sidebar" ref={sidebarClose} onClick={closeMobileSidebar} aria-label="사이드바 닫기">×</button></div>
         <div className="context-block"><span className="context-label">사용자</span><strong className="user-name">{snapshot?.user ?? (pageError ? "연결 확인 필요" : "확인 중")}</strong></div>
         <div className="context-block"><span className="context-label">프로젝트 / 저장소</span><strong>{selectedProjectLabel}</strong><small>Run {visibleRuns.length}개 · Assistant 실행 {visibleAssistantCount}개</small></div>
@@ -537,8 +540,9 @@ export function App() {
           {snapshot?.sources.length ? snapshot.sources.map((item) => <div className="source-row" key={item.id}><span>{item.label}</span><SourceState state={item.state} /></div>) : <p className="muted">아직 연결된 출처가 없습니다.</p>}
         </div>
         {run && <div className="context-block selected-context"><span className="context-label">선택한 실행</span><strong>{runWorkTitle(run)}</strong><small>{run.sourceLabel} · {run.device}</small>{originUrl(run.sourceUrl) ? <a className="source-link" href={originUrl(run.sourceUrl)!} target="_blank" rel="noreferrer">원본 세션 열기 ↗</a> : <span className="source-link unsupported-link">원본 세션 링크 미지원</span>}<small>Run 전용 딥링크는 지원되지 않습니다.</small></div>}
-        <label className="width-control">사이드바 너비 <input type="range" min="180" max="360" step="4" value={sidebarWidth} onChange={(event) => saveSidebarWidth(Number(event.target.value))} aria-label="사이드바 너비 조절" /><span>{sidebarWidth}px</span></label>
         <div className="sidebar-footer">업무·시도를 선택해 요청과 응답을 읽습니다.<br />본문은 현재 권한으로 조회하며 Track 원장에 저장하지 않습니다.</div>
+        </div>
+        {!isMobile && !sidebarCollapsed && <SidebarResize key={snapshot?.user ?? "signed-out"} width={sidebarWidth} displayWidth={sidebarPreviewWidth ?? sidebarWidth} onPreview={setSidebarPreviewWidth} onChange={saveSidebarWidth} />}
       </aside>
       {sidebarOpen && <button className="drawer-scrim" aria-label="사이드바 닫기" onClick={closeMobileSidebar} />}
       <main className="main">
