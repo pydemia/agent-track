@@ -1,3 +1,4 @@
+import { attemptConversationPageSchema, conversationCursorSchema, nativeConversationPageSchema, type AttemptConversationPage, type ConversationPage } from "../../contracts/conversation.ts";
 import { createHash } from "node:crypto";
 import { constants, openSync, fstatSync, readSync, closeSync } from "node:fs";
 import { isAbsolute } from "node:path";
@@ -249,6 +250,12 @@ export class AssistantClient {
       throw new AssistantSourceError(400);
     return this.data(`/executions/${executionId}/roles/${roleId}/attempts`,
       assistantRoleAttemptsPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId));
+  }
+  async attemptConversation(executionId: string, roleId: string, attemptId: string, after: string, limit = 20): Promise<AttemptConversationPage> {
+    if (this.protocol !== 2 || ![executionId, roleId, attemptId].every(value => z.uuid().safeParse(value).success) ||
+        !conversationCursorSchema.safeParse(after).success || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new AssistantSourceError(400);
+    return this.data(`/executions/${executionId}/roles/${roleId}/attempts/${attemptId}/conversation?after=${after}&limit=${limit}`,
+      attemptConversationPageSchema.refine(value => value.executionId === executionId && value.roleId === roleId && value.attemptId === attemptId && value.page.after === after && value.page.limit === limit));
   }
   async attemptContent(executionId: string, roleId: string, attemptId: string): Promise<AssistantAttemptContent> {
     if (this.protocol !== 2 || ![executionId, roleId, attemptId].every(value => z.uuid().safeParse(value).success))

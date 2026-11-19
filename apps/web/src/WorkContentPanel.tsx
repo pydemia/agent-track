@@ -4,6 +4,7 @@ import type { MissionNode } from "../../../packages/projection/mission-flow.ts";
 import { runWorkTitle } from "../../../packages/projection/work-content-flow.ts";
 import type { useRunContent } from "./useRunContent.ts";
 import "./work-content.css";
+import { ConversationPanel } from "./ConversationPanel.tsx";
 
 export function ReadableContent({ value }: { value: ContentText }) {
   return <><div className="work-readable" tabIndex={0}>{value.text}</div>{value.truncated && <p className="inline-warning">표시 한도까지 읽은 내용입니다. 전체 본문이 아닙니다.</p>}</>;
@@ -40,5 +41,6 @@ export function WorkContentPanel({ run, read, node }: { run: RunView; read: Retu
       </details>
       <details className="work-identifiers"><summary>출처·식별자</summary><dl><dt>Run</dt><dd>{run.runId}</dd><dt>Session</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>관측</dt><dd>{content.observedAt}</dd></dl></details>
     </>}
+    <ConversationPanel run={run} node={node} enabled={run.sourceState === "connected" && !run.stale} />
   </section>;
 }

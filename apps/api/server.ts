@@ -1,3 +1,5 @@
+import { conversationCursorSchema } from "../../packages/contracts/conversation.ts";
+import { runConversation } from "./run-conversation.ts";
 import { withReadOrigin } from "./read-diagnostics.ts";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { readFile } from "node:fs/promises";
@@ -157,6 +159,33 @@ export function createTrackServer(store: Store, config: () => Config, webRoot: s
           const key = contentRead[1]!, row = store.run(key);
           const source = config().sources.find(item => item.id === row?.source_id && item.users.includes(user));
           const read = () => runContent(config, snapshot, sources, user, key, controller.signal);
+          // The protected collector removes its grant while checking a new
+          // window. Use the same bounded admission/lease as Native evidence;
+          // a periodic collection cannot erase scope halfway through this read.
+          if (source?.assistantNativeSourceId) {
+            await sources.projects.refresh(user);
+            if (!sources.assistantNative.hasFreshReadView(source, user))
+              await sources.assistantNative.refresh(user, source.id);
+          }
+          const value = source?.assistantNativeSourceId
+            ? await sources.assistantNative.withStableView(user, source.id, read) : await read();
+          if (authenticate(request, config()) !== user) { json(response, 401, { error: "authentication_required" }); return; }
+          if (!response.destroyed) json(response, 200, value);
+        } finally { request.removeListener("aborted", cancel); response.removeListener("close", cancel); }
+        return;
+      }
+      const conversationRead = /^\/api\/runs\/([A-Za-z0-9_-]+)\/conversation$/.exec(url.pathname);
+      if (conversationRead) {
+        if (request.method !== "GET") { json(response, 405, { error: "read_only_conversation" }); return; }
+        if (!/^\?after=[A-Za-z0-9_-]{1,512}&limit=([1-9]|[1-4][0-9]|50)$/.test(url.search) || !conversationCursorSchema.safeParse(url.searchParams.get("after")).success || request.headers["transfer-encoding"] || Number(request.headers["content-length"] ?? 0) !== 0) {
+          json(response, 400, { error: "invalid_conversation_query" }); return;
+        }
+        const controller = new AbortController(), cancel = () => { if (!response.writableEnded) controller.abort(); };
+        request.once("aborted", cancel); response.once("close", cancel);
+        try {
+          const key = conversationRead[1]!, row = store.run(key);
+          const source = config().sources.find(item => item.id === row?.source_id && item.users.includes(user));
+          const read = () => runConversation(config, snapshot, sources, user, key, url.searchParams.get("after")!, Number(url.searchParams.get("limit")), controller.signal);
           // The protected collector removes its grant while checking a new
           // window. Use the same bounded admission/lease as Native evidence;
           // a periodic collection cannot erase scope halfway through this read.
