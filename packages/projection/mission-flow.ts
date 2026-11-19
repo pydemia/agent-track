@@ -138,15 +138,19 @@ export function missionFlow(
   for (const run of roleRuns) { eligibleRuns.push(run); actualRunNode(run); }
   let taskNode: MissionNode | undefined;
   const binding = selected.binding;
-  if (mode === "mission" && binding?.taskId && binding.sourceId === selected.sourceId && binding.runId === selected.runId) {
+  if (mode === "mission" && selected.sourceState === "connected" && !selected.stale && binding?.taskId && binding.sourceId === selected.sourceId && binding.runId === selected.runId) {
     taskNode = getNode(binding.projectSourceId, "task", binding.taskId, binding.taskTitle || "연결된 업무", "bound", "선택 실행의 명시적 작업 연결");
     taskNode.taskRef = { sourceId: binding.projectSourceId, projectId: binding.projectId, taskId: binding.taskId };
     addDetail(taskNode, "프로젝트 ID", binding.projectId); addDetail(taskNode, "프로젝트 이름", binding.projectTitle); addDetail(taskNode, "프로젝트 출처", binding.projectSourceId);
     addDetail(taskNode, "업무 ID", binding.taskId); addDetail(taskNode, "연결 당시 업무 revision", binding.taskRevision);
     addDetail(taskNode, "바인딩", binding.provenance);
     addEdge(binding.projectSourceId, taskNode, root, "task-binding", "작업 연결", `${binding.projectTitle} · ${binding.provenance}`);
-    const matches = runs.filter((run) => run.key !== selected.key && run.binding?.taskId === binding.taskId &&
-      run.binding.projectId === binding.projectId && run.binding.projectSourceId === binding.projectSourceId);
+    // A Native Task label must not widen a selected role's historical scope.
+    // Only operator bindings intentionally combine separately observed roles.
+    const matches = binding.provenance === "operator" ? runs.filter((run) => run.key !== selected.key &&
+      run.sourceState === "connected" && !run.stale && run.binding?.taskId === binding.taskId &&
+      run.binding.sourceId === run.sourceId && run.binding.runId === run.runId &&
+      run.binding.projectId === binding.projectId && run.binding.projectSourceId === binding.projectSourceId) : roleRuns;
     eligibleRuns.push(...matches.filter(run => !eligibleRuns.some(item => item.key === run.key)));
     for (const run of matches) addEdge(run.sourceId, taskNode, actualRunNode(run), "task-binding", "같은 작업", `${run.binding?.taskTitle || binding.taskTitle || binding.taskId} · ${run.binding?.provenance ?? "연결 기록"}`);
   }
