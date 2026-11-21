@@ -7,9 +7,9 @@ import { PrivateReadError } from "./private-json.ts";
 export interface RelationWindow { kind: SessionRelationKind; pages: SessionRelationsEvidence[]; loading: boolean; failed: boolean }
 const kinds = ["managed-children", "peer-processing"] as const;
 
-export function useSessionRelations(actor: string, run: RunView, runs: RunView[], onUnauthorized: (reason: string) => void) {
+export function useSessionRelations(actor: string, run: RunView, runs: RunView[], onUnauthorized: (reason: string) => void, requested = true) {
   const native = run.capabilities.includes("session.link");
-  const enabled = native && run.sourceState === "connected" && !run.stale;
+  const enabled = requested && native && run.sourceState === "connected" && !run.stale;
   const identity = JSON.stringify([actor, run.key, run.sourceId, run.sessionId, enabled,
     runs.filter(item => item.sourceId === run.sourceId && item.sessionId === run.sessionId).map(item =>
       [item.key, item.sourceState, item.stale, item.binding?.projectSourceId, item.binding?.projectId, item.binding?.taskId]).sort()]);

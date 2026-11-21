@@ -6,6 +6,8 @@ import { RunContentLinks } from "./ExecutionContentLinks.tsx";
 import { WorkContentPanel } from "./WorkContentPanel.tsx";
 import { useRunContent } from "./useRunContent.ts";
 import { withWorkContent } from "../../../packages/projection/work-content-flow.ts";
+import { focusedFlow, readingFlow, withConversationLabels } from "../../../packages/projection/conversation-reading.ts";
+import { useConversationWindow } from "./useConversationWindow.ts";
 import { missionFlow, missionUnitKind } from "../../../packages/projection/mission-flow.ts";
 import { missionNodeOrder } from "../../../packages/projection/mission-order.ts";
 import { withNativeLineage } from "../../../packages/projection/lineage-flow.ts";
@@ -56,25 +58,33 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   const [fitVersion, setFitVersion] = useState(0);
   const [filter, setFilter] = useState("");
   const [technicalOpen, setTechnicalOpen] = useState(false);
-  const lineage = useNativeLineage(run, onUnauthorized);
-  const nativeEvidence = useNativeRunEvidence(actor, run, onUnauthorized, technicalOpen);
-  const tools = useToolEvidence(run, onUnauthorized, actor);
-  const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized);
-  const artifacts = useArtifactEvidence(actor, run, onUnauthorized);
+  const [technicalNodes, setTechnicalNodes] = useState(false);
   const detailRun = runs.find(item => item.key === choice?.runKey) ?? run;
   const content = useRunContent(actor, detailRun, onUnauthorized);
+  const lineage = useNativeLineage(run, onUnauthorized, technicalOpen || technicalNodes);
+  const nativeEvidence = useNativeRunEvidence(actor, run, onUnauthorized, technicalOpen);
+  const tools = useToolEvidence(run, onUnauthorized, actor, mode === "execution" || technicalOpen || technicalNodes);
+  const sessionRelations = useSessionRelations(actor, run, runs, onUnauthorized, mode === "mission" || technicalOpen || technicalNodes);
+  const artifacts = useArtifactEvidence(actor, run, onUnauthorized, mode === "mission" || technicalOpen || technicalNodes);
+  const journal = useConversationWindow(actor, detailRun, undefined, content.value?.state === "connected", onUnauthorized);
   const rawModel = useMemo(() => withArtifactEvidence(withSessionRelations(withNativeRunEvidence(withNativeLineage(withModelRequests(withToolEvidence(missionFlow(run, runs, relations, events, { mode, maxNodes: 160, hasMoreEvents: hasMore, includeExecution: true }), run, tools.page), run, tools.page), run,
     lineage.observations, lineage.hasMore || lineage.capped), run, nativeEvidence.records, nativeEvidence.hasMore || nativeEvidence.native && nativeEvidence.state !== "connected"), run, runs, sessionRelations.evidence), run, artifacts.evidence), [run, runs, relations, events, mode, hasMore, tools.page, lineage.observations, lineage.hasMore, lineage.capped, nativeEvidence.records, nativeEvidence.hasMore, nativeEvidence.native, nativeEvidence.state, sessionRelations.evidence, artifacts.evidence]);
-  const fullModel = useMemo(() => scopeNodeKeys ? rawModel : withWorkContent(rawModel, detailRun, content.value?.content ?? null), [rawModel, scopeNodeKeys, detailRun, content.value]);
-  const model = useMemo(() => scopeNodeKeys ? groupModelSubset(fullModel, scopeNodeKeys) : fullModel, [fullModel, scopeNodeKeys]);
+  const fullModel = useMemo(() => withConversationLabels(scopeNodeKeys ? rawModel : withWorkContent(rawModel, detailRun, content.value?.content ?? null), detailRun, journal.value), [rawModel, scopeNodeKeys, detailRun, content.value, journal.value]);
+  const model = useMemo(() => readingFlow(scopeNodeKeys ? groupModelSubset(fullModel, scopeNodeKeys) : fullModel, mode, technicalNodes), [fullModel, scopeNodeKeys, mode, technicalNodes]);
   const chooseNode = useCallback((key: string) => setChoice((old) => old?.kind === "node" && old.key === key ? old : { kind: "node", key,
     ...(fullModel.nodes.find(node => node.key === key)?.runKey ? { runKey: fullModel.nodes.find(node => node.key === key)!.runKey! } : {}) }), [fullModel]);
   const chooseEdge = useCallback((key: string) => setChoice((old) => old?.kind === "edge" && old.key === key ? old : { kind: "edge", key }), []);
   const grouping = useFlowGrouping(model, { scopeKey: `${actor}:${run.key}:${mode}`, defaultBy: mode === "execution" ? "run" : run.binding?.taskId ? "task" : "session",
-    defaultDepth: mode === "execution" ? "detail" : "structure", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
+    defaultDepth: "structure", structureRunsExpanded: mode === "execution", chooseNode, chooseEdge, selection: choice, clearSelection: () => setChoice(null) });
   const selectedNode = grouping.inspectNodes.find((node) => choice?.kind === "node" && choice.key === node.key);
   const selectedEdge = grouping.inspectEdges.find((edge) => choice?.kind === "edge" && choice.key === edge.key);
   const selectedGroup = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
+  const groupInvocation = selectedGroup && ["invocation", "invocation-reference"].includes(selectedGroup.kind)
+    ? fullModel.nodes.find(node => node.kind === "invocation" && selectedGroup.memberKeys.includes(node.key)) : undefined;
+  useEffect(() => {
+    if (choice?.kind === "node" && groupInvocation?.runKey && choice.runKey !== groupInvocation.runKey)
+      setChoice({ ...choice, runKey: groupInvocation.runKey });
+  }, [choice, groupInvocation?.runKey]);
   useEffect(() => {
     if (choice && !selectedNode && !selectedEdge && !selectedGroup && !content.busy) setChoice(null);
   }, [choice, selectedNode, selectedEdge, selectedGroup, content.busy]);
@@ -85,19 +95,25 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   const topology = JSON.stringify([model.nodes.map((node) => node.key).sort(),
     model.edges.map((edge) => [edge.key, edge.from, edge.to]).sort((a, b) => a[0]!.localeCompare(b[0]!))]);
   const graph = useMemo(() => {
-    const nodes: FlowNode[] = grouping.projection.nodes.map((node) => grouping.decorate(node, { id: node.key, type: "pyd-flow-node", position: { x: 0, y: 0 },
+    const focus = focusedFlow(grouping.projection.nodes, grouping.projection.edges, grouping.projection.parents, grouping.projection.groups, grouping.activeFocus, grouping.focusNodeIds);
+    const visible = new Set(focus.nodes.map(node => node.key));
+    const nodes: FlowNode[] = focus.nodes.map((node) => {
+      const decorated = grouping.decorate(node, { id: node.key, type: "pyd-flow-node", position: { x: 0, y: 0 },
       selected: selectedNode?.key === node.key, width: 240, height: 136, style: { width: 240, height: 136 },
       ariaLabel: `${kinds[missionUnitKind(node)] ?? node.kind} · ${node.label} · ${statuses[node.status] ?? node.status}`,
       data: { title: node.label, description: node.description, kindLabel: kinds[missionUnitKind(node)] ?? node.kind, statusLabel: statuses[node.status] ?? node.status,
-        kind: node.kind === "permission" ? "condition" : node.kind === "artifact" ? "result" : node.kind === "task" ? "trigger" : "action", status: cardStatus(node.status) } }));
-    const edges: FlowEdge[] = grouping.projection.edges.map((edge) => ({ id: edge.key, source: edge.from, target: edge.to, type: "pyd-flow-edge",
+        kind: node.kind === "permission" ? "condition" : node.kind === "artifact" ? "result" : node.kind === "task" ? "trigger" : "action", status: cardStatus(node.status) } });
+      if (decorated.parentId && !visible.has(decorated.parentId)) { const { parentId: _parent, extent: _extent, ...root } = decorated; return root; }
+      return decorated;
+    });
+    const edges: FlowEdge[] = focus.edges.map((edge) => ({ id: edge.key, source: edge.from, target: edge.to, type: "pyd-flow-edge",
       label: edge.label, selected: selectedEdge?.key === edge.key, className: `mission-edge-${edge.kind}`,
       ariaLabel: `${edge.label} · ${edge.detail}`, markerEnd: { type: MarkerType.ArrowClosed, color: "var(--flow-edge)" } }));
     // Hierarchy sets the columns; chronology connects siblings without pushing
     // every tool into another column or turning record order into dependency.
     const order = missionNodeOrder(model);
     return layoutGroupedFlow(nodes, edges, order);
-  }, [model, grouping.projection, selectedNode?.key, selectedEdge?.key]);
+  }, [model, grouping.projection, grouping.activeFocus, grouping.focusNodeIds, selectedNode?.key, selectedEdge?.key]);
   const onNodesChange = useCallback((changes: NodeChange<FlowNode>[]) => { const selected = changes.find((change) => change.type === "select" && change.selected); if (selected?.type === "select") chooseNode(selected.id); }, [chooseNode]);
   const onEdgesChange = useCallback((changes: EdgeChange<FlowEdge>[]) => { const selected = changes.find((change) => change.type === "select" && change.selected); if (selected?.type === "select") chooseEdge(selected.id); }, [chooseEdge]);
   const neighbours = selectedNode ? model.edges.filter((edge) => edge.from === selectedNode.key || edge.to === selectedNode.key) : [];
@@ -106,6 +122,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
   return <section className="mission-flow" aria-label={mode === "execution" ? "Trace 실행 흐름" : "업무와 Agent 협업 흐름"}>
     <div className="flow-heading"><div><h2>{mode === "execution" ? "실행 안의 Agent·도구·승인 흐름" : "업무와 Agent 협업 흐름"}</h2><p>{mode === "execution" ? "호출 구조와 기록 순서를 따라가며 실행 근거를 확인합니다." : "업무 연결·세션·위임·협업을 관계의 종류별로 따라갑니다."}</p></div><button className="text-button" onClick={() => { grouping.fitAll(); setFitVersion((value) => value + 1); }}>전체 흐름 맞춤</button></div>
     <div className="flow-semantics" aria-label="연결선 의미"><span>실선 · 명시된 관계</span><span>점선 · 소속 또는 업무 연결</span><span>기록 순서 · 인과·의존 보장 아님</span><span>{model.nodes.length}개 node · {model.edges.length}개 edge</span></div>
+    <label className="flow-technical-toggle"><input type="checkbox" checked={technicalNodes} onChange={event => setTechnicalNodes(event.target.checked)} />모델 요청·기술 근거까지 표시</label>
     {scopeNodeKeys && <p className="graph-legend">선택한 하위 묶음의 관측 항목만 표시합니다. 현재 조회에서 찾지 못한 항목은 전체 실행으로 넓히지 않습니다. 전체 원장 근거는 아래에서 별도로 확인할 수 있습니다.</p>}
     <details className="flow-source-evidence" onToggle={event => setTechnicalOpen(event.currentTarget.open)}><summary>모델·도구·산출물의 추가 근거</summary>
     {technicalOpen && <>
@@ -129,7 +146,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
         onGroupToggle={grouping.toggle} onGroupEnter={grouping.enter} {...grouping.canvasProps}
         height="clamp(560px, 72vh, 740px)" className="mission-flow-canvas" readOnly />
       <aside className="flow-inspector" aria-label="선택한 node 또는 edge 상세" aria-live="polite">
-        {selectedGroup ? <FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small>
+        {selectedGroup ? <>{groupInvocation && groupInvocation.runKey === detailRun.key && <WorkContentPanel run={detailRun} read={content} node={groupInvocation} />}<FlowGroupInspector group={selectedGroup} state={grouping} nodes={fullModel.nodes} edges={fullModel.edges} /></> : selectedNode ? <><small>{kinds[missionUnitKind(selectedNode)] ?? selectedNode.kind} · {statuses[selectedNode.status] ?? selectedNode.status}</small>
           {!selectedNode.runKey && <><h3>{selectedNode.label}</h3><p>{selectedNode.description}</p></>}
           {(selectedNode.runKey === detailRun.key || selectedNode.kind === "run" && selectedNode.id === detailRun.runId) && <WorkContentPanel run={detailRun} read={content} node={selectedNode} />}
           {selectedNode.kind === "task" && selectedNode.taskRef && <NodeWorkContent key={selectedNode.key} sources={sources} node={selectedNode} runs={runs} />}

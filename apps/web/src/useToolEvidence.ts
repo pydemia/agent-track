@@ -7,11 +7,11 @@ import { parseToolEvidenceReply } from "./tool-evidence-reply.ts";
 type ScopedToolEvidencePage = ToolEvidencePage & ModelRequestEvidence & { runKey: string };
 type EvidenceState = { actor: string; sourceId: string; runKey: string; authScope: (reason: string) => void; page: ScopedToolEvidencePage };
 
-export function useToolEvidence(run: RunView, onUnauthorized: (reason: string) => void, actor = run.sourceId) {
+export function useToolEvidence(run: RunView, onUnauthorized: (reason: string) => void, actor = run.sourceId, requested = true) {
   const [state, setState] = useState<EvidenceState | null>(null); const [detail, setDetail] = useState("원본 도구 근거 조회 전입니다.");
   const native = run.capabilities.includes("session.link");
   useEffect(() => {
-    if (!native || run.sourceState !== "connected" || run.stale) { setState(null); return; }
+    if (!requested || !native || run.sourceState !== "connected" || run.stale) { setState(null); return; }
     const controller = new AbortController(); let timer: ReturnType<typeof setTimeout>;
     async function read() {
       try {
@@ -25,7 +25,7 @@ export function useToolEvidence(run: RunView, onUnauthorized: (reason: string) =
       finally { if (!controller.signal.aborted) timer = setTimeout(() => void read(), 15_000); }
     }
     void read(); return () => { controller.abort(); clearTimeout(timer); };
-  }, [run.key, run.sourceId, run.sourceState, run.stale, native, onUnauthorized, actor]);
+  }, [run.key, run.sourceId, run.sourceState, run.stale, native, onUnauthorized, actor, requested]);
   const scoped = state && state.actor === actor && state.sourceId === run.sourceId && state.runKey === run.key && state.authScope === onUnauthorized ? state.page : null;
-  return { native, page: native && run.sourceState === "connected" && !run.stale ? scoped : null, detail };
+  return { native, page: requested && native && run.sourceState === "connected" && !run.stale ? scoped : null, detail };
 }

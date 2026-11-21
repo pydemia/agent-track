@@ -58,7 +58,7 @@ export function withWorkContent(base: MissionFlow, run: RunView, content: WorkCo
     previous = node;
   }
   if (content.result) {
-    const result = add("work-response", "response", readableTitle(content.result.text, "작업 결과·응답"), "실제 응답을 Track에서 읽기", "observed");
+    const result = add("work-response", "response", `${runWorkTitle(run)} · 응답`, "실제 응답을 Track에서 읽기", "observed");
     edge(root, result, "work-response", "응답", "이 실행 시도에서 읽은 실제 응답입니다. 다른 시도의 결과를 붙이지 않습니다.");
   }
   if (content.failure) {

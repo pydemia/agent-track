@@ -11,11 +11,11 @@ const schema = z.object({ state: z.enum(["connected", "disconnected", "forbidden
 type State = { observations: NativeLineageObservation[]; cursor: string; hasMore: boolean; capped: boolean; state: string; detail: string };
 const empty = (): State => ({ observations: [], cursor: "0", hasMore: false, capped: false, state: "unknown", detail: "Native lineage 조회 전입니다." });
 
-export function useNativeLineage(run: RunView, onUnauthorized: (reason: string) => void) {
+export function useNativeLineage(run: RunView, onUnauthorized: (reason: string) => void, requested = true) {
   const [state, setState] = useState<State>(empty); const current = useRef<State>(empty()); const [refresh, setRefresh] = useState(0);
   const native = run.capabilities.includes("session.link");
   useEffect(() => {
-    if (!native || run.sourceState !== "connected") { current.current = empty(); setState(current.current); return; }
+    if (!requested || !native || run.sourceState !== "connected") { current.current = empty(); setState(current.current); return; }
     const controller = new AbortController(); let timer: ReturnType<typeof setTimeout>;
     async function read() {
       if (current.current.capped) return;
@@ -37,7 +37,7 @@ export function useNativeLineage(run: RunView, onUnauthorized: (reason: string) 
       finally { if (!controller.signal.aborted) timer = setTimeout(() => void read(), 15_000); }
     }
     void read(); return () => { controller.abort(); clearTimeout(timer); };
-  }, [run.key, run.sourceState, native, onUnauthorized, refresh]);
-  return { ...state, observations: native && run.sourceState === "connected" ? state.observations : [], native,
+  }, [run.key, run.sourceState, native, onUnauthorized, refresh, requested]);
+  return { ...state, observations: requested && native && run.sourceState === "connected" ? state.observations : [], native,
     more: () => setRefresh((value) => value + 1) };
 }

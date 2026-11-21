@@ -1,10 +1,17 @@
 import type { EventView, RunView } from "../../../packages/contracts/index.ts";
 import { projectTrace } from "../../../packages/projection/trace.ts";
 import { useToolEvidence } from "./useToolEvidence.ts";
+import { useContext } from "react";
+import { GroupWorkspaceContext } from "./group-workspace-context.ts";
+import { useConversationWindow } from "./useConversationWindow.ts";
+import { ConversationPanel } from "./ConversationPanel.tsx";
+import { runWorkTitle } from "../../../packages/projection/work-content-flow.ts";
 
 const compare = (a: string, b: string) => a.length - b.length || a.localeCompare(b);
 export function ActivityTrail({ run, events, hasMore, onTrace, onUnauthorized, scopeSequences }: { run: RunView; events: EventView[]; hasMore: boolean; onTrace: () => void; onUnauthorized: (reason: string) => void; scopeSequences?: ReadonlySet<string> }) {
   const tools = useToolEvidence(run, onUnauthorized);
+  const context = useContext(GroupWorkspaceContext);
+  const journal = useConversationWindow(context?.actor ?? null, run, undefined, !scopeSequences, onUnauthorized);
   const scoped = events.filter((event) => event.sourceId === run.sourceId && event.runId === run.runId);
   const trace = projectTrace(run, scoped); const calls = [...trace.steps.flatMap((step) => step.tools), ...trace.unassigned];
   const grouped = new Set(calls.flatMap((call) => call.sequences));
@@ -39,11 +46,14 @@ export function ActivityTrail({ run, events, hasMore, onTrace, onUnauthorized, s
     items.push({ key: event.key, sequence: event.sequence, title, detail: fields.join(" · ") || event.type, at: event.occurredAt, evidence: event.sequence });
   }
   items.sort((a, b) => compare(a.sequence, b.sequence));
-  return <section className="activity-trail" aria-label="업무 경과와 실행 흔적"><div className="section-heading"><div><h2>업무 경과와 실행 흔적</h2><p>{run.binding?.taskTitle ?? run.title ?? run.runId}</p></div><button className="text-button" onClick={onTrace}>Trace에서 실행 구조 보기</button></div>
+  return <section className="activity-trail" aria-label="업무 경과와 실행 흔적"><div className="section-heading"><div><h2>업무 경과와 실행 흔적</h2><p>{runWorkTitle(run)}</p></div><button className="text-button" onClick={onTrace}>Trace에서 실행 구조 보기</button></div>
     <p className="graph-legend">무엇이 요청되고 바뀌었는지 시간순으로 확인합니다. 승인·도구의 완료 보고와 업무 검증·수용은 별도입니다.</p>
+    {!scopeSequences ? <ConversationPanel read={journal} /> : <p className="graph-legend">선택한 묶음의 상태 변경 근거를 표시합니다. 대화·도구 원문은 Trace의 해당 Agent·도구를 선택해 정확한 호출 범위에서 읽으세요.</p>}
+    <details className="trail-state-evidence"><summary>상태 변경·도구 실행 근거 · {items.length}개</summary>
     {tools.native && <p className="graph-legend">{tools.page ? `원본 도구 결과 ${nativeCalls.length}건${scopeSequences ? " · 선택한 하위 범위와 sequence로 연결된 결과" : ""} · ${tools.page.complete ? "Run 도구 조회 완료" : "부분 조회"}` : tools.detail}</p>}
     {!scopeSequences && !!tools.page?.unidentifiedEvents && <p className="inline-warning">호출 ID가 없어 묶지 못한 원본 도구 이벤트 {tools.page.unidentifiedEvents}건이 있습니다.</p>}
     {(hasMore || run.incomplete) && <p className="inline-warning">아직 읽지 않았거나 수집되지 않은 경과가 있습니다.</p>}
     {items.length ? <ol className="event-list">{items.map((item) => <li key={item.key}><div className="event-marker" aria-hidden="true" /><div className="event-content"><div className="event-title"><strong>{item.title}</strong>{item.at && <time>{new Date(item.at).toLocaleString("ko-KR")}</time>}</div><p>{item.detail}</p><small>근거 seq {item.evidence}</small></div></li>)}</ol> : <p className="empty-inline">이 조회 범위에 작업 경과로 해석할 수 있는 근거가 없습니다. 아래 원본 이벤트의 범위·연결 상태도 확인하세요.</p>}
+    </details>
   </section>;
 }

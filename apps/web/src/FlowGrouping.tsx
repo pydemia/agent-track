@@ -27,7 +27,7 @@ const summary = (group: FlowGroupSummary) => Object.entries(countNames).filter((
   .map(([kind, label]) => `${label} ${group.counts[kind]}`).join(" · ") || `${group.leafKeys.length}개 항목`;
 
 export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdge[]; incomplete?: boolean }, input: {
-  scopeKey: string; defaultBy: FlowGroupBy; defaultDepth?: Depth; chooseNode: (key: string) => void; chooseEdge: (key: string) => void;
+  scopeKey: string; defaultBy: FlowGroupBy; defaultDepth?: Depth; structureRunsExpanded?: boolean; chooseNode: (key: string) => void; chooseEdge: (key: string) => void;
   selection?: FlowNavigationSelection | null; clearSelection?: () => void;
 }) {
   const workspace = useContext(GroupWorkspaceContext);
@@ -62,8 +62,13 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
   const collapsed = useMemo(() => new Set(definitions.filter(group => {
     if (sameScope && overrides.has(group.key)) return overrides.get(group.key);
     const current = sameScope ? depth : options.defaultDepth ?? "structure";
-    return current === "overview" || current === "structure" && ["run", "invocation", "cowork", "cowork-member", "assistant-execution", "assistant-work-package", "peer-conversation-context"].includes(group.kind);
-  }).map(group => group.key)), [definitions, overrides, depth, sameScope, options.defaultDepth]);
+    if (current === "overview") return true;
+    if (current !== "structure") return false;
+    if (group.kind === "run") return !options.structureRunsExpanded;
+    // Keep the coordinator visible; nested Agents become meaningful bundles.
+    if (options.structureRunsExpanded && ["invocation", "invocation-reference"].includes(group.kind) && definitions.find(parent => parent.key === group.parentKey)?.kind === "run") return false;
+    return ["invocation", "invocation-reference", "cowork", "cowork-member", "assistant-execution", "assistant-work-package", "peer-conversation-context"].includes(group.kind);
+  }).map(group => group.key)), [definitions, overrides, depth, sameScope, options.defaultDepth, options.structureRunsExpanded]);
   const projection = useMemo(() => projectFlowGroups(model, definitions, collapsed), [model, definitions, collapsed]);
   const groupByKey = useMemo(() => new Map(projection.groups.map(group => [group.key, group])), [projection]);
   const activeFocus = sameScope && focusKey && groupByKey.has(focusKey) ? focusKey : null;
@@ -286,7 +291,7 @@ function FlowGroupContextDetails({ group, state, nodes, edges }: { group: FlowGr
     {context.dependencies.length ? <><p>원본의 업무 또는 협업 멤버 의존 관계입니다. 현재 실행 차단 여부나 업무 수용 판정은 별도입니다.</p><GroupEvidenceChoices>{context.dependencies.map(item => { const from = nodeByKey.get(item.fromKey)!, to = nodeByKey.get(item.toKey)!; return <button key={item.edgeKey} type="button" className="flow-list-choice" onClick={() => state.revealEdge(item.edgeKey)}><strong>{from.label} → {to.label}</strong><span>{from.kind === "member" ? "멤버 선행" : "업무 선행"} · {directionNames[item.direction]} · {groupStatusLabel(from.kind, from.status)} → {groupStatusLabel(to.kind, to.status)}</span></button>; })}</GroupEvidenceChoices></> : <p>현재 조회 범위에서 명시된 업무·멤버 의존 관계가 없습니다. 누락된 선행 조건은 확인할 수 없습니다.</p>}
     <h4>산출물 근거 · {context.artifacts.length}개</h4>
     {context.artifacts.length ? <><p>관측된 metadata와 Run 관계입니다. 파일 내용 검증·업무 수용은 별도입니다.</p><GroupEvidenceChoices>{context.artifacts.map(item => { const node = nodeByKey.get(item.nodeKey)!; return <button key={item.nodeKey} type="button" className="flow-list-choice" onClick={() => state.revealNode(item.nodeKey)}><strong>{node.label}</strong><span>{artifactNames[item.relationship]} · {node.sourceId}</span></button>; })}</GroupEvidenceChoices></> : <p>이 묶음에서 관측한 산출물 metadata가 없습니다.</p>}
-    <h4>목적·입력·수용 조건</h4><p>현재 읽기 계약에는 원본 목적·입력·수용 조건이 제공되지 않습니다. 업무 제목·화면 묶음 이름은 위 구성에서 확인할 수 있습니다.</p>
+    <h4>목적·입력·수용 조건</h4><p>구성 항목을 선택하면 해당 업무·Agent·도구에 귀속된 본문을 읽을 수 있습니다. 묶음 이름이나 단위별 상태를 업무의 목적·수용 판정으로 대신하지 않습니다.</p>
   </section>;
 }
 

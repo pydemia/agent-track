@@ -1,5 +1,6 @@
 import type { RelationView, RunView } from "../../../packages/contracts/index.ts";
 import { missionOverview } from "../../../packages/projection/mission-overview.ts";
+import { runWorkTitle } from "../../../packages/projection/work-content-flow.ts";
 
 export function MissionOverview({ runs, relations, selected, onSelect, onMap, onTaskMap }: { runs: RunView[]; relations: RelationView[]; selected: string;
   onSelect: (key: string) => void; onMap: (key: string) => void; onTaskMap: (sourceId: string, projectId: string, taskId: string) => void }) {
@@ -13,7 +14,7 @@ export function MissionOverview({ runs, relations, selected, onSelect, onMap, on
       <p>{mission.runs.length}개 고유 Run · {mission.sessions}개 세션 · 장치 표기 {mission.devices.length}종 · {mission.sources.join(" / ")}</p>
       <p className="mission-state">실행 중·대기 {mission.active} · 결정 필요 {mission.decisions} · 실패·중단 관측 {mission.failed} · 관측 확인 필요 {mission.uncertain}</p>
       <p className="graph-legend">{mission.childRelations || mission.peerRelations ? `명시된 하위 실행 관계 ${mission.childRelations}건 · peer ${mission.peerRelations}건` : "이 업무에 연결된 하위 실행·peer 관계는 아직 관측되지 않았습니다."}</p>
-      <details open={mission.runs.some((run) => run.key === selected)}><summary>연결된 세션·Run 보기</summary><div className="mission-run-list">{mission.runs.map((run) => <button className="flow-list-choice" key={run.key} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected}><strong>{run.title || run.runId}</strong><span>{run.sourceLabel} · {run.device} · Session {run.sessionId} · Run {run.runId}</span></button>)}</div></details>
+      <details open={mission.runs.some((run) => run.key === selected)}><summary>연결된 세션·Run 보기</summary><div className="mission-run-list">{mission.runs.map((run) => <button className="flow-list-choice" key={run.key} onClick={() => onSelect(run.key)} aria-pressed={run.key === selected}><strong>{run.assistantAttempt ? `시도 ${run.assistantAttempt.ordinal} · ` : ""}{runWorkTitle(run)}</strong><span>{run.sourceLabel} · {run.device} · {run.status === "succeeded" ? "성공 종료 · 수용 별도" : run.status === "failed" ? "실패 종료" : run.status === "cancelled" ? "취소 종료" : run.status}</span></button>)}</div></details>
     </article>)}</div> : <p className="empty-inline">현재 조건에 원본 업무와 연결된 실행이 없습니다. Projects 업무를 선택해 기존 Run과 명시적으로 연결하면 세션을 가로질러 묶입니다.</p>}
     <p className="graph-legend">업무 미연결 Run {unbound}개는 아래 실행 목록에서 확인할 수 있습니다.</p>
   </section>;
