@@ -15,6 +15,7 @@ import { ArtifactEvidencePanel } from "./ArtifactEvidencePanel.tsx";
 import { FileEvidencePanel } from "./FileEvidencePanel.tsx";
 import { MissionOverview } from "./MissionOverview.tsx";
 import "./mission-flow.css";
+import "./work-content.css";
 import { ActivityTrail } from "./ActivityTrail.tsx";
 import { RunControls } from "./RunControls.tsx";
 import { removeDeniedTaskContext, removeDeniedTaskQuery, type TaskMapContext } from "./task-map-context.ts";
