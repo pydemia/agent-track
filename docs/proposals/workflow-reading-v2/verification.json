@@ -1,0 +1,43 @@
+{
+  "revision": "R1",
+  "observedAt": "2026-11-20T05:24:27.964Z",
+  "prototypeOnly": true,
+  "actualFlowCanvasReused": true,
+  "checks": [
+    "selected child summary is shown first",
+    "group enter/collapse/expand",
+    "keyboard choice and scoped tool",
+    "Map separates membership from execution ordering",
+    "failed attempt does not inherit other output or tools",
+    "900 and 390 widths do not overflow; mobile starts with Trail"
+  ],
+  "jsErrors": [],
+  "networkCalls": 0,
+  "operatingCodeChanged": false,
+  "limitations": [
+    "Prototype text reconstructs a verified example; it is not raw source conversation.",
+    "No production API, new scope reader, Markdown renderer or deployment verification.",
+    "Manual screen-reader and user comprehension checks are pending."
+  ],
+  "sourceHashes": {
+    "apps/web/src/ui/flow-canvas.tsx": "afa9ae18f80cd21ce72c19901f8f220bb96e1f4feb59e71e6ab073c476b25804",
+    "apps/web/src/ui/flow-canvas.css": "7ac007abf34ac9a2aaa6896a346b20a3d2467169d7f0cf72342322a5c715ae99",
+    "apps/web/public/favicon.ico": "6af425f8610da4c193b288354476ecb745f45a17db685831e0a0791058167bbb"
+  },
+  "registry": {
+    "pyd-flow-canvas": {
+      "status": 200,
+      "sha256": "b53ea292ed034b9fddbe3ab06f768f6c129e0c77d5e8e79db8d3d09f2df2b6df",
+      "dependencies": [
+        "@xyflow/react@12.12.0"
+      ],
+      "registryDependencies": [
+        "https://pydemia-ui.vercel.app/r/pyd-flow-alignment.json"
+      ]
+    },
+    "pyd-tokens": {
+      "status": 200,
+      "sha256": "a29e82f4844493867d7e6e2e99a271a2570816c40e9a5f18026d26ad880e943c"
+    }
+  }
+}

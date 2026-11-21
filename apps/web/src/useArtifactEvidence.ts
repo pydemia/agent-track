@@ -3,9 +3,9 @@ import type { ArtifactEvidence, RunView } from "../../../packages/contracts/inde
 import { fetchArtifactEvidence } from "./artifact-client.ts";
 import { PrivateReadError } from "./private-json.ts";
 
-export function useArtifactEvidence(actor: string, run: RunView, onUnauthorized: (reason: string) => void) {
+export function useArtifactEvidence(actor: string, run: RunView, onUnauthorized: (reason: string) => void, requested = true) {
   const native = run.capabilities.includes("session.link");
-  const enabled = native && run.sourceState === "connected" && !run.stale;
+  const enabled = requested && native && run.sourceState === "connected" && !run.stale;
   const identity = JSON.stringify([actor, run.key, run.sourceId, run.runId, run.sessionId, run.status, enabled, run.binding]);
   const [state, setState] = useState<{ identity: string; evidence: ArtifactEvidence | null; loading: boolean; failed: boolean }>({ identity: "", evidence: null, loading: false, failed: false });
   const [refresh, setRefresh] = useState(0);
