@@ -10,6 +10,9 @@ import { externalKey, type RunView } from "../packages/contracts/index.ts";
 import { missionFlow, missionEntityKey, type MissionNode } from "../packages/projection/mission-flow.ts";
 import { nativeFlowGroupDefinitions } from "../packages/projection/flow-group-definitions.ts";
 import { projectFlowGroups } from "../packages/projection/flow-groups.ts";
+import { LocalToolContent, localToolMessages } from "../apps/web/src/LocalToolContent.tsx";
+import { contentText, type WorkContent } from "../packages/contracts/work-content.ts";
+import { WorkContentPanel } from "../apps/web/src/WorkContentPanel.tsx";
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const at = "2026-11-21T00:00:00Z";
@@ -95,4 +98,21 @@ test("entering an Agent bundle removes surrounding hierarchy but preserves origi
   assert(base.edges.some(edge => edge.key === "root-agent"));
   const boundary = focusedFlow(projection.nodes, projection.edges, projection.parents, projection.groups, group.key, ["root", "agent"]);
   assert.equal(boundary.nodes, projection.nodes); assert.equal(boundary.edges, projection.edges);
+});
+
+test("local turn tools remain readable without a conversation journal and cannot borrow another call or invocation", () => {
+  const content: WorkContent = { title: "로컬 도구 검사", purpose: null, acceptanceCriteria: [], steps: [], result: null, failure: null,
+    coverage: "local-session-turn", incomplete: false, observedAt: at, messages: [
+      { id: "in", role: "tool", callId: "call", tool: "read_file", text: contentText('{"path":"docs/local.md"}'), occurredAt: at },
+      { id: "out", role: "tool", callId: "call", tool: "read_file", text: contentText("LOCAL_ORIGINAL_OUTPUT"), occurredAt: at },
+      { id: "other", role: "tool", callId: "other", tool: "read_file", text: contentText("OTHER_CALL_OUTPUT"), occurredAt: at }] };
+  const { invocationId: _invocation, ...localNode } = node;
+  const html = renderToStaticMarkup(createElement(LocalToolContent, { content, node: localNode }));
+  assert.match(html, /docs\/local.md/); assert.match(html, /LOCAL_ORIGINAL_OUTPUT/); assert.doesNotMatch(html, /OTHER_CALL_OUTPUT/);
+  assert.equal(localToolMessages(content).length, 3); assert.equal(localToolMessages(content, node).length, 0);
+  assert.equal(localToolMessages({ ...content, coverage: "native-message-journal" }, localNode).length, 0);
+  const read = { value: { version: 1 as const, runKey: run.key, sourceId: run.sourceId, runId: run.runId, sessionId: run.sessionId,
+    state: "connected" as const, attempt: null, content, detail: "" }, busy: false, error: false, retry: () => {} };
+  const panel = renderToStaticMarkup(createElement(WorkContentPanel, { run, read, node: localNode }));
+  assert.match(panel, /LOCAL_ORIGINAL_OUTPUT/); assert.doesNotMatch(panel, /OTHER_CALL_OUTPUT/);
 });

@@ -9,7 +9,7 @@ import { GroupWorkspaceContext } from "./group-workspace-context.ts";
 import { useConversationWindow } from "./useConversationWindow.ts";
 import { ConversationPanel, JournalEntry } from "./ConversationPanel.tsx";
 import { ReadableText } from "./ReadableText.tsx";
-import "./work-content.css";
+import { LocalToolContent } from "./LocalToolContent.tsx";
 
 export function ReadableContent({ value }: { value: ContentText }) {
   return <><ReadableText text={value.text} />{value.truncated && <p className="inline-warning">표시 한도까지 읽은 내용입니다. 전체 본문이 아닙니다.</p>}</>;
@@ -41,7 +41,8 @@ function ContentReader({ run, read, node }: { run: RunView; read: ReturnType<typ
   const [journalRequested, setJournalRequested] = useState(scoped);
   const selectTab = (next: string) => { setTab(next); if (next !== "summary") setJournalRequested(true); };
   const content = read.value?.content ?? null;
-  const journal = useConversationWindow(context?.actor ?? null, run, scoped ? node : undefined, !!content && journalRequested, context?.onUnauthorized ?? ignoreUnauthorized);
+  const local = content?.coverage === "local-session-turn";
+  const journal = useConversationWindow(context?.actor ?? null, run, scoped ? node : undefined, !!content && !local && journalRequested, context?.onUnauthorized ?? ignoreUnauthorized);
   const entries = journal.value?.page?.entries.filter(entry => conversationMatches(entry, node)) ?? [];
   const request = entries.find(entry => entry.kind === "message" && entry.role === "user");
   const latest = entries.filter(entry => entry.kind === "message" && entry.role === "assistant").at(-1);
@@ -55,7 +56,7 @@ function ContentReader({ run, read, node }: { run: RunView; read: ReturnType<typ
     <section id={`${id}-summary-panel`} role="tabpanel" aria-labelledby={`${id}-summary`} hidden={tab !== "summary"}>
       {scoped ? <>
         <p className="graph-legend">{node.kind === "tool" ? "이 도구의 호출 입력과 실제 응답입니다." : "이 Agent에 귀속된 요청과 메시지입니다."} 전체 Run의 응답으로 대체하지 않습니다.</p>
-        {node.kind === "tool" ? <ConversationPanel read={journal} node={node} kind="tools" /> : <>
+        {node.kind === "tool" ? local ? <LocalToolContent content={content!} node={node} /> : <ConversationPanel read={journal} node={node} kind="tools" /> : <>
           <h4>맡은 업무 · 전달받은 요청</h4>{request ? <JournalEntry entry={request} /> : <p>{journal.busy ? "해당 Agent의 요청을 찾는 중…" : "현재 탐색 범위에 전달받은 요청이 없습니다."}</p>}
           <h4>관측된 Agent 메시지</h4>{latest ? <JournalEntry entry={latest} /> : <p>현재 탐색 범위에 Agent 응답이 없습니다.</p>}
           <p className="inline-warning">최종 응답 미확인. 현재 원본은 진행·최종 구분을 제공하지 않아 마지막 메시지를 최종 결과로 확정하지 않습니다.</p>
@@ -70,11 +71,11 @@ function ContentReader({ run, read, node }: { run: RunView; read: ReturnType<typ
       </>}
     </section>
     <section id={`${id}-conversation-panel`} role="tabpanel" aria-labelledby={`${id}-conversation`} hidden={tab !== "conversation"}>
-      <ConversationPanel read={journal} {...(node ? { node } : {})} kind="messages" />
+      {!local && <ConversationPanel read={journal} {...(node ? { node } : {})} kind="messages" />}
       {!scoped && content?.messages.length && journal.value?.page?.recording !== "messages-v2" ? <details className="work-messages" open><summary>요청·응답 본문 reader · {content.messages.length}개</summary>
         <p className="graph-legend">이 시도의 요청·응답입니다. 당시 미수집한 중간 기록을 복원한 내용이 아닙니다.</p>{content.messages.filter(message => message.role !== "tool").map(message => <article className="work-message" key={message.id}><header>{message.role === "user" ? "요청" : "응답"}</header><ReadableContent value={message.text} /></article>)}</details> : null}
     </section>
-    <section id={`${id}-tools-panel`} role="tabpanel" aria-labelledby={`${id}-tools`} hidden={tab !== "tools"}><ConversationPanel read={journal} {...(node ? { node } : {})} kind="tools" /></section>
+    <section id={`${id}-tools-panel`} role="tabpanel" aria-labelledby={`${id}-tools`} hidden={tab !== "tools"}>{local ? <LocalToolContent content={content!} {...(node ? { node } : {})} /> : <ConversationPanel read={journal} {...(node ? { node } : {})} kind="tools" />}</section>
     <section id={`${id}-evidence-panel`} role="tabpanel" aria-labelledby={`${id}-evidence`} hidden={tab !== "evidence"}>
       <dl><dt>Run</dt><dd>{run.runId}</dd><dt>Session</dt><dd>{run.sessionId}</dd><dt>출처</dt><dd>{run.sourceLabel}</dd><dt>관측</dt><dd>{content?.observedAt ?? "본문 미확인"}</dd></dl>
       {node && <dl>{node.details.map((detail, index) => <div key={index}><dt>{detail.label}</dt><dd>{detail.value}</dd></div>)}</dl>}
