@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { EventView, RelationView, RunView, SourceView } from "../../../packages/contracts/index.ts";
 import { NodeWorkContent } from "./NodeWorkContent.tsx";
@@ -99,7 +100,7 @@ export function MissionFlow({ actor, run, runs, relations, events, sources = [],
     const visible = new Set(focus.nodes.map(node => node.key));
     const nodes: FlowNode[] = focus.nodes.map((node) => {
       const decorated = grouping.decorate(node, { id: node.key, type: "pyd-flow-node", position: { x: 0, y: 0 },
-      selected: selectedNode?.key === node.key, width: 240, height: 136, style: { width: 240, height: 136 },
+      selected: selectedNode?.key === node.key, width: CARD_DEFAULT_WIDTH, height: 136, style: { width: CARD_DEFAULT_WIDTH, height: 136 },
       ariaLabel: `${kinds[missionUnitKind(node)] ?? node.kind} · ${node.label} · ${statuses[node.status] ?? node.status}`,
       data: { title: node.label, description: node.description, kindLabel: kinds[missionUnitKind(node)] ?? node.kind, statusLabel: statuses[node.status] ?? node.status,
         kind: node.kind === "permission" ? "condition" : node.kind === "artifact" ? "result" : node.kind === "task" ? "trigger" : "action", status: cardStatus(node.status) } });

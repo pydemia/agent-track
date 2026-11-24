@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { RunView, SourceView } from "../../../packages/contracts/index.ts";
 import type { AssistantExecutionView } from "../../../packages/contracts/assistant-view.ts";
@@ -78,7 +79,7 @@ function DependencyMapScope({ sourceId, projectId, focusTaskId, sources, runs, a
   const name = (key: string) => grouping.inspectNodes.find((n) => n.key === key)?.label ?? key;
   const graph = useMemo(() => {
     const nodes: FlowNode[] = grouping.projection.nodes.map((n) => grouping.decorate(n, { id: n.key, type: "pyd-flow-node",
-      position: { x: 0, y: 0 }, width: 240, height: 136, style: { width: 240, height: 136,
+      position: { x: 0, y: 0 }, width: CARD_DEFAULT_WIDTH, height: 136, style: { width: CARD_DEFAULT_WIDTH, height: 136,
         ...(n.kind === "task" && n.id === focusTaskId ? { outline: "2px solid var(--lime)" } : {}) },
       selected: n.key === node?.key, ariaLabel: `${kindLabels[n.kind] ?? n.kind} ${n.label} ${stateLabels[n.status] ?? n.status}`,
       data: { title: n.label, kindLabel: n.kind === "task" ? "Projects 업무" : kindLabels[n.kind] ?? n.kind,

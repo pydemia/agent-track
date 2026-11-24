@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { layoutGroupedFlow } from "../apps/web/src/flow-group-layout.ts";
+import { CARD_DEFAULT_WIDTH } from "../apps/web/src/ui/card-size.ts";
 import type { FlowNode, FlowEdge } from "../apps/web/src/ui/flow-canvas.tsx";
 
-const leaf = (id: string, parentId?: string): FlowNode => ({ id, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: 240, height: 136,
+const leaf = (id: string, parentId?: string): FlowNode => ({ id, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: CARD_DEFAULT_WIDTH, height: 136,
   data: { title: id }, ...(parentId ? { parentId, extent: "parent" } : {}) });
-const container = (id: string, parentId?: string): FlowNode => ({ ...leaf(id, parentId), type: "pyd-flow-group", width: 320, height: 180,
+const container = (id: string, parentId?: string): FlowNode => ({ ...leaf(id, parentId), type: "pyd-flow-group", width: CARD_DEFAULT_WIDTH, height: 180,
   data: { title: id, group: { collapsed: false, basis: "native", partial: false, cyclicMembers: 0 } } });
 const edge = (id: string, source: string, target: string): FlowEdge => ({ id, source, target, type: "pyd-flow-edge" });
 

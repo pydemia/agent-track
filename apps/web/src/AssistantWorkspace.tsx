@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { SourceView, RunView } from "../../../packages/contracts/index.ts";
 import type { AssistantExecutionView } from "../../../packages/contracts/assistant-view.ts";
@@ -172,7 +173,7 @@ export function AssistantFlowMap({ entries, sources, runs = [], onSelect, onTask
   const group = choice?.kind === "node" ? grouping.groupByKey.get(choice.key) : undefined;
   const name = (key: string) => model.nodes.find(item => item.key === key)?.label ?? key;
   const graph = useMemo(() => {
-    const nodes: FlowNode[] = grouping.projection.nodes.map(item => grouping.decorate(item, { id: item.key, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: 240, height: 136,
+    const nodes: FlowNode[] = grouping.projection.nodes.map(item => grouping.decorate(item, { id: item.key, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: CARD_DEFAULT_WIDTH, height: 136,
       selected: item.key === node?.key, ariaLabel: `${kinds[item.kind] ?? item.kind} ${item.label}`,
       data: { title: item.label, kindLabel: kinds[item.kind] ?? item.kind, description: item.description,
         status: ["completed", "done", "succeeded"].includes(item.status) ? "complete" : ["running", "queued", "preparing", "publishing", "linking", "leasing", "waiting_for_permission"].includes(item.status) ? "running" : ["failed", "interrupted"].includes(item.status) ? "error" : "idle", statusLabel: states[item.status] ?? item.status } }));

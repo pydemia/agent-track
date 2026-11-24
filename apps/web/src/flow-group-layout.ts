@@ -1,5 +1,6 @@
 import type { FlowNode, FlowEdge } from "./ui/flow-canvas.tsx";
 import { layoutFlowGraph } from "./ui/flow-layout.ts";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 
 /** Pack children in parent-relative coordinates, then size and place their containers. */
 export function layoutGroupedFlow(nodes: FlowNode[], edges: FlowEdge[], order: string[] = []): { nodes: FlowNode[]; edges: FlowEdge[] } {
@@ -37,7 +38,7 @@ export function layoutGroupedFlow(nodes: FlowNode[], edges: FlowEdge[], order: s
     }
     if (parent) {
       const node = byId.get(parent)!;
-      const width = Math.max(320, ...ids.map(id => byId.get(id)!.position.x + Number(byId.get(id)!.width ?? 240) + 24));
+      const width = Math.max(CARD_DEFAULT_WIDTH, ...ids.map(id => byId.get(id)!.position.x + (byId.get(id)!.width ?? CARD_DEFAULT_WIDTH) + 24));
       const height = Math.max(180, ...ids.map(id => byId.get(id)!.position.y + Number(byId.get(id)!.height ?? 136) + 24));
       byId.set(parent, { ...node, width, height, style: { ...node.style, width, height } });
     }

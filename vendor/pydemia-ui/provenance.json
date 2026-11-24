@@ -13,9 +13,23 @@
     "Existing pyd-flow-group renderer adds explicit membership-basis/count summaries and keyboard collapse/enter actions; native cowork nodes remain distinct from visual containers.",
     "Optional viewport focus fits an entered group or revealed native member after node initialization, with parent/global navigation owned by Track.",
     "Layout spaces dependency columns using their maximum actual node/group width instead of a fixed width to avoid overlapping expanded groups.",
-    "MiniMap renders expanded groups as transparent outlines and leaf nodes in theme/status colors, retaining collapsed group areas and a smaller viewport-aware overview."
+    "MiniMap renders expanded groups as transparent outlines and leaf nodes in theme/status colors, retaining collapsed group areas and a smaller viewport-aware overview.",
+    "Canvas card and group geometry use the unmodified Card default width constant; the Card renderer and its dependencies are not vendored."
   ],
   "items": [
+    {
+      "name": "pyd-card",
+      "url": "https://ui.pydemia.ai/r/releases/sha256-7b66831687ea06e6fa4902199d2ae59b48392f0f0bf1567c01f2c9f5b37ae9e0/pyd-card.json",
+      "sha256": "870e27a9e80efa2ae75e2f2516cd981b158da1a5c0caee8945294a50e248d7c5",
+      "dependencies": [],
+      "registryDependencies": [],
+      "files": [
+        {
+          "path": "card-size.ts",
+          "sourceSha256": "ff99defa1d579f8e5918bd4b31614b7b27bc01cb9431024e3d40d80e172a7112"
+        }
+      ]
+    },
     {
       "name": "pyd-flow-canvas",
       "url": "https://ui.pydemia.ai/r/pyd-flow-canvas.json",

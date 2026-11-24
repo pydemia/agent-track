@@ -80,7 +80,7 @@ function FlowNodeCard({ data, selected }: NodeProps<FlowNode>) {
     const status = data.status ?? "idle";
     return <div data-ui="flow-node" data-kind={kind} data-status={status}
         data-selected={selected ? "true" : undefined}
-        className="min-w-44 max-w-56 rounded-md border border-border bg-surface text-foreground shadow-sm">
+        className="w-full min-w-0 rounded-md border border-border bg-surface text-foreground shadow-sm">
         <Handle type="target" position={Position.Left}
             aria-label={`${data.title} 입력 포트`} />
         <div data-slot="flow-node-heading" className="border-b border-border px-3 py-2">
@@ -90,7 +90,7 @@ function FlowNodeCard({ data, selected }: NodeProps<FlowNode>) {
             <strong className="block text-sm leading-5">{data.title}</strong>
         </div>
         <div data-slot="flow-node-body" className="flex items-start justify-between gap-2 px-3 py-2">
-            <span className="max-w-36 text-xs leading-4 text-muted">
+            <span className="min-w-0 text-xs leading-4 text-muted">
                 {data.description ?? "설명 없음"}
             </span>
             <span data-slot="flow-status" className="shrink-0 text-[11px] font-medium">

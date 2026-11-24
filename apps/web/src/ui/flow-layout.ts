@@ -1,6 +1,7 @@
 import type { FlowNode, FlowEdge } from "./flow-canvas.tsx";
 type FlowGraph = { nodes: FlowNode[]; edges: FlowEdge[] };
 import { flowNodeSize } from "./flow-alignment.ts";
+import { CARD_DEFAULT_WIDTH } from "./card-size.ts";
 
 function translateFlowControls(graph: FlowGraph,
     nextNodes: FlowGraph["nodes"]): FlowGraph {
@@ -96,7 +97,7 @@ function layoutFlowGraph(graph: FlowGraph, order: readonly string[] = []): FlowG
             positions.set(id, { x, y });
             y += Math.max(150, flowNodeSize(node).height + 42);
         }
-        x += Math.max(240, ...column.map(id => flowNodeSize(byId.get(id)!).width)) + 70;
+        x += Math.max(CARD_DEFAULT_WIDTH, ...column.map(id => flowNodeSize(byId.get(id)!).width)) + 70;
     }
     return translateFlowControls(graph,
         graph.nodes.map((node) => positions.has(node.id) ? {

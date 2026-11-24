@@ -1,3 +1,5 @@
+import { CARD_DEFAULT_WIDTH } from "./card-size.ts";
+
 type AlignmentNode = {
     id: string;
     position: { x: number; y: number };
@@ -8,12 +10,11 @@ type AlignmentNode = {
     measured?: { width?: number; height?: number };
 };
 
-const nodeWidth = 224;
 const nodeHeight = 104;
 
 function flowNodeSize(node: AlignmentNode) {
     return {
-        width: node.measured?.width ?? node.width ?? nodeWidth,
+        width: node.measured?.width ?? node.width ?? CARD_DEFAULT_WIDTH,
         height: node.measured?.height ?? node.height ?? nodeHeight,
     };
 }

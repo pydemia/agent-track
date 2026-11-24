@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 import { NodeWorkContent } from "./NodeWorkContent.tsx";
 import { MarkerType, type NodeChange, type EdgeChange } from "@xyflow/react";
 import type { RunView, RelationView, SourceView } from "../../../packages/contracts/index.ts";
@@ -58,7 +59,7 @@ export function GroupWorkspaceMap({ tasks, runs, executions, sources, relations,
   const group = grouping.projection.groups.find(item => choice?.kind === "node" && choice.key === item.key);
   const graph = useMemo(() => {
     const nodes: FlowNode[] = grouping.projection.nodes.map(item => grouping.decorate(item, {
-      id: item.key, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: 240, height: 136, style: { width: 240, height: 136 },
+      id: item.key, type: "pyd-flow-node", position: { x: 0, y: 0 }, width: CARD_DEFAULT_WIDTH, height: 136, style: { width: CARD_DEFAULT_WIDTH, height: 136 },
       selected: node?.key === item.key, ariaLabel: `${item.label} · ${groupStatusLabel(item.kind, item.status)}`,
       data: { title: item.label, description: item.description, kindLabel: missionUnitKind(item) === "invocation-reference" ? "호출 참조 · 생명주기 미관측" : item.kind, statusLabel: groupStatusLabel(item.kind, item.status),
         kind: item.kind === "task" ? "trigger" : "action", status: ["running", "in_progress", "queued", "waiting_for_permission"].includes(item.status) ? "running" : ["done", "succeeded", "completed"].includes(item.status) ? "complete" : item.status === "failed" ? "error" : "idle" },

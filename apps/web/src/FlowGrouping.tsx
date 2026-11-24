@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { CARD_DEFAULT_WIDTH } from "./ui/card-size.ts";
 import { GroupWorkspaceContext } from "./group-workspace-context.ts";
 import { missionUnitKind, type MissionNode, type MissionEdge } from "../../../packages/projection/mission-flow.ts";
 import { nativeFlowGroupDefinitions, withTaskBundles, groupsForNodes, type FlowGroupBy, type TaskBundle } from "../../../packages/projection/flow-group-definitions.ts";
@@ -180,7 +181,7 @@ export function useFlowGrouping(model: { nodes: MissionNode[]; edges: MissionEdg
     const group = groupByKey.get(node.key);
     if (!group) return { ...base, ...parentProps };
     const isCollapsed = collapsed.has(group.key);
-    const width = 320; const height = isCollapsed ? 172 : 180;
+    const width = CARD_DEFAULT_WIDTH; const height = isCollapsed ? 172 : 180;
     return { ...base, ...parentProps, type: "pyd-flow-group", width, height, zIndex: -1,
       style: { width, height }, ariaLabel: `${group.label} 그룹 · ${summary(group)} · ${isCollapsed ? "접힘" : "펼침"}`,
       data: { title: group.label, kindLabel: kindNames[group.kind] ?? group.kind, description: summary(group),
