@@ -384,3 +384,29 @@ td small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+:root { --pyd-accent: var(--lime); }
+
+/* pyd-tokens scrollbar rules (sha256-316e07ef209825896c1b4c69b0954286e73e30bcb78d08e63881509587c92551). */
+/* Theme-aware scrollbars */
+@media (forced-colors: none) {
+  :where(*) {
+    --pyd-scrollbar-thumb: color-mix(
+      in srgb,
+      var(--muted, var(--pyd-muted)) 70%,
+      var(--accent, var(--pyd-accent))
+    );
+    scrollbar-color: var(--pyd-scrollbar-thumb) transparent;
+    scrollbar-width: thin;
+  }
+
+  :where([data-ui="scroll-area"] [data-slot="scroll-thumb"]) {
+    background-color: var(--pyd-scrollbar-thumb);
+  }
+}
+
+@media (forced-colors: active) {
+  :where([data-ui="scroll-area"] [data-slot="scroll-thumb"]) {
+    background-color: ButtonText;
+  }
+}
