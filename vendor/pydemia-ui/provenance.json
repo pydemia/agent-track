@@ -14,7 +14,7 @@
     "Optional viewport focus fits an entered group or revealed native member after node initialization, with parent/global navigation owned by Track.",
     "Layout spaces dependency columns using their maximum actual node/group width instead of a fixed width to avoid overlapping expanded groups.",
     "MiniMap renders expanded groups as transparent outlines and leaf nodes in theme/status colors, retaining collapsed group areas and a smaller viewport-aware overview.",
-    "Canvas card and group geometry use the unmodified Card default width constant; the Card renderer and its dependencies are not vendored."
+    "Canvas card and group geometry use the Card default width constant, updated to 360px for Track."
   ],
   "items": [
     {
@@ -26,7 +26,8 @@
       "files": [
         {
           "path": "card-size.ts",
-          "sourceSha256": "ff99defa1d579f8e5918bd4b31614b7b27bc01cb9431024e3d40d80e172a7112"
+          "sourceSha256": "ff99defa1d579f8e5918bd4b31614b7b27bc01cb9431024e3d40d80e172a7112",
+          "adaptedSha256": "e6bf41dfd0445f457bd347a69a229150df071ee00e59cc187d157cfdb2a036d0"
         }
       ]
     },
